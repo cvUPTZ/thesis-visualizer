@@ -4,6 +4,7 @@ import { ThesisPreview } from './ThesisPreview';
 import { ThesisContent } from './thesis/ThesisContent';
 import { ThesisToolbar } from './thesis/ThesisToolbar';
 import { Chapter, Section, Thesis } from '@/types/thesis';
+import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 
 export const ThesisEditor = () => {
   const [thesis, setThesis] = useState<Thesis>({
@@ -103,6 +104,9 @@ export const ThesisEditor = () => {
       }
     ]
   });
+
+  // Initialize auto-save
+  useThesisAutosave(thesis);
 
   const [activeSection, setActiveSection] = useState<string>(thesis.frontMatter[0].id);
   const [showPreview, setShowPreview] = useState(false);
