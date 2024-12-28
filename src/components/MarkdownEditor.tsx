@@ -15,7 +15,6 @@ export const MarkdownEditor = ({ value, onChange, placeholder }: MarkdownEditorP
         onChange={(val) => onChange(val || '')}
         preview="edit"
         height={400}
-        placeholder={placeholder}
         className="border-none bg-transparent"
         hideToolbar={false}
         textareaProps={{

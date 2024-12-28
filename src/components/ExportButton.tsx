@@ -18,7 +18,7 @@ export const ExportButton = ({ contentRef }: ExportButtonProps) => {
       const ReactToPdf = await import('react-to-pdf');
       
       // Generate the PDF using the correct method
-      await ReactToPdf.default(contentRef.current, {
+      await ReactToPdf.default(() => contentRef.current, {
         filename: 'thesis.pdf',
         page: {
           margin: 20,
