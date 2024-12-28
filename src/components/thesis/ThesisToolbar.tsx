@@ -1,12 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Eye, EyeOff, Save, Users } from 'lucide-react';
+import { Download, Eye, EyeOff, Save, UserPlus, LogOut } from 'lucide-react';
 import { ThesisSaveButton } from './ThesisSaveButton';
 import { Thesis } from '@/types/thesis';
 import { generateThesisDocx } from '@/utils/docxExport';
 import { Packer } from 'docx';
 import { useToast } from '@/hooks/use-toast';
 import { CollaboratorsList } from './CollaboratorsList';
+import { UserInfo } from './UserInfo';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CollaboratorInviteForm } from '../collaboration/CollaboratorInviteForm';
 
 interface ThesisToolbarProps {
   thesisId: string;
@@ -22,6 +27,73 @@ export const ThesisToolbar = ({
   onTogglePreview,
 }: ThesisToolbarProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [userRole, setUserRole] = useState<string>('');
+  const [collaborators, setCollaborators] = useState<any[]>([]);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email, role')
+          .eq('id', user.id)
+          .single();
+
+        if (profile) {
+          setUserEmail(profile.email);
+          setUserRole(profile.role);
+          setIsAdmin(profile.role === 'admin');
+        }
+
+        const { data: collaboratorData } = await supabase
+          .from('thesis_collaborators')
+          .select('role')
+          .eq('thesis_id', thesisId)
+          .eq('user_id', user.id)
+          .single();
+
+        setCurrentUserRole(collaboratorData?.role || null);
+      }
+    };
+
+    fetchUserProfile();
+  }, [thesisId]);
+
+  useEffect(() => {
+    const fetchCollaborators = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('thesis_collaborators')
+          .select(`
+            user_id,
+            role,
+            profiles (
+              email,
+              role
+            )
+          `)
+          .eq('thesis_id', thesisId);
+
+        if (error) {
+          console.error('Error fetching collaborators:', error);
+          return;
+        }
+
+        setCollaborators(data || []);
+      } catch (error) {
+        console.error('Error fetching collaborators:', error);
+      }
+    };
+
+    if (thesisId) {
+      fetchCollaborators();
+    }
+  }, [thesisId]);
 
   const handleExportDocx = async () => {
     try {
@@ -50,6 +122,28 @@ export const ThesisToolbar = ({
     }
   };
 
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    navigate('/auth');
+  };
+
+  const handleInviteSuccess = () => {
+    toast({
+      title: "Success",
+      description: "Collaborator has been invited successfully.",
+    });
+  };
+
+  const canManageCollaborators = isAdmin || currentUserRole === 'owner' || currentUserRole === 'admin';
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -58,21 +152,55 @@ export const ThesisToolbar = ({
           <Download className="h-4 w-4" />
           Export DOCX
         </Button>
-        <CollaboratorsList thesisId={thesisId} />
-      </div>
-      <Button onClick={onTogglePreview} variant="outline" className="gap-2">
-        {showPreview ? (
-          <>
-            <EyeOff className="h-4 w-4" />
-            Hide Preview
-          </>
-        ) : (
-          <>
-            <Eye className="h-4 w-4" />
-            Show Preview
-          </>
+        {userEmail && <UserInfo email={userEmail} role={userRole} />}
+        <CollaboratorsList collaborators={collaborators} thesisId={thesisId} />
+        {canManageCollaborators && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                <UserPlus className="w-4 h-4" />
+                Add Collaborator
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <CollaboratorInviteForm
+                thesisId={thesisId}
+                thesisTitle={thesisData.frontMatter[0]?.title || 'Untitled Thesis'}
+                onInviteSuccess={handleInviteSuccess}
+                isAdmin={isAdmin}
+              />
+            </PopoverContent>
+          </Popover>
         )}
-      </Button>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button onClick={onTogglePreview} variant="outline" className="gap-2">
+          {showPreview ? (
+            <>
+              <EyeOff className="h-4 w-4" />
+              Hide Preview
+            </>
+          ) : (
+            <>
+              <Eye className="h-4 w-4" />
+              Show Preview
+            </>
+          )}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleLogout}
+          className="gap-2"
+        >
+          <LogOut className="h-4 w-4" />
+          Logout
+        </Button>
+      </div>
     </div>
   );
 };

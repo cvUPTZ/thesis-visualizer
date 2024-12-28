@@ -19,9 +19,10 @@ interface Collaborator {
 
 interface CollaboratorsListProps {
   collaborators: Collaborator[];
+  thesisId: string;
 }
 
-export const CollaboratorsList = ({ collaborators }: CollaboratorsListProps) => {
+export const CollaboratorsList = ({ collaborators, thesisId }: CollaboratorsListProps) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
