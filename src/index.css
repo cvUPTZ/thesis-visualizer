@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,4 +101,12 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.thesis-content {
+  @apply prose prose-lg max-w-none prose-headings:font-serif prose-headings:text-primary;
+}
+
+.editor-section {
+  @apply bg-editor-bg border border-editor-border rounded-lg p-6 mb-4;
 }
