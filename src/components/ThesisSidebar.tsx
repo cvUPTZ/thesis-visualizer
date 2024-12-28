@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Section } from './ThesisEditor';
+import { Section } from '@/types/thesis';
 import { FileText, Star } from 'lucide-react';
 
 interface ThesisSidebarProps {

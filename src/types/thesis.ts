@@ -23,6 +23,21 @@ export interface Table {
   number: number;
 }
 
+export interface Reference {
+  id: string;
+  title: string;
+  authors: string[];
+  year: string;
+  doi?: string;
+  url?: string;
+  journal?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  publisher?: string;
+  type: 'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other';
+}
+
 export interface Section {
   id: string;
   title: string;
@@ -49,6 +64,7 @@ export interface Section {
   figures: Figure[];
   tables: Table[];
   citations: Citation[];
+  references?: Reference[];
 }
 
 export interface Chapter {
