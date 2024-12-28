@@ -7,9 +7,10 @@ import { Profile } from '@/types/profile';
 
 interface CollaboratorManagerProps {
   thesisId: string;
+  thesisTitle: string;
 }
 
-export const CollaboratorManager = ({ thesisId }: CollaboratorManagerProps) => {
+export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManagerProps) => {
   const [collaborators, setCollaborators] = useState<any[]>([]);
   const [canManageCollaborators, setCanManageCollaborators] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
@@ -112,6 +113,7 @@ export const CollaboratorManager = ({ thesisId }: CollaboratorManagerProps) => {
         {canManageCollaborators && (
           <CollaboratorInviteForm
             thesisId={thesisId}
+            thesisTitle={thesisTitle}
             onInviteSuccess={fetchCollaborators}
             isAdmin={userProfile?.role === 'admin'}
           />

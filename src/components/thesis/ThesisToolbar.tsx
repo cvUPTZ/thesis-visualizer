@@ -24,11 +24,15 @@ export const ThesisToolbar = ({
           showPreview={showPreview} 
           onTogglePreview={onTogglePreview}
           thesisId={thesisId}
+          thesisTitle={thesisData?.title || 'Untitled Thesis'}
           isAdmin={isAdmin}
         />
         <ThesisSaveButton thesisId={thesisId} thesisData={thesisData} />
       </div>
-      <CollaboratorManager thesisId={thesisId} />
+      <CollaboratorManager 
+        thesisId={thesisId} 
+        thesisTitle={thesisData?.title || 'Untitled Thesis'} 
+      />
     </div>
   );
 };

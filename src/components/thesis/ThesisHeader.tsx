@@ -16,6 +16,7 @@ export interface ThesisHeaderProps {
   showPreview: boolean;
   onTogglePreview: () => void;
   thesisId: string;
+  thesisTitle: string;
   isAdmin?: boolean;
 }
 
@@ -23,6 +24,7 @@ export const ThesisHeader = ({
   showPreview, 
   onTogglePreview,
   thesisId,
+  thesisTitle,
   isAdmin = false
 }: ThesisHeaderProps) => {
   const navigate = useNavigate();
@@ -102,6 +104,7 @@ export const ThesisHeader = ({
           <PopoverContent className="w-80">
             <CollaboratorInviteForm
               thesisId={thesisId}
+              thesisTitle={thesisTitle}
               onInviteSuccess={handleInviteSuccess}
               isAdmin={isAdmin}
             />
