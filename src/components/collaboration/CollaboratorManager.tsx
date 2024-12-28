@@ -15,43 +15,67 @@ interface Collaborator {
 
 interface CollaboratorManagerProps {
   thesisId: string;
-  isOwner: boolean;
 }
 
-export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerProps) => {
+export const CollaboratorManager = ({ thesisId }: CollaboratorManagerProps) => {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+  const [isOwner, setIsOwner] = useState(false);
+
+  const checkOwnership = async () => {
+    try {
+      console.log('Checking ownership for thesis:', thesisId);
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) return;
+
+      const { data, error } = await supabase
+        .from('thesis_collaborators')
+        .select('role')
+        .eq('thesis_id', thesisId)
+        .eq('user_id', session.session.user.id)
+        .single();
+
+      if (error) {
+        console.error('Error checking ownership:', error);
+        return;
+      }
+
+      setIsOwner(data?.role === 'owner');
+      console.log('Is owner:', data?.role === 'owner');
+    } catch (error) {
+      console.error('Error checking ownership:', error);
+    }
+  };
 
   const fetchCollaborators = async () => {
-    console.log('Fetching collaborators for thesis:', thesisId);
-    
-    const { data, error } = await supabase
-      .from('thesis_collaborators')
-      .select(`
-        user_id,
-        role,
-        created_at,
-        profiles (
-          email
-        )
-      `)
-      .eq('thesis_id', thesisId);
+    try {
+      console.log('Fetching collaborators for thesis:', thesisId);
+      
+      const { data, error } = await supabase
+        .from('thesis_collaborators')
+        .select(`
+          user_id,
+          role,
+          created_at,
+          profiles (
+            email
+          )
+        `)
+        .eq('thesis_id', thesisId);
 
-    if (error) {
+      if (error) {
+        console.error('Error fetching collaborators:', error);
+        return;
+      }
+
+      console.log('Fetched collaborators:', data);
+      setCollaborators(data);
+    } catch (error) {
       console.error('Error fetching collaborators:', error);
-      return;
     }
-
-    console.log('Fetched collaborators:', data);
-
-    const formattedCollaborators = data.map(collab => ({
-      ...collab,
-      email: collab.profiles?.email
-    }));
-
-    setCollaborators(formattedCollaborators);
   };
 
   useEffect(() => {
+    checkOwnership();
     fetchCollaborators();
   }, [thesisId]);
 
