@@ -34,25 +34,23 @@ export const CollaboratorInviteForm = ({
 
     setLoading(true);
     try {
-      console.log('Looking up user by email:', email);
+      const cleanEmail = email.toLowerCase().trim();
+      console.log('Looking up user by email:', cleanEmail);
       
+      // First, check if the user exists
       const { data: profiles, error: profileError } = await supabase
         .from('profiles')
         .select('id, email')
-        .eq('email', email.toLowerCase().trim());
+        .eq('email', cleanEmail)
+        .limit(1);
 
       if (profileError) {
         console.error('Error finding user:', profileError);
-        toast({
-          title: "Error",
-          description: "An error occurred while looking up the user.",
-          variant: "destructive",
-        });
-        return;
+        throw new Error('Error looking up user');
       }
 
       if (!profiles || profiles.length === 0) {
-        console.log('No user found with email:', email);
+        console.log('No user found with email:', cleanEmail);
         toast({
           title: "User not found",
           description: "No user found with this email address. Please check the email and try again.",
@@ -67,22 +65,17 @@ export const CollaboratorInviteForm = ({
       // Check if user is already a collaborator
       const { data: existingCollaborator, error: collaboratorCheckError } = await supabase
         .from('thesis_collaborators')
-        .select('*')
+        .select()
         .eq('thesis_id', thesisId)
         .eq('user_id', profile.id)
-        .maybeSingle();
+        .limit(1);
 
       if (collaboratorCheckError) {
         console.error('Error checking existing collaborator:', collaboratorCheckError);
-        toast({
-          title: "Error",
-          description: "An error occurred while checking existing collaborators.",
-          variant: "destructive",
-        });
-        return;
+        throw new Error('Error checking existing collaborator');
       }
 
-      if (existingCollaborator) {
+      if (existingCollaborator && existingCollaborator.length > 0) {
         toast({
           title: "Already a collaborator",
           description: "This user is already a collaborator on this thesis.",
@@ -91,6 +84,7 @@ export const CollaboratorInviteForm = ({
         return;
       }
 
+      // Add the new collaborator
       const { error: insertError } = await supabase
         .from('thesis_collaborators')
         .insert({
@@ -101,17 +95,12 @@ export const CollaboratorInviteForm = ({
 
       if (insertError) {
         console.error('Error adding collaborator:', insertError);
-        toast({
-          title: "Error adding collaborator",
-          description: insertError.message,
-          variant: "destructive",
-        });
-        return;
+        throw new Error('Error adding collaborator');
       }
 
       toast({
         title: "Collaborator added",
-        description: `${email} has been added as a collaborator with ${role} role.`,
+        description: `${cleanEmail} has been added as a collaborator with ${role} role.`,
       });
 
       setEmail('');
