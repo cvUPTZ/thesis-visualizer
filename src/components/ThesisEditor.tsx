@@ -1,10 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
-import { EditorSection } from './EditorSection';
-import { ChapterManager } from './ChapterManager';
 import { ThesisPreview } from './ThesisPreview';
-import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { ThesisHeader } from './thesis/ThesisHeader';
+import { ThesisContent } from './thesis/ThesisContent';
 import { Chapter, Section, Thesis } from '@/types/thesis';
 
 export const ThesisEditor = () => {
@@ -174,40 +172,20 @@ export const ThesisEditor = () => {
       <main className="flex-1 p-8 flex">
         <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
           <div className="max-w-4xl mx-auto">
-            <div className="mb-6 flex justify-between items-center">
-              <h1 className="text-3xl font-serif text-primary">Thesis Editor</h1>
-              <Button
-                variant="outline"
-                onClick={() => setShowPreview(!showPreview)}
-              >
-                {showPreview ? 'Hide Preview' : 'Show Preview'}
-              </Button>
-            </div>
-            <div className="space-y-6">
-              {thesis.frontMatter.map(section => (
-                <EditorSection
-                  key={section.id}
-                  section={section}
-                  isActive={activeSection === section.id}
-                  onContentChange={handleContentChange}
-                  onTitleChange={handleTitleChange}
-                />
-              ))}
-              <ChapterManager
-                chapters={thesis.chapters}
-                onUpdateChapter={handleUpdateChapter}
-                onAddChapter={handleAddChapter}
-              />
-              {thesis.backMatter.map(section => (
-                <EditorSection
-                  key={section.id}
-                  section={section}
-                  isActive={activeSection === section.id}
-                  onContentChange={handleContentChange}
-                  onTitleChange={handleTitleChange}
-                />
-              ))}
-            </div>
+            <ThesisHeader 
+              showPreview={showPreview} 
+              onTogglePreview={() => setShowPreview(!showPreview)} 
+            />
+            <ThesisContent
+              frontMatter={thesis.frontMatter}
+              chapters={thesis.chapters}
+              backMatter={thesis.backMatter}
+              activeSection={activeSection}
+              onContentChange={handleContentChange}
+              onTitleChange={handleTitleChange}
+              onUpdateChapter={handleUpdateChapter}
+              onAddChapter={handleAddChapter}
+            />
           </div>
         </div>
         {showPreview && (
