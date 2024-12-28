@@ -8,7 +8,9 @@ interface Collaborator {
   user_id: string;
   role: string;
   created_at: string;
-  email?: string;
+  profiles?: {
+    email: string;
+  };
 }
 
 interface CollaboratorManagerProps {
@@ -28,7 +30,7 @@ export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerPr
         user_id,
         role,
         created_at,
-        profiles:user_id (
+        profiles (
           email
         )
       `)

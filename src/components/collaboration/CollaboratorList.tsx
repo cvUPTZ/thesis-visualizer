@@ -8,7 +8,9 @@ import { supabase } from '@/integrations/supabase/client';
 interface Collaborator {
   user_id: string;
   role: string;
-  email?: string;
+  profiles?: {
+    email: string;
+  };
 }
 
 interface CollaboratorListProps {
@@ -57,7 +59,7 @@ export const CollaboratorList = ({ collaborators, thesisId, isOwner, onCollabora
           className="flex items-center justify-between p-2 bg-muted rounded-lg"
         >
           <div className="flex items-center gap-2">
-            <span>{collaborator.email || collaborator.user_id}</span>
+            <span>{collaborator.profiles?.email || collaborator.user_id}</span>
             <Badge variant="secondary">{collaborator.role}</Badge>
           </div>
           {isOwner && collaborator.role !== 'owner' && (
