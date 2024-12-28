@@ -23,31 +23,75 @@ export const CollaboratorInviteForm = ({
   const { toast } = useToast();
 
   const handleInvite = async () => {
-    if (!email) return;
+    if (!email) {
+      toast({
+        title: "Email required",
+        description: "Please enter an email address.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(true);
     try {
       console.log('Looking up user by email:', email);
       
-      const { data: profile, error: profileError } = await supabase
+      const { data: profiles, error: profileError } = await supabase
         .from('profiles')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
+        .select('id, email')
+        .eq('email', email.toLowerCase().trim());
 
-      if (profileError || !profile) {
+      if (profileError) {
         console.error('Error finding user:', profileError);
         toast({
-          title: "User not found",
-          description: "Please check the email address and try again.",
+          title: "Error",
+          description: "An error occurred while looking up the user.",
           variant: "destructive",
         });
         return;
       }
 
+      if (!profiles || profiles.length === 0) {
+        console.log('No user found with email:', email);
+        toast({
+          title: "User not found",
+          description: "No user found with this email address. Please check the email and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const profile = profiles[0];
       console.log('Found user profile:', profile);
 
-      const { error } = await supabase
+      // Check if user is already a collaborator
+      const { data: existingCollaborator, error: collaboratorCheckError } = await supabase
+        .from('thesis_collaborators')
+        .select('*')
+        .eq('thesis_id', thesisId)
+        .eq('user_id', profile.id)
+        .single();
+
+      if (collaboratorCheckError && collaboratorCheckError.code !== 'PGRST116') {
+        console.error('Error checking existing collaborator:', collaboratorCheckError);
+        toast({
+          title: "Error",
+          description: "An error occurred while checking existing collaborators.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (existingCollaborator) {
+        toast({
+          title: "Already a collaborator",
+          description: "This user is already a collaborator on this thesis.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error: insertError } = await supabase
         .from('thesis_collaborators')
         .insert({
           thesis_id: thesisId,
@@ -55,11 +99,11 @@ export const CollaboratorInviteForm = ({
           role: role
         });
 
-      if (error) {
-        console.error('Error adding collaborator:', error);
+      if (insertError) {
+        console.error('Error adding collaborator:', insertError);
         toast({
           title: "Error adding collaborator",
-          description: error.message,
+          description: insertError.message,
           variant: "destructive",
         });
         return;
@@ -67,7 +111,7 @@ export const CollaboratorInviteForm = ({
 
       toast({
         title: "Collaborator added",
-        description: "The user has been added as a collaborator.",
+        description: `${email} has been added as a collaborator with ${role} role.`,
       });
 
       setEmail('');
@@ -77,7 +121,7 @@ export const CollaboratorInviteForm = ({
       console.error('Error inviting collaborator:', error);
       toast({
         title: "Error",
-        description: "An error occurred while adding the collaborator.",
+        description: "An unexpected error occurred while adding the collaborator.",
         variant: "destructive",
       });
     } finally {
