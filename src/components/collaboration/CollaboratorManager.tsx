@@ -65,7 +65,7 @@ export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerPr
         .from('profiles')
         .select('id')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
       if (profileError || !profiles) {
         toast({
