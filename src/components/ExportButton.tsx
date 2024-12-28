@@ -16,14 +16,13 @@ export const ExportButton = ({ contentRef }: ExportButtonProps) => {
     if (!contentRef.current) return;
 
     try {
-      const options = {
+      await toPDF({
+        targetRef: contentRef,
         filename: 'thesis.pdf',
-        page: {
+        options: {
           format: 'letter'
         }
-      };
-
-      await toPDF(contentRef, options);
+      });
       
       toast({
         title: "Export Successful",
