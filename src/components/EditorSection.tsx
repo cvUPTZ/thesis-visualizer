@@ -1,12 +1,12 @@
 import React from 'react';
 import { Section } from '@/types/thesis';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { FigureManager } from './FigureManager';
 import { TableManager } from './TableManager';
 import { CitationManager } from './CitationManager';
 import { ReferenceManager } from './ReferenceManager';
+import { MarkdownEditor } from './MarkdownEditor';
 
 interface EditorSectionProps {
   section: Section;
@@ -35,12 +35,13 @@ export const EditorSection = ({
           <Badge variant="secondary">Required</Badge>
         )}
       </div>
-      <Textarea
-        value={section.content}
-        onChange={(e) => onContentChange(section.id, e.target.value)}
-        className="min-h-[200px] border-none bg-transparent resize-none focus-visible:ring-0 mb-6"
-        placeholder="Start writing..."
-      />
+      <div className="mb-6">
+        <MarkdownEditor
+          value={section.content}
+          onChange={(value) => onContentChange(section.id, value || '')}
+          placeholder="Start writing..."
+        />
+      </div>
       <div className="space-y-8">
         <FigureManager
           figures={section.figures}
