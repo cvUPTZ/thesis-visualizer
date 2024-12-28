@@ -1,17 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, User } from 'lucide-react';
+import { Eye, EyeOff, User, UserPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { CollaboratorInviteForm } from '../collaboration/CollaboratorInviteForm';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export interface ThesisHeaderProps {
   showPreview: boolean;
   onTogglePreview: () => void;
+  thesisId: string;
+  isAdmin?: boolean;
 }
 
-export const ThesisHeader = ({ showPreview, onTogglePreview }: ThesisHeaderProps) => {
+export const ThesisHeader = ({ 
+  showPreview, 
+  onTogglePreview,
+  thesisId,
+  isAdmin = false
+}: ThesisHeaderProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [userEmail, setUserEmail] = useState<string>('');
@@ -55,6 +68,13 @@ export const ThesisHeader = ({ showPreview, onTogglePreview }: ThesisHeaderProps
     navigate('/auth');
   };
 
+  const handleInviteSuccess = () => {
+    toast({
+      title: "Success",
+      description: "Collaborator has been invited successfully.",
+    });
+  };
+
   return (
     <div className="flex justify-between items-center">
       <h1 className="text-2xl font-serif">Thesis Editor</h1>
@@ -68,6 +88,25 @@ export const ThesisHeader = ({ showPreview, onTogglePreview }: ThesisHeaderProps
             </Badge>
           </div>
         )}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <UserPlus className="w-4 h-4" />
+              Add Collaborator
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80">
+            <CollaboratorInviteForm
+              thesisId={thesisId}
+              onInviteSuccess={handleInviteSuccess}
+              isAdmin={isAdmin}
+            />
+          </PopoverContent>
+        </Popover>
         <Button
           variant="outline"
           size="sm"
