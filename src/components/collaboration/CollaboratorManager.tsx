@@ -1,11 +1,8 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { X, UserPlus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { CollaboratorInviteForm } from './CollaboratorInviteForm';
+import { CollaboratorList } from './CollaboratorList';
 
 interface Collaborator {
   user_id: string;
@@ -20,10 +17,7 @@ interface CollaboratorManagerProps {
 }
 
 export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerProps) => {
-  const [email, setEmail] = useState('');
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
   const fetchCollaborators = async () => {
     console.log('Fetching collaborators for thesis:', thesisId);
@@ -55,101 +49,9 @@ export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerPr
     setCollaborators(formattedCollaborators);
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchCollaborators();
   }, [thesisId]);
-
-  const handleInvite = async () => {
-    if (!email) return;
-
-    setLoading(true);
-    try {
-      console.log('Looking up user by email:', email);
-      
-      // First, get the user ID from the email
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
-
-      if (profileError || !profile) {
-        console.error('Error finding user:', profileError);
-        toast({
-          title: "User not found",
-          description: "Please check the email address and try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log('Found user profile:', profile);
-
-      // Add the collaborator
-      const { error } = await supabase
-        .from('thesis_collaborators')
-        .insert({
-          thesis_id: thesisId,
-          user_id: profile.id,
-          role: 'editor'
-        });
-
-      if (error) {
-        console.error('Error adding collaborator:', error);
-        toast({
-          title: "Error adding collaborator",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "Collaborator added",
-        description: "The user has been added as a collaborator.",
-      });
-
-      setEmail('');
-      fetchCollaborators();
-    } catch (error) {
-      console.error('Error inviting collaborator:', error);
-      toast({
-        title: "Error",
-        description: "An error occurred while adding the collaborator.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRemove = async (userId: string) => {
-    try {
-      console.log('Removing collaborator:', userId);
-      
-      const { error } = await supabase
-        .from('thesis_collaborators')
-        .delete()
-        .eq('thesis_id', thesisId)
-        .eq('user_id', userId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Collaborator removed",
-        description: "The collaborator has been removed from the thesis.",
-      });
-
-      fetchCollaborators();
-    } catch (error) {
-      console.error('Error removing collaborator:', error);
-      toast({
-        title: "Error",
-        description: "An error occurred while removing the collaborator.",
-        variant: "destructive",
-      });
-    }
-  };
 
   return (
     <Card className="border-2 border-editor-border">
@@ -158,46 +60,17 @@ export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerPr
       </CardHeader>
       <CardContent className="space-y-4">
         {isOwner && (
-          <div className="flex gap-2">
-            <Input
-              placeholder="Enter collaborator's email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-            />
-            <Button
-              onClick={handleInvite}
-              disabled={loading || !email}
-              className="gap-2"
-            >
-              <UserPlus className="w-4 h-4" />
-              Invite
-            </Button>
-          </div>
+          <CollaboratorInviteForm
+            thesisId={thesisId}
+            onInviteSuccess={fetchCollaborators}
+          />
         )}
-        <div className="space-y-2">
-          {collaborators.map((collaborator) => (
-            <div
-              key={collaborator.user_id}
-              className="flex items-center justify-between p-2 bg-muted rounded-lg"
-            >
-              <div className="flex items-center gap-2">
-                <span>{collaborator.email || collaborator.user_id}</span>
-                <Badge variant="secondary">{collaborator.role}</Badge>
-              </div>
-              {isOwner && collaborator.role !== 'owner' && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemove(collaborator.user_id)}
-                  className="h-8 w-8 p-0"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          ))}
-        </div>
+        <CollaboratorList
+          collaborators={collaborators}
+          thesisId={thesisId}
+          isOwner={isOwner}
+          onCollaboratorRemoved={fetchCollaborators}
+        />
       </CardContent>
     </Card>
   );
