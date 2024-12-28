@@ -13,6 +13,8 @@ interface CollaboratorInviteFormProps {
   thesisTitle: string;
 }
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const CollaboratorInviteForm = ({ 
   thesisId, 
   onInviteSuccess,
@@ -34,13 +36,50 @@ export const CollaboratorInviteForm = ({
       return;
     }
 
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const cleanEmail = email.toLowerCase().trim();
       const inviteLink = `${window.location.origin}/auth?thesisId=${thesisId}&role=${role}`;
       
       console.log('Sending invitation email...');
-      const { data: emailResponse, error: emailError } = await supabase.functions.invoke('send-invite-email', {
+        // Check for existing collaborator invitation
+      const { data: existingCollaborator, error: checkError } = await supabase
+        .from('thesis_collaborators')
+        .select('*')
+        .eq('thesis_id', thesisId)
+        .eq('profiles.email', cleanEmail)
+        .maybeSingle();
+
+
+      if (checkError) {
+         console.error('Error checking existing collaborator:', checkError);
+          toast({
+            title: "Error",
+            description: "Failed to send the invitation. Please try again.",
+            variant: "destructive",
+          });
+         return;
+      }
+
+      if(existingCollaborator) {
+        toast({
+            title: "Invitation Error",
+            description: "User is already a collaborator on the thesis.",
+            variant: "destructive",
+          });
+        return;
+      }
+
+       const { data: emailResponse, error: emailError } = await supabase.functions.invoke('send-invite-email', {
         body: {
           to: cleanEmail,
           thesisTitle,
@@ -49,9 +88,15 @@ export const CollaboratorInviteForm = ({
         },
       });
 
+
       if (emailError) {
         console.error('Error sending invitation email:', emailError);
-        throw new Error('Failed to send invitation email');
+       toast({
+            title: "Error",
+            description: `Failed to send the invitation. ${emailError.message || 'Please try again.'}`,
+            variant: "destructive",
+          });
+         return;
       }
 
       console.log('Invitation email sent successfully:', emailResponse);
@@ -64,11 +109,11 @@ export const CollaboratorInviteForm = ({
       setEmail('');
       setRole('editor');
       onInviteSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending invitation:', error);
       toast({
         title: "Error",
-        description: "Failed to send the invitation. Please try again.",
+        description: error.message || "Failed to send the invitation. Please try again.",
         variant: "destructive",
       });
     } finally {

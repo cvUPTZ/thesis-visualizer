@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
 interface Collaborator {
   user_id: string;
@@ -22,6 +23,20 @@ interface CollaboratorListProps {
   isAdmin: boolean;
   onCollaboratorRemoved: () => void;
 }
+
+
+const getBadgeVariant = (role: string) => {
+    if(role === 'owner') return "default";
+    if(role === 'admin') return "secondary";
+    return 'muted'
+}
+
+const canRemoveCollaborator = (isAdmin: boolean, currentUserRole: string | null, collaborator: Collaborator) => {
+    if (isAdmin) return true;
+    if (currentUserRole === 'owner') return true;
+    if (currentUserRole === 'admin' && collaborator.role !== 'owner') return true;
+    return false;
+  };
 
 export const CollaboratorList = ({ 
   collaborators, 
@@ -51,22 +66,16 @@ export const CollaboratorList = ({
       });
 
       onCollaboratorRemoved();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error removing collaborator:', error);
       toast({
         title: "Error",
-        description: "An error occurred while removing the collaborator.",
+        description: error.message || "An error occurred while removing the collaborator.",
         variant: "destructive",
       });
     }
   };
 
-  const canRemoveCollaborator = (collaborator: Collaborator) => {
-    if (isAdmin) return true;
-    if (currentUserRole === 'owner') return true;
-    if (currentUserRole === 'admin' && collaborator.role !== 'owner') return true;
-    return false;
-  };
 
   return (
     <div className="space-y-2">
@@ -77,12 +86,12 @@ export const CollaboratorList = ({
         >
           <div className="flex items-center gap-2">
             <span>{collaborator.profiles?.email || collaborator.user_id}</span>
-            <Badge variant="secondary">{collaborator.role}</Badge>
+            <Badge variant={getBadgeVariant(collaborator.role)}>{collaborator.role}</Badge>
             {collaborator.profiles?.role === 'admin' && (
               <Badge variant="default">Site Admin</Badge>
             )}
           </div>
-          {canManageCollaborators && canRemoveCollaborator(collaborator) && (
+          {canManageCollaborators && canRemoveCollaborator(isAdmin, currentUserRole, collaborator) && (
             <Button
               variant="ghost"
               size="sm"

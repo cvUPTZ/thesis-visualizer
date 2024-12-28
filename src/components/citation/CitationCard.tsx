@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Citation } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,9 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Quote } from 'lucide-react';
+import { TagInput } from '@/components/ui/tag-input';
+
+type CitationType = 'book' | 'article' | 'conference' | 'website' | 'other';
 
 interface CitationCardProps {
   citation: Citation;
@@ -19,6 +22,12 @@ interface CitationCardProps {
 }
 
 export const CitationCard = ({ citation, onRemove, onUpdate }: CitationCardProps) => {
+  const [authors, setAuthors] = useState(citation.authors)
+
+  const handleAuthorChange = (tags: string[]) => {
+    setAuthors(tags);
+    onUpdate({...citation, authors: tags})
+  }
   return (
     <Card className="border-2 border-editor-border">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -38,7 +47,7 @@ export const CitationCard = ({ citation, onRemove, onUpdate }: CitationCardProps
       <CardContent className="space-y-3">
         <Select
           value={citation.type}
-          onValueChange={(value: any) =>
+          onValueChange={(value: CitationType) =>
             onUpdate({ ...citation, type: value })
           }
         >
@@ -69,16 +78,10 @@ export const CitationCard = ({ citation, onRemove, onUpdate }: CitationCardProps
           }
           className="mb-2"
         />
-        <Input
-          placeholder="Authors (comma-separated)"
-          value={citation.authors.join(', ')}
-          onChange={(e) =>
-            onUpdate({
-              ...citation,
-              authors: e.target.value.split(',').map((a) => a.trim())
-            })
-          }
-          className="mb-2"
+        <TagInput
+           placeholder="Authors (comma-separated)"
+           tags={authors}
+           onChange={handleAuthorChange}
         />
         <Input
           placeholder="Year"
