@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
 import { EditorSection } from './EditorSection';
 import { ChapterManager } from './ChapterManager';
 import { ThesisPreview } from './ThesisPreview';
 import { Button } from '@/components/ui/button';
+import { ExportButton } from './ExportButton';
 import { PlusCircle } from 'lucide-react';
 import { Chapter, Section, Thesis } from '@/types/thesis';
 
@@ -107,6 +108,7 @@ export const ThesisEditor = () => {
 
   const [activeSection, setActiveSection] = useState<string>(thesis.frontMatter[0].id);
   const [showPreview, setShowPreview] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   const handleContentChange = (id: string, newContent: string) => {
     setThesis(prevThesis => ({
@@ -175,13 +177,15 @@ export const ThesisEditor = () => {
           <div className="max-w-4xl mx-auto">
             <div className="mb-6 flex justify-between items-center">
               <h1 className="text-3xl font-serif text-primary">Thesis Editor</h1>
-              <Button
-                variant="outline"
-                onClick={() => setShowPreview(!showPreview)}
-                className="ml-4"
-              >
-                {showPreview ? 'Hide Preview' : 'Show Preview'}
-              </Button>
+              <div className="flex gap-2">
+                <ExportButton contentRef={previewRef} />
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPreview(!showPreview)}
+                >
+                  {showPreview ? 'Hide Preview' : 'Show Preview'}
+                </Button>
+              </div>
             </div>
             <div className="space-y-6">
               {thesis.frontMatter.map(section => (
@@ -212,7 +216,9 @@ export const ThesisEditor = () => {
         </div>
         {showPreview && (
           <div className="w-1/2 pl-8 border-l">
-            <ThesisPreview thesis={thesis} />
+            <div ref={previewRef}>
+              <ThesisPreview thesis={thesis} />
+            </div>
           </div>
         )}
       </main>
