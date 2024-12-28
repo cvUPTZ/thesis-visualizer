@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Eye, EyeOff, Save, UserPlus, LogOut } from 'lucide-react';
+import { Download, Eye, EyeOff, Save, LogOut } from 'lucide-react';
 import { ThesisSaveButton } from './ThesisSaveButton';
 import { Thesis } from '@/types/thesis';
 import { generateThesisDocx } from '@/utils/docxExport';
 import { Packer } from 'docx';
 import { useToast } from '@/hooks/use-toast';
-import { CollaboratorsList } from './CollaboratorsList';
 import { UserInfo } from './UserInfo';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CollaboratorInviteForm } from '../collaboration/CollaboratorInviteForm';
+import { CollaboratorSection } from './toolbar/CollaboratorSection';
 
 interface ThesisToolbarProps {
   thesisId: string;
@@ -135,13 +133,6 @@ export const ThesisToolbar = ({
     navigate('/auth');
   };
 
-  const handleInviteSuccess = () => {
-    toast({
-      title: "Success",
-      description: "Collaborator has been invited successfully.",
-    });
-  };
-
   const canManageCollaborators = isAdmin || currentUserRole === 'owner' || currentUserRole === 'admin';
 
   return (
@@ -153,29 +144,13 @@ export const ThesisToolbar = ({
           Export DOCX
         </Button>
         {userEmail && <UserInfo email={userEmail} role={userRole} />}
-        <CollaboratorsList collaborators={collaborators} thesisId={thesisId} />
-        {canManageCollaborators && (
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-              >
-                <UserPlus className="w-4 h-4" />
-                Add Collaborator
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <CollaboratorInviteForm
-                thesisId={thesisId}
-                thesisTitle={thesisData.frontMatter[0]?.title || 'Untitled Thesis'}
-                onInviteSuccess={handleInviteSuccess}
-                isAdmin={isAdmin}
-              />
-            </PopoverContent>
-          </Popover>
-        )}
+        <CollaboratorSection
+          collaborators={collaborators}
+          thesisId={thesisId}
+          thesisTitle={thesisData.frontMatter[0]?.title || 'Untitled Thesis'}
+          canManageCollaborators={canManageCollaborators}
+          isAdmin={isAdmin}
+        />
       </div>
       <div className="flex items-center gap-2">
         <Button onClick={onTogglePreview} variant="outline" className="gap-2">
