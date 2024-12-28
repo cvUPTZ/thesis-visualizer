@@ -33,18 +33,19 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
         );
     };
 
-
     return (
-        <div className="thesis-preview">
-            {thesis.frontMatter.map((section) => renderSection(section))}
-            {thesis.chapters.map((chapter) => (
-                <div key={chapter.id}>
-                    {chapter.sections.map((section) => (
-                        renderSection(section, chapter.title)
-                    ))}
-                </div>
-            ))}
-            {thesis.backMatter.map((section) => renderSection(section))}
+        <div className="thesis-preview-scroll-container">
+            <div className="thesis-preview">
+                {thesis.frontMatter.map((section) => renderSection(section))}
+                {thesis.chapters.map((chapter) => (
+                    <div key={chapter.id}>
+                        {chapter.sections.map((section) => (
+                            renderSection(section, chapter.title)
+                        ))}
+                    </div>
+                ))}
+                {thesis.backMatter.map((section) => renderSection(section))}
+            </div>
         </div>
     );
 };
