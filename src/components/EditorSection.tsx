@@ -2,6 +2,7 @@ import React from 'react';
 import { Section } from './ThesisEditor';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 
 interface EditorSectionProps {
   section: Section;
@@ -20,11 +21,16 @@ export const EditorSection = ({
 
   return (
     <div className="editor-section">
-      <Input
-        value={section.title}
-        onChange={(e) => onTitleChange(section.id, e.target.value)}
-        className="text-xl font-serif mb-4 border-none bg-transparent px-0 focus-visible:ring-0"
-      />
+      <div className="flex items-center gap-3 mb-4">
+        <Input
+          value={section.title}
+          onChange={(e) => onTitleChange(section.id, e.target.value)}
+          className="text-xl font-serif border-none bg-transparent px-0 focus-visible:ring-0"
+        />
+        {section.required && (
+          <Badge variant="secondary">Required</Badge>
+        )}
+      </div>
       <Textarea
         value={section.content}
         onChange={(e) => onContentChange(section.id, e.target.value)}

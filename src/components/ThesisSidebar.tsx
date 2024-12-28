@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Section } from './ThesisEditor';
-import { FileText } from 'lucide-react';
+import { FileText, Star } from 'lucide-react';
 
 interface ThesisSidebarProps {
   sections: Section[];
@@ -16,7 +16,7 @@ export const ThesisSidebar = ({ sections, activeSection, onSectionSelect }: Thes
         <h2 className="text-lg font-serif text-primary font-semibold">Contents</h2>
       </div>
       <nav>
-        {sections.map((section) => (
+        {sections.sort((a, b) => a.order - b.order).map((section) => (
           <button
             key={section.id}
             onClick={() => onSectionSelect(section.id)}
@@ -26,7 +26,11 @@ export const ThesisSidebar = ({ sections, activeSection, onSectionSelect }: Thes
               activeSection === section.id && "bg-editor-bg text-primary font-medium"
             )}
           >
-            <FileText className="w-4 h-4" />
+            {section.required ? (
+              <Star className="w-4 h-4 fill-current" />
+            ) : (
+              <FileText className="w-4 h-4" />
+            )}
             <span className="truncate">{section.title}</span>
           </button>
         ))}
