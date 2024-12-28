@@ -38,18 +38,17 @@ export const CollaboratorInviteForm = ({
       console.log('Looking up user by email:', cleanEmail);
       
       // First, check if the user exists
-      const { data: profiles, error: profileError } = await supabase
+      let { data: userProfiles, error: profileError } = await supabase
         .from('profiles')
         .select('id, email')
-        .eq('email', cleanEmail)
-        .limit(1);
+        .eq('email', cleanEmail);
 
       if (profileError) {
         console.error('Error finding user:', profileError);
         throw new Error('Error looking up user');
       }
 
-      if (!profiles || profiles.length === 0) {
+      if (!userProfiles || userProfiles.length === 0) {
         console.log('No user found with email:', cleanEmail);
         toast({
           title: "User not found",
@@ -59,23 +58,22 @@ export const CollaboratorInviteForm = ({
         return;
       }
 
-      const profile = profiles[0];
+      const profile = userProfiles[0];
       console.log('Found user profile:', profile);
 
       // Check if user is already a collaborator
-      const { data: existingCollaborator, error: collaboratorCheckError } = await supabase
+      let { data: collaborators, error: collaboratorError } = await supabase
         .from('thesis_collaborators')
-        .select()
+        .select('*')
         .eq('thesis_id', thesisId)
-        .eq('user_id', profile.id)
-        .limit(1);
+        .eq('user_id', profile.id);
 
-      if (collaboratorCheckError) {
-        console.error('Error checking existing collaborator:', collaboratorCheckError);
+      if (collaboratorError) {
+        console.error('Error checking existing collaborator:', collaboratorError);
         throw new Error('Error checking existing collaborator');
       }
 
-      if (existingCollaborator && existingCollaborator.length > 0) {
+      if (collaborators && collaborators.length > 0) {
         toast({
           title: "Already a collaborator",
           description: "This user is already a collaborator on this thesis.",
