@@ -81,6 +81,13 @@ export type Database = {
             referencedRelation: "theses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "thesis_collaborators_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
