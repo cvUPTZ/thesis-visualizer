@@ -14,7 +14,7 @@ export const useThesisAutosave = (thesis: Thesis) => {
       const { error } = await supabase
         .from('theses')
         .update({ 
-          content: thesisData,
+          content: JSON.stringify(thesisData), // Convert to string to satisfy Json type
           updated_at: new Date().toISOString()
         })
         .eq('id', thesisData.id);

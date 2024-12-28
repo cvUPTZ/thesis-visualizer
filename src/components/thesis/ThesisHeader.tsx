@@ -161,7 +161,7 @@ export const ThesisHeader = ({
       <h1 className="text-2xl font-serif">Thesis Editor</h1>
       <div className="flex items-center gap-4">
         {userEmail && <UserInfo email={userEmail} role={userRole} />}
-        <CollaboratorsList collaborators={collaborators} />
+        <CollaboratorsList collaborators={collaborators} thesisId={thesisId} />
         {canManageCollaborators && (
           <Popover>
             <PopoverTrigger asChild>
