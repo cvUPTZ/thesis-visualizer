@@ -16,7 +16,7 @@ export const ExportButton = ({ contentRef }: ExportButtonProps) => {
     try {
       const ReactToPdf = await import('react-to-pdf');
       
-      await ReactToPdf.generatePdf(() => contentRef.current, {
+      await ReactToPdf.toPDF(() => contentRef.current, {
         filename: 'thesis.pdf',
         page: {
           format: 'letter',
