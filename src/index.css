@@ -110,3 +110,17 @@
 .editor-section {
   @apply bg-editor-bg border border-editor-border rounded-lg p-6 mb-4;
 }
+
+.page-break-before {
+  page-break-before: always;
+}
+
+@media print {
+  .thesis-content {
+    @apply text-black;
+  }
+
+  .page-break-before {
+    page-break-before: always;
+  }
+}
