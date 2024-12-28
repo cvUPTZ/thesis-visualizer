@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { FileDown } from 'lucide-react';
-import { generatePDF } from '@react-pdf/renderer';
 import { useToast } from '@/components/ui/use-toast';
 
 interface ExportButtonProps {
@@ -15,8 +14,11 @@ export const ExportButton = ({ contentRef }: ExportButtonProps) => {
     if (!contentRef.current) return;
 
     try {
-      const { toPDF } = await import('react-to-pdf');
-      await toPDF(contentRef, {
+      // Import the library dynamically
+      const ReactToPdf = await import('react-to-pdf');
+      
+      // Generate the PDF using the correct method
+      await ReactToPdf.default(contentRef.current, {
         filename: 'thesis.pdf',
         page: {
           margin: 20,
