@@ -1,11 +1,12 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Eye, EyeOff, Save } from 'lucide-react';
+import { Download, Eye, EyeOff, Save, Users } from 'lucide-react';
 import { ThesisSaveButton } from './ThesisSaveButton';
 import { Thesis } from '@/types/thesis';
 import { generateThesisDocx } from '@/utils/docxExport';
 import { Packer } from 'docx';
 import { useToast } from '@/hooks/use-toast';
+import { CollaboratorsList } from './CollaboratorsList';
 
 interface ThesisToolbarProps {
   thesisId: string;
@@ -57,6 +58,7 @@ export const ThesisToolbar = ({
           <Download className="h-4 w-4" />
           Export DOCX
         </Button>
+        <CollaboratorsList thesisId={thesisId} />
       </div>
       <Button onClick={onTogglePreview} variant="outline" className="gap-2">
         {showPreview ? (

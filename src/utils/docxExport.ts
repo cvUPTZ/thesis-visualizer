@@ -1,4 +1,4 @@
-import { Document, Paragraph, TextRun, PageBreak, Header, Footer, AlignmentType, LevelFormat, HeadingLevel, PageNumber, PageNumberFormat } from 'docx';
+import { Document, Paragraph, TextRun, PageBreak, Header, Footer, AlignmentType, LevelFormat, HeadingLevel, PageNumber, NumberFormat } from 'docx';
 import { Thesis, Section, Chapter } from '@/types/thesis';
 
 const createHeader = () => {
@@ -51,8 +51,7 @@ const createTitlePage = (thesis: Thesis) => {
       ],
     }),
     new Paragraph({
-      text: "",
-      break: 1,
+      children: [new PageBreak()],
     }),
   ];
 };
