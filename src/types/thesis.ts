@@ -75,6 +75,7 @@ export interface Chapter {
 }
 
 export interface Thesis {
+  id: string;
   frontMatter: Section[];
   chapters: Chapter[];
   backMatter: Section[];

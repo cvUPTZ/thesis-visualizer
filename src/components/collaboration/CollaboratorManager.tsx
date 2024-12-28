@@ -11,6 +11,7 @@ interface Collaborator {
   user_id: string;
   role: string;
   created_at: string;
+  email?: string;
 }
 
 interface CollaboratorManagerProps {
@@ -27,7 +28,14 @@ export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerPr
   const fetchCollaborators = async () => {
     const { data, error } = await supabase
       .from('thesis_collaborators')
-      .select('*')
+      .select(`
+        user_id,
+        role,
+        created_at,
+        profiles:user_id (
+          email
+        )
+      `)
       .eq('thesis_id', thesisId);
 
     if (error) {
@@ -35,7 +43,12 @@ export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerPr
       return;
     }
 
-    setCollaborators(data || []);
+    const formattedCollaborators = data.map(collab => ({
+      ...collab,
+      email: collab.profiles?.email
+    }));
+
+    setCollaborators(formattedCollaborators);
   };
 
   React.useEffect(() => {
@@ -48,13 +61,13 @@ export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerPr
     setLoading(true);
     try {
       // First, get the user ID from the email
-      const { data: users, error: userError } = await supabase
-        .from('users')
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
         .select('id')
         .eq('email', email)
         .single();
 
-      if (userError || !users) {
+      if (profileError || !profiles) {
         toast({
           title: "User not found",
           description: "Please check the email address and try again.",
@@ -68,7 +81,7 @@ export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerPr
         .from('thesis_collaborators')
         .insert({
           thesis_id: thesisId,
-          user_id: users.id,
+          user_id: profiles.id,
           role: 'editor'
         });
 
@@ -157,7 +170,7 @@ export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerPr
               className="flex items-center justify-between p-2 bg-muted rounded-lg"
             >
               <div className="flex items-center gap-2">
-                <span>{collaborator.user_id}</span>
+                <span>{collaborator.email || collaborator.user_id}</span>
                 <Badge variant="secondary">{collaborator.role}</Badge>
               </div>
               {isOwner && collaborator.role !== 'owner' && (

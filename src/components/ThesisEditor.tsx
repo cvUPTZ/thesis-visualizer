@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const ThesisEditor = () => {
   const [thesis, setThesis] = useState<Thesis>({
+    id: crypto.randomUUID(), // Add an ID for the thesis
     frontMatter: [
       {
         id: '1',
