@@ -16,11 +16,18 @@ interface Collaborator {
 interface CollaboratorListProps {
   collaborators: Collaborator[];
   thesisId: string;
-  isOwner: boolean;
+  canManageCollaborators: boolean;
+  currentUserRole: string | null;
   onCollaboratorRemoved: () => void;
 }
 
-export const CollaboratorList = ({ collaborators, thesisId, isOwner, onCollaboratorRemoved }: CollaboratorListProps) => {
+export const CollaboratorList = ({ 
+  collaborators, 
+  thesisId, 
+  canManageCollaborators,
+  currentUserRole, 
+  onCollaboratorRemoved 
+}: CollaboratorListProps) => {
   const { toast } = useToast();
 
   const handleRemove = async (userId: string) => {
@@ -51,6 +58,12 @@ export const CollaboratorList = ({ collaborators, thesisId, isOwner, onCollabora
     }
   };
 
+  const canRemoveCollaborator = (collaboratorRole: string) => {
+    if (currentUserRole === 'owner') return true;
+    if (currentUserRole === 'admin' && collaboratorRole !== 'owner') return true;
+    return false;
+  };
+
   return (
     <div className="space-y-2">
       {collaborators.map((collaborator) => (
@@ -62,7 +75,7 @@ export const CollaboratorList = ({ collaborators, thesisId, isOwner, onCollabora
             <span>{collaborator.profiles?.email || collaborator.user_id}</span>
             <Badge variant="secondary">{collaborator.role}</Badge>
           </div>
-          {isOwner && collaborator.role !== 'owner' && (
+          {canManageCollaborators && canRemoveCollaborator(collaborator.role) && (
             <Button
               variant="ghost"
               size="sm"

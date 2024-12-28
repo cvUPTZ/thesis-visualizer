@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +13,7 @@ interface CollaboratorInviteFormProps {
 
 export const CollaboratorInviteForm = ({ thesisId, onInviteSuccess }: CollaboratorInviteFormProps) => {
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState('editor');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -45,7 +47,7 @@ export const CollaboratorInviteForm = ({ thesisId, onInviteSuccess }: Collaborat
         .insert({
           thesis_id: thesisId,
           user_id: profile.id,
-          role: 'editor'
+          role: role
         });
 
       if (error) {
@@ -64,6 +66,7 @@ export const CollaboratorInviteForm = ({ thesisId, onInviteSuccess }: Collaborat
       });
 
       setEmail('');
+      setRole('editor');
       onInviteSuccess();
     } catch (error) {
       console.error('Error inviting collaborator:', error);
@@ -84,7 +87,17 @@ export const CollaboratorInviteForm = ({ thesisId, onInviteSuccess }: Collaborat
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         type="email"
+        className="flex-1"
       />
+      <Select value={role} onValueChange={setRole}>
+        <SelectTrigger className="w-[120px]">
+          <SelectValue placeholder="Select role" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="editor">Editor</SelectItem>
+          <SelectItem value="admin">Admin</SelectItem>
+        </SelectContent>
+      </Select>
       <Button
         onClick={handleInvite}
         disabled={loading || !email}

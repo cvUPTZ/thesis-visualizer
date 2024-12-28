@@ -19,11 +19,12 @@ interface CollaboratorManagerProps {
 
 export const CollaboratorManager = ({ thesisId }: CollaboratorManagerProps) => {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
-  const [isOwner, setIsOwner] = useState(false);
+  const [canManageCollaborators, setCanManageCollaborators] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
 
-  const checkOwnership = async () => {
+  const checkPermissions = async () => {
     try {
-      console.log('Checking ownership for thesis:', thesisId);
+      console.log('Checking permissions for thesis:', thesisId);
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) return;
 
@@ -35,14 +36,16 @@ export const CollaboratorManager = ({ thesisId }: CollaboratorManagerProps) => {
         .single();
 
       if (error) {
-        console.error('Error checking ownership:', error);
+        console.error('Error checking permissions:', error);
         return;
       }
 
-      setIsOwner(data?.role === 'owner');
-      console.log('Is owner:', data?.role === 'owner');
+      const role = data?.role;
+      setCurrentUserRole(role);
+      setCanManageCollaborators(role === 'owner' || role === 'admin');
+      console.log('Current user role:', role);
     } catch (error) {
-      console.error('Error checking ownership:', error);
+      console.error('Error checking permissions:', error);
     }
   };
 
@@ -75,7 +78,7 @@ export const CollaboratorManager = ({ thesisId }: CollaboratorManagerProps) => {
   };
 
   useEffect(() => {
-    checkOwnership();
+    checkPermissions();
     fetchCollaborators();
   }, [thesisId]);
 
@@ -85,7 +88,7 @@ export const CollaboratorManager = ({ thesisId }: CollaboratorManagerProps) => {
         <CardTitle className="text-lg font-serif">Collaborators</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {isOwner && (
+        {canManageCollaborators && (
           <CollaboratorInviteForm
             thesisId={thesisId}
             onInviteSuccess={fetchCollaborators}
@@ -94,7 +97,8 @@ export const CollaboratorManager = ({ thesisId }: CollaboratorManagerProps) => {
         <CollaboratorList
           collaborators={collaborators}
           thesisId={thesisId}
-          isOwner={isOwner}
+          canManageCollaborators={canManageCollaborators}
+          currentUserRole={currentUserRole}
           onCollaboratorRemoved={fetchCollaborators}
         />
       </CardContent>
