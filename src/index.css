@@ -107,17 +107,18 @@
   @apply prose prose-lg max-w-none prose-headings:font-serif prose-headings:text-primary;
   
   /* Academic formatting */
-  margin: 1in; /* Standard 1-inch margins */
-  line-height: 2;
+    line-height: 2;
   counter-reset: page 1;
+    font-size: 12pt; /* Set default font size */
+    font-family: 'Times New Roman', serif; /* Set default font */
+    margin: 1in; /* Standard 1-inch margins */
+
 }
 
 .thesis-page {
   position: relative;
   height: 11in;
   width: 8.5in;
-  padding: 1in;
-  margin-bottom: 0.5in;
   background: white;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
   page-break-after: always;
@@ -180,6 +181,7 @@
     box-shadow: none;
     margin: 0;
     height: 100vh;
+    width: 100%;
   }
 
   .page-break-before {
