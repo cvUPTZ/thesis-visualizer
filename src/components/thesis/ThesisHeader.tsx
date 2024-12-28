@@ -1,16 +1,16 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { LogOut } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-interface ThesisHeaderProps {
-  title: string;
-  onTitleChange: (title: string) => void;
+export interface ThesisHeaderProps {
+  showPreview: boolean;
+  onTogglePreview: () => void;
 }
 
-export const ThesisHeader = ({ title, onTitleChange }: ThesisHeaderProps) => {
+export const ThesisHeader = ({ showPreview, onTogglePreview }: ThesisHeaderProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -18,31 +18,45 @@ export const ThesisHeader = ({ title, onTitleChange }: ThesisHeaderProps) => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
+        title: "Error signing out",
+        description: error.message,
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Signed out",
-        description: "You have been successfully signed out.",
-      });
-      navigate("/auth");
+      return;
     }
+    navigate('/auth');
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border-b">
-      <Input
-        type="text"
-        value={title}
-        onChange={(e) => onTitleChange(e.target.value)}
-        className="text-2xl font-bold bg-transparent border-none focus-visible:ring-0 w-auto"
-        placeholder="Untitled Thesis"
-      />
-      <Button variant="ghost" size="icon" onClick={handleLogout}>
-        <LogOut className="h-5 w-5" />
-      </Button>
+    <div className="flex justify-between items-center">
+      <h1 className="text-2xl font-serif">Thesis Editor</h1>
+      <div className="flex gap-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onTogglePreview}
+          className="gap-2"
+        >
+          {showPreview ? (
+            <>
+              <EyeOff className="w-4 h-4" />
+              Hide Preview
+            </>
+          ) : (
+            <>
+              <Eye className="w-4 h-4" />
+              Show Preview
+            </>
+          )}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleLogout}
+        >
+          Logout
+        </Button>
+      </div>
     </div>
   );
 };

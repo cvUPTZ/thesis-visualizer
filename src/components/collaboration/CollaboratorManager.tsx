@@ -26,6 +26,8 @@ export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerPr
   const { toast } = useToast();
 
   const fetchCollaborators = async () => {
+    console.log('Fetching collaborators for thesis:', thesisId);
+    
     const { data, error } = await supabase
       .from('thesis_collaborators')
       .select(`
@@ -42,6 +44,8 @@ export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerPr
       console.error('Error fetching collaborators:', error);
       return;
     }
+
+    console.log('Fetched collaborators:', data);
 
     const formattedCollaborators = data.map(collab => ({
       ...collab,
@@ -60,14 +64,17 @@ export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerPr
 
     setLoading(true);
     try {
+      console.log('Looking up user by email:', email);
+      
       // First, get the user ID from the email
-      const { data: profiles, error: profileError } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
         .eq('email', email)
         .maybeSingle();
 
-      if (profileError || !profiles) {
+      if (profileError || !profile) {
+        console.error('Error finding user:', profileError);
         toast({
           title: "User not found",
           description: "Please check the email address and try again.",
@@ -76,16 +83,19 @@ export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerPr
         return;
       }
 
+      console.log('Found user profile:', profile);
+
       // Add the collaborator
       const { error } = await supabase
         .from('thesis_collaborators')
         .insert({
           thesis_id: thesisId,
-          user_id: profiles.id,
+          user_id: profile.id,
           role: 'editor'
         });
 
       if (error) {
+        console.error('Error adding collaborator:', error);
         toast({
           title: "Error adding collaborator",
           description: error.message,
@@ -115,6 +125,8 @@ export const CollaboratorManager = ({ thesisId, isOwner }: CollaboratorManagerPr
 
   const handleRemove = async (userId: string) => {
     try {
+      console.log('Removing collaborator:', userId);
+      
       const { error } = await supabase
         .from('thesis_collaborators')
         .delete()
