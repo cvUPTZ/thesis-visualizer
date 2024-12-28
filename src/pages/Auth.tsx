@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,12 +9,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const inviteThesisId = searchParams.get('thesisId');
+  const inviteRole = searchParams.get('role');
 
   useEffect(() => {
     // Check if user is already logged in
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        // If there's an invite, handle it
+        if (inviteThesisId && inviteRole) {
+          await handleInviteAcceptance(session.user.id, inviteThesisId, inviteRole);
+        }
         navigate("/");
       }
     };
@@ -23,9 +30,13 @@ const Auth = () => {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log("Auth state changed:", event);
-        if (event === "SIGNED_IN") {
+        if (event === "SIGNED_IN" && session) {
+          // If there's an invite, handle it
+          if (inviteThesisId && inviteRole) {
+            await handleInviteAcceptance(session.user.id, inviteThesisId, inviteRole);
+          }
           toast({
             title: "Welcome!",
             description: "You have successfully signed in.",
@@ -38,14 +49,64 @@ const Auth = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, toast]);
+  }, [navigate, toast, inviteThesisId, inviteRole]);
+
+  const handleInviteAcceptance = async (userId: string, thesisId: string, role: string) => {
+    try {
+      // Check if already a collaborator
+      const { data: existingCollaborator } = await supabase
+        .from('thesis_collaborators')
+        .select('*')
+        .eq('thesis_id', thesisId)
+        .eq('user_id', userId);
+
+      if (existingCollaborator && existingCollaborator.length > 0) {
+        toast({
+          title: "Already a collaborator",
+          description: "You are already a collaborator on this thesis.",
+        });
+        return;
+      }
+
+      // Add as collaborator
+      const { error: insertError } = await supabase
+        .from('thesis_collaborators')
+        .insert({
+          thesis_id: thesisId,
+          user_id: userId,
+          role: role
+        });
+
+      if (insertError) {
+        console.error('Error accepting invitation:', insertError);
+        toast({
+          title: "Error",
+          description: "Could not accept the invitation. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "You have been added as a collaborator.",
+      });
+    } catch (error) {
+      console.error('Error handling invitation:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred while processing your invitation.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-center text-2xl font-bold">
-            Welcome to Thesis Visualizer
+            {inviteThesisId ? 'Accept Collaboration Invitation' : 'Welcome to Thesis Visualizer'}
           </CardTitle>
         </CardHeader>
         <CardContent>
