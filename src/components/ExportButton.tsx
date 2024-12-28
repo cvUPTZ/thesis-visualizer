@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { FileDown } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { Download } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface ExportButtonProps {
   contentRef: React.RefObject<HTMLDivElement>;
@@ -11,10 +11,11 @@ export const ExportButton = ({ contentRef }: ExportButtonProps) => {
   const { toast } = useToast();
 
   const handleExport = async () => {
-    if (!contentRef.current) return;
-
     try {
-      // Import the library dynamically
+      if (!contentRef.current) {
+        throw new Error('Content not found');
+      }
+
       const ReactToPdf = await import('react-to-pdf');
       
       // Generate the PDF using the correct method
@@ -25,29 +26,24 @@ export const ExportButton = ({ contentRef }: ExportButtonProps) => {
           format: 'letter',
         },
       });
-      
+
       toast({
-        title: "Export Successful",
-        description: "Your thesis has been exported to PDF",
+        title: 'Success',
+        description: 'Your thesis has been exported to PDF',
       });
     } catch (error) {
-      console.error('PDF Export error:', error);
+      console.error('PDF export error:', error);
       toast({
-        title: "Export Failed",
-        description: "There was an error exporting your thesis",
-        variant: "destructive",
+        title: 'Export failed',
+        description: 'There was an error exporting your thesis to PDF',
+        variant: 'destructive',
       });
     }
   };
 
   return (
-    <Button
-      onClick={handleExport}
-      variant="outline"
-      size="sm"
-      className="gap-2"
-    >
-      <FileDown className="h-4 w-4" />
+    <Button variant="outline" onClick={handleExport}>
+      <Download className="w-4 h-4 mr-2" />
       Export PDF
     </Button>
   );
