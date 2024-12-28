@@ -49,19 +49,18 @@ export const CollaboratorInviteForm = ({
     try {
       const cleanEmail = email.toLowerCase().trim();
       const inviteLink = `${window.location.origin}/auth?thesisId=${thesisId}&role=${role}`;
-      
-      console.log('Sending invitation email...');
-        // Check for existing collaborator invitation
+
+        console.log('Sending invitation email...');
+      // Check for existing collaborator invitation
       const { data: existingCollaborator, error: checkError } = await supabase
         .from('thesis_collaborators')
-        .select('*')
-        .eq('thesis_id', thesisId)
-        .eq('profiles.email', cleanEmail)
-        .maybeSingle();
+          .select('*')
+          .eq('thesis_id', thesisId)
+           .eq('user_id', cleanEmail);
 
 
-      if (checkError) {
-         console.error('Error checking existing collaborator:', checkError);
+      if (checkError && checkError.code !== 'PGRST116') { //check if not "no data found" error
+          console.error('Error checking existing collaborator:', checkError);
           toast({
             title: "Error",
             description: "Failed to send the invitation. Please try again.",
@@ -69,6 +68,7 @@ export const CollaboratorInviteForm = ({
           });
          return;
       }
+
 
       if(existingCollaborator) {
         toast({
@@ -88,19 +88,18 @@ export const CollaboratorInviteForm = ({
         },
       });
 
-
       if (emailError) {
         console.error('Error sending invitation email:', emailError);
-       toast({
-            title: "Error",
-            description: `Failed to send the invitation. ${emailError.message || 'Please try again.'}`,
-            variant: "destructive",
-          });
+         toast({
+              title: "Error",
+              description: `Failed to send the invitation. ${emailError.message || 'Please try again.'}`,
+              variant: "destructive",
+            });
          return;
       }
 
       console.log('Invitation email sent successfully:', emailResponse);
-      
+
       toast({
         title: "Invitation Sent",
         description: `An invitation email has been sent to ${cleanEmail}`,

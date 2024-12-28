@@ -64,8 +64,8 @@ export const useCollaboratorPermissions = (thesisId: string) => {
       const role = collaboratorData?.role;
       setCurrentUserRole(role);
       setCanManageCollaborators(
-        role === 'owner' || 
-        role === 'admin' || 
+        role === 'owner' ||
+        role === 'admin' ||
         profileData?.role === 'admin'
       );
       console.log('Current user role:', role);
@@ -78,37 +78,37 @@ export const useCollaboratorPermissions = (thesisId: string) => {
   };
 
   const fetchCollaborators = async () => {
-    try {
-      setLoading(true)
-      console.log('Fetching collaborators for thesis:', thesisId);
-      
-      const { data, error } = await supabase
-        .from('thesis_collaborators')
-        .select(`
-          user_id,
-          role,
-          created_at,
-          profiles (
-            email,
-            role
-          )
-        `)
-        .eq('thesis_id', thesisId);
+     try {
+         setLoading(true);
+         console.log('Fetching collaborators for thesis:', thesisId);
 
-      if (error) {
-        console.error('Error fetching collaborators:', error);
-        setError(error)
-        return;
+         const { data, error } = await supabase
+           .from('thesis_collaborators')
+           .select(`
+             user_id,
+             role,
+             created_at,
+             profiles (
+               email,
+               role
+             )
+           `)
+           .eq('thesis_id', thesisId);
+
+         if (error) {
+           console.error('Error fetching collaborators:', error);
+           setError(new Error(error.message || 'Failed to fetch collaborators.')); // Wrap error
+           return;
+         }
+
+         console.log('Fetched collaborators:', data);
+         setCollaborators(data || []);
+     } catch (error: any) {
+         console.error('Error fetching collaborators:', error);
+         setError(new Error(error.message || 'An unexpected error occurred while fetching collaborators.')); // Wrap error
+     } finally {
+        setLoading(false);
       }
-
-      console.log('Fetched collaborators:', data);
-      setCollaborators(data || []);
-    } catch (error: any) {
-      console.error('Error fetching collaborators:', error);
-        setError(error)
-    } finally {
-        setLoading(false)
-    }
   };
 
   useEffect(() => {
