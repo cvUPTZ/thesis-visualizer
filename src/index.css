@@ -105,22 +105,88 @@
 
 .thesis-content {
   @apply prose prose-lg max-w-none prose-headings:font-serif prose-headings:text-primary;
+  
+  /* Academic formatting */
+  margin: 1in; /* Standard 1-inch margins */
+  line-height: 2;
+  counter-reset: page 1;
 }
 
-.editor-section {
-  @apply bg-editor-bg border border-editor-border rounded-lg p-6 mb-4;
+.thesis-page {
+  position: relative;
+  height: 11in;
+  width: 8.5in;
+  padding: 1in;
+  margin-bottom: 0.5in;
+  background: white;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  page-break-after: always;
+  counter-increment: page;
+}
+
+.thesis-page::after {
+  content: counter(page);
+  position: absolute;
+  bottom: 0.5in;
+  right: 0.5in;
+  font-size: 12pt;
+}
+
+.thesis-header {
+  position: absolute;
+  top: 0.5in;
+  left: 0.5in;
+  right: 0.5in;
+  text-align: center;
+  font-size: 10pt;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.25in;
+}
+
+.thesis-footer {
+  position: absolute;
+  bottom: 0.5in;
+  left: 0.5in;
+  right: 0.5in;
+  text-align: center;
+  font-size: 10pt;
+  border-top: 1px solid #eee;
+  padding-top: 0.25in;
 }
 
 .page-break-before {
   page-break-before: always;
 }
 
+.no-header {
+  .thesis-header {
+    display: none;
+  }
+}
+
+.no-footer {
+  .thesis-footer {
+    display: none;
+  }
+}
+
 @media print {
   .thesis-content {
-    @apply text-black;
+    margin: 0;
+    padding: 0;
+  }
+
+  .thesis-page {
+    box-shadow: none;
+    margin: 0;
+    height: 100vh;
   }
 
   .page-break-before {
     page-break-before: always;
   }
+}
+
+.editor-section {
+  @apply bg-editor-bg border border-editor-border rounded-lg p-6 mb-4;
 }
