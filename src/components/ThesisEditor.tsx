@@ -206,7 +206,7 @@ export const ThesisEditor = () => {
               showPreview={showPreview} 
               onTogglePreview={() => setShowPreview(!showPreview)} 
             />
-            <CollaboratorManager thesisId={thesis.id} isOwner={isOwner} />
+            <CollaboratorManager thesisId={thesis.id} />
             <ThesisContent
               frontMatter={thesis.frontMatter}
               chapters={thesis.chapters}

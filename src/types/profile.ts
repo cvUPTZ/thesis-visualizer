@@ -1,6 +1,6 @@
 export interface Profile {
   id: string;
   email: string;
-  role: 'user' | 'admin';
+  role: string;
   created_at: string;
 }
