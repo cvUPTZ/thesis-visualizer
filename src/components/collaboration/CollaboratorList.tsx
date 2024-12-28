@@ -24,11 +24,10 @@ interface CollaboratorListProps {
   onCollaboratorRemoved: () => void;
 }
 
-
 const getBadgeVariant = (role: string) => {
     if(role === 'owner') return "default";
     if(role === 'admin') return "secondary";
-    return 'muted'
+    return 'outline'
 }
 
 const canRemoveCollaborator = (isAdmin: boolean, currentUserRole: string | null, collaborator: Collaborator) => {
@@ -75,7 +74,6 @@ export const CollaboratorList = ({
       });
     }
   };
-
 
   return (
     <div className="space-y-2">
