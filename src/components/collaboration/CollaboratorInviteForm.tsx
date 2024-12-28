@@ -9,9 +9,14 @@ import { supabase } from '@/integrations/supabase/client';
 interface CollaboratorInviteFormProps {
   thesisId: string;
   onInviteSuccess: () => void;
+  isAdmin: boolean;
 }
 
-export const CollaboratorInviteForm = ({ thesisId, onInviteSuccess }: CollaboratorInviteFormProps) => {
+export const CollaboratorInviteForm = ({ 
+  thesisId, 
+  onInviteSuccess,
+  isAdmin 
+}: CollaboratorInviteFormProps) => {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('editor');
   const [loading, setLoading] = useState(false);
@@ -95,7 +100,7 @@ export const CollaboratorInviteForm = ({ thesisId, onInviteSuccess }: Collaborat
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="editor">Editor</SelectItem>
-          <SelectItem value="admin">Admin</SelectItem>
+          {isAdmin && <SelectItem value="admin">Admin</SelectItem>}
         </SelectContent>
       </Select>
       <Button

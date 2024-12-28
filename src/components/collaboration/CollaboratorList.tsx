@@ -10,6 +10,7 @@ interface Collaborator {
   role: string;
   profiles?: {
     email: string;
+    role: string;
   };
 }
 
@@ -18,6 +19,7 @@ interface CollaboratorListProps {
   thesisId: string;
   canManageCollaborators: boolean;
   currentUserRole: string | null;
+  isAdmin: boolean;
   onCollaboratorRemoved: () => void;
 }
 
@@ -25,7 +27,8 @@ export const CollaboratorList = ({
   collaborators, 
   thesisId, 
   canManageCollaborators,
-  currentUserRole, 
+  currentUserRole,
+  isAdmin,
   onCollaboratorRemoved 
 }: CollaboratorListProps) => {
   const { toast } = useToast();
@@ -58,9 +61,10 @@ export const CollaboratorList = ({
     }
   };
 
-  const canRemoveCollaborator = (collaboratorRole: string) => {
+  const canRemoveCollaborator = (collaborator: Collaborator) => {
+    if (isAdmin) return true;
     if (currentUserRole === 'owner') return true;
-    if (currentUserRole === 'admin' && collaboratorRole !== 'owner') return true;
+    if (currentUserRole === 'admin' && collaborator.role !== 'owner') return true;
     return false;
   };
 
@@ -74,8 +78,11 @@ export const CollaboratorList = ({
           <div className="flex items-center gap-2">
             <span>{collaborator.profiles?.email || collaborator.user_id}</span>
             <Badge variant="secondary">{collaborator.role}</Badge>
+            {collaborator.profiles?.role === 'admin' && (
+              <Badge variant="default">Site Admin</Badge>
+            )}
           </div>
-          {canManageCollaborators && canRemoveCollaborator(collaborator.role) && (
+          {canManageCollaborators && canRemoveCollaborator(collaborator) && (
             <Button
               variant="ghost"
               size="sm"
