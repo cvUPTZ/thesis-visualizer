@@ -14,9 +14,14 @@ const Auth = () => {
   const inviteRole = searchParams.get('role');
 
   useEffect(() => {
+    console.log('Auth component mounted');
+    console.log('Invite params:', { inviteThesisId, inviteRole });
+
     // Check if user is already logged in
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('Current session:', session);
+      
       if (session) {
         // If there's an invite, handle it
         if (inviteThesisId && inviteRole) {
@@ -53,14 +58,23 @@ const Auth = () => {
 
   const handleInviteAcceptance = async (userId: string, thesisId: string, role: string) => {
     try {
+      console.log('Handling invite acceptance:', { userId, thesisId, role });
+      
       // Check if already a collaborator
-      const { data: existingCollaborator } = await supabase
+      const { data: existingCollaborator, error: checkError } = await supabase
         .from('thesis_collaborators')
         .select('*')
         .eq('thesis_id', thesisId)
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .single();
 
-      if (existingCollaborator && existingCollaborator.length > 0) {
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Error checking existing collaborator:', checkError);
+        throw checkError;
+      }
+
+      if (existingCollaborator) {
+        console.log('Already a collaborator:', existingCollaborator);
         toast({
           title: "Already a collaborator",
           description: "You are already a collaborator on this thesis.",
@@ -87,6 +101,7 @@ const Auth = () => {
         return;
       }
 
+      console.log('Successfully added as collaborator');
       toast({
         title: "Success",
         description: "You have been added as a collaborator.",
