@@ -70,9 +70,9 @@ export const CollaboratorInviteForm = ({
         .select('*')
         .eq('thesis_id', thesisId)
         .eq('user_id', profile.id)
-        .single();
+        .maybeSingle();
 
-      if (collaboratorCheckError && collaboratorCheckError.code !== 'PGRST116') {
+      if (collaboratorCheckError) {
         console.error('Error checking existing collaborator:', collaboratorCheckError);
         toast({
           title: "Error",
