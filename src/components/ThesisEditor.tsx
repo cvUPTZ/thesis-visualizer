@@ -3,7 +3,10 @@ import { ThesisSidebar } from './ThesisSidebar';
 import { ThesisPreview } from './ThesisPreview';
 import { ThesisHeader } from './thesis/ThesisHeader';
 import { ThesisContent } from './thesis/ThesisContent';
+import { CollaboratorManager } from './collaboration/CollaboratorManager';
 import { Chapter, Section, Thesis } from '@/types/thesis';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const ThesisEditor = () => {
   const [thesis, setThesis] = useState<Thesis>({
@@ -105,7 +108,33 @@ export const ThesisEditor = () => {
 
   const [activeSection, setActiveSection] = useState<string>(thesis.frontMatter[0].id);
   const [showPreview, setShowPreview] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  // Check if current user is owner
+  React.useEffect(() => {
+    const checkOwnership = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('thesis_collaborators')
+        .select('role')
+        .eq('thesis_id', thesis.id)
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error checking ownership:', error);
+        return;
+      }
+
+      setIsOwner(data?.role === 'owner');
+    };
+
+    checkOwnership();
+  }, [thesis.id]);
 
   const handleContentChange = (id: string, newContent: string) => {
     setThesis(prevThesis => ({
@@ -171,11 +200,12 @@ export const ThesisEditor = () => {
       />
       <main className="flex-1 p-8 flex">
         <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto space-y-6">
             <ThesisHeader 
               showPreview={showPreview} 
               onTogglePreview={() => setShowPreview(!showPreview)} 
             />
+            <CollaboratorManager thesisId={thesis.id} isOwner={isOwner} />
             <ThesisContent
               frontMatter={thesis.frontMatter}
               chapters={thesis.chapters}
