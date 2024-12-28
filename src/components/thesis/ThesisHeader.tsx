@@ -1,24 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, User, UserPlus, Users } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
 import { CollaboratorInviteForm } from '../collaboration/CollaboratorInviteForm';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { UserInfo } from './UserInfo';
+import { CollaboratorsList } from './CollaboratorsList';
 
-export interface ThesisHeaderProps {
+interface ThesisHeaderProps {
   showPreview: boolean;
   onTogglePreview: () => void;
   thesisId: string;
   thesisTitle: string;
   isAdmin?: boolean;
+  thesisData: any;
 }
 
 interface Collaborator {
@@ -35,13 +32,15 @@ export const ThesisHeader = ({
   onTogglePreview,
   thesisId,
   thesisTitle,
-  isAdmin = false
+  isAdmin = false,
+  thesisData
 }: ThesisHeaderProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [userEmail, setUserEmail] = useState<string>('');
   const [userRole, setUserRole] = useState<string>('');
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -62,17 +61,24 @@ export const ThesisHeader = ({
           setUserEmail(profile.email);
           setUserRole(profile.role);
         }
+
+        const { data: collaboratorData } = await supabase
+          .from('thesis_collaborators')
+          .select('role')
+          .eq('thesis_id', thesisId)
+          .eq('user_id', user.id)
+          .single();
+
+        setCurrentUserRole(collaboratorData?.role || null);
       }
     };
 
     fetchUserProfile();
-  }, []);
+  }, [thesisId]);
 
   useEffect(() => {
     const fetchCollaborators = async () => {
       try {
-        console.log('Fetching collaborators for thesis:', thesisId);
-        
         const { data, error } = await supabase
           .from('thesis_collaborators')
           .select(`
@@ -90,7 +96,6 @@ export const ThesisHeader = ({
           return;
         }
 
-        console.log('Fetched collaborators:', data);
         setCollaborators(data || []);
       } catch (error) {
         console.error('Error fetching collaborators:', error);
@@ -122,75 +127,63 @@ export const ThesisHeader = ({
     });
   };
 
+  const handleSaveToJson = () => {
+    try {
+      const jsonData = JSON.stringify(thesisData, null, 2);
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `thesis_${thesisId}_${new Date().toISOString()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success",
+        description: "Thesis saved as JSON file.",
+      });
+    } catch (error) {
+      console.error('Error saving thesis to JSON:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save thesis as JSON file.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const canManageCollaborators = isAdmin || currentUserRole === 'owner' || currentUserRole === 'admin';
+
   return (
     <div className="flex justify-between items-center">
       <h1 className="text-2xl font-serif">Thesis Editor</h1>
       <div className="flex items-center gap-4">
-        {userEmail && (
-          <div className="flex items-center gap-2">
-            <User className="w-4 h-4" />
-            <span className="text-sm">{userEmail}</span>
-            <Badge variant="secondary" className="text-xs">
-              {userRole}
-            </Badge>
-          </div>
+        {userEmail && <UserInfo email={userEmail} role={userRole} />}
+        <CollaboratorsList collaborators={collaborators} />
+        {canManageCollaborators && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                <UserPlus className="w-4 h-4" />
+                Add Collaborator
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <CollaboratorInviteForm
+                thesisId={thesisId}
+                thesisTitle={thesisTitle}
+                onInviteSuccess={handleInviteSuccess}
+                isAdmin={isAdmin}
+              />
+            </PopoverContent>
+          </Popover>
         )}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-            >
-              <Users className="w-4 h-4" />
-              Collaborators ({collaborators.length})
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80">
-            <ScrollArea className="h-[200px] pr-4">
-              <div className="space-y-2">
-                {collaborators.map((collaborator) => (
-                  <div
-                    key={collaborator.user_id}
-                    className="flex items-center justify-between p-2 bg-muted rounded-lg"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">{collaborator.profiles?.email || collaborator.user_id}</span>
-                      <Badge variant="secondary" className="text-xs">
-                        {collaborator.role}
-                      </Badge>
-                      {collaborator.profiles?.role === 'admin' && (
-                        <Badge variant="default" className="text-xs">
-                          Site Admin
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </PopoverContent>
-        </Popover>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-            >
-              <UserPlus className="w-4 h-4" />
-              Add Collaborator
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80">
-            <CollaboratorInviteForm
-              thesisId={thesisId}
-              thesisTitle={thesisTitle}
-              onInviteSuccess={handleInviteSuccess}
-              isAdmin={isAdmin}
-            />
-          </PopoverContent>
-        </Popover>
         <Button
           variant="outline"
           size="sm"
@@ -208,6 +201,15 @@ export const ThesisHeader = ({
               Show Preview
             </>
           )}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSaveToJson}
+          className="gap-2"
+        >
+          <Save className="w-4 h-4" />
+          Save as JSON
         </Button>
         <Button
           variant="outline"

@@ -1,4 +1,3 @@
-import { ThesisSaveButton } from "./ThesisSaveButton";
 import { ThesisHeader } from "./ThesisHeader";
 import { CollaboratorManager } from "../collaboration/CollaboratorManager";
 
@@ -26,8 +25,8 @@ export const ThesisToolbar = ({
           thesisId={thesisId}
           thesisTitle={thesisData?.title || 'Untitled Thesis'}
           isAdmin={isAdmin}
+          thesisData={thesisData}
         />
-        <ThesisSaveButton thesisId={thesisId} thesisData={thesisData} />
       </div>
       <CollaboratorManager 
         thesisId={thesisId} 
