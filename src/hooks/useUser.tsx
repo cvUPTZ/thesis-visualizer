@@ -10,57 +10,70 @@ export const useUser = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // First check if we have a session
+    let mounted = true;
+
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/auth');
-        return;
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          navigate('/auth');
+          return;
+        }
+
+        if (!session) {
+          if (mounted) {
+            setUserEmail('');
+            setUserRole('');
+            navigate('/auth');
+          }
+          return;
+        }
+
+        // Only fetch profile if we have a valid session
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('email, role')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          return;
+        }
+
+        if (profile && mounted) {
+          setUserEmail(profile.email);
+          setUserRole(profile.role);
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+        if (mounted) {
+          navigate('/auth');
+        }
       }
     };
 
     checkSession();
 
-    const fetchUserProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('email, role')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error fetching profile:', error);
-          return;
-        }
-
-        if (profile) {
-          setUserEmail(profile.email);
-          setUserRole(profile.role);
-        }
-      }
-    };
-
-    fetchUserProfile();
-
-    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event);
       
-      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-        setUserEmail('');
-        setUserRole('');
-        navigate('/auth');
+      if (event === 'SIGNED_OUT') {
+        if (mounted) {
+          setUserEmail('');
+          setUserRole('');
+          navigate('/auth');
+        }
       } else if (event === 'SIGNED_IN' && session) {
-        // Refresh user profile when signed in
         const { data: profile } = await supabase
           .from('profiles')
           .select('email, role')
           .eq('id', session.user.id)
           .maybeSingle();
 
-        if (profile) {
+        if (profile && mounted) {
           setUserEmail(profile.email);
           setUserRole(profile.role);
         }
@@ -68,6 +81,7 @@ export const useUser = () => {
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [navigate]);
@@ -76,7 +90,6 @@ export const useUser = () => {
     try {
       console.log('Logging out...');
       
-      // First clear the session from Supabase
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -89,17 +102,14 @@ export const useUser = () => {
         return;
       }
       
-      // Clear local state
       setUserEmail('');
       setUserRole('');
       
-      // Show success message
       toast({
         title: "Success",
         description: "You have been signed out successfully.",
       });
       
-      // Navigate to auth page
       navigate('/auth');
     } catch (error: any) {
       console.error('Error in handleLogout:', error);
