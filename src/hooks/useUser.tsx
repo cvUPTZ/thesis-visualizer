@@ -19,6 +19,8 @@ export const useUser = () => {
         if (sessionError) {
           console.error('Session error:', sessionError);
           if (mounted) {
+            setUserEmail('');
+            setUserRole('');
             navigate('/auth');
           }
           return;
@@ -90,19 +92,23 @@ export const useUser = () => {
 
   const handleLogout = async () => {
     try {
-      console.log('Logging out...');
+      console.log('Checking session before logout...');
       
-      // Check if we have an active session first
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        console.log('No active session found, redirecting to auth...');
+        console.log('No active session found, cleaning up and redirecting...');
         setUserEmail('');
         setUserRole('');
+        toast({
+          title: "Already Signed Out",
+          description: "You were already signed out. Redirecting to login.",
+        });
         navigate('/auth');
         return;
       }
 
+      console.log('Active session found, signing out...');
       const { error } = await supabase.auth.signOut();
       
       if (error) {
