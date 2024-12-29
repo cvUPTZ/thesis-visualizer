@@ -10,6 +10,17 @@ export const useUser = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // First check if we have a session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/auth');
+        return;
+      }
+    };
+
+    checkSession();
+
     const fetchUserProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -17,7 +28,7 @@ export const useUser = () => {
           .from('profiles')
           .select('email, role')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching profile:', error);
@@ -34,11 +45,25 @@ export const useUser = () => {
     fetchUserProfile();
 
     // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event);
+      
+      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
         setUserEmail('');
         setUserRole('');
         navigate('/auth');
+      } else if (event === 'SIGNED_IN' && session) {
+        // Refresh user profile when signed in
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email, role')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (profile) {
+          setUserEmail(profile.email);
+          setUserRole(profile.role);
+        }
       }
     });
 
@@ -50,7 +75,10 @@ export const useUser = () => {
   const handleLogout = async () => {
     try {
       console.log('Logging out...');
+      
+      // First clear the session from Supabase
       const { error } = await supabase.auth.signOut();
+      
       if (error) {
         console.error('Error signing out:', error);
         toast({
@@ -65,13 +93,15 @@ export const useUser = () => {
       setUserEmail('');
       setUserRole('');
       
+      // Show success message
       toast({
         title: "Success",
         description: "You have been signed out successfully.",
       });
       
+      // Navigate to auth page
       navigate('/auth');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in handleLogout:', error);
       toast({
         title: "Error",
