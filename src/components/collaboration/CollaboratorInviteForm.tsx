@@ -55,38 +55,9 @@ export const CollaboratorInviteForm = ({
             console.log('Email Before Sanitization:', email);
             console.log('Email After Sanitization:', cleanEmail);
 
-            // Check for existing collaborator invitation
-            const { data: existingCollaborator, error: checkError } = await supabase
-                .from('thesis_collaborators')
-                .select('*')
-                .eq('thesis_id', thesisId)
-                .eq('user_id', cleanEmail)
-                .maybeSingle();
-
-            if (checkError) {
-                console.error('Error checking existing collaborator:', checkError);
-                toast({
-                    title: "Error",
-                    description: "Failed to check existing collaborator. Please try again.",
-                    variant: "destructive",
-                });
-                return;
-            }
-
-            if (existingCollaborator) {
-                toast({
-                    title: "Invitation Error",
-                    description: "User is already a collaborator on the thesis.",
-                    variant: "destructive",
-                });
-                return;
-            }
-
             const inviteLink = `${window.location.origin}/auth?thesisId=${thesisId}&role=${role}`;
             console.log('Sending invitation email...');
-
-            // Call the Supabase Edge Function to send the invitation email
-            const { data, error: emailError } = await supabase.functions.invoke('send-invite-email', {
+           const { data, error: emailError } = await supabase.functions.invoke('send-invite-email', {
                 body: {
                     to: cleanEmail,
                     thesisTitle,
@@ -95,14 +66,15 @@ export const CollaboratorInviteForm = ({
                 },
             });
 
+
             if (emailError) {
-              console.error('Error sending invitation email:', emailError);
-              toast({
-                  title: "Error",
-                  description: `Failed to send the invitation. ${emailError.message || 'Please try again.'}`,
-                  variant: "destructive",
-              });
-              return;
+                console.error('Error sending invitation email:', emailError);
+                toast({
+                    title: "Error",
+                    description: `Failed to send the invitation. ${emailError.message || 'Please try again.'}`,
+                    variant: "destructive",
+                });
+                return;
             }
 
             console.log('Invitation email sent successfully:', data);

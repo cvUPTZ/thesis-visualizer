@@ -77,40 +77,41 @@ export const useCollaboratorPermissions = (thesisId: string) => {
         }
     };
 
+    const fetchCollaborators = async () => {
+       try {
+            setLoading(true);
+            console.log('Fetching collaborators for thesis:', thesisId);
 
-  const fetchCollaborators = async () => {
-      try {
-          setLoading(true);
-          console.log('Fetching collaborators for thesis:', thesisId);
+            const { data, error } = await supabase
+                .from('thesis_collaborators')
+                .select(`
+                    user_id,
+                    role,
+                    created_at,
+                    profiles (
+                      email,
+                      role
+                    )
+                `)
+                .eq('thesis_id', thesisId);
 
-           const { data, error } = await supabase
-             .from('thesis_collaborators')
-             .select(`
-                user_id,
-                role,
-                created_at,
-                profiles (
-                email,
-                role
-                )
-              `)
-             .eq('thesis_id', thesisId)
-
-             if(error) {
-              console.error('Error fetching collaborators:', error);
-               setError(new Error(error.message || 'Failed to fetch collaborators.')); // Wrap error
-                return;
+           if (error) {
+            console.error('Error fetching collaborators:', error);
+                setError(new Error(error.message || 'Failed to fetch collaborators.')); // Wrap error
+               return;
            }
-            if(data){
-                console.log('Fetched collaborators:', data);
-                setCollaborators(data);
-              }
+
+         if (data) {
+               console.log('Fetched collaborators data:', data);
+              setCollaborators(data as Collaborator[]);
+         }
+
 
         } catch (error: any) {
             console.error('Error fetching collaborators:', error);
             setError(new Error(error.message || 'An unexpected error occurred while fetching collaborators.')); // Wrap error
         } finally {
-           setLoading(false);
+            setLoading(false);
         }
     };
 
