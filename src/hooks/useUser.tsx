@@ -15,14 +15,10 @@ export const useUser = () => {
     const checkSession = async () => {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
+
         if (sessionError) {
           console.error('Session error:', sessionError);
-          if (mounted) {
-            setUserEmail('');
-            setUserRole('');
-            navigate('/auth');
-          }
+          if (mounted) navigate('/auth');
           return;
         }
 
@@ -35,12 +31,11 @@ export const useUser = () => {
           return;
         }
 
-        // Only fetch profile if we have a valid session
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('email, role')
           .eq('id', session.user.id)
-          .maybeSingle();
+          .single(); // Use .single() instead of .maybeSingle() for consistency.
 
         if (profileError) {
           console.error('Error fetching profile:', profileError);
@@ -53,17 +48,13 @@ export const useUser = () => {
         }
       } catch (error) {
         console.error('Error checking session:', error);
-        if (mounted) {
-          navigate('/auth');
-        }
+        if (mounted) navigate('/auth');
       }
     };
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event);
-      
+    const authSubscription = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         if (mounted) {
           setUserEmail('');
@@ -71,78 +62,49 @@ export const useUser = () => {
           navigate('/auth');
         }
       } else if (event === 'SIGNED_IN' && session) {
-        const { data: profile } = await supabase
+        supabase
           .from('profiles')
           .select('email, role')
           .eq('id', session.user.id)
-          .maybeSingle();
-
-        if (profile && mounted) {
-          setUserEmail(profile.email);
-          setUserRole(profile.role);
-        }
+          .single()
+          .then(({ data: profile, error }) => {
+            if (error) {
+              console.error('Error fetching profile after sign in:', error);
+            } else if (profile && mounted) {
+              setUserEmail(profile.email);
+              setUserRole(profile.role);
+            }
+          });
       }
     });
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      authSubscription.data?.unsubscribe(); // Correctly unsubscribe from the auth state change
     };
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array to run only once
+
 
   const handleLogout = async () => {
-    try {
-      console.log('Checking session before logout...');
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        console.log('No active session found, cleaning up and redirecting...');
-        setUserEmail('');
-        setUserRole('');
-        toast({
-          title: "Already Signed Out",
-          description: "You were already signed out. Redirecting to login.",
-        });
-        navigate('/auth');
-        return;
-      }
-
-      console.log('Active session found, signing out...');
+    try {      
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) {
         console.error('Error signing out:', error);
-        toast({
-          title: "Error",
-          description: "Failed to sign out. Please try again.",
-          variant: "destructive",
-        });
-        return;
+        toast({ title: "Error", description: "Failed to sign out. Please try again.", variant: "destructive" });
+      } else {
+        setUserEmail('');
+        setUserRole('');
+        toast({ title: "Success", description: "You have been signed out successfully." });
+        navigate('/auth'); // Navigate after successful signout
       }
-      
-      setUserEmail('');
-      setUserRole('');
-      
-      toast({
-        title: "Success",
-        description: "You have been signed out successfully.",
-      });
-      
-      navigate('/auth');
-    } catch (error: any) {
+
+    } catch (error) {
       console.error('Error in handleLogout:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred while signing out.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "An unexpected error occurred while signing out.", variant: "destructive" });
     }
   };
 
-  return {
-    userEmail,
-    userRole,
-    handleLogout
-  };
+  return { userEmail, userRole, handleLogout };
 };
