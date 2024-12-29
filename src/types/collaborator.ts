@@ -1,4 +1,4 @@
-export type CollaboratorRole = 'editor' | 'admin' | 'owner';
+export type CollaboratorRole = 'owner' | 'admin' | 'editor';
 
 export interface CollaboratorWithProfile {
   user_id: string;
@@ -7,14 +7,4 @@ export interface CollaboratorWithProfile {
     email: string;
     role: string;
   };
-  created_at?: string;
-}
-
-export interface CollaboratorInviteFormProps {
-  thesisId: string;
-  thesisTitle: string;
-  onInviteSuccess: () => void;
-  onInviteError: (error: Error) => void;
-  isAdmin: boolean;
-  setIsInviting: (isInviting: boolean) => void;
 }

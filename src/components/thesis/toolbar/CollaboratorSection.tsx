@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { UserPlus, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CollaboratorInviteForm } from '@/components/collaboration/CollaboratorInviteForm';
-import { CollaboratorsList } from './CollaboratorsList';
 import { useToast } from '@/hooks/use-toast';
 import { CollaboratorWithProfile } from '@/types/collaborator';
 
@@ -46,7 +45,6 @@ export const CollaboratorSection = ({
 
   return (
     <div className="flex items-center gap-2">
-      <CollaboratorsList collaborators={collaborators} thesisId={thesisId} />
       {canManageCollaborators && (
         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
           <PopoverTrigger asChild>
