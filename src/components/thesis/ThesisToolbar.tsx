@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Eye, EyeOff, Save, LogOut } from 'lucide-react';
 import { ThesisSaveButton } from './ThesisSaveButton';
@@ -7,11 +7,10 @@ import { generateThesisDocx } from '@/utils/docxExport';
 import { Packer } from 'docx';
 import { useToast } from '@/hooks/use-toast';
 import { UserInfo } from './UserInfo';
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
 import { CollaboratorSection } from './toolbar/CollaboratorSection';
 import { useUser } from '@/hooks/useUser';
 import { useCollaboratorPermissions } from '@/hooks/useCollaboratorPermissions';
+import { CollaboratorWithProfile } from '@/types/collaborator';
 
 interface ThesisToolbarProps {
   thesisId: string;
@@ -27,16 +26,15 @@ export const ThesisToolbar = ({
   onTogglePreview,
 }: ThesisToolbarProps) => {
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const {userEmail, userRole, handleLogout} = useUser();
-    const {
-        collaborators,
-        canManageCollaborators,
-        currentUserRole,
-        userProfile,
-         loading,
-        error,
-      } = useCollaboratorPermissions(thesisId);
+  const { userEmail, userRole, handleLogout } = useUser();
+  const {
+    collaborators,
+    canManageCollaborators,
+    currentUserRole,
+    userProfile,
+    loading,
+    error,
+  } = useCollaboratorPermissions(thesisId);
 
   const handleExportDocx = async () => {
     try {
@@ -65,7 +63,7 @@ export const ThesisToolbar = ({
     }
   };
 
-  const canManageCollaboratorsProp =  currentUserRole === 'owner' || currentUserRole === 'admin' || userProfile?.role === 'admin'
+  const canManageCollaboratorsProp = currentUserRole === 'owner' || currentUserRole === 'admin' || userProfile?.role === 'admin';
 
   return (
     <div className="flex items-center justify-between">
@@ -76,13 +74,13 @@ export const ThesisToolbar = ({
           Export DOCX
         </Button>
         {userEmail && <UserInfo email={userEmail} role={userRole} />}
-          <CollaboratorSection
-              collaborators={collaborators}
-              thesisId={thesisId}
-              thesisTitle={thesisData.frontMatter[0]?.title || 'Untitled Thesis'}
-              canManageCollaborators={canManageCollaboratorsProp}
-              isAdmin={userProfile?.role === 'admin'}
-          />
+        <CollaboratorSection
+          collaborators={collaborators as CollaboratorWithProfile[]}
+          thesisId={thesisId}
+          thesisTitle={thesisData.frontMatter[0]?.title || 'Untitled Thesis'}
+          canManageCollaborators={canManageCollaboratorsProp}
+          isAdmin={userProfile?.role === 'admin'}
+        />
       </div>
       <div className="flex items-center gap-2">
         <Button onClick={onTogglePreview} variant="outline" className="gap-2">
@@ -101,7 +99,7 @@ export const ThesisToolbar = ({
         <Button
           variant="outline"
           size="sm"
-            onClick={handleLogout}
+          onClick={handleLogout}
           className="gap-2"
         >
           <LogOut className="h-4 w-4" />

@@ -8,3 +8,12 @@ export interface CollaboratorWithProfile {
     role: string;
   };
 }
+
+export interface Collaborator {
+  user_id: string;
+  role: CollaboratorRole;
+  profiles?: {
+    email: string;
+    role: string;
+  };
+}
