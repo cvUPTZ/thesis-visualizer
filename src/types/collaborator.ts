@@ -1,10 +1,19 @@
-import { Database } from './supabase';
+import { Profile } from './profile';
 
-export type Profile = Database['public']['Tables']['profiles']['Row'];
-export type ThesisCollaborator = Database['public']['Tables']['thesis_collaborators']['Row'];
+export type CollaboratorRole = 'editor' | 'admin' | 'owner';
 
-export interface CollaboratorWithProfile extends ThesisCollaborator {
-  profile: Profile;
+export interface CollaboratorWithProfile {
+  user_id: string;
+  role: CollaboratorRole;
+  profile?: Profile;
+  created_at?: string;
 }
 
-export type CollaboratorRole = 'editor' | 'admin';
+export interface CollaboratorInviteFormProps {
+  thesisId: string;
+  thesisTitle: string;
+  onInviteSuccess: () => void;
+  onInviteError: (error: Error) => void;
+  isAdmin: boolean;
+  setIsInviting: (isInviting: boolean) => void;
+}

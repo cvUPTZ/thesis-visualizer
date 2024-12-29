@@ -41,6 +41,7 @@ export const ThesisHeader = ({
   const [userRole, setUserRole] = useState<string>('');
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [isInviting, setIsInviting] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -127,6 +128,14 @@ export const ThesisHeader = ({
     });
   };
 
+  const handleInviteError = (error: Error) => {
+    toast({
+      title: "Error",
+      description: error.message || "Failed to invite collaborator. Please try again.",
+      variant: "destructive",
+    });
+  };
+
   const handleSaveToJson = () => {
     try {
       const jsonData = JSON.stringify(thesisData, null, 2);
@@ -179,7 +188,9 @@ export const ThesisHeader = ({
                 thesisId={thesisId}
                 thesisTitle={thesisTitle}
                 onInviteSuccess={handleInviteSuccess}
+                onInviteError={handleInviteError}
                 isAdmin={isAdmin}
+                setIsInviting={setIsInviting}
               />
             </PopoverContent>
           </Popover>

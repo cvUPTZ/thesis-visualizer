@@ -1,4 +1,3 @@
-// components/CollaboratorManager.tsx
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,9 +7,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useCollaboratorPermissions } from '@/hooks/useCollaboratorPermissions';
 import { Bell, BellRing } from 'lucide-react';
 
-// ... other imports (Collaborator, Profile, etc.)
-
-
 interface CollaboratorManagerProps {
     thesisId: string;
     thesisTitle: string;
@@ -19,6 +15,7 @@ interface CollaboratorManagerProps {
 export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManagerProps) => {
     const [hasNewInvites, setHasNewInvites] = useState(false);
     const { toast } = useToast();
+    const [isInviting, setIsInviting] = useState(false);
 
     const {
         collaborators,
@@ -31,8 +28,6 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
     } = useCollaboratorPermissions(thesisId);
 
     useEffect(() => {
-        // ... other logic (checkPermissions, fetchCollaborators)
-
         const inviteSubscription = supabase
             .channel('thesis-invites')
             .on('postgres_changes', {
@@ -55,12 +50,11 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
             inviteSubscription.unsubscribe();
         };
 
-    }, [thesisId, toast, fetchCollaborators]); // Include fetchCollaborators
+    }, [thesisId, toast, fetchCollaborators]);
 
     const handleClearNotification = () => {
         setHasNewInvites(false);
     };
-
 
     if (loading) {
         return (
@@ -72,7 +66,6 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
         );
     }
 
-
     if (error) {
         toast({
             title: "Error",
@@ -82,12 +75,21 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
         return null; // Or display an error message
     }
 
+    const handleInviteSuccess = () => {
+        fetchCollaborators();
+    };
 
-
+    const handleInviteError = (error: Error) => {
+        toast({
+            title: "Error",
+            description: error.message || "Failed to invite collaborator. Please try again.",
+            variant: "destructive",
+        });
+    };
 
     return (
         <div>
-            <div onClick={handleClearNotification} className="relative ml-auto"> {/* Position as needed */}
+            <div onClick={handleClearNotification} className="relative ml-auto">
                 {hasNewInvites ? (
                   <BellRing className="w-6 h-6 text-blue-500 animate-bounce" />
                 ) : (
@@ -95,34 +97,33 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
                 )}
                 {hasNewInvites && (
                     <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">
-
                     </span>
                 )}
             </div>
 
-            <Card> {/* Rest of the component */}
+            <Card>
                 <CardHeader>
                     <CardTitle>Collaborators</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {/* ... (CollaboratorInviteForm, CollaboratorList) */}
-                      {canManageCollaborators && (
+                    {canManageCollaborators && (
                         <CollaboratorInviteForm
                           thesisId={thesisId}
                           thesisTitle={thesisTitle}
-                          onInviteSuccess={fetchCollaborators}
+                          onInviteSuccess={handleInviteSuccess}
+                          onInviteError={handleInviteError}
                           isAdmin={userProfile?.role === 'admin'}
+                          setIsInviting={setIsInviting}
                         />
-                      )}
-                      <CollaboratorList
+                    )}
+                    <CollaboratorList
                         collaborators={collaborators}
                         thesisId={thesisId}
                         canManageCollaborators={canManageCollaborators}
                         currentUserRole={currentUserRole}
                         isAdmin={userProfile?.role === 'admin'}
                         onCollaboratorRemoved={fetchCollaborators}
-                      />
-
+                    />
                 </CardContent>
             </Card>
         </div>

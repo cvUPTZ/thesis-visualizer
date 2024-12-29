@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CollaboratorInviteForm } from '../../collaboration/CollaboratorInviteForm';
-import { CollaboratorsList } from '../CollaboratorsList';
+import { CollaboratorInviteForm } from '@/components/collaboration/CollaboratorInviteForm';
+import { CollaboratorsList } from './CollaboratorsList';
 import { useToast } from '@/hooks/use-toast';
 import { CollaboratorWithProfile } from '@/types/collaborator';
 
