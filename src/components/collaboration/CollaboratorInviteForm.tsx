@@ -85,6 +85,7 @@ export const CollaboratorInviteForm = ({
             const inviteLink = `${window.location.origin}/auth?thesisId=${thesisId}&role=${role}`;
             console.log('Sending invitation email...');
 
+            // Call the Supabase Edge Function to send the invitation email
             const { data: emailResponse, error: emailError } = await supabase.functions.invoke('send-invite-email', {
                 body: {
                     to: cleanEmail,
