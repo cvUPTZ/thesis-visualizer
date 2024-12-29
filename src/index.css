@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import './styles/thesis.css';
 
 @tailwind base;
 @tailwind components;
@@ -105,14 +106,13 @@
 
 .thesis-content {
     @apply prose prose-lg max-w-none prose-headings:font-serif prose-headings:text-primary;
-
-    /* Academic formatting */
     line-height: 2;
     counter-reset: page 1;
-    font-size: 12pt; /* Set default font size */
-    font-family: 'Times New Roman', serif; /* Set default font */
-    margin: 1in; /* Standard 1-inch margins */
+    font-size: 12pt;
+    font-family: 'Times New Roman', serif;
+    margin: 1in;
 }
+
 /* Added a specific style for abstract */
 .thesis-abstract {
     margin-top: 2in; /* Add more spacing */

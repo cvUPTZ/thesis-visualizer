@@ -1,0 +1,59 @@
+/* Title page specific styles */
+.thesis-title-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    height: 100%;
+    justify-content: space-between;
+    padding: 2in 1in;
+}
+
+.university-name {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 18pt;
+    font-weight: bold;
+    margin-bottom: 0.5in;
+}
+
+.department-name {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 16pt;
+    margin-bottom: 1.5in;
+}
+
+.thesis-main-title {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 18pt;
+    font-weight: bold;
+    margin-bottom: 1in;
+    max-width: 80%;
+    line-height: 1.5;
+}
+
+.thesis-subtitle {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 12pt;
+    margin-bottom: 1in;
+    line-height: 1.5;
+}
+
+.thesis-author {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 14pt;
+    margin-bottom: 0.5in;
+    line-height: 1.5;
+}
+
+.thesis-date {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 12pt;
+    margin-bottom: 1in;
+}
+
+.thesis-committee {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 12pt;
+    line-height: 1.5;
+    text-align: left;
+}

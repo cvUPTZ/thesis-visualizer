@@ -7,7 +7,45 @@ interface ThesisPreviewProps {
 }
 
 export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
+    const titleSection = thesis.frontMatter.find(section => section.type === 'title');
+    
+    const renderTitlePage = () => {
+        return (
+            <div className="thesis-page no-header no-footer">
+                <div className="thesis-title-content">
+                    <div className="university-name">Your University Name</div>
+                    <div className="department-name">Department of Your Field</div>
+                    <div className="thesis-main-title">
+                        {titleSection?.content || "Untitled Thesis"}
+                    </div>
+                    <div className="thesis-subtitle">
+                        A thesis submitted in partial fulfillment<br />
+                        of the requirements for the degree of<br />
+                        Doctor of Philosophy
+                    </div>
+                    <div className="thesis-author">
+                        by<br />
+                        Author Name
+                    </div>
+                    <div className="thesis-date">
+                        Month Year
+                    </div>
+                    <div className="thesis-committee">
+                        Thesis Committee:<br />
+                        Professor Name, Chair<br />
+                        Professor Name<br />
+                        Professor Name
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     const renderSection = (section: any, chapterTitle?: string) => {
+        if (section.type === 'title') {
+            return renderTitlePage();
+        }
+        
         return (
             <div key={section.id} className={`thesis-page ${section.type === 'references' ? 'no-footer' : ''} ${section.type === 'table-of-contents' ? 'no-header': ''}`}>
                 <div className="thesis-header">
@@ -24,7 +62,6 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
                         <>
                         </>
                     )}
-
                 </div>
                 <div className="thesis-footer">
                     {section.type !== 'references' && <span>Page <span className="page-number"></span></span>}
