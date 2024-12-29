@@ -99,7 +99,6 @@ const resend = new Resend("re_J2KATbSq_EuMbe7J8aiJCKKhqcSXBdhbU");
 const supabaseUrl = "https://xkwdfddamvuhucorwttw.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RmZGRhbXZ1aHVjb3J3dHR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzNzcwMDQsImV4cCI6MjA1MDk1MzAwNH0.6Ml1JDiKKsjSnM1z82bD9bVoiT_ZQmTRZaqtpxTPF2g";
 const supabase = createClient(supabaseUrl, supabaseKey);
-
 const handler = async (req: Request): Promise<Response> => {
   // Enable CORS
   if (req.method === 'OPTIONS') {
@@ -134,32 +133,18 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Get email template from Supabase Storage
-    const { data: templateData, error: storageError } = await supabase.storage
-      .from('THESIS EMAIL TEMPLATE FILE')
-      .download('email-template.html');
-
-    if (storageError) {
-      throw new Error(`Storage Error: ${storageError.message}`);
-    }
-
-    if (!templateData) {
-      throw new Error('Email template not found');
-    }
-
-    // Convert template blob to text and populate with data
-    const emailTemplate = new TextDecoder().decode(templateData);
-    const populatedEmailTemplate = emailTemplate
-      .replace(/{{thesisTitle}}/g, thesisTitle)
-      .replace(/{{inviteLink}}/g, inviteLink)
-      .replace(/{{role}}/g, role);
-
     // Send email using Resend
     const emailResult = await resend.emails.send({
       from: 'onboarding@resend.dev',
       to: to,
       subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
-      html: populatedEmailTemplate,
+      html: `
+        <h2>Thesis Collaboration Invitation</h2>
+        <p>You have been invited to collaborate on the thesis: <strong>${thesisTitle}</strong></p>
+        <p>Role: ${role}</p>
+        <p>Click the link below to accept the invitation:</p>
+        <a href="${inviteLink}">Accept Invitation</a>
+      `,
     });
 
     if (!emailResult || emailResult.error) {
@@ -197,3 +182,4 @@ const handler = async (req: Request): Promise<Response> => {
 };
 
 serve(handler);
+
