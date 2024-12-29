@@ -1,72 +1,73 @@
-// Edge Function (send-invite-email.ts)
+// Supabase Edge Function (send-invite-email.ts) - SMTP Workaround (Discouraged)
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { SmtpClient } from "https://deno.land/x/denomail@v0.2.0/mod.ts";
+import { createClient } from "@supabase/supabase-js";
 
-const RESEND_API_KEY = "re_GksATSum_3Ed2s9AWtLp7JMBLRQgUZYfw"; // Get API key from environment variables
+// Supabase client (for accessing storage)
+const supabase = createClient(
+  "https://xkwdfddamvuhucorwttw.supabase.co"!,
+  Deno.env.get("SUPABASE_ANON_KEY")!
+);
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-interface EmailRequest {
-  to: string;
-  thesisTitle: string;
-  inviteLink: string;
-  role: string;
-}
+// SMTP credentials from environment variables (HIGHLY DISCOURAGED - SECURITY RISK)
+const SMTP_USERNAME = "excelzed@gmail.com"!;  
+const SMTP_PASSWORD = "acgl tfsi hfbe ufaw"!;
+const SMTP_HOST = "smtp.gmail.com"!;  // e.g., "smtp.gmail.com"
+const SMTP_PORT = "587";
+const SENDER_EMAIL = "excelzed@gmail.com"!;
 
 const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
   try {
-    const { to, thesisTitle, inviteLink, role } = await req.json() as EmailRequest;
+    const { to, thesisTitle, inviteLink, role } = await req.json();
 
-    if (!RESEND_API_KEY) {
-      return new Response(JSON.stringify({ error: "Missing Resend API Key" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // 1. Fetch Email Template from Supabase Storage
+    const { data: templateData, error: storageError } = await supabase.storage
+      .from('your-storage-bucket') // Replace 'your-storage-bucket'
+      .download('email-template.html'); // Replace 'email-template.html'
+
+    if (storageError) {
+      throw new Error(`Storage Error: ${storageError.message}`);
+    }
+    if (!templateData) {
+      throw new Error("Email template not found in storage.");
     }
 
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Thesis Collaborator <cvupdz@gmail.com>", // Use your verified domain!
-        to: [to],
-        subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
-        html: `<h2>You've been invited to collaborate!</h2>
-          <p>You have been invited as a <strong>${role}</strong> to collaborate on the thesis: "${thesisTitle}"</p>
-          <a href="${inviteLink}" style="display: inline-block; background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;">Accept Invitation</a>
-          <p style="margin-top: 20px; color: #666;">If you can't click the button, copy and paste this link in your browser:<br>${inviteLink}</p>`,
-      }),
+    const emailTemplate = new TextDecoder().decode(templateData);
+
+    // 2. Populate Email Template
+    const populatedEmailTemplate = emailTemplate
+      .replace("{{thesisTitle}}", thesisTitle)
+      .replace("{{inviteLink}}", inviteLink)
+      .replace("{{role}}", role);
+
+
+
+    // 3. Send Email via SMTP
+    const smtp = new SmtpClient();
+    await smtp.connect({
+      hostname: SMTP_HOST,
+      port: SMTP_PORT,
+      username: SMTP_USERNAME,
+      password: SMTP_PASSWORD,
+      tls: true, // Or false if your provider doesn't require TLS
     });
 
-    if (!res.ok) {
-      const errorData = await res.json();
+    await smtp.send({
+      from: SENDER_EMAIL,
+      to: to,
+      subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
+      htmlBody: populatedEmailTemplate,
+    });
 
-      if (errorData.message.includes('already a collaborator')) {
-            return new Response(JSON.stringify({ error: "This user is already a collaborator."}), { status: 400, headers: {...corsHeaders, "Content-Type": "application/json"}})
-      } else if (/(invalid recipient|failed to resolve)/i.test(errorData.message)) {
-            return new Response(JSON.stringify({ error: "Invalid recipient email address." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
+    await smtp.close();
 
-      // Default error handling
-      console.error("Resend API Error:", errorData);
-      return new Response(JSON.stringify({ error: errorData.message || "Failed to send email" }), {
-        status: res.status, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
-    const data = await res.json();
-    return new Response(JSON.stringify(data), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+    return new Response("Invitation email sent (but probably not reliably).", { status: 200 });
 
-  } catch (error: any) {
-    console.error("Error in Edge Function:", error);
-    return new Response(JSON.stringify({ error: error.message || "An unexpected error occurred." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return new Response("Failed to send invitation email.", { status: 500 });
   }
 };
 
