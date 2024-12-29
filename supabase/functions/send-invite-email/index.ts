@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
-const RESEND_API_KEY = "re_GksATSum_3Ed2s9AWtLp7JMBLRQgUZYfw";
+const RESEND_API_KEY = "re_GksATSum_3Ed2s9AWtLp7JMBLRQgUZYfw"; // Store API key as an environment variable
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,7 +25,11 @@ const handler = async (req: Request): Promise<Response> => {
     const { to, thesisTitle, inviteLink, role } = await req.json() as EmailRequest;
     console.log(`Sending invite email to ${to} for thesis: ${thesisTitle}`);
     console.log('Request Data:', { to, thesisTitle, inviteLink, role });
-     
+
+    if (!RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY environment variable not set.");
+    }
+
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -33,7 +37,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Thesis Collaborator <onboarding@resend.dev>",
+        from: "Thesis Collaborator <onboarding@resend.dev>", // Or your verified sender email
         to: [to],
         subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
         html: `
@@ -52,10 +56,22 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (!res.ok) {
-      const error = await res.text();
-      console.error("Error sending email:", error);
-      throw new Error(error);
+      const errorData = await res.json();
+      const errorMessage = errorData.error || errorData.message || "Unknown Resend error";
+      console.error("Error sending email:", errorData);
+
+      // Example specific error handling (adapt as needed based on Resend's errors):
+      if (errorMessage.includes("already subscribed")) {
+        return new Response(JSON.stringify({ error: "User is already subscribed." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } else if (/(invalid recipient|failed to resolve)/i.test(errorMessage)) {  // improved regex
+          return new Response(JSON.stringify({ error: "Invalid recipient email address." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } else if (errorData.message.includes('already a collaborator')) {
+            return new Response(JSON.stringify({ error: "This user is already a collaborator."}), { status: 400, headers: {...corsHeaders, "Content-Type": "application/json"}})
+        }
+
+      throw new Error(`Resend API Error: ${errorMessage}`);
     }
+
 
     const data = await res.json();
     console.log("Email sent successfully:", data);
@@ -64,6 +80,8 @@ const handler = async (req: Request): Promise<Response> => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
+
+
   } catch (error: any) {
     console.error("Error in send-invite-email function:", error);
     return new Response(
