@@ -3,13 +3,15 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
   const inviteThesisId = searchParams.get('thesisId');
   const inviteRole = searchParams.get('role');
 
@@ -17,13 +19,11 @@ const Auth = () => {
     console.log('Auth component mounted');
     console.log('Invite params:', { inviteThesisId, inviteRole });
 
-    // Check if user is already logged in
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       console.log('Current session:', session);
       
       if (session) {
-        // If there's an invite, handle it
         if (inviteThesisId && inviteRole) {
           await handleInviteAcceptance(session.user.id, inviteThesisId, inviteRole);
         }
@@ -33,12 +33,10 @@ const Auth = () => {
 
     checkUser();
 
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("Auth state changed:", event);
         if (event === "SIGNED_IN" && session) {
-          // If there's an invite, handle it
           if (inviteThesisId && inviteRole) {
             await handleInviteAcceptance(session.user.id, inviteThesisId, inviteRole);
           }
@@ -46,6 +44,9 @@ const Auth = () => {
             title: "Welcome!",
             description: "You have successfully signed in.",
           });
+          navigate("/");
+        } else if (event === "USER_UPDATED") {
+          setError(null);
           navigate("/");
         }
       }
@@ -60,7 +61,6 @@ const Auth = () => {
     try {
       console.log('Handling invite acceptance:', { userId, thesisId, role });
       
-      // Check if already a collaborator
       const { data: existingCollaborator, error: checkError } = await supabase
         .from('thesis_collaborators')
         .select('*')
@@ -82,7 +82,6 @@ const Auth = () => {
         return;
       }
 
-      // Add as collaborator
       const { error: insertError } = await supabase
         .from('thesis_collaborators')
         .insert({
@@ -125,6 +124,11 @@ const Auth = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <SupabaseAuth
             supabaseClient={supabase}
             appearance={{
@@ -139,6 +143,14 @@ const Auth = () => {
               },
             }}
             providers={[]}
+            onError={(error) => {
+              console.error('Auth error:', error);
+              if (error.message.includes('Email not confirmed')) {
+                setError('Please check your email to confirm your account before signing in.');
+              } else {
+                setError(error.message);
+              }
+            }}
           />
         </CardContent>
       </Card>
