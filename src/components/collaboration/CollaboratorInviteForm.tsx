@@ -57,7 +57,9 @@ export const CollaboratorInviteForm = ({
 
             const inviteLink = `${window.location.origin}/auth?thesisId=${thesisId}&role=${role}`;
             console.log('Sending invitation email...');
-           const { data, error: emailError } = await supabase.functions.invoke('send-invite-email', {
+
+            // Call the Supabase Edge Function to send the invitation email
+            const { data, error: emailError } = await supabase.functions.invoke('send-invite-email', {
                 body: {
                     to: cleanEmail,
                     thesisTitle,
@@ -66,9 +68,17 @@ export const CollaboratorInviteForm = ({
                 },
             });
 
-
             if (emailError) {
                 console.error('Error sending invitation email:', emailError);
+                  if (emailError.message.includes("already a collaborator")) {
+                    toast({
+                        title: "Invitation Error",
+                         description: "User is already a collaborator on the thesis.",
+                         variant: "destructive",
+                    })
+                      return;
+                  }
+
                 toast({
                     title: "Error",
                     description: `Failed to send the invitation. ${emailError.message || 'Please try again.'}`,
@@ -76,6 +86,7 @@ export const CollaboratorInviteForm = ({
                 });
                 return;
             }
+
 
             console.log('Invitation email sent successfully:', data);
 
