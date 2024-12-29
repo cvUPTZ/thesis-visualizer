@@ -18,7 +18,9 @@ export const useUser = () => {
         
         if (sessionError) {
           console.error('Session error:', sessionError);
-          navigate('/auth');
+          if (mounted) {
+            navigate('/auth');
+          }
           return;
         }
 
@@ -90,6 +92,17 @@ export const useUser = () => {
     try {
       console.log('Logging out...');
       
+      // Check if we have an active session first
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log('No active session found, redirecting to auth...');
+        setUserEmail('');
+        setUserRole('');
+        navigate('/auth');
+        return;
+      }
+
       const { error } = await supabase.auth.signOut();
       
       if (error) {
