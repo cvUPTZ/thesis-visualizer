@@ -27,8 +27,7 @@ export const CollaboratorInviteForm = ({
     const { toast } = useToast();
 
     const sanitizeEmail = (email: string) => {
-        return email.toLowerCase().trim().replace(/\s+/g, ''); // Added replace to remove any whitespace characters
-
+        return email.toLowerCase().trim().replace(/\s+/g, '');
     };
 
     const handleInvite = async () => {
@@ -54,31 +53,27 @@ export const CollaboratorInviteForm = ({
         try {
             const cleanEmail = sanitizeEmail(email);
             console.log('Email Before Sanitization:', email);
-             console.log('Email After Sanitization:', cleanEmail);
+            console.log('Email After Sanitization:', cleanEmail);
 
-            const inviteLink = `${window.location.origin}/auth?thesisId=${thesisId}&role=${role}`;
-
-            console.log('Sending invitation email...');
             // Check for existing collaborator invitation
-             const { data: existingCollaborator, error: checkError } = await supabase
-              .from('thesis_collaborators')
-              .select('*')
-              .eq('thesis_id', thesisId)
-              .eq('user_id', cleanEmail);
+            const { data: existingCollaborator, error: checkError } = await supabase
+                .from('thesis_collaborators')
+                .select('*')
+                .eq('thesis_id', thesisId)
+                .eq('user_id', cleanEmail)
+                .maybeSingle();
 
+            if (checkError) {
+                console.error('Error checking existing collaborator:', checkError);
+                toast({
+                    title: "Error",
+                    description: "Failed to check existing collaborator. Please try again.",
+                    variant: "destructive",
+                });
+                return;
+            }
 
-      if (checkError && checkError.code !== 'PGRST116') { //check if not "no data found" error
-          console.error('Error checking existing collaborator:', checkError);
-          toast({
-            title: "Error",
-            description: "Failed to send the invitation. Please try again.",
-            variant: "destructive",
-          });
-         return;
-      }
-
-
-            if(existingCollaborator) {
+            if (existingCollaborator) {
                 toast({
                     title: "Invitation Error",
                     description: "User is already a collaborator on the thesis.",
@@ -86,6 +81,9 @@ export const CollaboratorInviteForm = ({
                 });
                 return;
             }
+
+            const inviteLink = `${window.location.origin}/auth?thesisId=${thesisId}&role=${role}`;
+            console.log('Sending invitation email...');
 
             const { data: emailResponse, error: emailError } = await supabase.functions.invoke('send-invite-email', {
                 body: {
@@ -98,7 +96,7 @@ export const CollaboratorInviteForm = ({
 
             if (emailError) {
                 console.error('Error sending invitation email:', emailError);
-               toast({
+                toast({
                     title: "Error",
                     description: `Failed to send the invitation. ${emailError.message || 'Please try again.'}`,
                     variant: "destructive",
