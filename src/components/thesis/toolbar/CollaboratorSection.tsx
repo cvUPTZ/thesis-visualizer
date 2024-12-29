@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CollaboratorInviteForm } from '@/components/collaboration/CollaboratorInviteForm';
+import { CollaboratorInviteForm } from './CollaboratorInviteForm';
 import { CollaboratorsList } from './CollaboratorsList';
 import { useToast } from '@/hooks/use-toast';
-import { Collaborator } from '@/types/collaborator';
+import { CollaboratorWithProfile } from '@/types/collaborator';
 
 interface CollaboratorSectionProps {
-  collaborators: Collaborator[];
+  collaborators: CollaboratorWithProfile[];
   thesisId: string;
   thesisTitle: string;
   canManageCollaborators: boolean;

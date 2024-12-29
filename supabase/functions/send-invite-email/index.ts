@@ -91,16 +91,26 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from 'resend';
 import { createClient } from "@supabase/supabase-js";
+import { Database } from '../../../src/integrations/supabase/types';
 
 // Initialize Resend with your API key
 const resend = new Resend("re_J2KATbSq_EuMbe7J8aiJCKKhqcSXBdhbU");
 
+
+interface InviteEmailPayload {
+  to: string;
+  thesisTitle: string;
+  inviteLink: string;
+  role: 'editor' | 'admin';
+}
+
+
 // Supabase client initialization
 const supabaseUrl = "https://xkwdfddamvuhucorwttw.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RmZGRhbXZ1aHVjb3J3dHR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzNzcwMDQsImV4cCI6MjA1MDk1MzAwNH0.6Ml1JDiKKsjSnM1z82bD9bVoiT_ZQmTRZaqtpxTPF2g";
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+
 const handler = async (req: Request): Promise<Response> => {
-  // Enable CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       headers: {
@@ -116,11 +126,9 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response('Method not allowed', { status: 405 });
     }
 
-    // Parse request body
-    const { to, thesisTitle, inviteLink, role } = await req.json();
+    const payload = await req.json() as InviteEmailPayload;
 
-    // Validate required fields
-    if (!to || !thesisTitle || !inviteLink || !role) {
+    if (!payload.to || !payload.thesisTitle || !payload.inviteLink || !payload.role) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }), 
         { 
@@ -136,14 +144,22 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email using Resend
     const emailResult = await resend.emails.send({
       from: 'onboarding@resend.dev',
-      to: to,
-      subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
+      to: payload.to,
+      subject: `Invitation to collaborate on thesis: ${payload.thesisTitle}`,
       html: `
-        <h2>Thesis Collaboration Invitation</h2>
-        <p>You have been invited to collaborate on the thesis: <strong>${thesisTitle}</strong></p>
-        <p>Role: ${role}</p>
-        <p>Click the link below to accept the invitation:</p>
-        <a href="${inviteLink}">Accept Invitation</a>
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Thesis Collaboration Invitation</h2>
+          <p>You have been invited to collaborate on the thesis: <strong>${payload.thesisTitle}</strong></p>
+          <p>Role: ${payload.role}</p>
+          <div style="margin: 24px 0;">
+            <a href="${payload.inviteLink}" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
+              Accept Invitation
+            </a>
+          </div>
+          <p style="color: #666; font-size: 14px;">
+            If you didn't request this invitation, you can ignore this email.
+          </p>
+        </div>
       `,
     });
 
