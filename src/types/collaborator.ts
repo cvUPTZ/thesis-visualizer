@@ -1,11 +1,12 @@
-import { Profile } from './profile';
-
 export type CollaboratorRole = 'editor' | 'admin' | 'owner';
 
 export interface CollaboratorWithProfile {
   user_id: string;
   role: CollaboratorRole;
-  profile?: Profile;
+  profile?: {
+    email: string;
+    role: string;
+  };
   created_at?: string;
 }
 

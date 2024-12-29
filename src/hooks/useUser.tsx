@@ -35,7 +35,7 @@ export const useUser = () => {
           .from('profiles')
           .select('email, role')
           .eq('id', session.user.id)
-          .single(); // Use .single() instead of .maybeSingle() for consistency.
+          .single();
 
         if (profileError) {
           console.error('Error fetching profile:', profileError);
@@ -54,7 +54,7 @@ export const useUser = () => {
 
     checkSession();
 
-    const authSubscription = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         if (mounted) {
           setUserEmail('');
@@ -80,29 +80,37 @@ export const useUser = () => {
 
     return () => {
       mounted = false;
-      authSubscription.data?.unsubscribe(); // Correctly unsubscribe from the auth state change
+      authListener?.subscription.unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array to run only once
-
+  }, [navigate]);
 
   const handleLogout = async () => {
-    try {      
+    try {
       const { error } = await supabase.auth.signOut();
 
       if (error) {
         console.error('Error signing out:', error);
-        toast({ title: "Error", description: "Failed to sign out. Please try again.", variant: "destructive" });
+        toast({ 
+          title: "Error", 
+          description: "Failed to sign out. Please try again.", 
+          variant: "destructive" 
+        });
       } else {
         setUserEmail('');
         setUserRole('');
-        toast({ title: "Success", description: "You have been signed out successfully." });
-        navigate('/auth'); // Navigate after successful signout
+        toast({ 
+          title: "Success", 
+          description: "You have been signed out successfully." 
+        });
+        navigate('/auth');
       }
-
     } catch (error) {
       console.error('Error in handleLogout:', error);
-      toast({ title: "Error", description: "An unexpected error occurred while signing out.", variant: "destructive" });
+      toast({ 
+        title: "Error", 
+        description: "An unexpected error occurred while signing out.", 
+        variant: "destructive" 
+      });
     }
   };
 
