@@ -1,73 +1,198 @@
-// Supabase Edge Function (send-invite-email.ts) - SMTP Workaround (Discouraged)
+// // Supabase Edge Function (send-invite-email.ts) - SMTP Workaround (Discouraged)
+
+// import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+// import { SmtpClient } from "https://deno.land/x/denomail@v0.2.0/mod.ts";
+// import { createClient } from "@supabase/supabase-js";
+
+
+// const SUPABASE_URL ="https://xkwdfddamvuhucorwttw.supabase.co"
+
+// const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RmZGRhbXZ1aHVjb3J3dHR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzNzcwMDQsImV4cCI6MjA1MDk1MzAwNH0.6Ml1JDiKKsjSnM1z82bD9bVoiT_ZQmTRZaqtpxTPF2g"
+// // Supabase client (for accessing storage)
+
+
+// // SMTP credentials from environment variables (HIGHLY DISCOURAGED - SECURITY RISK)
+// const SMTP_USERNAME = "excelzed@gmail.com"!;  
+// const SMTP_PASSWORD = "acgl tfsi hfbe ufaw"!;
+// const SMTP_HOST = "smtp.gmail.com"!;  // e.g., "smtp.gmail.com"
+// const SMTP_PORT = "587";
+// const SENDER_EMAIL = "excelzed@gmail.com"!;
+
+// const supabase = createClient(
+//   SUPABASE_URL , SUPABASE_ANON_KEY
+// );
+
+// const handler = async (req: Request): Promise<Response> => {
+//   try {
+//     const { to, thesisTitle, inviteLink, role } = await req.json();
+
+//     const { data: templateData, error: storageError } = await supabase.storage
+//       .from('THESIS EMAIL TEMPLATE FILE') // Replace with your bucket name
+//       .download('email-template.html'); // Replace with your template name
+
+//     if (storageError) {
+//       throw new Error(`Storage Error: ${storageError.message}`);
+//     }
+//     if (!templateData) {
+//       throw new Error("Email template not found in storage.");
+//     }
+
+//     const emailTemplate = new TextDecoder().decode(templateData);
+//     const populatedEmailTemplate = emailTemplate
+//       .replace("{{thesisTitle}}", thesisTitle)
+//       .replace("{{inviteLink}}", inviteLink)
+//       .replace("{{role}}", role);
+
+
+//     const smtp = new SmtpClient();
+
+//     try { // Inner try-catch for SMTP connection/sending
+//         await smtp.connectTLS({ // Or smtp.connect() if not using TLS
+//             hostname: SMTP_HOST,
+//             port: SMTP_PORT,
+//             username: SMTP_USERNAME,
+//             password: SMTP_PASSWORD,
+//         });
+
+//         await smtp.send({
+//             from: SENDER_EMAIL,
+//             to: to,
+//             subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
+//             htmlBody: populatedEmailTemplate,
+//         });
+
+//     } finally { // Ensure SMTP connection is closed even if an error occurs
+//         try {
+//           await smtp.close();
+//         } catch (closeError) {
+//           console.error("Error closing SMTP connection:", closeError);
+//         }
+//     }
+
+
+//     return new Response("Invitation email sent (but consider using a dedicated email service).", { status: 200 });
+
+//   } catch (error) {
+//     console.error("Error sending email:", error);
+//     return new Response("Failed to send invitation email.", { status: 500 });
+//   }
+// };
+
+// serve(handler);
+
+
+
+
+
+
+
+
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { SmtpClient } from "https://deno.land/x/denomail@v0.2.0/mod.ts";
+import { Resend } from 'resend';
 import { createClient } from "@supabase/supabase-js";
 
-// Supabase client (for accessing storage)
-const supabase = createClient(
-  "https://xkwdfddamvuhucorwttw.supabase.co"!,
-  Deno.env.get("SUPABASE_ANON_KEY")!
-);
+// Initialize Resend with your API key
+const resend = new Resend("re_J2KATbSq_EuMbe7J8aiJCKKhqcSXBdhbU");
 
-// SMTP credentials from environment variables (HIGHLY DISCOURAGED - SECURITY RISK)
-const SMTP_USERNAME = "excelzed@gmail.com"!;  
-const SMTP_PASSWORD = "acgl tfsi hfbe ufaw"!;
-const SMTP_HOST = "smtp.gmail.com"!;  // e.g., "smtp.gmail.com"
-const SMTP_PORT = "587";
-const SENDER_EMAIL = "excelzed@gmail.com"!;
+// Supabase client initialization
+const supabaseUrl = "https://xkwdfddamvuhucorwttw.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhrd2RmZGRhbXZ1aHVjb3J3dHR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzNzcwMDQsImV4cCI6MjA1MDk1MzAwNH0.6Ml1JDiKKsjSnM1z82bD9bVoiT_ZQmTRZaqtpxTPF2g";
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const handler = async (req: Request): Promise<Response> => {
+  // Enable CORS
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
+  }
+
   try {
+    if (req.method !== 'POST') {
+      return new Response('Method not allowed', { status: 405 });
+    }
+
+    // Parse request body
     const { to, thesisTitle, inviteLink, role } = await req.json();
 
-    // 1. Fetch Email Template from Supabase Storage
+    // Validate required fields
+    if (!to || !thesisTitle || !inviteLink || !role) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields' }), 
+        { 
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          }
+        }
+      );
+    }
+
+    // Get email template from Supabase Storage
     const { data: templateData, error: storageError } = await supabase.storage
-      .from('your-storage-bucket') // Replace 'your-storage-bucket'
-      .download('email-template.html'); // Replace 'email-template.html'
+      .from('THESIS EMAIL TEMPLATE FILE')
+      .download('email-template.html');
 
     if (storageError) {
       throw new Error(`Storage Error: ${storageError.message}`);
     }
+
     if (!templateData) {
-      throw new Error("Email template not found in storage.");
+      throw new Error('Email template not found');
     }
 
+    // Convert template blob to text and populate with data
     const emailTemplate = new TextDecoder().decode(templateData);
-
-    // 2. Populate Email Template
     const populatedEmailTemplate = emailTemplate
-      .replace("{{thesisTitle}}", thesisTitle)
-      .replace("{{inviteLink}}", inviteLink)
-      .replace("{{role}}", role);
+      .replace(/{{thesisTitle}}/g, thesisTitle)
+      .replace(/{{inviteLink}}/g, inviteLink)
+      .replace(/{{role}}/g, role);
 
-
-
-    // 3. Send Email via SMTP
-    const smtp = new SmtpClient();
-    await smtp.connect({
-      hostname: SMTP_HOST,
-      port: SMTP_PORT,
-      username: SMTP_USERNAME,
-      password: SMTP_PASSWORD,
-      tls: true, // Or false if your provider doesn't require TLS
-    });
-
-    await smtp.send({
-      from: SENDER_EMAIL,
+    // Send email using Resend
+    const emailResult = await resend.emails.send({
+      from: 'onboarding@resend.dev',
       to: to,
       subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
-      htmlBody: populatedEmailTemplate,
+      html: populatedEmailTemplate,
     });
 
-    await smtp.close();
+    if (!emailResult || emailResult.error) {
+      throw new Error(emailResult.error?.message || 'Failed to send email');
+    }
 
-
-    return new Response("Invitation email sent (but probably not reliably).", { status: 200 });
+    return new Response(
+      JSON.stringify({ message: 'Invitation email sent successfully', data: emailResult }), 
+      { 
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        }
+      }
+    );
 
   } catch (error) {
-    console.error("Error sending email:", error);
-    return new Response("Failed to send invitation email.", { status: 500 });
+    console.error('Error:', error);
+    
+    return new Response(
+      JSON.stringify({ 
+        error: error.message || 'Internal server error',
+        details: error.toString() 
+      }), 
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        }
+      }
+    );
   }
 };
 
