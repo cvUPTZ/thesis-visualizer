@@ -1,7 +1,7 @@
 // Edge Function (send-invite-email.ts)
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY"); // Get API key from environment variables
+const RESEND_API_KEY = "re_GksATSum_3Ed2s9AWtLp7JMBLRQgUZYfw"; // Get API key from environment variables
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,7 +34,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Thesis Collaborator <invites@yourverifieddomain.com>", // Use your verified domain!
+        from: "Thesis Collaborator <cvupdz@gmail.com>", // Use your verified domain!
         to: [to],
         subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
         html: `<h2>You've been invited to collaborate!</h2>
