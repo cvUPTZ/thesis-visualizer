@@ -1,5 +1,5 @@
 import React from 'react';
-import MDEditor, { ICommand, TextState, TextAreaTextApi } from '@uiw/react-md-editor';
+import MDEditor from '@uiw/react-md-editor';
 
 interface MarkdownEditorProps {
   value: string;
@@ -22,6 +22,9 @@ export const MarkdownEditor = ({ value, onChange, placeholder }: MarkdownEditorP
         }}
         previewOptions={{
           skipHtml: false
+        }}
+        components={{
+          preview: (source) => <MDEditor.Markdown source={source} />
         }}
       />
     </div>
