@@ -44,9 +44,10 @@ export const useThesisInitialization = (thesis: Thesis) => {
           .from('theses')
           .select('*')
           .eq('id', thesis.id)
-          .single();
+          .maybeSingle();
 
-        if (checkError && checkError.code !== 'PGRST116') {
+        // Only throw error if it's not a "no rows returned" error
+        if (checkError) {
           console.error('Error checking thesis:', checkError);
           throw checkError;
         }
