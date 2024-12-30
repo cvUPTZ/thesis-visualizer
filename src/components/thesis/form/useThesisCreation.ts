@@ -17,7 +17,7 @@ export const useThesisCreation = () => {
   ) => {
     setIsSubmitting(true);
     try {
-      console.log('Starting thesis creation with metadata');
+      console.log('Starting thesis creation with metadata:', { title, description, keywords, userId });
       
       const thesisId = crypto.randomUUID();
       
@@ -69,7 +69,9 @@ export const useThesisCreation = () => {
         ]
       } as Json;
 
-      // Create thesis with metadata
+      console.log('Creating thesis with content:', { thesisId, title, content: thesisContent, userId });
+
+      // Create thesis with metadata and ensure user_id is set
       const { data: newThesis, error: thesisError } = await supabase
         .from('theses')
         .insert({
@@ -84,6 +86,10 @@ export const useThesisCreation = () => {
       if (thesisError) {
         console.error('Error creating thesis:', thesisError);
         throw thesisError;
+      }
+
+      if (!newThesis) {
+        throw new Error('Failed to create thesis. Please try again.');
       }
 
       console.log('Created thesis:', newThesis);
