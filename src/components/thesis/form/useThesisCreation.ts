@@ -72,27 +72,19 @@ export const useThesisCreation = () => {
       console.log('Creating thesis with content:', { thesisId, title, content: thesisContent, userId });
 
       // Create thesis with metadata and ensure user_id is set
-      const { data: newThesis, error: thesisError } = await supabase
+      const { error: thesisError } = await supabase
         .from('theses')
         .insert({
           id: thesisId,
           title: title,
           content: thesisContent,
           user_id: userId
-        })
-        .select()
-        .single();
+        });
 
       if (thesisError) {
         console.error('Error creating thesis:', thesisError);
         throw thesisError;
       }
-
-      if (!newThesis) {
-        throw new Error('Failed to create thesis. Please try again.');
-      }
-
-      console.log('Created thesis:', newThesis);
 
       // Add user as owner
       const { error: collaboratorError } = await supabase
