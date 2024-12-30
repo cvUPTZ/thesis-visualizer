@@ -18,11 +18,11 @@ export const MarkdownEditor = ({ value, onChange, placeholder }: MarkdownEditorP
         className="border-none bg-transparent"
         hideToolbar={false}
         textareaProps={{
-          placeholder: placeholder
+          placeholder
         }}
         previewOptions={{
           skipHtml: false,
-          rehypeRewrite: (node) => {
+          rehypeRewrite: (node: any) => {
             if (node.type === 'element' && node.tagName === 'a') {
               node.properties = {
                 ...node.properties,

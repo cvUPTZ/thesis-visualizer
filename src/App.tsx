@@ -47,38 +47,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        // Verify the session token is still valid
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError) {
-          console.error('User verification failed:', userError);
-          if (mountedRef.current) {
-            setIsAuthenticated(false);
-            toast({
-              title: "Session Expired",
-              description: "Please sign in again.",
-              variant: "destructive",
-            });
-          }
-          return;
-        }
-
-        if (!user) {
-          console.error('No user found');
-          if (mountedRef.current) {
-            setIsAuthenticated(false);
-            toast({
-              title: "Authentication Error",
-              description: "Please sign in again.",
-              variant: "destructive",
-            });
-          }
-          return;
-        }
-
         if (mountedRef.current) {
           setIsAuthenticated(true);
-          // Set up a periodic session check
           timeoutId = setTimeout(checkAuth, 5 * 60 * 1000); // Check every 5 minutes
         }
       } catch (error: any) {

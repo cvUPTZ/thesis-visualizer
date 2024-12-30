@@ -14,16 +14,20 @@ const Auth = () => {
   const { error } = useAuthFlow({ inviteThesisId, inviteRole });
 
   useEffect(() => {
-    // Clear any existing session data on mount
-    const clearSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        // Clear local storage if no valid session exists
-        localStorage.removeItem('supabase.auth.token');
+    const cleanupSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.log('No active session, clearing local storage');
+          localStorage.removeItem('supabase.auth.token');
+          await supabase.auth.signOut();
+        }
+      } catch (err) {
+        console.error('Error cleaning up session:', err);
       }
     };
     
-    clearSession();
+    cleanupSession();
   }, []);
 
   return (
