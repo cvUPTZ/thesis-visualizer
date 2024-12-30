@@ -49,6 +49,12 @@ serve(async (req) => {
       <p>${inviteLink}</p>
     `;
 
+    // First, try to get the sender email from environment variable
+    const senderEmail = Deno.env.get("SENDER_EMAIL");
+    if (!senderEmail) {
+      throw new Error('SENDER_EMAIL is not configured');
+    }
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -56,7 +62,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Thesis Collaboration <onboarding@resend.dev>',
+        from: senderEmail,
         to: [to],
         subject: `Invitation to collaborate on "${thesisTitle}"`,
         html: emailContent,
@@ -66,6 +72,27 @@ serve(async (req) => {
     if (!res.ok) {
       const error = await res.text();
       console.error('Resend API error:', error);
+      
+      // Parse the error response to check if it's a domain verification issue
+      try {
+        const errorData = JSON.parse(error);
+        if (errorData.statusCode === 403 && errorData.message.includes('verify a domain')) {
+          return new Response(
+            JSON.stringify({ 
+              error: 'Domain verification required',
+              details: 'Please verify your domain at resend.com/domains before sending emails.'
+            }),
+            { 
+              status: 403, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+      } catch (parseError) {
+        // If error parsing fails, throw the original error
+        throw new Error(`Resend API error: ${error}`);
+      }
+      
       throw new Error(`Resend API error: ${error}`);
     }
 
