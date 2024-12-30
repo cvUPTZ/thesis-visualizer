@@ -47,7 +47,11 @@ export const CollaboratorInviteForm = ({
 
     setIsInviting(true);
     try {
-      const inviteLink = `${window.location.origin}/auth?thesisId=${thesisId}&role=${role}`;
+      // Fix: Remove any trailing slashes and ensure proper URL formatting
+      const baseUrl = window.location.origin.replace(/\/$/, '');
+      const inviteLink = `${baseUrl}/auth?thesisId=${thesisId}&role=${role}`;
+
+      console.log('Sending invitation with link:', inviteLink); // Debug log
 
       const { error } = await supabase.functions.invoke('send-invite-email', {
         body: {
@@ -58,14 +62,38 @@ export const CollaboratorInviteForm = ({
         },
       });
 
-      if (error) throw error;
-      onInviteSuccess();
-      setEmail('');
-      setRole('editor');
-
+      if (error) {
+        console.error('Error from edge function:', error); // Debug log
+        
+        // Check if it's a domain verification error
+        if (error.message?.includes('Domain verification required')) {
+          toast({
+            title: "Domain Verification Required",
+            description: "Please verify your email domain at Resend.com before sending invitations.",
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        onInviteSuccess();
+        setEmail('');
+        setRole('editor');
+        toast({
+          title: "Invitation Sent",
+          description: "The collaboration invitation has been sent successfully.",
+        });
+      }
     } catch (error: any) {
       console.error('Error sending invitation:', error);
       onInviteError(error);
+      toast({
+        title: "Error",
+        description: "Failed to send invitation. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsInviting(false);
     }
   };
 
