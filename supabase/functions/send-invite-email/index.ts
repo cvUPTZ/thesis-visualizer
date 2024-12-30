@@ -19,6 +19,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let client: SmtpClient | null = null;
+
   try {
     console.log('Starting email sending process...');
     
@@ -45,7 +47,7 @@ serve(async (req) => {
     }
 
     console.log('Initializing SMTP client...');
-    const client = new SmtpClient();
+    client = new SmtpClient();
 
     try {
       console.log('Connecting to SMTP server...');
@@ -71,9 +73,11 @@ serve(async (req) => {
         to: [to],
         subject: `Invitation to collaborate on "${thesisTitle}"`,
         content: emailContent,
+        html: emailContent,
       });
 
       await client.close();
+      client = null;
       console.log('Email sent successfully');
 
       return new Response(
@@ -86,18 +90,20 @@ serve(async (req) => {
 
     } catch (smtpError) {
       console.error('SMTP Error:', smtpError);
-      if (client) {
-        try {
-          await client.close();
-        } catch (closeError) {
-          console.error('Error closing SMTP connection:', closeError);
-        }
-      }
       throw smtpError;
     }
 
   } catch (error) {
     console.error('Error sending invitation email:', error);
+    
+    if (client) {
+      try {
+        await client.close();
+      } catch (closeError) {
+        console.error('Error closing SMTP connection:', closeError);
+      }
+    }
+    
     return new Response(
       JSON.stringify({ 
         error: 'Failed to send invitation email',
