@@ -38,19 +38,21 @@ export const ThesisEditor = () => {
         }
 
         if (data) {
-          const content = data.content as {
-            metadata: { description: string; keywords: string[]; createdAt: string };
-            frontMatter: Section[];
-            chapters: Chapter[];
-            backMatter: Section[];
-          };
+          // Parse the content safely with type assertion
+          const parsedContent = typeof data.content === 'string' 
+            ? JSON.parse(data.content) 
+            : data.content;
 
           const thesisData: Thesis = {
             id: data.id,
-            metadata: content.metadata || { description: '', keywords: [], createdAt: new Date().toISOString() },
-            frontMatter: content.frontMatter || [],
-            chapters: content.chapters || [],
-            backMatter: content.backMatter || []
+            metadata: {
+              description: parsedContent?.metadata?.description || '',
+              keywords: parsedContent?.metadata?.keywords || [],
+              createdAt: parsedContent?.metadata?.createdAt || new Date().toISOString()
+            },
+            frontMatter: parsedContent?.frontMatter || [],
+            chapters: parsedContent?.chapters || [],
+            backMatter: parsedContent?.backMatter || []
           };
           setThesis(thesisData);
         }
@@ -65,14 +67,9 @@ export const ThesisEditor = () => {
     fetchThesis();
   }, [thesisId]);
 
-  // Only initialize hooks when thesis is available
-  const shouldInitialize = thesis !== null;
-  useEffect(() => {
-    if (shouldInitialize) {
-      useThesisAutosave(thesis);
-      useThesisInitialization(thesis);
-    }
-  }, [shouldInitialize, thesis]);
+  // Initialize hooks at component level, not in useEffect
+  useThesisAutosave(thesis);
+  useThesisInitialization(thesis);
 
   useEffect(() => {
     if (thesis && thesis.frontMatter.length > 0) {

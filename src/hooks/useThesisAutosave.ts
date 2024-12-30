@@ -4,17 +4,24 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Thesis } from '@/types/thesis';
 
-export const useThesisAutosave = (thesis: Thesis) => {
+export const useThesisAutosave = (thesis: Thesis | null) => {
   const { toast } = useToast();
-  const lastSavedContent = useRef<string>(JSON.stringify(thesis));
+  const lastSavedContent = useRef<string>(thesis ? JSON.stringify(thesis) : '');
 
   const saveThesis = useCallback(async (thesisData: Thesis) => {
+    if (!thesisData) return;
+    
     try {
       console.log('Auto-saving thesis:', thesisData.id);
       const { error } = await supabase
         .from('theses')
         .update({ 
-          content: JSON.stringify(thesisData), // Convert to string to satisfy Json type
+          content: {
+            metadata: thesisData.metadata,
+            frontMatter: thesisData.frontMatter,
+            chapters: thesisData.chapters,
+            backMatter: thesisData.backMatter
+          },
           updated_at: new Date().toISOString()
         })
         .eq('id', thesisData.id);
@@ -49,7 +56,9 @@ export const useThesisAutosave = (thesis: Thesis) => {
   );
 
   useEffect(() => {
-    debouncedSave(thesis);
+    if (thesis) {
+      debouncedSave(thesis);
+    }
     return () => {
       debouncedSave.cancel();
     };
