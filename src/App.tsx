@@ -25,30 +25,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       try {
         console.log('Checking authentication status...');
         
-        // First check if there's a valid session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError);
+        // First clear any potentially stale auth data
+        const currentSession = await supabase.auth.getSession();
+        if (!currentSession.data.session) {
+          console.log('No active session, clearing local storage');
+          localStorage.removeItem('supabase.auth.token');
           if (mountedRef.current) {
             setIsAuthenticated(false);
-            await supabase.auth.signOut();
-            toast({
-              title: "Authentication Error",
-              description: "Please sign in again.",
-              variant: "destructive",
-            });
-          }
-          return;
-        }
-
-        if (!session) {
-          console.log('No active session found');
-          if (mountedRef.current) {
-            setIsAuthenticated(false);
-            // Clear any stale auth data
-            localStorage.removeItem('supabase.auth.token');
-            await supabase.auth.signOut();
           }
           return;
         }
@@ -60,7 +43,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           console.error('User verification failed:', userError);
           if (mountedRef.current) {
             setIsAuthenticated(false);
-            await supabase.auth.signOut();
+            // Clear local storage first
+            localStorage.removeItem('supabase.auth.token');
+            try {
+              await supabase.auth.signOut();
+            } catch (signOutError) {
+              console.error('Error during sign out:', signOutError);
+              // Continue even if sign out fails
+            }
             toast({
               title: "Session Expired",
               description: "Please sign in again.",
@@ -80,7 +70,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         console.error('Error checking auth:', error);
         if (mountedRef.current) {
           setIsAuthenticated(false);
-          await supabase.auth.signOut();
+          // Clear local storage first
+          localStorage.removeItem('supabase.auth.token');
+          try {
+            await supabase.auth.signOut();
+          } catch (signOutError) {
+            console.error('Error during sign out:', signOutError);
+            // Continue even if sign out fails
+          }
           toast({
             title: "Authentication Error",
             description: error.message || "Please sign in again.",
@@ -101,6 +98,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
       if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
+        localStorage.removeItem('supabase.auth.token');
         toast({
           title: "Signed Out",
           description: "You have been signed out.",
