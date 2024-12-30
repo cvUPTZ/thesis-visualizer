@@ -34,9 +34,20 @@ export const ChapterManager = ({
       citations: []
     };
 
+     const introductionSection: Section = {
+        id: Date.now().toString() + "-intro",
+        title: 'Introduction', // This is the section title
+        content: 'Introduction', // this is the section content
+         type: 'custom',
+         order: 1,
+         figures: [],
+         tables: [],
+         citations: []
+      };
+
     onUpdateChapter({
       ...chapter,
-      sections: [...chapter.sections, newSection]
+      sections: [introductionSection, ...chapter.sections, newSection]
     });
   };
 
@@ -60,143 +71,164 @@ export const ChapterManager = ({
             placeholder="Chapter Title"
           />
           <div className="space-y-6">
-            {chapter.sections.map((section) => (
-              <div key={section.id} className="border-t pt-6 space-y-4">
-                <Input
-                  value={section.title}
-                  onChange={(e) => {
-                    const updatedSections = chapter.sections.map((s) =>
-                      s.id === section.id
-                        ? { ...s, title: e.target.value }
-                        : s
-                    );
-                    onUpdateChapter({ ...chapter, sections: updatedSections });
-                  }}
-                  className="text-lg font-medium"
-                  placeholder="Section Title"
-                />
-                <Textarea
-                  value={section.content}
-                  onChange={(e) => {
-                    const updatedSections = chapter.sections.map((s) =>
-                      s.id === section.id
-                        ? { ...s, content: e.target.value }
-                        : s
-                    );
-                    onUpdateChapter({ ...chapter, sections: updatedSections });
-                  }}
-                  className="min-h-[200px]"
-                  placeholder="Section Content"
-                />
-                <FigureManager
-                  figures={section.figures}
-                  onAddFigure={(figure) => {
-                    const updatedSections = chapter.sections.map((s) =>
-                      s.id === section.id
-                        ? { ...s, figures: [...s.figures, figure] }
-                        : s
-                    );
-                    onUpdateChapter({ ...chapter, sections: updatedSections });
-                  }}
-                  onRemoveFigure={(figureId) => {
-                    const updatedSections = chapter.sections.map((s) =>
-                      s.id === section.id
-                        ? {
-                            ...s,
-                            figures: s.figures.filter((f) => f.id !== figureId)
-                          }
-                        : s
-                    );
-                    onUpdateChapter({ ...chapter, sections: updatedSections });
-                  }}
-                  onUpdateFigure={(figure) => {
-                    const updatedSections = chapter.sections.map((s) =>
-                      s.id === section.id
-                        ? {
-                            ...s,
-                            figures: s.figures.map((f) =>
-                              f.id === figure.id ? figure : f
-                            )
-                          }
-                        : s
-                    );
-                    onUpdateChapter({ ...chapter, sections: updatedSections });
-                  }}
-                />
-                <TableManager
-                  tables={section.tables}
-                  onAddTable={(table) => {
-                    const updatedSections = chapter.sections.map((s) =>
-                      s.id === section.id
-                        ? { ...s, tables: [...s.tables, table] }
-                        : s
-                    );
-                    onUpdateChapter({ ...chapter, sections: updatedSections });
-                  }}
-                  onRemoveTable={(tableId) => {
-                    const updatedSections = chapter.sections.map((s) =>
-                      s.id === section.id
-                        ? {
-                            ...s,
-                            tables: s.tables.filter((t) => t.id !== tableId)
-                          }
-                        : s
-                    );
-                    onUpdateChapter({ ...chapter, sections: updatedSections });
-                  }}
-                  onUpdateTable={(table) => {
-                    const updatedSections = chapter.sections.map((s) =>
-                      s.id === section.id
-                        ? {
-                            ...s,
-                            tables: s.tables.map((t) =>
-                              t.id === table.id ? table : t
-                            )
-                          }
-                        : s
-                    );
-                    onUpdateChapter({ ...chapter, sections: updatedSections });
-                  }}
-                />
-                <CitationManager
-                  citations={section.citations}
-                  onAddCitation={(citation) => {
-                    const updatedSections = chapter.sections.map((s) =>
-                      s.id === section.id
-                        ? { ...s, citations: [...s.citations, citation] }
-                        : s
-                    );
-                    onUpdateChapter({ ...chapter, sections: updatedSections });
-                  }}
-                  onRemoveCitation={(citationId) => {
-                    const updatedSections = chapter.sections.map((s) =>
-                      s.id === section.id
-                        ? {
-                            ...s,
-                            citations: s.citations.filter(
-                              (c) => c.id !== citationId
-                            )
-                          }
-                        : s
-                    );
-                    onUpdateChapter({ ...chapter, sections: updatedSections });
-                  }}
-                  onUpdateCitation={(citation) => {
-                    const updatedSections = chapter.sections.map((s) =>
-                      s.id === section.id
-                        ? {
-                            ...s,
-                            citations: s.citations.map((c) =>
-                              c.id === citation.id ? citation : c
-                            )
-                          }
-                        : s
-                    );
-                    onUpdateChapter({ ...chapter, sections: updatedSections });
-                  }}
-                />
-              </div>
-            ))}
+             {chapter.sections.map((section, index) => {
+                 if(index === 0 && section.title === 'Introduction') {
+                    return (
+                      <div key={section.id} className="border-t pt-6 space-y-4">
+                        <Input
+                            value={section.title}
+                            className="text-lg font-medium"
+                            placeholder="Section Title"
+                             disabled
+                        />
+                         <Textarea
+                            value={section.content}
+                            className="min-h-[200px]"
+                            placeholder="Section Content"
+                            disabled
+                        />
+                      </div>
+                    )
+                 }
+
+                  return (
+                  <div key={section.id} className="border-t pt-6 space-y-4">
+                    <Input
+                      value={section.title}
+                      onChange={(e) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? { ...s, title: e.target.value }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                      className="text-lg font-medium"
+                      placeholder="Section Title"
+                    />
+                    <Textarea
+                      value={section.content}
+                      onChange={(e) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? { ...s, content: e.target.value }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                      className="min-h-[200px]"
+                      placeholder="Section Content"
+                    />
+                    <FigureManager
+                      figures={section.figures}
+                      onAddFigure={(figure) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? { ...s, figures: [...s.figures, figure] }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                      onRemoveFigure={(figureId) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? {
+                                ...s,
+                                figures: s.figures.filter((f) => f.id !== figureId)
+                              }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                      onUpdateFigure={(figure) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? {
+                                ...s,
+                                figures: s.figures.map((f) =>
+                                  f.id === figure.id ? figure : f
+                                )
+                              }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                    />
+                    <TableManager
+                      tables={section.tables}
+                      onAddTable={(table) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? { ...s, tables: [...s.tables, table] }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                      onRemoveTable={(tableId) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? {
+                                ...s,
+                                tables: s.tables.filter((t) => t.id !== tableId)
+                              }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                      onUpdateTable={(table) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? {
+                                ...s,
+                                tables: s.tables.map((t) =>
+                                  t.id === table.id ? table : t
+                                )
+                              }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                    />
+                    <CitationManager
+                      citations={section.citations}
+                      onAddCitation={(citation) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? { ...s, citations: [...s.citations, citation] }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                      onRemoveCitation={(citationId) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? {
+                                ...s,
+                                citations: s.citations.filter(
+                                  (c) => c.id !== citationId
+                                )
+                              }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                      onUpdateCitation={(citation) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? {
+                                ...s,
+                                citations: s.citations.map((c) =>
+                                  c.id === citation.id ? citation : c
+                                )
+                              }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                    />
+                  </div>
+                 )
+              })}
             <Button
               onClick={() => handleAddSection(chapter.id)}
               variant="outline"

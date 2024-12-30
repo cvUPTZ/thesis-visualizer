@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Thesis, Section, ThesisSectionType } from '@/types/thesis';
 import MDEditor from '@uiw/react-md-editor';
 
@@ -8,8 +8,8 @@ interface ThesisPreviewProps {
 
 export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     const titleSection = thesis.frontMatter.find(section => section.type === 'title');
-    const previewRef = useRef<HTMLDivElement>(null);
-
+    const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
+    
     const renderTitlePage = () => {
         return (
             <div className="thesis-page no-header no-footer">
@@ -91,27 +91,17 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     };
 
     return (
-        <div className="thesis-preview-scroll-container h-full">
-            <div className="thesis-preview" ref={previewRef}>
-                {thesis.frontMatter.map((section) => (
-                  <React.Fragment key={section.id}>
-                    {renderSection(section)}
-                  </React.Fragment>
-                 ))}
+        <div className="thesis-preview-scroll-container">
+            <div className="thesis-preview">
+                {thesis.frontMatter.map((section) => renderSection(section))}
                 {thesis.chapters.map((chapter) => (
                     <div key={chapter.id}>
                         {chapter.sections.map((section) => (
-                            <React.Fragment key={section.id}>
-                              {renderSection(section, chapter.title)}
-                            </React.Fragment>
+                           renderSection(section, chapter.title)
                         ))}
                     </div>
                 ))}
-                 {thesis.backMatter.map((section) => (
-                  <React.Fragment key={section.id}>
-                    {renderSection(section)}
-                  </React.Fragment>
-                ))}
+                {thesis.backMatter.map((section) => renderSection(section))}
             </div>
         </div>
     );

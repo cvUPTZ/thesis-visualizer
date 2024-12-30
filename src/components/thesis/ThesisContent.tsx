@@ -21,7 +21,6 @@ interface ThesisContentProps {
   onAddChapter: () => void;
 }
 
-
 export const ThesisContent = ({
     frontMatter,
     chapters,
@@ -48,10 +47,23 @@ export const ThesisContent = ({
             citations: [],
             references: []
         };
+        
+        const introductionSection: Section = {
+            id: Date.now().toString() + "-intro",
+            title: 'Introduction',
+            content: 'Introduction',
+             type: 'custom',
+             order: 1,
+             figures: [],
+             tables: [],
+             citations: [],
+             references: []
+        };
+        
 
         onUpdateChapter({
             ...chapter,
-            sections: [...chapter.sections, newSection]
+            sections: [introductionSection, ...chapter.sections, newSection]
         });
     };
   const renderSectionContent = (section: Section) => {
@@ -165,7 +177,7 @@ export const ThesisContent = ({
                   placeholder="Chapter Title"
                 />
                 <div className="space-y-6">
-                  {chapter.sections.map((section) => renderSectionContent(section))}
+                    {chapter.sections.map((section) => renderSectionContent(section))}
                   <Button
                     onClick={() => handleAddSection(chapter.id)}
                     variant="outline"
