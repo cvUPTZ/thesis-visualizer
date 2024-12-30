@@ -44,9 +44,9 @@ export const useThesisInitialization = (thesis: Thesis) => {
           .from('theses')
           .select('*')
           .eq('id', thesis.id)
-          .maybeSingle();
+          .single();
 
-        if (checkError) {
+        if (checkError && checkError.code !== 'PGRST116') {
           console.error('Error checking thesis:', checkError);
           throw checkError;
         }
