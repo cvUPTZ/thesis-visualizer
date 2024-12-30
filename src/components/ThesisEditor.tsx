@@ -1,15 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
 import { ThesisPreview } from './ThesisPreview';
 import { ThesisContent } from './thesis/ThesisContent';
 import { ThesisToolbar } from './thesis/ThesisToolbar';
 import { Chapter, Section, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useThesisInitialization } from '@/hooks/useThesisInitialization';
 
 export const ThesisEditor = () => {
-  const { toast } = useToast();
   const [thesis, setThesis] = useState<Thesis>({
     id: crypto.randomUUID(),
     frontMatter: [
@@ -109,79 +107,7 @@ export const ThesisEditor = () => {
   });
 
   // Initialize thesis in database
-  useEffect(() => {
-    const initializeThesis = async () => {
-      try {
-        console.log('Initializing thesis in database:', thesis.id);
-        
-        // Check if thesis already exists
-        const { data: existingThesis, error: checkError } = await supabase
-          .from('theses')
-          .select('*')
-          .eq('id', thesis.id)
-          .maybeSingle();
-
-        if (checkError) {
-          console.error('Error checking thesis:', checkError);
-          throw checkError;
-        }
-
-        if (!existingThesis) {
-          // Create new thesis
-          const { data, error } = await supabase
-            .from('theses')
-            .insert([
-              {
-                id: thesis.id,
-                title: 'Untitled Thesis',
-                content: {
-                  frontMatter: thesis.frontMatter,
-                  chapters: thesis.chapters,
-                  backMatter: thesis.backMatter
-                }
-              }
-            ])
-            .select()
-            .maybeSingle();
-
-          if (error) {
-            console.error('Error creating thesis:', error);
-            throw error;
-          }
-
-          if (!data) {
-            throw new Error('Failed to create thesis');
-          }
-
-          console.log('Created new thesis:', data);
-
-          // Add current user as owner
-          const { error: collaboratorError } = await supabase
-            .from('thesis_collaborators')
-            .insert([
-              {
-                thesis_id: thesis.id,
-                role: 'owner'
-              }
-            ]);
-
-          if (collaboratorError) {
-            console.error('Error adding thesis owner:', collaboratorError);
-            throw collaboratorError;
-          }
-        }
-      } catch (error: any) {
-        console.error('Error in thesis initialization:', error);
-        toast({
-          title: "Error",
-          description: error.message || "Failed to initialize thesis. Please try again.",
-          variant: "destructive",
-        });
-      }
-    };
-
-    initializeThesis();
-  }, [thesis.id, toast]);
+  useThesisInitialization(thesis);
 
   // Initialize auto-save
   useThesisAutosave(thesis);
