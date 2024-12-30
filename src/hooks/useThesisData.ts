@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Thesis } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
+import { validate as validateUUID } from 'uuid';
 
 export const useThesisData = (thesisId: string | undefined) => {
   const [thesis, setThesis] = useState<Thesis | null>(null);
@@ -12,8 +13,21 @@ export const useThesisData = (thesisId: string | undefined) => {
   useEffect(() => {
     const fetchThesis = async () => {
       if (!thesisId) {
+        console.log('No thesis ID provided');
         setThesis(null);
         setIsLoading(false);
+        return;
+      }
+
+      if (!validateUUID(thesisId)) {
+        console.error('Invalid thesis ID format:', thesisId);
+        setError('Invalid thesis ID format');
+        setIsLoading(false);
+        toast({
+          title: "Error",
+          description: "Invalid thesis ID format",
+          variant: "destructive",
+        });
         return;
       }
 
