@@ -19,10 +19,17 @@ export const ThesisSaveButton = ({ thesisId, thesisData }: ThesisSaveButtonProps
       setIsSaving(true);
       console.log('Starting thesis save operation:', { thesisId, content: thesisData });
       
+      // Convert Thesis object to a plain object for JSON storage
+      const thesisContent = {
+        frontMatter: thesisData.frontMatter,
+        chapters: thesisData.chapters,
+        backMatter: thesisData.backMatter
+      };
+
       const { data, error } = await supabase
         .from('theses')
         .update({ 
-          content: thesisData,
+          content: thesisContent,
           updated_at: new Date().toISOString()
         })
         .eq('id', thesisId)

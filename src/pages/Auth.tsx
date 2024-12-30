@@ -143,14 +143,6 @@ const Auth = () => {
               },
             }}
             providers={[]}
-            onError={(error) => {
-              console.error('Auth error:', error);
-              if (error.message.includes('Email not confirmed')) {
-                setError('Please check your email to confirm your account before signing in.');
-              } else {
-                setError(error.message);
-              }
-            }}
           />
         </CardContent>
       </Card>
