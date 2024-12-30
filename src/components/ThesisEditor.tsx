@@ -44,18 +44,7 @@ export const ThesisEditor = () => {
                         chapters: data.content.chapters || [],
                         backMatter: data.content.backMatter || []
                     };
-                  if (thesisData.frontMatter[0]) {
-                    setThesis(prevThesis => ({
-                        ...thesisData,
-                      frontMatter: thesisData.frontMatter.map((section, index) =>
-                        index === 0 ? { ...section, content: thesisData.metadata.description } : section
-                      )
-                    } as Thesis));
-                  } else {
                     setThesis(thesisData);
-                  }
-
-
                 }
 
                 setIsLoading(false);
@@ -113,21 +102,16 @@ export const ThesisEditor = () => {
     }));
   };
 
- const handleTitleChange = (id: string, newTitle: string) => {
-    setThesis(prevThesis => {
-      return {
-        ...prevThesis,
-        frontMatter: prevThesis.frontMatter.map(section => {
-            if (section.id === id) {
-               return { ...section, title: newTitle, content: newTitle }
-            }
-            return section;
-        }),
-        backMatter: prevThesis.backMatter.map(section =>
+  const handleTitleChange = (id: string, newTitle: string) => {
+    setThesis(prevThesis => ({
+      ...prevThesis,
+      frontMatter: prevThesis.frontMatter.map(section =>
+        section.id === id ? { ...section, title: newTitle } : section
+      ),
+      backMatter: prevThesis.backMatter.map(section =>
         section.id === id ? { ...section, title: newTitle } : section
       )
-      }
-    });
+    }));
   };
 
 
