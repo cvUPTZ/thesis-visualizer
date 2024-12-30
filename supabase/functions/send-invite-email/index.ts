@@ -76,11 +76,11 @@ serve(async (req) => {
       // Parse the error response to check if it's a domain verification issue
       try {
         const errorData = JSON.parse(error);
-        if (errorData.statusCode === 403 && errorData.message.includes('verify a domain')) {
+        if (errorData.statusCode === 403 && errorData.message.includes('domain is not verified')) {
           return new Response(
             JSON.stringify({ 
               error: 'Domain verification required',
-              details: 'Please verify your domain at resend.com/domains before sending emails.'
+              details: 'The email domain needs to be verified. Please verify your domain at https://resend.com/domains'
             }),
             { 
               status: 403, 
