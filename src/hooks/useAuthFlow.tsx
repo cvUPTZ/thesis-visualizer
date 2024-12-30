@@ -22,9 +22,9 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
         .select('*')
         .eq('thesis_id', thesisId)
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
-      if (checkError && checkError.code !== 'PGRST116') {
+      if (checkError) {
         console.error('Error checking existing collaborator:', checkError);
         throw checkError;
       }
@@ -95,19 +95,12 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
           return;
         }
 
-        console.log('Verifying user session:', session.user.email);
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-        if (userError) {
-          console.error('User verification failed:', userError);
-          if (mounted) {
-            setError("Session verification failed. Please sign in again.");
-          }
-          return;
-        }
+        // Get user data without verifying the session again
+        const user = session.user;
+        console.log('User found in session:', user.email);
 
         if (!user) {
-          console.error('No user found after verification');
+          console.error('No user found in session');
           if (mounted) {
             setError("Unable to verify user. Please sign in again.");
           }
