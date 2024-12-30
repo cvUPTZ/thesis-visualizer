@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
+
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,21 +20,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  let client: SmtpClient | null = null;
-
   try {
     console.log('Starting email sending process...');
     
-    // Validate environment variables
-    const smtpHost = Deno.env.get("SMTP_HOST");
-    const smtpPort = Deno.env.get("SMTP_PORT");
-    const smtpUsername = Deno.env.get("SMTP_USERNAME");
-    const smtpPassword = Deno.env.get("SMTP_PASSWORD");
-    const senderEmail = Deno.env.get("SENDER_EMAIL");
-
-    if (!smtpHost || !smtpPort || !smtpUsername || !smtpPassword || !senderEmail) {
-      console.error('Missing SMTP configuration:', { smtpHost, smtpPort, smtpUsername, senderEmail });
-      throw new Error('SMTP configuration is incomplete');
+    if (!RESEND_API_KEY) {
+      console.error('Missing RESEND_API_KEY');
+      throw new Error('RESEND_API_KEY is not configured');
     }
 
     const { to, thesisTitle, inviteLink, role }: EmailRequest = await req.json();
@@ -46,63 +38,50 @@ serve(async (req) => {
       );
     }
 
-    console.log('Initializing SMTP client...');
-    client = new SmtpClient();
+    console.log('Sending email to:', to);
+    
+    const emailContent = `
+      <h2>You've been invited to collaborate!</h2>
+      <p>You have been invited to collaborate on the thesis "${thesisTitle}" as a ${role}.</p>
+      <p>Click the link below to accept the invitation:</p>
+      <a href="${inviteLink}" style="display: inline-block; padding: 10px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px;">Accept Invitation</a>
+      <p>If you can't click the button, copy and paste this link in your browser:</p>
+      <p>${inviteLink}</p>
+    `;
 
-    try {
-      console.log('Connecting to SMTP server...');
-      await client.connectTLS({
-        hostname: smtpHost,
-        port: Number(smtpPort),
-        username: smtpUsername,
-        password: smtpPassword,
-      });
-
-      const emailContent = `
-        <h2>You've been invited to collaborate!</h2>
-        <p>You have been invited to collaborate on the thesis "${thesisTitle}" as a ${role}.</p>
-        <p>Click the link below to accept the invitation:</p>
-        <a href="${inviteLink}" style="display: inline-block; padding: 10px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px;">Accept Invitation</a>
-        <p>If you can't click the button, copy and paste this link in your browser:</p>
-        <p>${inviteLink}</p>
-      `;
-
-      console.log('Sending email to:', to);
-      await client.send({
-        from: senderEmail,
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: 'Thesis Collaboration <onboarding@resend.dev>',
         to: [to],
         subject: `Invitation to collaborate on "${thesisTitle}"`,
-        content: emailContent,
         html: emailContent,
-      });
+      }),
+    });
 
-      await client.close();
-      client = null;
-      console.log('Email sent successfully');
-
-      return new Response(
-        JSON.stringify({ message: 'Invitation sent successfully' }),
-        { 
-          status: 200, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-
-    } catch (smtpError) {
-      console.error('SMTP Error:', smtpError);
-      throw smtpError;
+    if (!res.ok) {
+      const error = await res.text();
+      console.error('Resend API error:', error);
+      throw new Error(`Resend API error: ${error}`);
     }
+
+    const data = await res.json();
+    console.log('Email sent successfully:', data);
+
+    return new Response(
+      JSON.stringify({ message: 'Invitation sent successfully' }),
+      { 
+        status: 200, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
 
   } catch (error) {
     console.error('Error sending invitation email:', error);
-    
-    if (client) {
-      try {
-        await client.close();
-      } catch (closeError) {
-        console.error('Error closing SMTP connection:', closeError);
-      }
-    }
     
     return new Response(
       JSON.stringify({ 
