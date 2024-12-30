@@ -1,4 +1,3 @@
-// File: /src/components/ThesisEditor.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
 import { ThesisPreview } from './ThesisPreview';
@@ -12,82 +11,69 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const ThesisEditor = () => {
   const { thesisId } = useParams();
-
   const [thesis, setThesis] = useState<Thesis | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-
-    useEffect(() => {
-        const fetchThesis = async () => {
-            if (!thesisId) {
-                setIsLoading(false);
-                return;
-            }
-            try {
-                const { data, error } = await supabase
-                    .from('theses')
-                    .select('*')
-                    .eq('id', thesisId)
-                    .single();
-
-                if (error) {
-                    console.error("Error fetching thesis:", error);
-                    setIsLoading(false);
-                  return;
-                }
-
-                if (data) {
-                    const thesisData: Thesis = {
-                        id: data.id,
-                        metadata: data.content.metadata,
-                        frontMatter: data.content.frontMatter || [],
-                        chapters: data.content.chapters || [],
-                        backMatter: data.content.backMatter || []
-                    };
-                    setThesis(thesisData);
-                }
-
-                setIsLoading(false);
-            } catch (error) {
-                console.error("Error fetching thesis:", error);
-               setIsLoading(false);
-            }
-        };
-
-        fetchThesis();
-    }, [thesisId]);
-
-
-  // Initialize auto-save
-  useEffect(() => {
-      if (thesis) {
-        useThesisAutosave(thesis);
-      }
-  }, [thesis])
-
-  // Initialize thesis in database
-  useEffect(() => {
-    if (thesis) {
-      useThesisInitialization(thesis);
-    }
-  }, [thesis])
-
   const [activeSection, setActiveSection] = useState<string>('');
   const [showPreview, setShowPreview] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (thesis && thesis.frontMatter.length > 0) {
-            setActiveSection(thesis.frontMatter[0].id);
+  // Initialize thesis data
+  useEffect(() => {
+    const fetchThesis = async () => {
+      if (!thesisId) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const { data, error } = await supabase
+          .from('theses')
+          .select('*')
+          .eq('id', thesisId)
+          .single();
+
+        if (error) {
+          console.error("Error fetching thesis:", error);
+          setIsLoading(false);
+          return;
         }
-    }, [thesis]);
+
+        if (data) {
+          const thesisData: Thesis = {
+            id: data.id,
+            metadata: data.content.metadata,
+            frontMatter: data.content.frontMatter || [],
+            chapters: data.content.chapters || [],
+            backMatter: data.content.backMatter || []
+          };
+          setThesis(thesisData);
+        }
+
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching thesis:", error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchThesis();
+  }, [thesisId]);
+
+  // Use the hooks properly
+  useThesisAutosave(thesis);
+  useThesisInitialization(thesis);
+
+  useEffect(() => {
+    if (thesis && thesis.frontMatter.length > 0) {
+      setActiveSection(thesis.frontMatter[0].id);
+    }
+  }, [thesis]);
 
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
   if (!thesis) {
-      return <div>Thesis not found</div>;
+    return <div>Thesis not found</div>;
   }
 
   const handleContentChange = (id: string, newContent: string) => {
@@ -113,7 +99,6 @@ export const ThesisEditor = () => {
       )
     }));
   };
-
 
   const handleAddChapter = () => {
     const newChapter: Chapter = {
