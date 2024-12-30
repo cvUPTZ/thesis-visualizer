@@ -36,7 +36,9 @@ export const useThesisInitialization = (thesis: Thesis) => {
         }
 
         if (!existingThesis) {
-          // Create new thesis
+          console.log('Creating new thesis with user_id:', user.id);
+          
+          // Create new thesis with the current user's ID
           const { data, error } = await supabase
             .from('theses')
             .insert({
