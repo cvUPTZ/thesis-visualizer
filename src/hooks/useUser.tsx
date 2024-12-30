@@ -18,7 +18,11 @@ export const useUser = () => {
 
         if (sessionError) {
           console.error('Session error:', sessionError);
-          if (mounted) navigate('/auth');
+          if (mounted) {
+            setUserEmail('');
+            setUserRole('');
+            navigate('/auth');
+          }
           return;
         }
 
@@ -54,7 +58,8 @@ export const useUser = () => {
 
     checkSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session);
       if (event === 'SIGNED_OUT') {
         if (mounted) {
           setUserEmail('');
@@ -62,19 +67,22 @@ export const useUser = () => {
           navigate('/auth');
         }
       } else if (event === 'SIGNED_IN' && session) {
-        supabase
-          .from('profiles')
-          .select('email, role')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data: profile, error }) => {
-            if (error) {
-              console.error('Error fetching profile after sign in:', error);
-            } else if (profile && mounted) {
-              setUserEmail(profile.email);
-              setUserRole(profile.role);
-            }
-          });
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('email, role')
+            .eq('id', session.user.id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching profile after sign in:', error);
+          } else if (profile && mounted) {
+            setUserEmail(profile.email);
+            setUserRole(profile.role);
+          }
+        } catch (error) {
+          console.error('Error in auth state change handler:', error);
+        }
       }
     });
 
@@ -86,8 +94,12 @@ export const useUser = () => {
 
   const handleLogout = async () => {
     try {
+      // Clear local state first
+      setUserEmail('');
+      setUserRole('');
+      
       const { error } = await supabase.auth.signOut();
-
+      
       if (error) {
         console.error('Error signing out:', error);
         toast({ 
@@ -96,8 +108,6 @@ export const useUser = () => {
           variant: "destructive" 
         });
       } else {
-        setUserEmail('');
-        setUserRole('');
         toast({ 
           title: "Success", 
           description: "You have been signed out successfully." 
