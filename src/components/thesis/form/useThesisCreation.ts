@@ -110,11 +110,8 @@ export const useThesisCreation = () => {
         description: "Your thesis has been created successfully.",
       });
 
-      // Return thesisId and title
-      return {
-          thesisId,
-          title
-      };
+      // Return thesisId
+      return thesisId;
 
 
     } catch (error: any) {

@@ -1,5 +1,5 @@
 // File: /src/components/ThesisEditor.tsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
 import { ThesisPreview } from './ThesisPreview';
 import { ThesisContent } from './thesis/ThesisContent';
@@ -8,87 +8,127 @@ import { Chapter, Section, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
 import { useParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 
 export const ThesisEditor = () => {
   const { thesisId } = useParams();
 
-  const [thesis, setThesis] = useState<Thesis | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-
-    useEffect(() => {
-        const fetchThesis = async () => {
-            if (!thesisId) {
-                setIsLoading(false);
-                return;
+  const [thesis, setThesis] = useState<Thesis>(() => {
+      const initialThesis: Thesis = {
+          id: thesisId || crypto.randomUUID(),
+          metadata: {
+              description: "",
+              keywords: [],
+              createdAt: new Date().toISOString()
+          },
+          frontMatter: [
+            {
+              id: '1',
+              title: 'Thesis Title',
+              content: 'Enter your thesis title...',
+              type: 'title',
+              required: true,
+              order: 1,
+              figures: [],
+              tables: [],
+              citations: []
+            },
+            {
+              id: '2',
+              title: 'Abstract',
+              content: 'A concise summary of your research...',
+              type: 'abstract',
+              required: true,
+              order: 2,
+              figures: [],
+              tables: [],
+              citations: []
+            },
+            {
+              id: '3',
+              title: 'Acknowledgments',
+              content: 'Express gratitude to individuals and organizations who contributed to your research...',
+              type: 'acknowledgments',
+              required: false,
+              order: 3,
+              figures: [],
+              tables: [],
+              citations: []
+            },
+            {
+              id: '4',
+              title: 'Table of Contents',
+              content: 'Automatically generated table of contents will appear here...',
+              type: 'table-of-contents',
+              required: true,
+              order: 4,
+              figures: [],
+              tables: [],
+              citations: []
+            },
+            {
+              id: '5',
+              title: 'List of Figures',
+              content: 'Automatically generated list of figures will appear here...',
+              type: 'list-of-figures',
+              required: false,
+              order: 5,
+              figures: [],
+              tables: [],
+              citations: []
+            },
+            {
+              id: '6',
+              title: 'List of Tables',
+              content: 'Automatically generated list of tables will appear here...',
+              type: 'list-of-tables',
+              required: false,
+              order: 6,
+              figures: [],
+              tables: [],
+              citations: []
+            },
+          ],
+          chapters: [],
+          backMatter: [
+            {
+              id: '14',
+              title: 'References',
+              content: 'List all cited works...',
+              type: 'references',
+              required: true,
+              order: 14,
+              figures: [],
+              tables: [],
+              citations: [],
+              references: []
+            },
+            {
+              id: '15',
+              title: 'Appendices',
+              content: 'Include supplementary materials...',
+              type: 'appendix',
+              required: false,
+              order: 15,
+              figures: [],
+              tables: [],
+              citations: []
             }
-            try {
-                const { data, error } = await supabase
-                    .from('theses')
-                    .select('*')
-                    .eq('id', thesisId)
-                    .single();
-
-                if (error) {
-                    console.error("Error fetching thesis:", error);
-                    setIsLoading(false);
-                  return;
-                }
-
-                if (data) {
-                    const thesisData: Thesis = {
-                        id: data.id,
-                        metadata: data.content.metadata,
-                        frontMatter: data.content.frontMatter || [],
-                        chapters: data.content.chapters || [],
-                        backMatter: data.content.backMatter || []
-                    };
-                    setThesis(thesisData);
-                }
-
-                setIsLoading(false);
-            } catch (error) {
-                console.error("Error fetching thesis:", error);
-               setIsLoading(false);
-            }
+          ]
         };
 
-        fetchThesis();
-    }, [thesisId]);
-
-
-  // Initialize auto-save
-  useEffect(() => {
-      if (thesis) {
-        useThesisAutosave(thesis);
-      }
-  }, [thesis])
+      return initialThesis;
+    }
+  );
 
   // Initialize thesis in database
-  useEffect(() => {
-    if (thesis) {
-      useThesisInitialization(thesis);
-    }
-  }, [thesis])
+  useThesisInitialization(thesis);
 
-  const [activeSection, setActiveSection] = useState<string>('');
+  // Initialize auto-save
+  useThesisAutosave(thesis);
+
+  const [activeSection, setActiveSection] = useState<string>(thesis.frontMatter[0].id);
   const [showPreview, setShowPreview] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (thesis && thesis.frontMatter.length > 0) {
-            setActiveSection(thesis.frontMatter[0].id);
-        }
-    }, [thesis]);
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!thesis) {
-      return <div>Thesis not found</div>;
-  }
 
   const handleContentChange = (id: string, newContent: string) => {
     setThesis(prevThesis => ({
@@ -113,7 +153,6 @@ export const ThesisEditor = () => {
       )
     }));
   };
-
 
   const handleAddChapter = () => {
     const newChapter: Chapter = {

@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface ThesisCreationModalProps {
-    onThesisCreated: (thesisId: string, title: string) => void;
+    onThesisCreated: () => void;
 }
 
 export const ThesisCreationModal = ({ onThesisCreated }: ThesisCreationModalProps) => {
@@ -34,11 +34,11 @@ export const ThesisCreationModal = ({ onThesisCreated }: ThesisCreationModalProp
             return;
         }
 
-        const result = await createThesis(title, description, keywords, session.user.id);
-        if (result?.thesisId) {
+        const thesisId = await createThesis(title, description, keywords, session.user.id);
+        if (thesisId) {
             setOpen(false);
-            onThesisCreated(result.thesisId, title);
-           navigate(`/thesis/${result.thesisId}`);
+            onThesisCreated();
+           navigate(`/thesis/${thesisId}`);
         }
     };
 
