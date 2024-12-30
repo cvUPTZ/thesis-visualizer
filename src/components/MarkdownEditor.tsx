@@ -1,5 +1,5 @@
 import React from 'react';
-import MDEditor from '@uiw/react-md-editor';
+import MDEditor, { ICommand, TextState, TextAreaTextApi } from '@uiw/react-md-editor';
 
 interface MarkdownEditorProps {
   value: string;
@@ -18,12 +18,10 @@ export const MarkdownEditor = ({ value, onChange, placeholder }: MarkdownEditorP
         className="border-none bg-transparent"
         hideToolbar={false}
         textareaProps={{
-          placeholder: placeholder,
-          "data-color-mode": "light"
+          placeholder: placeholder
         }}
         previewOptions={{
-          skipHtml: false,
-          linkTarget: "_blank"
+          skipHtml: false
         }}
       />
     </div>
