@@ -1,3 +1,4 @@
+// File: /src/components/ThesisPreview.tsx
 import React from 'react';
 import { Thesis } from '@/types/thesis';
 import MDEditor from '@uiw/react-md-editor';
@@ -8,6 +9,7 @@ interface ThesisPreviewProps {
 
 export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     const titleSection = thesis.frontMatter.find(section => section.type === 'title');
+    const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
     
     const renderTitlePage = () => {
         return (
@@ -41,11 +43,29 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
         );
     };
 
+  const renderAbstract = () => {
+        return (
+          <div className={`thesis-page no-footer`}>
+            <div className="thesis-header">
+                Abstract
+            </div>
+            <div className="thesis-content thesis-abstract">
+              <h2 className="text-2xl font-serif mb-4">Abstract</h2>
+              <MDEditor.Markdown source={thesis.metadata.description || "No Description Provided"}/>
+               {/* Render the abstract content here */}
+            </div>
+          </div>
+        );
+    };
+
     const renderSection = (section: any, chapterTitle?: string) => {
         if (section.type === 'title') {
             return renderTitlePage();
         }
-        
+        if (section.type === 'abstract') {
+          return renderAbstract()
+        }
+
         return (
             <div key={section.id} className={`thesis-page ${section.type === 'references' ? 'no-footer' : ''} ${section.type === 'table-of-contents' ? 'no-header': ''}`}>
                 <div className="thesis-header">

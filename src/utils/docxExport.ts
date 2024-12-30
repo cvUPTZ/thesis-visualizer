@@ -1,3 +1,5 @@
+// File: /src/utils/docxExport.ts
+
 import { Document, Paragraph, TextRun, PageBreak, Header, Footer, AlignmentType, LevelFormat, HeadingLevel, PageNumber, NumberFormat } from 'docx';
 import { Thesis, Section, Chapter } from '@/types/thesis';
 
@@ -57,7 +59,6 @@ const createTitlePage = (thesis: Thesis) => {
 };
 
 const createAbstract = (thesis: Thesis) => {
-  const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
   return [
     new Paragraph({
       heading: HeadingLevel.HEADING_1,
@@ -74,7 +75,7 @@ const createAbstract = (thesis: Thesis) => {
     new Paragraph({
       children: [
         new TextRun({
-          text: abstractSection?.content || "",
+          text: thesis.metadata?.description || "",
           font: "Times New Roman",
           size: 24, // 12pt
         }),

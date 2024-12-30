@@ -18,9 +18,9 @@ export const useThesisCreation = () => {
     setIsSubmitting(true);
     try {
       console.log('Starting thesis creation with metadata:', { title, description, keywords, userId });
-      
+
       const thesisId = crypto.randomUUID();
-      
+
       // Prepare thesis content with proper typing
       const thesisContent = {
         metadata: {

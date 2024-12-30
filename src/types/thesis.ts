@@ -1,3 +1,5 @@
+// File: /src/types/thesis.ts
+
 export interface Citation {
   id: string;
   text: string;
@@ -42,9 +44,9 @@ export interface Section {
   id: string;
   title: string;
   content: string;
-  type: 
-    | 'title' 
-    | 'abstract' 
+  type:
+    | 'title'
+    | 'abstract'
     | 'acknowledgments'
     | 'table-of-contents'
     | 'list-of-figures'
@@ -75,8 +77,13 @@ export interface Chapter {
 }
 
 export interface Thesis {
-  id: string;
-  frontMatter: Section[];
-  chapters: Chapter[];
-  backMatter: Section[];
+    id: string;
+    metadata: {
+        description: string,
+        keywords: string[],
+        createdAt: string
+    };
+    frontMatter: Section[];
+    chapters: Chapter[];
+    backMatter: Section[];
 }
