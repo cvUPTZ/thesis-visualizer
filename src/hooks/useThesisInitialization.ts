@@ -31,7 +31,7 @@ export const useThesisInitialization = (thesis: Thesis) => {
           .from('profiles')
           .select('*')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
         if (profileError) {
           console.error('Error fetching profile:', profileError);
@@ -83,25 +83,22 @@ export const useThesisInitialization = (thesis: Thesis) => {
             }))
           } as unknown as Json;
 
-          const { data: newThesis, error: thesisError } = await supabase
+          // Insert thesis without select()
+          const { error: thesisError } = await supabase
             .from('theses')
             .insert({
               id: thesis.id,
               title: 'Untitled Thesis',
               content: thesisContent,
               user_id: user.id
-            })
-            .select()
-            .single();
+            });
 
           if (thesisError) {
             console.error('Error creating thesis:', thesisError);
             throw thesisError;
           }
 
-          console.log('Created new thesis:', newThesis);
-
-          // Add current user as owner
+          // Add current user as owner without select()
           const { error: collaboratorError } = await supabase
             .from('thesis_collaborators')
             .insert({
