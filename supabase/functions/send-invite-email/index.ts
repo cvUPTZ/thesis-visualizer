@@ -52,6 +52,7 @@ serve(async (req) => {
         port: Number(smtpPort),
         username: smtpUsername,
         password: smtpPassword,
+        tls: true,
       });
 
       const html = `
@@ -68,6 +69,7 @@ serve(async (req) => {
         from: senderEmail,
         to: to,
         subject: `Invitation to collaborate on "${thesisTitle}"`,
+        content: html,
         html: html,
       });
 
