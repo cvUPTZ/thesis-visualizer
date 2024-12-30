@@ -55,17 +55,19 @@ export const useThesisInitialization = (thesis: Thesis) => {
         if (!existingThesis) {
           console.log('Creating new thesis with user_id:', user.id);
           
-          // Create the thesis with the content as a JSON object
+          // Create the thesis with the content
+          const thesisContent = {
+            frontMatter: thesis.frontMatter,
+            chapters: thesis.chapters,
+            backMatter: thesis.backMatter
+          };
+
           const { data: newThesis, error: thesisError } = await supabase
             .from('theses')
             .insert({
               id: thesis.id,
               title: 'Untitled Thesis',
-              content: {
-                frontMatter: thesis.frontMatter,
-                chapters: thesis.chapters,
-                backMatter: thesis.backMatter
-              } as Json,
+              content: thesisContent,
               user_id: user.id
             })
             .select()
