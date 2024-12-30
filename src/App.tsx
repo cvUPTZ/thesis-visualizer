@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Index from "./pages/Index";
@@ -17,7 +17,7 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { toast } = useToast();
-  const [mounted, setMounted] = useState(true);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -27,7 +27,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         
         if (error) {
           console.error('Auth session error:', error);
-          if (mounted) {
+          if (mountedRef.current) {
             setIsAuthenticated(false);
             toast({
               title: "Authentication Error",
@@ -40,19 +40,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
         if (!session) {
           console.log('No active session found');
-          if (mounted) {
+          if (mountedRef.current) {
             setIsAuthenticated(false);
           }
           return;
         }
 
         console.log('Active session found:', session.user.email);
-        if (mounted) {
+        if (mountedRef.current) {
           setIsAuthenticated(true);
         }
       } catch (error: any) {
         console.error('Error checking auth:', error);
-        if (mounted) {
+        if (mountedRef.current) {
           setIsAuthenticated(false);
           toast({
             title: "Authentication Error",
@@ -70,7 +70,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session?.user?.email);
       
-      if (!mounted) return;
+      if (!mountedRef.current) return;
 
       if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
@@ -90,11 +90,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       }
     });
 
-    setMounted(true);
-
     return () => {
-      mounted = false;
-      setMounted(false);
+      mountedRef.current = false;
       subscription.unsubscribe();
     };
   }, [toast]);
