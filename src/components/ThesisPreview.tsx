@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Thesis, Section, ThesisSectionType } from '@/types/thesis';
 import MDEditor from '@uiw/react-md-editor';
 
@@ -8,8 +8,8 @@ interface ThesisPreviewProps {
 
 export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     const titleSection = thesis.frontMatter.find(section => section.type === 'title');
-    const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
-    
+    const previewRef = useRef<HTMLDivElement>(null);
+
     const renderTitlePage = () => {
         return (
             <div className="thesis-page no-header no-footer">
@@ -92,7 +92,7 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
 
     return (
         <div className="thesis-preview-scroll-container">
-            <div className="thesis-preview">
+            <div className="thesis-preview" ref={previewRef}>
                 {thesis.frontMatter.map((section) => renderSection(section))}
                 {thesis.chapters.map((chapter) => (
                     <div key={chapter.id}>
