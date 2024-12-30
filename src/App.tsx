@@ -1,3 +1,5 @@
+// File: src/App.tsx
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +12,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import CreateThesis from "./pages/CreateThesis";
 import { ThesisEditor } from "@/components/ThesisEditor";
+import LandingPage from "./pages/LandingPage"; // Import the LandingPage
 
 const queryClient = new QueryClient();
 
@@ -125,9 +128,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     };
   }, [toast]);
 
-  if (isAuthenticated === null) {
-    return <div>Loading...</div>;
-  }
+    if (isAuthenticated === null) {
+        return <div>Loading...</div>;
+    }
 
   return isAuthenticated ? children : <Navigate to="/auth" />;
 };
@@ -139,14 +142,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
-            }
-          />
+            <Route path="/" element={
+               <ProtectedRoute>
+                  <Index />
+                 </ProtectedRoute>
+                } />
+            <Route path="/welcome" element={
+                <LandingPage />
+                }
+             />
           <Route
             path="/thesis/:thesisId"
             element={
