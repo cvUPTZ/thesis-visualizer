@@ -20,6 +20,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Starting email sending process...');
+    
     // Validate environment variables
     const smtpHost = Deno.env.get("SMTP_HOST");
     const smtpPort = Deno.env.get("SMTP_PORT");
@@ -47,15 +49,14 @@ serve(async (req) => {
 
     try {
       console.log('Connecting to SMTP server...');
-      await client.connect({
+      await client.connectTLS({
         hostname: smtpHost,
         port: Number(smtpPort),
         username: smtpUsername,
         password: smtpPassword,
-        tls: true,
       });
 
-      const html = `
+      const emailContent = `
         <h2>You've been invited to collaborate!</h2>
         <p>You have been invited to collaborate on the thesis "${thesisTitle}" as a ${role}.</p>
         <p>Click the link below to accept the invitation:</p>
@@ -67,10 +68,9 @@ serve(async (req) => {
       console.log('Sending email to:', to);
       await client.send({
         from: senderEmail,
-        to: to,
+        to: [to],
         subject: `Invitation to collaborate on "${thesisTitle}"`,
-        content: html,
-        html: html,
+        content: emailContent,
       });
 
       await client.close();
@@ -78,8 +78,12 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ message: 'Invitation sent successfully' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
       );
+
     } catch (smtpError) {
       console.error('SMTP Error:', smtpError);
       if (client) {
@@ -99,7 +103,10 @@ serve(async (req) => {
         error: 'Failed to send invitation email',
         details: error.message 
       }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
     );
   }
 });
