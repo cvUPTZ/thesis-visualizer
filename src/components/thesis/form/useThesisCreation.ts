@@ -1,4 +1,5 @@
 // File: src/components/thesis/form/useThesisCreation.ts
+
 import { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +9,7 @@ import { ThesisSectionType } from '@/types/thesis';
 interface ThesisMetadata {
   title: string;
   description: string;
-  keywords: string | undefined; // Changed to optional
+  keywords: string | undefined;
   universityName?: string;
   departmentName?: string;
   authorName?: string;

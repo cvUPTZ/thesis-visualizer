@@ -31,14 +31,16 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
   useThesisInitialization(thesis);
 
 
-  const handleThesisCreated = () => {
-    setThesis(null);
+  const handleThesisCreated = (thesisId: string, title: string) => {
+      console.log("Thesis created, setting thesis to null:", thesisId, title)
+        setThesis(null);
   };
 
   const handleContentChange = (id: string, newContent: string) => {
     if (!thesis) return;
     
-    setThesis(prevThesis => ({
+    setThesis(prevThesis => {
+      const updatedThesis = {
       ...prevThesis!,
       frontMatter: prevThesis!.frontMatter.map(section =>
         section.id === id ? { ...section, content: newContent } : section
@@ -51,28 +53,34 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
         })),
       backMatter: prevThesis!.backMatter.map(section =>
         section.id === id ? { ...section, content: newContent } : section
-      )
-    }));
+      )};
+        console.log("Content changed, updating thesis:", updatedThesis)
+        return updatedThesis;
+    });
   };
 
   const handleTitleChange = (id: string, newTitle: string) => {
       if (!thesis) return;
 
-      setThesis(prevThesis => ({
-          ...prevThesis!,
-          frontMatter: prevThesis!.frontMatter.map(section =>
-              section.id === id ? { ...section, title: newTitle } : section
-          ),
-        chapters: prevThesis!.chapters.map(chapter => ({
-              ...chapter,
-              sections: chapter.sections.map(section => (
-                  section.id === id ? { ...section, title: newTitle } : section
-              ))
-          })),
-          backMatter: prevThesis!.backMatter.map(section =>
-              section.id === id ? { ...section, title: newTitle } : section
-          )
-      }));
+      setThesis(prevThesis => {
+           const updatedThesis = {
+            ...prevThesis!,
+            frontMatter: prevThesis!.frontMatter.map(section =>
+                section.id === id ? { ...section, title: newTitle } : section
+            ),
+          chapters: prevThesis!.chapters.map(chapter => ({
+                ...chapter,
+                sections: chapter.sections.map(section => (
+                    section.id === id ? { ...section, title: newTitle } : section
+                ))
+            })),
+            backMatter: prevThesis!.backMatter.map(section =>
+                section.id === id ? { ...section, title: newTitle } : section
+            )};
+          
+            console.log("Title changed, updating thesis:", updatedThesis)
+         return updatedThesis;
+      });
   };
 
   const handleAddChapter = () => {
@@ -185,7 +193,7 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
         {showPreview && (
           <div className="w-1/2 pl-8 border-l">
             <div ref={previewRef}>
-              <ThesisPreview thesis={thesis!} />
+               {thesis && <ThesisPreview thesis={thesis} />}
             </div>
           </div>
         )}

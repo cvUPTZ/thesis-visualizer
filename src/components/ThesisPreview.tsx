@@ -9,10 +9,12 @@ interface ThesisPreviewProps {
 }
 
 export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
+    console.log('Rendering ThesisPreview with data:', thesis);
+
     const titleSection = thesis.frontMatter.find(section => section.type === 'title');
     const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
     
-    const renderTitlePage = () => {
+     const renderTitlePage = () => {
         return (
             <div className="thesis-page no-header no-footer">
                 <div className="thesis-title-content">
@@ -47,6 +49,7 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
             </div>
         );
     };
+
 
     const renderAbstract = () => {
         return (
