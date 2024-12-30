@@ -38,12 +38,19 @@ export const ThesisEditor = () => {
         }
 
         if (data) {
+          const content = data.content as {
+            metadata: { description: string; keywords: string[]; createdAt: string };
+            frontMatter: Section[];
+            chapters: Chapter[];
+            backMatter: Section[];
+          };
+
           const thesisData: Thesis = {
             id: data.id,
-            metadata: data.content.metadata,
-            frontMatter: data.content.frontMatter || [],
-            chapters: data.content.chapters || [],
-            backMatter: data.content.backMatter || []
+            metadata: content.metadata || { description: '', keywords: [], createdAt: new Date().toISOString() },
+            frontMatter: content.frontMatter || [],
+            chapters: content.chapters || [],
+            backMatter: content.backMatter || []
           };
           setThesis(thesisData);
         }
@@ -58,9 +65,14 @@ export const ThesisEditor = () => {
     fetchThesis();
   }, [thesisId]);
 
-  // Use the hooks properly
-  useThesisAutosave(thesis);
-  useThesisInitialization(thesis);
+  // Only initialize hooks when thesis is available
+  const shouldInitialize = thesis !== null;
+  useEffect(() => {
+    if (shouldInitialize) {
+      useThesisAutosave(thesis);
+      useThesisInitialization(thesis);
+    }
+  }, [shouldInitialize, thesis]);
 
   useEffect(() => {
     if (thesis && thesis.frontMatter.length > 0) {

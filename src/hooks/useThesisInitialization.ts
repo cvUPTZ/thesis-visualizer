@@ -4,11 +4,16 @@ import { useToast } from '@/hooks/use-toast';
 import { Thesis } from '@/types/thesis';
 import { Json } from '@/integrations/supabase/types';
 
-export const useThesisInitialization = (thesis: Thesis) => {
+export const useThesisInitialization = (thesis: Thesis | null) => {
   const { toast } = useToast();
 
   useEffect(() => {
     const initializeThesis = async () => {
+      // Only proceed if thesis is not null
+      if (!thesis) {
+        return;
+      }
+
       try {
         console.log('Initializing thesis in database:', thesis.id);
         
@@ -83,7 +88,7 @@ export const useThesisInitialization = (thesis: Thesis) => {
             }))
           } as unknown as Json;
 
-          // Insert thesis without select()
+          // Insert thesis
           const { error: thesisError } = await supabase
             .from('theses')
             .insert({
@@ -98,7 +103,7 @@ export const useThesisInitialization = (thesis: Thesis) => {
             throw thesisError;
           }
 
-          // Add current user as owner without select()
+          // Add current user as owner
           const { error: collaboratorError } = await supabase
             .from('thesis_collaborators')
             .insert({
@@ -130,5 +135,5 @@ export const useThesisInitialization = (thesis: Thesis) => {
     };
 
     initializeThesis();
-  }, [thesis.id, toast]);
+  }, [thesis?.id, toast]);
 };
