@@ -24,12 +24,15 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const checkAuth = async () => {
       try {
         console.log('Checking authentication status...');
+        
+        // First check if there's a valid session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error('Session error:', sessionError);
           if (mountedRef.current) {
             setIsAuthenticated(false);
+            await supabase.auth.signOut();
             toast({
               title: "Authentication Error",
               description: "Please sign in again.",
@@ -43,18 +46,41 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           console.log('No active session found');
           if (mountedRef.current) {
             setIsAuthenticated(false);
+            // Clear any stale auth data
+            localStorage.removeItem('supabase.auth.token');
+            await supabase.auth.signOut();
           }
           return;
         }
 
+        // Verify the session is still valid by checking the user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+          console.error('User verification failed:', userError);
+          if (mountedRef.current) {
+            setIsAuthenticated(false);
+            await supabase.auth.signOut();
+            toast({
+              title: "Session Expired",
+              description: "Please sign in again.",
+              variant: "destructive",
+            });
+          }
+          return;
+        }
+
+        console.log('Session verified successfully');
         if (mountedRef.current) {
           setIsAuthenticated(true);
+          // Schedule next check
           timeoutId = setTimeout(checkAuth, 5 * 60 * 1000); // Check every 5 minutes
         }
       } catch (error: any) {
         console.error('Error checking auth:', error);
         if (mountedRef.current) {
           setIsAuthenticated(false);
+          await supabase.auth.signOut();
           toast({
             title: "Authentication Error",
             description: error.message || "Please sign in again.",
