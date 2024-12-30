@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Index from "./pages/Index";
@@ -15,9 +15,9 @@ const queryClient = new QueryClient();
 
 // Protected Route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { toast } = useToast();
   const mountedRef = useRef(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -42,6 +42,21 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           console.log('No active session found');
           if (mountedRef.current) {
             setIsAuthenticated(false);
+          }
+          return;
+        }
+
+        // Verify the session is still valid
+        const { data: user, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          console.error('User verification failed:', userError);
+          if (mountedRef.current) {
+            setIsAuthenticated(false);
+            toast({
+              title: "Session Expired",
+              description: "Please sign in again.",
+              variant: "destructive",
+            });
           }
           return;
         }
@@ -86,7 +101,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         });
       } else if (event === 'TOKEN_REFRESHED') {
         const { data: { session: refreshedSession } } = await supabase.auth.getSession();
-        setIsAuthenticated(!!refreshedSession);
+        if (mountedRef.current) {
+          setIsAuthenticated(!!refreshedSession);
+        }
       }
     });
 
