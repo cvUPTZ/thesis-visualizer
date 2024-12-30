@@ -3,6 +3,7 @@ import { debounce } from 'lodash';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Thesis } from '@/types/thesis';
+import { Json } from '@/integrations/supabase/types';
 
 export const useThesisAutosave = (thesis: Thesis | null) => {
   const { toast } = useToast();
@@ -13,15 +14,19 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
     
     try {
       console.log('Auto-saving thesis:', thesisData.id);
+      
+      // Serialize the thesis content to ensure it matches the Json type
+      const serializedContent = JSON.stringify({
+        metadata: thesisData.metadata,
+        frontMatter: thesisData.frontMatter,
+        chapters: thesisData.chapters,
+        backMatter: thesisData.backMatter
+      }) as unknown as Json;
+
       const { error } = await supabase
         .from('theses')
         .update({ 
-          content: {
-            metadata: thesisData.metadata,
-            frontMatter: thesisData.frontMatter,
-            chapters: thesisData.chapters,
-            backMatter: thesisData.backMatter
-          },
+          content: serializedContent,
           updated_at: new Date().toISOString()
         })
         .eq('id', thesisData.id);
