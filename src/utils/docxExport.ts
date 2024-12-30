@@ -1,4 +1,3 @@
-// File: src/utils/docxExport.ts
 import { Document, Paragraph, TextRun, PageBreak, Header, Footer, AlignmentType, LevelFormat, HeadingLevel, PageNumber, NumberFormat, TableOfContents,  TableOfContentsOptions,  } from 'docx';
 import { Thesis, Section, Chapter } from '@/types/thesis';
 
@@ -183,25 +182,25 @@ const createTableOfContents = () => {
     console.log('Creating table of contents')
   return [
         new Paragraph({
-          heading: HeadingLevel.HEADING_1,
-          alignment: AlignmentType.CENTER,
-          children: [
-            new TextRun({
-              text: "Table of Contents",
-              bold: true,
-              font: "Times New Roman",
-              size: 24,
-            }),
-          ],
-        }),
-        new Paragraph({
+            heading: HeadingLevel.HEADING_1,
+            alignment: AlignmentType.CENTER,
             children: [
-                new TableOfContents({
-                    options: {
-                        headingStyleRange: "1-3",
-                        
-                    } as TableOfContentsOptions,
-                })
+                new TextRun({
+                text: "Table of Contents",
+                bold: true,
+                font: "Times New Roman",
+                size: 24,
+                }),
+            ],
+        }),
+         new Paragraph({
+            children: [
+              new TableOfContents({
+                options: {
+                    headingStyleRange: "1-3",
+                    
+                } as TableOfContentsOptions,
+              }),
             ]
         }),
     new Paragraph({
@@ -209,6 +208,7 @@ const createTableOfContents = () => {
     }),
   ];
 };
+
 
 const createReferences = (thesis: Thesis) => {
     console.log('Creating References');
@@ -246,8 +246,11 @@ const createReferences = (thesis: Thesis) => {
 }
 
 const createChapterContent = (chapter: Chapter) => {
-    console.log(`Creating chapter content for: ${chapter.title}`);
+  console.log(`Creating chapter content for: ${chapter.title}`);
   const paragraphs: Paragraph[] = [
+    new Paragraph({
+      children: [new PageBreak()], // Chapter break here
+    }),
     new Paragraph({
       heading: HeadingLevel.HEADING_1,
       children: [
@@ -262,30 +265,31 @@ const createChapterContent = (chapter: Chapter) => {
   ];
 
   chapter.sections.forEach(section => {
-      console.log(`Creating section: ${section.title}`);
-    paragraphs.push(
-      new Paragraph({
-        heading: HeadingLevel.HEADING_2,
-        children: [
-          new TextRun({
-            text: section.title,
-            bold: true,
-            font: "Times New Roman",
-            size: 24, // 12pt
+    console.log(`Creating section: ${section.title}`);
+      paragraphs.push(
+         new Paragraph({
+              heading: HeadingLevel.HEADING_2,
+              children: [
+                new TextRun({
+                  text: section.title,
+                  bold: true,
+                  font: "Times New Roman",
+                  size: 24,
+                }),
+              ],
           }),
-        ],
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: section.content,
-            font: "Times New Roman",
-            size: 24, // 12pt
-          }),
-        ],
-      })
-    );
-  });
+        new Paragraph({
+            children: [
+                new TextRun({
+                    text: section.content,
+                    font: "Times New Roman",
+                    size: 24,
+                }),
+            ],
+        })
+     );
+   });
+
 
   return paragraphs;
 };
@@ -333,6 +337,17 @@ export const generateThesisDocx = (thesis: Thesis): Document => {
             },
           ],
         },
+          {
+              reference: "heading2",
+              levels: [
+                  {
+                      level: 0,
+                      format: LevelFormat.DECIMAL,
+                      text: "%1.%2.",
+                      alignment: AlignmentType.LEFT,
+                  },
+              ],
+          },
       ],
     },
   });
