@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from 'react-router-dom';
+import { Json } from '@/integrations/supabase/types';
 
 export const ThesisCreationForm = () => {
   const [title, setTitle] = useState('');
@@ -13,6 +14,24 @@ export const ThesisCreationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Check authentication on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error || !session) {
+        console.error('Authentication error:', error);
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to create a thesis.",
+          variant: "destructive",
+        });
+        navigate('/auth');
+      }
+    };
+    
+    checkAuth();
+  }, [navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,60 +52,65 @@ export const ThesisCreationForm = () => {
         throw new Error('No authenticated user found');
       }
 
+      console.log('Creating thesis for user:', user.id);
+
       const thesisId = crypto.randomUUID();
       
+      // Prepare thesis content with proper typing
+      const thesisContent = {
+        metadata: {
+          description,
+          keywords: keywords.split(',').map(k => k.trim()),
+          createdAt: new Date().toISOString(),
+        },
+        frontMatter: [
+          {
+            id: crypto.randomUUID(),
+            title: title,
+            content: '',
+            type: 'title',
+            required: true,
+            order: 1,
+            figures: [],
+            tables: [],
+            citations: []
+          },
+          {
+            id: crypto.randomUUID(),
+            title: 'Abstract',
+            content: description,
+            type: 'abstract',
+            required: true,
+            order: 2,
+            figures: [],
+            tables: [],
+            citations: []
+          }
+        ],
+        chapters: [],
+        backMatter: [
+          {
+            id: crypto.randomUUID(),
+            title: 'References',
+            content: '',
+            type: 'references',
+            required: true,
+            order: 1,
+            figures: [],
+            tables: [],
+            citations: [],
+            references: []
+          }
+        ]
+      } as unknown as Json;
+
       // Create thesis with metadata
       const { data: newThesis, error: thesisError } = await supabase
         .from('theses')
         .insert({
           id: thesisId,
           title: title,
-          content: {
-            metadata: {
-              description,
-              keywords: keywords.split(',').map(k => k.trim()),
-              createdAt: new Date().toISOString(),
-            },
-            frontMatter: [
-              {
-                id: crypto.randomUUID(),
-                title: title,
-                content: '',
-                type: 'title',
-                required: true,
-                order: 1,
-                figures: [],
-                tables: [],
-                citations: []
-              },
-              {
-                id: crypto.randomUUID(),
-                title: 'Abstract',
-                content: description,
-                type: 'abstract',
-                required: true,
-                order: 2,
-                figures: [],
-                tables: [],
-                citations: []
-              }
-            ],
-            chapters: [],
-            backMatter: [
-              {
-                id: crypto.randomUUID(),
-                title: 'References',
-                content: '',
-                type: 'references',
-                required: true,
-                order: 1,
-                figures: [],
-                tables: [],
-                citations: [],
-                references: []
-              }
-            ]
-          },
+          content: thesisContent,
           user_id: user.id
         })
         .select()
@@ -96,6 +120,8 @@ export const ThesisCreationForm = () => {
         console.error('Error creating thesis:', thesisError);
         throw thesisError;
       }
+
+      console.log('Created thesis:', newThesis);
 
       // Add user as owner
       const { error: collaboratorError } = await supabase
