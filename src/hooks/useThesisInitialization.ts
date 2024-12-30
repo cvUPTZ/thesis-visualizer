@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Thesis } from '@/types/thesis';
+import { Json } from '@/integrations/supabase/types';
 
 export const useThesisInitialization = (thesis: Thesis) => {
   const { toast } = useToast();
@@ -54,17 +55,58 @@ export const useThesisInitialization = (thesis: Thesis) => {
         if (!existingThesis) {
           console.log('Creating new thesis with user_id:', user.id);
           
-          // Start a transaction by using RPC
+          // Convert thesis content to a JSON-compatible format
+          const thesisContent: Json = {
+            frontMatter: thesis.frontMatter.map(section => ({
+              id: section.id,
+              title: section.title,
+              content: section.content,
+              type: section.type,
+              required: section.required,
+              order: section.order,
+              figures: section.figures,
+              tables: section.tables,
+              citations: section.citations,
+              references: section.references
+            })),
+            chapters: thesis.chapters.map(chapter => ({
+              id: chapter.id,
+              title: chapter.title,
+              order: chapter.order,
+              sections: chapter.sections.map(section => ({
+                id: section.id,
+                title: section.title,
+                content: section.content,
+                type: section.type,
+                required: section.required,
+                order: section.order,
+                figures: section.figures,
+                tables: section.tables,
+                citations: section.citations,
+                references: section.references
+              }))
+            })),
+            backMatter: thesis.backMatter.map(section => ({
+              id: section.id,
+              title: section.title,
+              content: section.content,
+              type: section.type,
+              required: section.required,
+              order: section.order,
+              figures: section.figures,
+              tables: section.tables,
+              citations: section.citations,
+              references: section.references
+            }))
+          };
+          
+          // Create the thesis
           const { data: newThesis, error: thesisError } = await supabase
             .from('theses')
             .insert({
               id: thesis.id,
               title: 'Untitled Thesis',
-              content: {
-                frontMatter: thesis.frontMatter,
-                chapters: thesis.chapters,
-                backMatter: thesis.backMatter
-              },
+              content: thesisContent,
               user_id: user.id
             })
             .select()
@@ -77,7 +119,7 @@ export const useThesisInitialization = (thesis: Thesis) => {
 
           console.log('Created new thesis:', newThesis);
 
-          // Then add current user as owner
+          // Add current user as owner
           const { error: collaboratorError } = await supabase
             .from('thesis_collaborators')
             .insert({
