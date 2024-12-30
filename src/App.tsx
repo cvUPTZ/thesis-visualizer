@@ -25,10 +25,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       try {
         console.log('Checking authentication status...');
         
-        // First clear any stale auth data from localStorage
-        localStorage.removeItem('supabase.auth.token');
-        
-        // Get current session
+        // Get current session without clearing localStorage first
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -47,16 +44,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        // Verify the session is still valid
+        // If we have a session, verify the user exists
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
         if (userError || !user) {
           console.error('User verification failed:', userError);
           if (mountedRef.current) {
             setIsAuthenticated(false);
+            // Only clear storage and sign out if we had a session but user verification failed
+            localStorage.removeItem('supabase.auth.token');
             try {
-              // Try to sign out, but don't throw if it fails
-              await supabase.auth.signOut();
+              await supabase.auth.signOut({ scope: 'local' });
             } catch (signOutError) {
               console.error('Error during sign out:', signOutError);
             }
@@ -79,9 +77,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         console.error('Error checking auth:', error);
         if (mountedRef.current) {
           setIsAuthenticated(false);
+          // Only clear storage and sign out if we encounter an error
+          localStorage.removeItem('supabase.auth.token');
           try {
-            // Try to sign out, but don't throw if it fails
-            await supabase.auth.signOut();
+            await supabase.auth.signOut({ scope: 'local' });
           } catch (signOutError) {
             console.error('Error during sign out:', signOutError);
           }
