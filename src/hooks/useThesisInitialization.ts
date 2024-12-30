@@ -55,49 +55,62 @@ export const useThesisInitialization = (thesis: Thesis) => {
         if (!existingThesis) {
           console.log('Creating new thesis with user_id:', user.id);
           
+          // Convert thesis sections to JSON-compatible format
+          const convertSectionToJson = (section: any) => ({
+            id: section.id,
+            title: section.title,
+            content: section.content,
+            type: section.type,
+            required: section.required,
+            order: section.order,
+            figures: section.figures?.map((f: any) => ({
+              id: f.id,
+              caption: f.caption,
+              imageUrl: f.imageUrl,
+              altText: f.altText,
+              number: f.number
+            })) || [],
+            tables: section.tables?.map((t: any) => ({
+              id: t.id,
+              caption: t.caption,
+              headers: t.headers,
+              rows: t.rows,
+              number: t.number
+            })) || [],
+            citations: section.citations?.map((c: any) => ({
+              id: c.id,
+              text: c.text,
+              source: c.source,
+              authors: c.authors,
+              year: c.year,
+              type: c.type
+            })) || [],
+            references: section.references?.map((r: any) => ({
+              id: r.id,
+              title: r.title,
+              authors: r.authors,
+              year: r.year,
+              doi: r.doi,
+              url: r.url,
+              journal: r.journal,
+              volume: r.volume,
+              issue: r.issue,
+              pages: r.pages,
+              publisher: r.publisher,
+              type: r.type
+            })) || []
+          });
+          
           // Convert thesis content to a JSON-compatible format
           const thesisContent: Json = {
-            frontMatter: thesis.frontMatter.map(section => ({
-              id: section.id,
-              title: section.title,
-              content: section.content,
-              type: section.type,
-              required: section.required,
-              order: section.order,
-              figures: section.figures,
-              tables: section.tables,
-              citations: section.citations,
-              references: section.references
-            })),
+            frontMatter: thesis.frontMatter.map(convertSectionToJson),
             chapters: thesis.chapters.map(chapter => ({
               id: chapter.id,
               title: chapter.title,
               order: chapter.order,
-              sections: chapter.sections.map(section => ({
-                id: section.id,
-                title: section.title,
-                content: section.content,
-                type: section.type,
-                required: section.required,
-                order: section.order,
-                figures: section.figures,
-                tables: section.tables,
-                citations: section.citations,
-                references: section.references
-              }))
+              sections: chapter.sections.map(convertSectionToJson)
             })),
-            backMatter: thesis.backMatter.map(section => ({
-              id: section.id,
-              title: section.title,
-              content: section.content,
-              type: section.type,
-              required: section.required,
-              order: section.order,
-              figures: section.figures,
-              tables: section.tables,
-              citations: section.citations,
-              references: section.references
-            }))
+            backMatter: thesis.backMatter.map(convertSectionToJson)
           };
           
           // Create the thesis
