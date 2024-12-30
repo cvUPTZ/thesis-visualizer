@@ -1,3 +1,4 @@
+// File: src/components/citation/CitationCard.tsx
 import React, { useState } from 'react';
 import { Citation } from '@/types/thesis';
 import { Button } from '@/components/ui/button';

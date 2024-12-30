@@ -1,3 +1,4 @@
+// File: src/hooks/useThesisAutosave.ts
 import { useCallback, useEffect, useRef } from 'react';
 import { debounce } from 'lodash';
 import { supabase } from '@/integrations/supabase/client';

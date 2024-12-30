@@ -1,3 +1,4 @@
+// File: src/components/thesis/ThesisToolbar.tsx
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Eye, EyeOff, Save, LogOut } from 'lucide-react';

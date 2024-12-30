@@ -1,5 +1,4 @@
 // File: src/pages/Index.tsx
-
 import { ThesisEditor } from "@/components/ThesisEditor";
 import { useParams } from "react-router-dom";
 

@@ -1,3 +1,4 @@
+// File: src/types/collaborator.ts
 export type CollaboratorRole = 'owner' | 'admin' | 'editor';
 
 export interface CollaboratorWithProfile {

@@ -1,6 +1,6 @@
-// File: /src/components/ThesisPreview.tsx
+// File: src/components/ThesisPreview.tsx
 import React from 'react';
-import { Thesis } from '@/types/thesis';
+import { Thesis, Section, ThesisSectionType } from '@/types/thesis';
 import MDEditor from '@uiw/react-md-editor';
 
 interface ThesisPreviewProps {
@@ -58,7 +58,7 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
         );
     };
 
-    const renderSection = (section: any, chapterTitle?: string) => {
+    const renderSection = (section: Section, chapterTitle?: string) => {
         if (section.type === 'title') {
             return renderTitlePage();
         }

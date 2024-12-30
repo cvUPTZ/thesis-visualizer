@@ -1,3 +1,4 @@
+// File: src/components/thesis/toolbar/CollaboratorSection.tsx
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Loader2 } from 'lucide-react';

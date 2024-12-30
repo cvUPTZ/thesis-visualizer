@@ -1,9 +1,9 @@
-// File: /src/components/thesis/form/useThesisCreation.ts
-
+// File: src/components/thesis/form/useThesisCreation.ts
 import { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from '@/integrations/supabase/types';
+import { ThesisSectionType } from '@/types/thesis';
 
 export const useThesisCreation = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,7 +33,7 @@ export const useThesisCreation = () => {
             id: crypto.randomUUID(),
             title: title,
             content: '',
-            type: 'title',
+            type: 'title' as ThesisSectionType,
             required: true,
             order: 1,
             figures: [],
@@ -44,7 +44,7 @@ export const useThesisCreation = () => {
             id: crypto.randomUUID(),
             title: 'Abstract',
             content: description,
-            type: 'abstract',
+            type: 'abstract' as ThesisSectionType,
             required: true,
             order: 2,
             figures: [],
@@ -54,18 +54,18 @@ export const useThesisCreation = () => {
         ],
         chapters: [],
         backMatter: [
-          {
-            id: crypto.randomUUID(),
-            title: 'References',
-            content: '',
-            type: 'references',
-            required: true,
-            order: 1,
-            figures: [],
-            tables: [],
-            citations: [],
-            references: []
-          }
+            {
+                id: crypto.randomUUID(),
+                title: 'References',
+                content: '',
+                type: 'references' as ThesisSectionType,
+                required: true,
+                order: 1,
+                figures: [],
+                tables: [],
+                citations: [],
+                references: []
+            }
         ]
       } as Json;
 

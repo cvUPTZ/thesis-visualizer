@@ -1,3 +1,4 @@
+// File: src/hooks/useThesisData.ts
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Thesis } from '@/types/thesis';

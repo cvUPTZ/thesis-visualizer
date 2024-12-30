@@ -1,5 +1,4 @@
-// File: /src/utils/docxExport.ts
-
+// File: src/utils/docxExport.ts
 import { Document, Paragraph, TextRun, PageBreak, Header, Footer, AlignmentType, LevelFormat, HeadingLevel, PageNumber, NumberFormat } from 'docx';
 import { Thesis, Section, Chapter } from '@/types/thesis';
 

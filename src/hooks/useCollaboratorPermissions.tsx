@@ -1,3 +1,4 @@
+// File: src/hooks/useCollaboratorPermissions.tsx
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types/profile';
@@ -114,8 +115,7 @@ export const useCollaboratorPermissions = (thesisId: string) => {
             setLoading(false);
         }
     };
-
-
+  
 
     useEffect(() => {
         if (thesisId) {

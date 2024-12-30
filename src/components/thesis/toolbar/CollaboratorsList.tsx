@@ -1,3 +1,4 @@
+// File: src/components/thesis/toolbar/CollaboratorsList.tsx
 import React from 'react';
 import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';

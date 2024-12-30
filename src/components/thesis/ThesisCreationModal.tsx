@@ -1,5 +1,4 @@
-// File: /src/components/thesis/ThesisCreationModal.tsx
-
+// File: src/components/thesis/ThesisCreationModal.tsx
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";

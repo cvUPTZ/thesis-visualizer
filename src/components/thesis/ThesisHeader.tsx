@@ -1,3 +1,4 @@
+// File: src/components/thesis/ThesisHeader.tsx
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, UserPlus, Save } from 'lucide-react';
@@ -191,45 +192,45 @@ export const ThesisHeader = ({
                 onInviteError={handleInviteError}
                 isAdmin={isAdmin}
                 setIsInviting={setIsInviting}
-              />
-            </PopoverContent>
-          </Popover>
-        )}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onTogglePreview}
-          className="gap-2"
-        >
-          {showPreview ? (
-            <>
-              <EyeOff className="w-4 h-4" />
-              Hide Preview
-            </>
-          ) : (
-            <>
-              <Eye className="w-4 h-4" />
-              Show Preview
-            </>
+                />
+              </PopoverContent>
+            </Popover>
           )}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleSaveToJson}
-          className="gap-2"
-        >
-          <Save className="w-4 h-4" />
-          Save as JSON
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleLogout}
-        >
-          Logout
-        </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onTogglePreview}
+            className="gap-2"
+          >
+            {showPreview ? (
+              <>
+                <EyeOff className="w-4 h-4" />
+                Hide Preview
+              </>
+            ) : (
+              <>
+                <Eye className="w-4 h-4" />
+                Show Preview
+              </>
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSaveToJson}
+            className="gap-2"
+          >
+            <Save className="w-4 h-4" />
+            Save as JSON
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };

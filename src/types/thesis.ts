@@ -1,4 +1,21 @@
-// File: /src/types/thesis.ts
+// File: src/types/thesis.ts
+export type ThesisSectionType =
+    | 'title'
+    | 'abstract'
+    | 'acknowledgments'
+    | 'table-of-contents'
+    | 'list-of-figures'
+    | 'list-of-tables'
+    | 'introduction'
+    | 'literature-review'
+    | 'methodology'
+    | 'results'
+    | 'discussion'
+    | 'conclusion'
+    | 'recommendations'
+    | 'references'
+    | 'appendix'
+    | 'custom';
 
 export interface Citation {
   id: string;
@@ -44,23 +61,7 @@ export interface Section {
   id: string;
   title: string;
   content: string;
-  type:
-    | 'title'
-    | 'abstract'
-    | 'acknowledgments'
-    | 'table-of-contents'
-    | 'list-of-figures'
-    | 'list-of-tables'
-    | 'introduction'
-    | 'literature-review'
-    | 'methodology'
-    | 'results'
-    | 'discussion'
-    | 'conclusion'
-    | 'recommendations'
-    | 'references'
-    | 'appendix'
-    | 'custom';
+    type: ThesisSectionType;
   required?: boolean;
   order: number;
   figures: Figure[];

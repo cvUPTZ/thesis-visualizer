@@ -1,3 +1,4 @@
+// File: src/components/TableManager.tsx
 import React from 'react';
 import { Table as TableType } from '@/types/thesis';
 import { Button } from '@/components/ui/button';

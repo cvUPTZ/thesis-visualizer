@@ -1,3 +1,4 @@
+// File: src/components/thesis/form/ThesisMetadataFields.tsx
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 

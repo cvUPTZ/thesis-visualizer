@@ -1,9 +1,12 @@
+// File: src/components/thesis/ThesisSaveButton.tsx
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Thesis } from "@/types/thesis";
 import { Save } from "lucide-react";
 import { useState } from "react";
+import { Json } from '@/integrations/supabase/types';
+
 
 interface ThesisSaveButtonProps {
   thesisId: string;
@@ -38,10 +41,11 @@ export const ThesisSaveButton = ({ thesisId, thesisData }: ThesisSaveButtonProps
 
       // Convert Thesis object to a JSON-compatible format
       const thesisContent = JSON.parse(JSON.stringify({
+        metadata: thesisData.metadata,
         frontMatter: thesisData.frontMatter,
         chapters: thesisData.chapters,
         backMatter: thesisData.backMatter
-      }));
+      })) as unknown as Json;
 
       const { data, error } = await supabase
         .from('theses')
