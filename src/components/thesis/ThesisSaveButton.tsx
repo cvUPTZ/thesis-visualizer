@@ -19,12 +19,12 @@ export const ThesisSaveButton = ({ thesisId, thesisData }: ThesisSaveButtonProps
       setIsSaving(true);
       console.log('Starting thesis save operation:', { thesisId, content: thesisData });
       
-      // Convert Thesis object to a plain object for JSON storage
-      const thesisContent = {
+      // Convert Thesis object to a JSON-compatible format
+      const thesisContent = JSON.parse(JSON.stringify({
         frontMatter: thesisData.frontMatter,
         chapters: thesisData.chapters,
         backMatter: thesisData.backMatter
-      };
+      }));
 
       const { data, error } = await supabase
         .from('theses')
