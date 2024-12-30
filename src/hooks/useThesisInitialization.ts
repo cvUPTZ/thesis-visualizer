@@ -25,6 +25,20 @@ export const useThesisInitialization = (thesis: Thesis) => {
 
         console.log('Current user:', user.id);
 
+        // First get user profile to ensure it exists
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          throw profileError;
+        }
+
+        console.log('User profile:', profile);
+
         // Check if thesis already exists
         const { data: existingThesis, error: checkError } = await supabase
           .from('theses')
@@ -54,15 +68,11 @@ export const useThesisInitialization = (thesis: Thesis) => {
               user_id: user.id
             })
             .select()
-            .maybeSingle();
+            .single();
 
           if (thesisError) {
             console.error('Error creating thesis:', thesisError);
             throw thesisError;
-          }
-
-          if (!newThesis) {
-            throw new Error('Failed to create thesis');
           }
 
           console.log('Created new thesis:', newThesis);
@@ -78,6 +88,11 @@ export const useThesisInitialization = (thesis: Thesis) => {
 
           if (collaboratorError) {
             console.error('Error adding thesis owner:', collaboratorError);
+            // If we fail to add collaborator, delete the thesis
+            await supabase
+              .from('theses')
+              .delete()
+              .eq('id', thesis.id);
             throw collaboratorError;
           }
 
