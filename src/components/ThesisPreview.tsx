@@ -1,3 +1,5 @@
+// File: src/components/ThesisPreview.tsx
+
 import React from 'react';
 import { Thesis, Section, ThesisSectionType } from '@/types/thesis';
 import MDEditor from '@uiw/react-md-editor';
@@ -14,8 +16,8 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
         return (
             <div className="thesis-page no-header no-footer">
                 <div className="thesis-title-content">
-                    <div className="university-name">Your University Name</div>
-                    <div className="department-name">Department of Your Field</div>
+                    <div className="university-name">{thesis.metadata?.universityName || "Your University Name"}</div>
+                    <div className="department-name">{thesis.metadata?.departmentName || "Department of Your Field"}</div>
                     <div className="thesis-main-title">
                         {titleSection?.content || "Untitled Thesis"}
                     </div>
@@ -26,16 +28,20 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
                     </div>
                     <div className="thesis-author">
                         by<br />
-                        Author Name
+                        {thesis.metadata?.authorName || "Author Name"}
                     </div>
                     <div className="thesis-date">
-                        Month Year
+                         {thesis.metadata?.thesisDate || "Month Year"}
                     </div>
                     <div className="thesis-committee">
                         Thesis Committee:<br />
-                        Professor Name, Chair<br />
-                        Professor Name<br />
-                        Professor Name
+                        {thesis.metadata?.committeeMembers?.map((member, index) => (
+                          <React.Fragment key={index}>
+                            {member}
+                            <br />
+                          </React.Fragment>
+                        ))
+                        }
                     </div>
                 </div>
             </div>
@@ -97,7 +103,7 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
                 {thesis.chapters.map((chapter) => (
                     <div key={chapter.id}>
                         {chapter.sections.map((section) => (
-                           renderSection(section, chapter.title)
+                            renderSection(section, chapter.title)
                         ))}
                     </div>
                 ))}

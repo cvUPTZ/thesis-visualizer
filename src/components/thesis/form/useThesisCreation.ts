@@ -5,33 +5,51 @@ import { supabase } from "@/integrations/supabase/client";
 import { Json } from '@/integrations/supabase/types';
 import { ThesisSectionType } from '@/types/thesis';
 
+interface ThesisMetadata {
+  title: string;
+  description: string;
+  keywords: string;
+  universityName?: string;
+  departmentName?: string;
+  authorName?: string;
+  thesisDate?: string;
+  committeeMembers?: string[];
+}
 export const useThesisCreation = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const createThesis = async (
-    title: string,
-    description: string,
-    keywords: string,
+    metadata: ThesisMetadata,
     userId: string
   ) => {
     setIsSubmitting(true);
     try {
-      console.log('Starting thesis creation with metadata:', { title, description, keywords, userId });
+      console.log('Starting thesis creation with metadata:', metadata);
 
       const thesisId = crypto.randomUUID();
+
+        const keywordsArray = metadata.keywords
+            .split(',')
+            .map(k => k.trim())
+            .filter(k => k);
 
       // Prepare thesis content with proper typing
       const thesisContent = {
         metadata: {
-          description,
-          keywords: keywords.split(',').map(k => k.trim()),
+          description: metadata.description,
+          keywords: keywordsArray,
           createdAt: new Date().toISOString(),
+            universityName: metadata.universityName,
+            departmentName: metadata.departmentName,
+            authorName: metadata.authorName,
+            thesisDate: metadata.thesisDate,
+            committeeMembers: metadata.committeeMembers
         },
         frontMatter: [
           {
             id: crypto.randomUUID(),
-            title: title,
+            title: metadata.title,
             content: '',
             type: 'title' as ThesisSectionType,
             required: true,
@@ -43,7 +61,7 @@ export const useThesisCreation = () => {
           {
             id: crypto.randomUUID(),
             title: 'Abstract',
-            content: description,
+            content: metadata.description,
             type: 'abstract' as ThesisSectionType,
             required: true,
             order: 2,
@@ -69,14 +87,14 @@ export const useThesisCreation = () => {
         ]
       } as Json;
 
-      console.log('Creating thesis with content:', { thesisId, title, content: thesisContent, userId });
+      console.log('Creating thesis with content:', { thesisId, title: metadata.title, content: thesisContent, userId });
 
       // Create thesis with metadata and ensure user_id is set
       const { error: thesisError } = await supabase
         .from('theses')
         .insert({
           id: thesisId,
-          title: title,
+          title: metadata.title,
           content: thesisContent,
           user_id: userId
         });
@@ -113,7 +131,7 @@ export const useThesisCreation = () => {
       // Return thesisId and title
       return {
           thesisId,
-          title
+          title: metadata.title
       };
 
 
