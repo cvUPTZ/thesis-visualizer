@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Thesis } from '@/types/thesis';
+import { Json } from '@/integrations/supabase/types';
 
 export const useThesisInitialization = (thesis: Thesis) => {
   const { toast } = useToast();
@@ -54,7 +55,7 @@ export const useThesisInitialization = (thesis: Thesis) => {
         if (!existingThesis) {
           console.log('Creating new thesis with user_id:', user.id);
           
-          // Create the thesis with the content directly
+          // Create the thesis with the content as a JSON object
           const { data: newThesis, error: thesisError } = await supabase
             .from('theses')
             .insert({
@@ -64,7 +65,7 @@ export const useThesisInitialization = (thesis: Thesis) => {
                 frontMatter: thesis.frontMatter,
                 chapters: thesis.chapters,
                 backMatter: thesis.backMatter
-              },
+              } as Json,
               user_id: user.id
             })
             .select()
