@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+// File: src/components/ThesisEditor.tsx
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
 import { ThesisPreview } from './ThesisPreview';
 import { ThesisContent } from './thesis/ThesisContent';
@@ -6,21 +7,46 @@ import { ThesisToolbar } from './thesis/ThesisToolbar';
 import { Chapter, Section, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { ThesisCreationModal } from './thesis/ThesisCreationModal';
+import { Button } from '@/components/ui/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ArrowDown, ArrowUp } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-export const ThesisEditor = () => {
-  const { thesisId } = useParams();
+interface ThesisListItem {
+    id: string;
+    title: string;
+}
+
+interface ThesisEditorProps {
+  thesisId?: string;
+}
+
+export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => {
+  const { thesisId: routeThesisId } = useParams();
   const [thesis, setThesis] = useState<Thesis | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string>('');
   const [showPreview, setShowPreview] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+    const [thesisList, setThesisList] = useState<ThesisListItem[]>([]);
+    const [open, setOpen] = useState(false);
+     const { toast } = useToast();
 
   // Initialize thesis data
   useEffect(() => {
     const fetchThesis = async () => {
-      if (!thesisId) {
+      const currentThesisId = propsThesisId || routeThesisId;
+      if (!currentThesisId) {
+        setThesis(null);
         setIsLoading(false);
         return;
       }
@@ -28,7 +54,7 @@ export const ThesisEditor = () => {
         const { data, error } = await supabase
           .from('theses')
           .select('*')
-          .eq('id', thesisId)
+          .eq('id', currentThesisId)
           .single();
 
         if (error) {
@@ -65,11 +91,16 @@ export const ThesisEditor = () => {
     };
 
     fetchThesis();
-  }, [thesisId]);
+  }, [propsThesisId, routeThesisId]);
 
   // Initialize hooks at component level, not in useEffect
   useThesisAutosave(thesis);
   useThesisInitialization(thesis);
+
+    const handleThesisCreated = (thesisId: string, title: string) => {
+        setThesis(null)
+    };
+
 
   useEffect(() => {
     if (thesis && thesis.frontMatter.length > 0) {
@@ -77,13 +108,88 @@ export const ThesisEditor = () => {
     }
   }, [thesis]);
 
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (!thesis) {
-    return <div>Thesis not found</div>;
-  }
+  const fetchTheses = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('theses')
+          .select('id, title');
+
+        if (error) {
+          console.error('Error fetching theses', error);
+           toast({
+            title: "Error",
+            description: error.message || "Failed to load available theses",
+             variant: "destructive",
+           });
+            return;
+        }
+         if (data) {
+              setThesisList(data as ThesisListItem[])
+        }
+      } catch (error: any) {
+            console.error('Error fetching theses', error);
+          toast({
+            title: "Error",
+            description: "Error fetching available theses",
+            variant: "destructive",
+          });
+      }
+    };
+
+  const handleLoadThesis = async (thesisId: string) => {
+      navigate(`/thesis/${thesisId}`);
+  };
+
+   const handleToggleOpen = useCallback( () => setOpen((prevOpen) => !prevOpen), [setOpen])
+
+    if (!thesis && !propsThesisId && !routeThesisId) {
+        return(
+           <div className="flex flex-col h-full">
+                <div className="flex justify-between p-4 items-center">
+                  <ThesisCreationModal onThesisCreated={handleThesisCreated}/>
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                         <Button
+                           onClick={() => {
+                                fetchTheses()
+                                handleToggleOpen()
+                           }}
+                           className="gap-2"
+                         >
+                            {open ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+                            Load Thesis
+                         </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                        <ScrollArea className="h-[200px] pr-4">
+                            <div className="space-y-2">
+                                {thesisList.map((thesis) => (
+                                  <Button
+                                    variant="ghost"
+                                    key={thesis.id}
+                                    className="w-full text-left"
+                                    onClick={() => handleLoadThesis(thesis.id)}
+                                  >
+                                    {thesis.title}
+                                  </Button>
+                                ))}
+                            </div>
+                        </ScrollArea>
+                    </PopoverContent>
+                 </Popover>
+               </div>
+              <div className="flex flex-1 items-center justify-center">
+                <p className="text-muted-foreground text-lg">No thesis loaded</p>
+              </div>
+            </div>
+        )
+    }
+
 
   const handleContentChange = (id: string, newContent: string) => {
     setThesis(prevThesis => ({
