@@ -1,4 +1,3 @@
-// File: src/types/thesis.ts
 export type ThesisSectionType =
     | 'title'
     | 'abstract'
