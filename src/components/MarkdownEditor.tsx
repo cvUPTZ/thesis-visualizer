@@ -21,10 +21,16 @@ export const MarkdownEditor = ({ value, onChange, placeholder }: MarkdownEditorP
           placeholder: placeholder
         }}
         previewOptions={{
-          skipHtml: false
-        }}
-        components={{
-          preview: (source) => <MDEditor.Markdown source={source} />
+          skipHtml: false,
+          rehypeRewrite: (node) => {
+            if (node.type === 'element' && node.tagName === 'a') {
+              node.properties = {
+                ...node.properties,
+                target: '_blank',
+                rel: 'noopener noreferrer'
+              };
+            }
+          }
         }}
       />
     </div>
