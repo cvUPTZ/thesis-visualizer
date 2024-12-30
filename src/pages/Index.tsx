@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowDown, ArrowUp } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+ import { ArrowDown, ArrowUp } from "lucide-react";
+ import { useToast } from "@/hooks/use-toast";
 
 interface ThesisListItem {
     id: string;
@@ -35,7 +35,7 @@ const Index = () => {
         const { data, error } = await supabase
           .from('theses')
           .select('id, title');
-        
+
         if (error) {
           console.error('Error fetching theses', error);
           toast({
@@ -59,11 +59,10 @@ const Index = () => {
     };
 
    const handleLoadThesis = async (thesisId: string) => {
-        navigate(`/thesis/${thesisId}`)
+       navigate(`/thesis/${thesisId}`)
    }
 
    const handleToggleOpen = useCallback( () => setOpen((prevOpen) => !prevOpen), [setOpen])
-
 
     return (
         <div className="flex flex-col h-full">

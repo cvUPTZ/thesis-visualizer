@@ -48,12 +48,30 @@ serve(async (req) => {
       );
     }
 
-    // Send invitation email using your email service
-    // For now, we'll just return success
-    return new Response(
-      JSON.stringify({ message: 'Invitation sent successfully' }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+        // Send invitation email using your email service
+         const { error: emailError } = await supabaseClient.functions.invoke('send-email', {
+                body: JSON.stringify({
+                    to: to,
+                    subject: `Invitation to collaborate on ${thesisTitle}`,
+                     body: `You have been invited to collaborate on ${thesisTitle} as ${role}. Please click on this link to accept the invite: ${inviteLink}`,
+                }),
+            });
+
+            if (emailError) {
+                console.error('Error invoking send email function:', emailError);
+              return new Response(
+                    JSON.stringify({ error: 'Failed to send invitation email' }),
+                    {
+                      status: 500,
+                      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    }
+                  );
+            }
+             return new Response(
+                JSON.stringify({ message: 'Invitation sent successfully' }),
+                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
+
 
   } catch (error) {
     console.error('Error:', error);
