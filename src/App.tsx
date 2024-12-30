@@ -19,6 +19,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    let mounted = true;
+
     const checkAuth = async () => {
       try {
         console.log('Checking authentication status...');
@@ -26,56 +28,81 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         
         if (error) {
           console.error('Auth session error:', error);
-          setIsAuthenticated(false);
-          toast({
-            title: "Authentication Error",
-            description: "Please sign in again.",
-            variant: "destructive",
-          });
+          if (mounted) {
+            setIsAuthenticated(false);
+            toast({
+              title: "Authentication Error",
+              description: "Please sign in again.",
+              variant: "destructive",
+            });
+          }
           return;
         }
 
         if (!session) {
           console.log('No active session found');
-          setIsAuthenticated(false);
+          if (mounted) {
+            setIsAuthenticated(false);
+          }
           return;
         }
 
         console.log('Active session found:', session.user.email);
-        setIsAuthenticated(true);
+        if (mounted) {
+          setIsAuthenticated(true);
+        }
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        // Set up auth state change listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
           console.log("Auth state changed:", event, session?.user?.email);
-          if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-            setIsAuthenticated(false);
-            toast({
-              title: "Signed Out",
-              description: "You have been signed out.",
-            });
+          
+          if (event === 'SIGNED_OUT') {
+            if (mounted) {
+              setIsAuthenticated(false);
+              toast({
+                title: "Signed Out",
+                description: "You have been signed out.",
+              });
+            }
           } else if (event === 'SIGNED_IN' && session) {
-            setIsAuthenticated(true);
-            toast({
-              title: "Signed In",
-              description: "Welcome back!",
-            });
+            if (mounted) {
+              setIsAuthenticated(true);
+              toast({
+                title: "Signed In",
+                description: "Welcome back!",
+              });
+            }
+          } else if (event === 'TOKEN_REFRESHED') {
+            // Recheck session when token is refreshed
+            const { data: { session: refreshedSession } } = await supabase.auth.getSession();
+            if (mounted) {
+              setIsAuthenticated(!!refreshedSession);
+            }
           }
         });
 
         return () => {
+          mounted = false;
           subscription.unsubscribe();
         };
       } catch (error: any) {
         console.error('Error checking auth:', error);
-        setIsAuthenticated(false);
-        toast({
-          title: "Authentication Error",
-          description: error.message || "Please sign in again.",
-          variant: "destructive",
-        });
+        if (mounted) {
+          setIsAuthenticated(false);
+          toast({
+            title: "Authentication Error",
+            description: error.message || "Please sign in again.",
+            variant: "destructive",
+          });
+        }
       }
     };
 
     checkAuth();
+
+    return () => {
+      mounted = false;
+    };
   }, [toast]);
 
   if (isAuthenticated === null) {
