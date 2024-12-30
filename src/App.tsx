@@ -13,7 +13,6 @@ import { ThesisEditor } from "@/components/ThesisEditor";
 
 const queryClient = new QueryClient();
 
-// Protected Route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { toast } = useToast();
@@ -23,10 +22,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const checkAuth = async () => {
       try {
         console.log('Checking authentication status...');
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (error) {
-          console.error('Auth session error:', error);
+        if (sessionError) {
+          console.error('Session error:', sessionError);
           if (mountedRef.current) {
             setIsAuthenticated(false);
             toast({
@@ -46,12 +45,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
+        console.log('Current session:', session);
+
         // Verify the session is still valid
-        const { data: user, error: userError } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
         if (userError || !user) {
           console.error('User verification failed:', userError);
           if (mountedRef.current) {
             setIsAuthenticated(false);
+            await supabase.auth.signOut(); // Clear any invalid session
             toast({
               title: "Session Expired",
               description: "Please sign in again.",
@@ -61,7 +64,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        console.log('Active session found:', session.user.email);
         if (mountedRef.current) {
           setIsAuthenticated(true);
         }
@@ -99,11 +101,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           title: "Signed In",
           description: "Welcome back!",
         });
-      } else if (event === 'TOKEN_REFRESHED') {
-        const { data: { session: refreshedSession } } = await supabase.auth.getSession();
-        if (mountedRef.current) {
-          setIsAuthenticated(!!refreshedSession);
-        }
       }
     });
 
