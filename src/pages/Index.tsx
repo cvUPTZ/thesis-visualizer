@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { ThesisEditor } from "@/components/ThesisEditor";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { ThesisCreationModal } from "@/components/thesis/ThesisCreationModal";
 import {
   Popover,
@@ -29,11 +29,6 @@ const Index = () => {
     const handleThesisCreated = (thesisId: string, title: string) => {
         setThesisCreated(true);
     };
-
-    useEffect(() => {
-        fetchTheses();
-    }, []);
-
 
   const fetchTheses = async () => {
       try {
