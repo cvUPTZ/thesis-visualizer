@@ -1,5 +1,6 @@
+// File: /src/components/thesis/form/useThesisCreation.ts
+
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from '@/integrations/supabase/types';
@@ -7,7 +8,6 @@ import { Json } from '@/integrations/supabase/types';
 export const useThesisCreation = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const createThesis = async (
     title: string,
@@ -110,8 +110,9 @@ export const useThesisCreation = () => {
         description: "Your thesis has been created successfully.",
       });
 
-      // Navigate to the thesis editor
-      navigate(`/thesis/${thesisId}`);
+      // Return thesisId
+      return thesisId;
+
 
     } catch (error: any) {
       console.error('Error in thesis creation:', error);
@@ -120,6 +121,7 @@ export const useThesisCreation = () => {
         description: error.message || "Failed to create thesis. Please try again.",
         variant: "destructive",
       });
+       return null;
     } finally {
       setIsSubmitting(false);
     }

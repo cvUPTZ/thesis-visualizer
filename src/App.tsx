@@ -1,3 +1,4 @@
+// File: /src/App.tsx
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import CreateThesis from "./pages/CreateThesis";
+import { ThesisEditor } from "@/components/ThesisEditor";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +57,14 @@ const App = () => (
               </ProtectedRoute>
             }
           />
+          <Route
+              path="/thesis/:thesisId"
+              element={
+                  <ProtectedRoute>
+                      <ThesisEditor />
+                  </ProtectedRoute>
+              }
+            />
           <Route path="/auth" element={<Auth />} />
           <Route
             path="/create-thesis"

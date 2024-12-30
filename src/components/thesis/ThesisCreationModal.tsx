@@ -34,9 +34,12 @@ export const ThesisCreationModal = ({ onThesisCreated }: ThesisCreationModalProp
             return;
         }
 
-        await createThesis(title, description, keywords, session.user.id);
-        setOpen(false);
-        onThesisCreated();
+        const thesisId = await createThesis(title, description, keywords, session.user.id);
+        if (thesisId) {
+            setOpen(false);
+            onThesisCreated();
+           navigate(`/thesis/${thesisId}`);
+        }
     };
 
     return (
