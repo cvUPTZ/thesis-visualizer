@@ -14,7 +14,8 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     const titleSection = thesis.frontMatter.find(section => section.type === 'title');
     const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
     
-     const renderTitlePage = () => {
+    const renderTitlePage = () => {
+        console.log('Rendering Title Page with data:', thesis.metadata);
         return (
             <div className="thesis-page no-header no-footer">
                 <div className="thesis-title-content">
@@ -49,7 +50,6 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
             </div>
         );
     };
-
 
     const renderAbstract = () => {
         return (

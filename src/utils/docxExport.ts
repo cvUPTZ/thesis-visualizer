@@ -1,4 +1,3 @@
-// File: src/utils/docxExport.ts
 import { Document, Paragraph, TextRun, PageBreak, Header, Footer, AlignmentType, LevelFormat, HeadingLevel, PageNumber, NumberFormat } from 'docx';
 import { Thesis, Section, Chapter } from '@/types/thesis';
 
@@ -37,6 +36,7 @@ const createFooter = () => {
 };
 
 const createTitlePage = (thesis: Thesis) => {
+    console.log('Creating title page with metadata:', thesis.metadata);
   const titleSection = thesis.frontMatter.find(section => section.type === 'title');
   return [
     new Paragraph({
@@ -51,6 +51,97 @@ const createTitlePage = (thesis: Thesis) => {
         }),
       ],
     }),
+      new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 360, after: 360 },
+          children: [
+              new TextRun({
+                  text: thesis.metadata?.universityName || "Your University Name",
+                  font: "Times New Roman",
+                  size: 24,
+              }),
+          ],
+      }),
+      new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 360, after: 360 },
+          children: [
+              new TextRun({
+                  text: thesis.metadata?.departmentName || "Department of Your Field",
+                  font: "Times New Roman",
+                  size: 24,
+              }),
+          ],
+      }),
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 1440, after: 1440 }, // 1 inch margins
+        children: [
+          new TextRun({
+            text: titleSection?.content || "Untitled Thesis",
+            font: "Times New Roman",
+            size: 32, // 16pt
+          }),
+        ],
+      }),
+        new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 360, after: 360 },
+            children: [
+                new TextRun({
+                    text: "A thesis submitted in partial fulfillment\n of the requirements for the degree of\n Doctor of Philosophy",
+                    font: "Times New Roman",
+                    size: 24,
+                }),
+            ],
+        }),
+       new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 360, after: 360 },
+            children: [
+                new TextRun({
+                    text: `by\n ${thesis.metadata?.authorName || "Author Name"}`,
+                  font: "Times New Roman",
+                  size: 24,
+                }),
+            ],
+        }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 360, after: 360 },
+            children: [
+              new TextRun({
+                text: thesis.metadata?.thesisDate || "Month Year",
+                font: "Times New Roman",
+                size: 24, // 12pt
+              }),
+            ],
+          }),
+    new Paragraph({
+            alignment: AlignmentType.CENTER,
+          spacing: { before: 360, after: 360 },
+        children: [
+            new TextRun({
+              text: `Thesis Committee: \n`,
+                font: "Times New Roman",
+                size: 24, // 12pt
+            }),
+          ],
+        }),
+      ...thesis.metadata?.committeeMembers?.map((member, index) => (
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+             spacing: { before: 360, after: 360 },
+            children: [
+                new TextRun({
+                    text: `${member || ""} ${index ===0 ? "(Chair)" : ""}\n`,
+                    font: "Times New Roman",
+                    size: 24,
+                }),
+            ],
+        })
+          
+      )) || [],
     new Paragraph({
       children: [new PageBreak()],
     }),
@@ -58,6 +149,7 @@ const createTitlePage = (thesis: Thesis) => {
 };
 
 const createAbstract = (thesis: Thesis) => {
+    console.log("Creating Abstract")
   return [
     new Paragraph({
       heading: HeadingLevel.HEADING_1,
@@ -87,6 +179,7 @@ const createAbstract = (thesis: Thesis) => {
 };
 
 const createTableOfContents = () => {
+    console.log('Creating table of contents')
   return [
     new Paragraph({
       heading: HeadingLevel.HEADING_1,
@@ -108,6 +201,7 @@ const createTableOfContents = () => {
 };
 
 const createChapterContent = (chapter: Chapter) => {
+    console.log(`Creating chapter content for: ${chapter.title}`);
   const paragraphs: Paragraph[] = [
     new Paragraph({
       heading: HeadingLevel.HEADING_1,
@@ -123,6 +217,7 @@ const createChapterContent = (chapter: Chapter) => {
   ];
 
   chapter.sections.forEach(section => {
+      console.log(`Creating section: ${section.title}`);
     paragraphs.push(
       new Paragraph({
         heading: HeadingLevel.HEADING_2,
@@ -151,6 +246,7 @@ const createChapterContent = (chapter: Chapter) => {
 };
 
 export const generateThesisDocx = (thesis: Thesis): Document => {
+    console.log('Generating DOCX document with thesis:', thesis);
   const doc = new Document({
     sections: [
       {
