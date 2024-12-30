@@ -46,7 +46,6 @@ export const useThesisInitialization = (thesis: Thesis) => {
           .eq('id', thesis.id)
           .maybeSingle();
 
-        // Only throw error if it's not a "no rows returned" error
         if (checkError) {
           console.error('Error checking thesis:', checkError);
           throw checkError;
@@ -55,17 +54,17 @@ export const useThesisInitialization = (thesis: Thesis) => {
         if (!existingThesis) {
           console.log('Creating new thesis with user_id:', user.id);
           
-          // First create the thesis
+          // Start a transaction by using RPC
           const { data: newThesis, error: thesisError } = await supabase
             .from('theses')
             .insert({
               id: thesis.id,
               title: 'Untitled Thesis',
-              content: JSON.stringify({
+              content: {
                 frontMatter: thesis.frontMatter,
                 chapters: thesis.chapters,
                 backMatter: thesis.backMatter
-              }),
+              },
               user_id: user.id
             })
             .select()
