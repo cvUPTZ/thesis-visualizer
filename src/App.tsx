@@ -25,31 +25,40 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       try {
         console.log('Checking authentication status...');
         
-        // First clear any potentially stale auth data
-        const currentSession = await supabase.auth.getSession();
-        if (!currentSession.data.session) {
-          console.log('No active session, clearing local storage');
-          localStorage.removeItem('supabase.auth.token');
+        // First clear any stale auth data from localStorage
+        localStorage.removeItem('supabase.auth.token');
+        
+        // Get current session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
           if (mountedRef.current) {
             setIsAuthenticated(false);
           }
           return;
         }
 
-        // Verify the session is still valid by checking the user
+        if (!session) {
+          console.log('No active session found');
+          if (mountedRef.current) {
+            setIsAuthenticated(false);
+          }
+          return;
+        }
+
+        // Verify the session is still valid
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
         if (userError || !user) {
           console.error('User verification failed:', userError);
           if (mountedRef.current) {
             setIsAuthenticated(false);
-            // Clear local storage first
-            localStorage.removeItem('supabase.auth.token');
             try {
+              // Try to sign out, but don't throw if it fails
               await supabase.auth.signOut();
             } catch (signOutError) {
               console.error('Error during sign out:', signOutError);
-              // Continue even if sign out fails
             }
             toast({
               title: "Session Expired",
@@ -70,13 +79,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         console.error('Error checking auth:', error);
         if (mountedRef.current) {
           setIsAuthenticated(false);
-          // Clear local storage first
-          localStorage.removeItem('supabase.auth.token');
           try {
+            // Try to sign out, but don't throw if it fails
             await supabase.auth.signOut();
           } catch (signOutError) {
             console.error('Error during sign out:', signOutError);
-            // Continue even if sign out fails
           }
           toast({
             title: "Authentication Error",
