@@ -1,10 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL");
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 interface EmailRequest {
@@ -17,7 +19,10 @@ interface EmailRequest {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 204
+    });
   }
 
   try {
@@ -28,13 +33,21 @@ serve(async (req) => {
       throw new Error('RESEND_API_KEY is not configured');
     }
 
+    if (!SENDER_EMAIL) {
+      console.error('Missing SENDER_EMAIL');
+      throw new Error('SENDER_EMAIL is not configured');
+    }
+
     const { to, thesisTitle, inviteLink, role }: EmailRequest = await req.json();
 
     if (!to || !thesisTitle || !inviteLink || !role) {
       console.error('Missing required fields:', { to, thesisTitle, inviteLink, role });
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
       );
     }
 
@@ -49,12 +62,6 @@ serve(async (req) => {
       <p>${inviteLink}</p>
     `;
 
-    // First, try to get the sender email from environment variable
-    const senderEmail = Deno.env.get("SENDER_EMAIL");
-    if (!senderEmail) {
-      throw new Error('SENDER_EMAIL is not configured');
-    }
-
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -62,7 +69,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: senderEmail,
+        from: SENDER_EMAIL,
         to: [to],
         subject: `Invitation to collaborate on "${thesisTitle}"`,
         html: emailContent,
@@ -76,7 +83,10 @@ serve(async (req) => {
       // Parse the error response to check if it's a domain verification issue
       try {
         const errorData = JSON.parse(error);
-        if (errorData.statusCode === 403 && errorData.message.includes('domain is not verified')) {
+        if (errorData.statusCode === 403 && (
+          errorData.message.includes('domain is not verified') || 
+          errorData.message.includes('verify a domain')
+        )) {
           return new Response(
             JSON.stringify({ 
               error: 'Domain verification required',
@@ -89,8 +99,7 @@ serve(async (req) => {
           );
         }
       } catch (parseError) {
-        // If error parsing fails, throw the original error
-        throw new Error(`Resend API error: ${error}`);
+        console.error('Error parsing Resend API error:', parseError);
       }
       
       throw new Error(`Resend API error: ${error}`);
