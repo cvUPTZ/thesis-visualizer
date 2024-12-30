@@ -3,13 +3,14 @@ import { ThesisSidebar } from './ThesisSidebar';
 import { ThesisPreview } from './ThesisPreview';
 import { ThesisContent } from './thesis/ThesisContent';
 import { ThesisToolbar } from './thesis/ThesisToolbar';
-import { Chapter, Section } from '@/types/thesis';
+import { Chapter } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
 import { useParams } from 'react-router-dom';
 import { ThesisCreationModal } from './thesis/ThesisCreationModal';
 import { ThesisList } from './thesis/ThesisList';
 import { useThesisData } from '@/hooks/useThesisData';
+import { Skeleton } from './ui/skeleton';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -19,7 +20,7 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
   const { thesisId: routeThesisId } = useParams();
   const currentThesisId = propsThesisId || routeThesisId;
   
-  const { thesis, setThesis, isLoading } = useThesisData(currentThesisId);
+  const { thesis, setThesis, isLoading, error } = useThesisData(currentThesisId);
   const [activeSection, setActiveSection] = useState<string>('');
   const [showPreview, setShowPreview] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -87,7 +88,26 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-background p-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || (!thesis && currentThesisId)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-semibold text-destructive">Error Loading Thesis</h2>
+          <p className="text-muted-foreground">{error || "Thesis not found"}</p>
+        </div>
+      </div>
+    );
   }
 
   if (!thesis && !currentThesisId) {
