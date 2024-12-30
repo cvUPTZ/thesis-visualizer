@@ -45,38 +45,50 @@ serve(async (req) => {
     console.log('Initializing SMTP client...');
     const client = new SmtpClient();
 
-    console.log('Connecting to SMTP server...');
-    await client.connectTLS({
-      hostname: smtpHost,
-      port: Number(smtpPort),
-      username: smtpUsername,
-      password: smtpPassword,
-    });
+    try {
+      console.log('Connecting to SMTP server...');
+      await client.connect({
+        hostname: smtpHost,
+        port: Number(smtpPort),
+        username: smtpUsername,
+        password: smtpPassword,
+      });
 
-    const html = `
-      <h2>You've been invited to collaborate!</h2>
-      <p>You have been invited to collaborate on the thesis "${thesisTitle}" as a ${role}.</p>
-      <p>Click the link below to accept the invitation:</p>
-      <a href="${inviteLink}" style="display: inline-block; padding: 10px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px;">Accept Invitation</a>
-      <p>If you can't click the button, copy and paste this link in your browser:</p>
-      <p>${inviteLink}</p>
-    `;
+      const html = `
+        <h2>You've been invited to collaborate!</h2>
+        <p>You have been invited to collaborate on the thesis "${thesisTitle}" as a ${role}.</p>
+        <p>Click the link below to accept the invitation:</p>
+        <a href="${inviteLink}" style="display: inline-block; padding: 10px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px;">Accept Invitation</a>
+        <p>If you can't click the button, copy and paste this link in your browser:</p>
+        <p>${inviteLink}</p>
+      `;
 
-    console.log('Sending email to:', to);
-    await client.send({
-      from: senderEmail,
-      to: to,
-      subject: `Invitation to collaborate on "${thesisTitle}"`,
-      html: html,
-    });
+      console.log('Sending email to:', to);
+      await client.send({
+        from: senderEmail,
+        to: to,
+        subject: `Invitation to collaborate on "${thesisTitle}"`,
+        html: html,
+      });
 
-    await client.close();
-    console.log('Email sent successfully');
+      await client.close();
+      console.log('Email sent successfully');
 
-    return new Response(
-      JSON.stringify({ message: 'Invitation sent successfully' }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+      return new Response(
+        JSON.stringify({ message: 'Invitation sent successfully' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (smtpError) {
+      console.error('SMTP Error:', smtpError);
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          console.error('Error closing SMTP connection:', closeError);
+        }
+      }
+      throw smtpError;
+    }
 
   } catch (error) {
     console.error('Error sending invitation email:', error);
