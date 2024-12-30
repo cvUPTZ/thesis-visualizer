@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Thesis } from "@/types/thesis";
 import { Save } from "lucide-react";
 import { useState } from "react";
 
 interface ThesisSaveButtonProps {
   thesisId: string;
-  thesisData: any;
+  thesisData: Thesis;
 }
 
 export const ThesisSaveButton = ({ thesisId, thesisData }: ThesisSaveButtonProps) => {
@@ -16,27 +17,34 @@ export const ThesisSaveButton = ({ thesisId, thesisData }: ThesisSaveButtonProps
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      console.log('Saving thesis:', thesisId, thesisData);
+      console.log('Starting thesis save operation:', { thesisId, content: thesisData });
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('theses')
         .update({ 
           content: thesisData,
           updated_at: new Date().toISOString()
         })
-        .eq('id', thesisId);
+        .eq('id', thesisId)
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving thesis:', error);
+        throw error;
+      }
+
+      console.log('Thesis saved successfully:', data);
 
       toast({
         title: "Success",
         description: "Your thesis has been saved.",
       });
-    } catch (error) {
-      console.error('Error saving thesis:', error);
+    } catch (error: any) {
+      console.error('Error in save operation:', error);
       toast({
         title: "Error",
-        description: "Failed to save thesis. Please try again.",
+        description: error.message || "Failed to save thesis. Please try again.",
         variant: "destructive",
       });
     } finally {
