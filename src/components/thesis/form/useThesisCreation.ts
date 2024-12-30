@@ -8,7 +8,7 @@ import { ThesisSectionType } from '@/types/thesis';
 interface ThesisMetadata {
   title: string;
   description: string;
-  keywords: string;
+  keywords: string | undefined; // Changed to optional
   universityName?: string;
   departmentName?: string;
   authorName?: string;
@@ -28,12 +28,11 @@ export const useThesisCreation = () => {
       console.log('Starting thesis creation with metadata:', metadata);
 
       const thesisId = crypto.randomUUID();
-
-        const keywordsArray = metadata.keywords
-            .split(',')
-            .map(k => k.trim())
-            .filter(k => k);
-
+        
+       const keywordsArray = metadata.keywords
+            ? metadata.keywords.split(',').map(k => k.trim()).filter(k => k)
+           : [];
+        
       // Prepare thesis content with proper typing
       const thesisContent = {
         metadata: {
