@@ -19,15 +19,57 @@ const Auth = () => {
     console.log('Auth component mounted');
     console.log('Invite params:', { inviteThesisId, inviteRole });
 
+    let mounted = true;
+
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('Current session:', session);
-      
-      if (session) {
-        if (inviteThesisId && inviteRole) {
-          await handleInviteAcceptance(session.user.id, inviteThesisId, inviteRole);
+      try {
+        console.log('Checking user session...');
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          if (mounted) {
+            setError(sessionError.message);
+          }
+          return;
         }
-        navigate("/");
+
+        if (!session) {
+          console.log('No active session found');
+          return;
+        }
+
+        console.log('Verifying user session:', session.user.email);
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+        if (userError) {
+          console.error('User verification failed:', userError);
+          if (mounted) {
+            setError("Session verification failed. Please sign in again.");
+          }
+          return;
+        }
+
+        if (!user) {
+          console.error('No user found after verification');
+          if (mounted) {
+            setError("Unable to verify user. Please sign in again.");
+          }
+          return;
+        }
+
+        console.log('User verified successfully:', user.email);
+        if (mounted) {
+          if (inviteThesisId && inviteRole) {
+            await handleInviteAcceptance(user.id, inviteThesisId, inviteRole);
+          }
+          navigate("/");
+        }
+      } catch (error) {
+        console.error('Error in checkUser:', error);
+        if (mounted) {
+          setError("An unexpected error occurred. Please try again.");
+        }
       }
     };
 
@@ -35,25 +77,35 @@ const Auth = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Auth state changed:", event);
+        console.log("Auth state changed:", event, session?.user?.email);
+        
+        if (!mounted) return;
+
         if (event === "SIGNED_IN" && session) {
-          if (inviteThesisId && inviteRole) {
-            await handleInviteAcceptance(session.user.id, inviteThesisId, inviteRole);
+          console.log('User signed in:', session.user.email);
+          try {
+            if (inviteThesisId && inviteRole) {
+              await handleInviteAcceptance(session.user.id, inviteThesisId, inviteRole);
+            }
+            toast({
+              title: "Welcome!",
+              description: "You have successfully signed in.",
+            });
+            navigate("/");
+          } catch (error) {
+            console.error('Error handling sign in:', error);
+            setError("Error processing sign in. Please try again.");
           }
-          toast({
-            title: "Welcome!",
-            description: "You have successfully signed in.",
-          });
-          navigate("/");
-        } else if (event === "USER_UPDATED") {
+        } else if (event === "SIGNED_OUT") {
+          console.log('User signed out');
           setError(null);
-          navigate("/");
         }
       }
     );
 
     return () => {
-      subscription.unsubscribe();
+      mounted = false;
+      if (subscription) subscription.unsubscribe();
     };
   }, [navigate, toast, inviteThesisId, inviteRole]);
 
