@@ -19,6 +19,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const mountedRef = useRef(true);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     const checkAuth = async () => {
       try {
         console.log('Checking authentication status...');
@@ -28,6 +30,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           console.error('Session error:', sessionError);
           if (mountedRef.current) {
             setIsAuthenticated(false);
+            await supabase.auth.signOut();
             toast({
               title: "Authentication Error",
               description: "Please sign in again.",
@@ -41,6 +44,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           console.log('No active session found');
           if (mountedRef.current) {
             setIsAuthenticated(false);
+            await supabase.auth.signOut();
           }
           return;
         }
@@ -54,7 +58,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           console.error('User verification failed:', userError);
           if (mountedRef.current) {
             setIsAuthenticated(false);
-            await supabase.auth.signOut(); // Clear any invalid session
+            await supabase.auth.signOut();
             toast({
               title: "Session Expired",
               description: "Please sign in again.",
@@ -66,11 +70,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
         if (mountedRef.current) {
           setIsAuthenticated(true);
+          // Set up a periodic session check
+          timeoutId = setTimeout(checkAuth, 5 * 60 * 1000); // Check every 5 minutes
         }
       } catch (error: any) {
         console.error('Error checking auth:', error);
         if (mountedRef.current) {
           setIsAuthenticated(false);
+          await supabase.auth.signOut();
           toast({
             title: "Authentication Error",
             description: error.message || "Please sign in again.",
@@ -107,6 +114,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return () => {
       mountedRef.current = false;
       subscription.unsubscribe();
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [toast]);
 

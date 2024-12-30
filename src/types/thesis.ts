@@ -1,20 +1,20 @@
 export type ThesisSectionType =
-    | 'title'
-    | 'abstract'
-    | 'acknowledgments'
-    | 'table-of-contents'
-    | 'list-of-figures'
-    | 'list-of-tables'
-    | 'introduction'
-    | 'literature-review'
-    | 'methodology'
-    | 'results'
-    | 'discussion'
-    | 'conclusion'
-    | 'recommendations'
-    | 'references'
-    | 'appendix'
-    | 'custom';
+  | "title"
+  | "abstract"
+  | "acknowledgments"
+  | "table-of-contents"
+  | "list-of-figures"
+  | "list-of-tables"
+  | "introduction"
+  | "literature-review"
+  | "methodology"
+  | "results"
+  | "discussion"
+  | "conclusion"
+  | "recommendations"
+  | "references"
+  | "appendix"
+  | "custom";
 
 export interface Citation {
   id: string;
@@ -87,3 +87,4 @@ export interface Thesis {
     chapters: Chapter[];
     backMatter: Section[];
 }
+
