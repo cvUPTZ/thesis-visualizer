@@ -23,6 +23,8 @@ export const useThesisInitialization = (thesis: Thesis) => {
           throw new Error('No authenticated user found');
         }
 
+        console.log('Current user:', user.id);
+
         // Check if thesis already exists
         const { data: existingThesis, error: checkError } = await supabase
           .from('theses')
@@ -38,8 +40,8 @@ export const useThesisInitialization = (thesis: Thesis) => {
         if (!existingThesis) {
           console.log('Creating new thesis with user_id:', user.id);
           
-          // Create new thesis with the current user's ID
-          const { data, error } = await supabase
+          // First create the thesis
+          const { data: newThesis, error: thesisError } = await supabase
             .from('theses')
             .insert({
               id: thesis.id,
@@ -54,18 +56,18 @@ export const useThesisInitialization = (thesis: Thesis) => {
             .select()
             .maybeSingle();
 
-          if (error) {
-            console.error('Error creating thesis:', error);
-            throw error;
+          if (thesisError) {
+            console.error('Error creating thesis:', thesisError);
+            throw thesisError;
           }
 
-          if (!data) {
+          if (!newThesis) {
             throw new Error('Failed to create thesis');
           }
 
-          console.log('Created new thesis:', data);
+          console.log('Created new thesis:', newThesis);
 
-          // Add current user as owner
+          // Then add current user as owner
           const { error: collaboratorError } = await supabase
             .from('thesis_collaborators')
             .insert({
@@ -78,6 +80,8 @@ export const useThesisInitialization = (thesis: Thesis) => {
             console.error('Error adding thesis owner:', collaboratorError);
             throw collaboratorError;
           }
+
+          console.log('Added user as thesis owner');
         }
       } catch (error: any) {
         console.error('Error in thesis initialization:', error);
