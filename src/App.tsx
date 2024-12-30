@@ -21,6 +21,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log('Checking authentication status...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -34,11 +35,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        setIsAuthenticated(!!session);
+        if (!session) {
+          console.log('No active session found');
+          setIsAuthenticated(false);
+          return;
+        }
+
+        console.log('Active session found:', session.user.email);
+        setIsAuthenticated(true);
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-          console.log("Auth state changed:", event);
-          if (event === 'SIGNED_OUT') {
+          console.log("Auth state changed:", event, session?.user?.email);
+          if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
             setIsAuthenticated(false);
             toast({
               title: "Signed Out",
@@ -56,9 +64,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         return () => {
           subscription.unsubscribe();
         };
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error checking auth:', error);
         setIsAuthenticated(false);
+        toast({
+          title: "Authentication Error",
+          description: error.message || "Please sign in again.",
+          variant: "destructive",
+        });
       }
     };
 
