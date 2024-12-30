@@ -19,6 +19,11 @@ export const MarkdownEditor = ({ value, onChange, placeholder }: MarkdownEditorP
         hideToolbar={false}
         textareaProps={{
           placeholder: placeholder,
+          "data-color-mode": "light"
+        }}
+        previewOptions={{
+          skipHtml: false,
+          linkTarget: "_blank"
         }}
       />
     </div>
