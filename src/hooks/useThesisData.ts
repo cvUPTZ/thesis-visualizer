@@ -76,7 +76,12 @@ export const useThesisData = (thesisId: string | undefined) => {
           metadata: {
             description: parsedContent?.metadata?.description || '',
             keywords: parsedContent?.metadata?.keywords || [],
-            createdAt: parsedContent?.metadata?.createdAt || new Date().toISOString()
+            createdAt: parsedContent?.metadata?.createdAt || new Date().toISOString(),
+             universityName: parsedContent?.metadata?.universityName,
+            departmentName: parsedContent?.metadata?.departmentName,
+            authorName: parsedContent?.metadata?.authorName,
+            thesisDate: parsedContent?.metadata?.thesisDate,
+            committeeMembers: parsedContent?.metadata?.committeeMembers
           },
           frontMatter: parsedContent?.frontMatter || [],
           chapters: parsedContent?.chapters || [],

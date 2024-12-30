@@ -71,7 +71,7 @@ export const ThesisCreationForm = () => {
         committeeMembers
     };
 
-
+    console.log("Submitting thesis with metadata:", metadata)
     await createThesis(metadata, session.user.id);
   };
 
