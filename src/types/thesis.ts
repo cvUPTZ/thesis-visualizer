@@ -60,7 +60,7 @@ export interface Section {
   id: string;
   title: string;
   content: string;
-    type: ThesisSectionType;
+  type: ThesisSectionType;
   required?: boolean;
   order: number;
   figures: Figure[];

@@ -14,6 +14,7 @@ export const useUser = () => {
 
     const checkSession = async () => {
       try {
+        console.log('Checking session...');
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
         if (sessionError) {
@@ -27,6 +28,7 @@ export const useUser = () => {
         }
 
         if (!session) {
+          console.log('No session found');
           if (mounted) {
             setUserEmail('');
             setUserRole('');
@@ -35,6 +37,7 @@ export const useUser = () => {
           return;
         }
 
+        console.log('Session found:', session);
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('email, role')
@@ -47,6 +50,7 @@ export const useUser = () => {
         }
 
         if (profile && mounted) {
+          console.log('Profile loaded:', profile);
           setUserEmail(profile.email);
           setUserRole(profile.role);
         }
@@ -90,7 +94,7 @@ export const useUser = () => {
       mounted = false;
       authListener?.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const handleLogout = async () => {
     try {
