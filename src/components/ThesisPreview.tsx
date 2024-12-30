@@ -1,4 +1,3 @@
-// File: src/components/ThesisPreview.tsx
 import React from 'react';
 import { Thesis, Section, ThesisSectionType } from '@/types/thesis';
 import MDEditor from '@uiw/react-md-editor';
@@ -43,18 +42,17 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
         );
     };
 
-  const renderAbstract = () => {
+    const renderAbstract = () => {
         return (
-          <div className={`thesis-page no-footer`}>
-            <div className="thesis-header">
-                Abstract
+            <div className="thesis-page no-footer">
+                <div className="thesis-header">
+                    Abstract
+                </div>
+                <div className="thesis-content thesis-abstract">
+                    <h2 className="text-2xl font-serif mb-4">Abstract</h2>
+                    <MDEditor.Markdown source={thesis.metadata.description || "No Description Provided"}/>
+                </div>
             </div>
-            <div className="thesis-content thesis-abstract">
-              <h2 className="text-2xl font-serif mb-4">Abstract</h2>
-              <MDEditor.Markdown source={thesis.metadata.description || "No Description Provided"}/>
-               {/* Render the abstract content here */}
-            </div>
-          </div>
         );
     };
 
@@ -63,15 +61,17 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
             return renderTitlePage();
         }
         if (section.type === 'abstract') {
-          return renderAbstract()
+            return renderAbstract();
         }
 
+        const isSpecialSection = section.type === 'references' || section.type === 'table-of-contents';
+        
         return (
-            <div key={section.id} className={`thesis-page ${section.type === 'references' ? 'no-footer' : ''} ${section.type === 'table-of-contents' ? 'no-header': ''}`}>
+            <div key={section.id} className={`thesis-page ${isSpecialSection ? 'no-footer' : ''} ${section.type === 'table-of-contents' ? 'no-header': ''}`}>
                 <div className="thesis-header">
                     {chapterTitle ? `Chapter ${chapterTitle} - ${section.title}` : section.title}
                 </div>
-                <div className={`thesis-content ${section.type === 'abstract' ? 'thesis-abstract' : ''} ${section.type === 'references' ? 'thesis-references': ''}`}>
+                <div className={`thesis-content ${section.type === 'references' ? 'thesis-references': ''}`}>
                     {section.type !== 'table-of-contents' && (
                         <>
                             {chapterTitle && <h2 className="text-2xl font-serif mb-4">{section.title}</h2>}
@@ -84,7 +84,7 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
                     )}
                 </div>
                 <div className="thesis-footer">
-                    {section.type !== 'references' && <span>Page <span className="page-number"></span></span>}
+                    {!isSpecialSection && <span>Page <span className="page-number"></span></span>}
                 </div>
             </div>
         );
