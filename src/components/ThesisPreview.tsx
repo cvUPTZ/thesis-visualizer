@@ -91,17 +91,27 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     };
 
     return (
-        <div className="thesis-preview-scroll-container">
+        <div className="thesis-preview-scroll-container h-full">
             <div className="thesis-preview" ref={previewRef}>
-                {thesis.frontMatter.map((section) => renderSection(section))}
+                {thesis.frontMatter.map((section) => (
+                  <React.Fragment key={section.id}>
+                    {renderSection(section)}
+                  </React.Fragment>
+                 ))}
                 {thesis.chapters.map((chapter) => (
                     <div key={chapter.id}>
                         {chapter.sections.map((section) => (
-                            renderSection(section, chapter.title)
+                            <React.Fragment key={section.id}>
+                              {renderSection(section, chapter.title)}
+                            </React.Fragment>
                         ))}
                     </div>
                 ))}
-                {thesis.backMatter.map((section) => renderSection(section))}
+                 {thesis.backMatter.map((section) => (
+                  <React.Fragment key={section.id}>
+                    {renderSection(section)}
+                  </React.Fragment>
+                ))}
             </div>
         </div>
     );
