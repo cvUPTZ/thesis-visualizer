@@ -57,10 +57,31 @@ export const useThesisInitialization = (thesis: Thesis) => {
           
           // Create the thesis with the content
           const thesisContent = {
-            frontMatter: thesis.frontMatter,
-            chapters: thesis.chapters,
-            backMatter: thesis.backMatter
-          };
+            frontMatter: thesis.frontMatter.map(section => ({
+              ...section,
+              figures: section.figures || [],
+              tables: section.tables || [],
+              citations: section.citations || [],
+              references: section.references || []
+            })),
+            chapters: thesis.chapters.map(chapter => ({
+              ...chapter,
+              sections: chapter.sections.map(section => ({
+                ...section,
+                figures: section.figures || [],
+                tables: section.tables || [],
+                citations: section.citations || [],
+                references: section.references || []
+              }))
+            })),
+            backMatter: thesis.backMatter.map(section => ({
+              ...section,
+              figures: section.figures || [],
+              tables: section.tables || [],
+              citations: section.citations || [],
+              references: section.references || []
+            }))
+          } as unknown as Json;
 
           const { data: newThesis, error: thesisError } = await supabase
             .from('theses')
