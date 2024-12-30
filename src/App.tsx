@@ -30,7 +30,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           console.error('Session error:', sessionError);
           if (mountedRef.current) {
             setIsAuthenticated(false);
-            await supabase.auth.signOut();
+            // Don't try to sign out if there's already a session error
             toast({
               title: "Authentication Error",
               description: "Please sign in again.",
@@ -44,7 +44,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           console.log('No active session found');
           if (mountedRef.current) {
             setIsAuthenticated(false);
-            await supabase.auth.signOut();
           }
           return;
         }
@@ -58,7 +57,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           console.error('User verification failed:', userError);
           if (mountedRef.current) {
             setIsAuthenticated(false);
-            await supabase.auth.signOut();
+            // Only attempt to sign out if we had a valid session before
+            if (session) {
+              try {
+                await supabase.auth.signOut();
+              } catch (signOutError) {
+                console.error('Error during sign out:', signOutError);
+              }
+            }
             toast({
               title: "Session Expired",
               description: "Please sign in again.",
@@ -77,7 +83,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         console.error('Error checking auth:', error);
         if (mountedRef.current) {
           setIsAuthenticated(false);
-          await supabase.auth.signOut();
+          // Only attempt to sign out if we might have had a valid session
+          try {
+            await supabase.auth.signOut();
+          } catch (signOutError) {
+            console.error('Error during sign out:', signOutError);
+          }
           toast({
             title: "Authentication Error",
             description: error.message || "Please sign in again.",
