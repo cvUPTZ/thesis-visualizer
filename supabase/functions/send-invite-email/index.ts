@@ -20,6 +20,18 @@ serve(async (req) => {
   }
 
   try {
+    // Validate environment variables
+    const smtpHost = Deno.env.get("SMTP_HOST");
+    const smtpPort = Deno.env.get("SMTP_PORT");
+    const smtpUsername = Deno.env.get("SMTP_USERNAME");
+    const smtpPassword = Deno.env.get("SMTP_PASSWORD");
+    const senderEmail = Deno.env.get("SENDER_EMAIL");
+
+    if (!smtpHost || !smtpPort || !smtpUsername || !smtpPassword || !senderEmail) {
+      console.error('Missing SMTP configuration:', { smtpHost, smtpPort, smtpUsername, senderEmail });
+      throw new Error('SMTP configuration is incomplete');
+    }
+
     const { to, thesisTitle, inviteLink, role }: EmailRequest = await req.json();
 
     if (!to || !thesisTitle || !inviteLink || !role) {
@@ -30,20 +42,17 @@ serve(async (req) => {
       );
     }
 
+    console.log('Initializing SMTP client...');
     const client = new SmtpClient();
 
-    const connectConfig = {
-      hostname: Deno.env.get("SMTP_HOST")!,
-      port: Number(Deno.env.get("SMTP_PORT")),
-      username: Deno.env.get("SMTP_USERNAME")!,
-      password: Deno.env.get("SMTP_PASSWORD")!,
-    };
-
     console.log('Connecting to SMTP server...');
-    await client.connectTLS(connectConfig);
+    await client.connectTLS({
+      hostname: smtpHost,
+      port: Number(smtpPort),
+      username: smtpUsername,
+      password: smtpPassword,
+    });
 
-    const senderEmail = Deno.env.get("SENDER_EMAIL")!;
-    
     const html = `
       <h2>You've been invited to collaborate!</h2>
       <p>You have been invited to collaborate on the thesis "${thesisTitle}" as a ${role}.</p>
@@ -72,7 +81,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error sending invitation email:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to send invitation email' }),
+      JSON.stringify({ 
+        error: 'Failed to send invitation email',
+        details: error.message 
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
