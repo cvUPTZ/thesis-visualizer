@@ -5,12 +5,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuthFlow } from "@/hooks/useAuthFlow";
+import { useEffect } from "react";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const inviteThesisId = searchParams.get('thesisId');
   const inviteRole = searchParams.get('role');
   const { error } = useAuthFlow({ inviteThesisId, inviteRole });
+
+  useEffect(() => {
+    // Clear any existing session data on mount
+    const clearSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        // Clear local storage if no valid session exists
+        localStorage.removeItem('supabase.auth.token');
+      }
+    };
+    
+    clearSession();
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -40,6 +54,7 @@ const Auth = () => {
               },
             }}
             providers={[]}
+            redirectTo={window.location.origin + '/auth'}
           />
         </CardContent>
       </Card>

@@ -95,7 +95,7 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
           return;
         }
 
-        // Get user data without verifying the session again
+        // Get user data directly from session
         const user = session.user;
         console.log('User found in session:', user.email);
 
@@ -122,8 +122,7 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
       }
     };
 
-    checkUser();
-
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("Auth state changed:", event, session?.user?.email);
@@ -145,12 +144,11 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
             console.error('Error handling sign in:', error);
             setError("Error processing sign in. Please try again.");
           }
-        } else if (event === "SIGNED_OUT") {
-          console.log('User signed out');
-          setError(null);
         }
       }
     );
+
+    checkUser();
 
     return () => {
       mounted = false;
