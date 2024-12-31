@@ -81,7 +81,7 @@ const Auth = () => {
               },
             }}
             providers={[]}
-            redirectTo={window.location.origin + '/auth'}
+            redirectTo={window.location.origin + '/'}
           />
         </CardContent>
       </Card>
