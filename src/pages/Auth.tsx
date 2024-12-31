@@ -1,4 +1,4 @@
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,33 +10,22 @@ import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const inviteThesisId = searchParams.get('thesisId');
   const inviteRole = searchParams.get('role');
   const { error } = useAuthFlow({ inviteThesisId, inviteRole });
   const { toast } = useToast();
 
   useEffect(() => {
-    let mounted = true;
-
-    const checkAndRedirect = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session && mounted) {
-          navigate('/create-thesis');
-        }
-      } catch (err) {
-        console.error('Error checking session:', err);
-      }
-    };
-
     const cleanupSession = async () => {
       try {
         console.log('Cleaning up session state...');
+        
+        // Clear any existing auth data from localStorage
         localStorage.removeItem('supabase.auth.token');
         
+        // Sign out to ensure clean state
         const { error: signOutError } = await supabase.auth.signOut();
-        if (signOutError && mounted) {
+        if (signOutError) {
           console.error('Error during sign out:', signOutError);
           toast({
             title: "Error",
@@ -46,29 +35,23 @@ const Auth = () => {
           return;
         }
 
+        // Get current session to verify cleanup
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session && mounted) {
+        if (!session) {
           console.log('Session successfully cleaned up');
         }
       } catch (err) {
-        if (mounted) {
-          console.error('Error cleaning up session:', err);
-          toast({
-            title: "Error",
-            description: "An unexpected error occurred. Please try again.",
-            variant: "destructive",
-          });
-        }
+        console.error('Error cleaning up session:', err);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
       }
     };
     
-    checkAndRedirect();
     cleanupSession();
-
-    return () => {
-      mounted = false;
-    };
-  }, [toast, navigate]);
+  }, [toast]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -98,7 +81,7 @@ const Auth = () => {
               },
             }}
             providers={[]}
-            redirectTo={`${window.location.origin}/create-thesis`}
+            redirectTo={window.location.origin + '/auth'}
           />
         </CardContent>
       </Card>
