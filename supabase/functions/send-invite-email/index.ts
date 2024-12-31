@@ -1,7 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Resend } from 'npm:resend';
-
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+import * as nodemailer from "npm:nodemailer";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,22 +14,32 @@ interface EmailRequest {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    console.log('Starting email sending process...');
-
-    if (!RESEND_API_KEY) {
-      throw new Error('Missing RESEND_API_KEY');
+    const SMTP_USERNAME = Deno.env.get('SMTP_USERNAME');
+    const SMTP_PASSWORD = Deno.env.get('SMTP_PASSWORD');
+    
+    if (!SMTP_USERNAME || !SMTP_PASSWORD) {
+      throw new Error('Missing SMTP credentials');
     }
 
-    const resend = new Resend(RESEND_API_KEY);
-    const SENDER_EMAIL = 'onboarding@resend.dev'; // Using Resend's default sender
+    // Create transporter
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: SMTP_USERNAME,
+        pass: SMTP_PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
 
-    // Parse and validate request body
     const requestData: EmailRequest = await req.json();
     console.log('Received request data:', requestData);
 
@@ -41,75 +49,57 @@ serve(async (req) => {
       throw new Error('Missing required fields');
     }
 
-    // Sanitize inputs
-    const safeEmail = String(to).trim();
-    const safeTitle = String(thesisTitle).trim();
-    const safeLink = String(inviteLink).trim();
+    const safeToEmail = String(to).trim();
+    const safeThesisTitle = String(thesisTitle).trim();
+    const safeInviteLink = String(inviteLink).trim();
     const safeRole = String(role).trim();
 
-    console.log('Sending email to:', safeEmail);
-
-    const emailHtml = `
+    const emailContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Thesis Collaboration Invitation</h2>
-        <p>You have been invited to collaborate on the thesis: <strong>${safeTitle}</strong></p>
+        <p>You have been invited to collaborate on the thesis: <strong>${safeThesisTitle}</strong></p>
         <p>You have been assigned the role of: <strong>${safeRole}</strong></p>
         <p>Click the link below to accept the invitation:</p>
-        <p><a href="${safeLink}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">Accept Invitation</a></p>
-        <p style="color: #666; font-size: 0.9em;">If you cannot click the button, copy and paste this link into your browser: ${safeLink}</p>
+        <p><a href="${safeInviteLink}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">Accept Invitation</a></p>
+        <p style="color: #666; font-size: 0.9em;">If you cannot click the button, copy and paste this link into your browser: ${safeInviteLink}</p>
       </div>
     `;
 
-    try {
-      const { data, error } = await resend.emails.send({
-        from: SENDER_EMAIL,
-        to: [safeEmail],
-        subject: `Invitation to collaborate on thesis: ${safeTitle}`,
-        html: emailHtml,
-      });
+    console.log('Attempting to send email to:', safeToEmail);
+    
+    // Send email
+    const info = await transporter.sendMail({
+      from: `"Thesis System" <${SMTP_USERNAME}>`,
+      to: safeToEmail,
+      subject: `Invitation to collaborate on thesis: ${safeThesisTitle}`,
+      text: `You have been invited to collaborate on the thesis: ${safeThesisTitle}. Role: ${safeRole}. Accept invitation here: ${safeInviteLink}`,
+      html: emailContent,
+    });
 
-      if (error) {
-        console.error('Resend error:', error);
-        return new Response(
-          JSON.stringify({
-            error: error.message,
-            details: {
-              statusCode: error.statusCode || 500,
-              message: error.message,
-              name: error.name || 'unknown_error'
-            }
-          }),
-          {
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'application/json',
-            },
-            status: error.statusCode || 500,
-          }
-        );
+    console.log('Email sent successfully:', info.messageId);
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: 'Invitation sent successfully',
+        messageId: info.messageId 
+      }),
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+        status: 200,
       }
+    );
 
-      console.log('Email sent successfully:', data);
-      return new Response(
-        JSON.stringify({ success: true, data }),
-        {
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
-          status: 200,
-        }
-      );
-    } catch (error) {
-      console.error('Error sending email:', error);
-      throw error;
-    }
   } catch (error) {
-    console.error('General error:', error);
+    console.error('Error sending invitation:', error);
+    
     return new Response(
       JSON.stringify({
-        error: error.message || 'Internal server error',
-        details: {}
+        error: error.message || 'Failed to send invitation',
+        details: error,
       }),
       {
         headers: {
