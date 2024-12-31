@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { PlusCircle, BookOpen, Users, Clock } from "lucide-react";
+import { ThesisList } from "@/components/thesis/ThesisList";
 
 const Index = () => {
   const { thesisId } = useParams();
@@ -29,13 +30,16 @@ const Index = () => {
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
             Create, manage, and collaborate on your academic work in one place.
           </p>
-          <Button
-            onClick={() => navigate("/create-thesis")}
-            className="bg-primary hover:bg-primary-light text-white"
-          >
-            <PlusCircle className="mr-2 h-5 w-5" />
-            Start New Thesis
-          </Button>
+          <div className="flex items-center justify-center gap-4">
+            <Button
+              onClick={() => navigate("/create-thesis")}
+              className="bg-primary hover:bg-primary-light text-white"
+            >
+              <PlusCircle className="mr-2 h-5 w-5" />
+              Start New Thesis
+            </Button>
+            <ThesisList />
+          </div>
         </div>
 
         {/* Features Grid */}
