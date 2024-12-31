@@ -201,7 +201,6 @@
 //   };
 
 
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import {
   Document,
@@ -209,30 +208,34 @@ import {
   TextRun,
   HeadingLevel,
     Packer,
-  } from "npm:docx";
+  } from "npm:docx@7.8.0";
+import { writeFile } from 'node:fs/promises';
 
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  };
 
-  serve(async (req) => {
-    // Handle CORS preflight requests
-    if (req.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders });
-    }
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    console.log('Starting DOCX generation...');
+    const thesisData = await req.json();
+    console.log('Received thesis data:', JSON.stringify(thesisData));
+
+    const doc = generateThesisDocx(thesisData);
+    console.log('Document generated, packing...');
 
     try {
-      console.log('Starting DOCX generation...');
-      const thesisData = await req.json();
-      console.log('Received thesis data:', JSON.stringify(thesisData));
-
-      const doc = generateThesisDocx(thesisData);
-      console.log('Document generated, packing...');
-
-      // Generate the blob
-      const buffer = await Packer.toBuffer(doc);
-      console.log('Document packed successfully');
+        const buffer = await Packer.toBuffer(doc, {});
+        console.log('Document packed successfully');
+        await writeFile('./output.docx', buffer);
+        console.log("Document saved to output.docx");
 
       return new Response(buffer, {
         status: 200,
@@ -242,23 +245,29 @@ import {
           'Content-Disposition': 'attachment; filename=thesis.docx',
         },
       });
-    } catch (error) {
-      console.error('Error generating docx:', error);
-      return new Response(
-        JSON.stringify({
-          error: error.message || 'Failed to generate document',
-          details: error
-        }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+    } catch (e) {
+        console.error("Packer Error", e)
+        return new Response(JSON.stringify({ error: "Failed during packing", message: e.message }), { status: 500 });
     }
-  });
+
+
+  } catch (error) {
+    console.error('Error generating docx:', error);
+    return new Response(
+      JSON.stringify({
+        error: error.message || 'Failed to generate document',
+        details: error
+      }),
+      {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+  }
+});
 
 
 
