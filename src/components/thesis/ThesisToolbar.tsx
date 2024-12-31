@@ -4,7 +4,11 @@ import { Download, Eye, EyeOff, LogOut } from 'lucide-react';
 import { ThesisSaveButton } from './ThesisSaveButton';
 import { Thesis } from '@/types/thesis';
 import { generateThesisDocx } from '@/utils/docxExport';
-import { Packer } from 'docx';
+// import { Packer } from 'docx';
+
+
+import { Packer } from 'docx-browser';
+
 import { useToast } from '@/hooks/use-toast';
 import { UserInfo } from './UserInfo';
 import { CollaboratorSection } from './toolbar/CollaboratorSection';
@@ -41,10 +45,10 @@ export const ThesisToolbar = ({
       console.log('Starting DOCX export with thesis data:', thesisData);
       const doc = generateThesisDocx(thesisData);
       console.log('Document generated, converting to blob...');
-      const blob = await Packer.toBuffer(doc);
+      const blob = await Packer.toBlob(doc); //Changed to toBlob
       console.log('Blob created, creating download link...');
       
-      const url = window.URL.createObjectURL(new Blob([blob]));
+      const url = window.URL.createObjectURL(blob); // Directly use the blob
       const link = document.createElement('a');
       link.href = url;
       link.download = `${thesisData.frontMatter[0]?.title || 'thesis'}.docx`;
