@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const SMTP_HOSTNAME = Deno.env.get('SMTP_HOST')!;
 const SMTP_PORT = parseInt(Deno.env.get('SMTP_PORT')!);
@@ -25,8 +25,6 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  let client: SmtpClient | null = null;
-
   try {
     console.log('Starting email send process...');
     const { to, thesisTitle, inviteLink, role } = await req.json() as InviteEmailRequest;
@@ -39,17 +37,19 @@ serve(async (req) => {
       senderEmail: SENDER_EMAIL 
     });
 
-    client = new SmtpClient();
-
-    console.log('Connecting to SMTP server...');
-    await client.connectTLS({
-      hostname: SMTP_HOSTNAME,
-      port: SMTP_PORT,
-      username: SMTP_USERNAME,
-      password: SMTP_PASSWORD,
+    const client = new SMTPClient({
+      connection: {
+        hostname: SMTP_HOSTNAME,
+        port: SMTP_PORT,
+        tls: true,
+        auth: {
+          username: SMTP_USERNAME,
+          password: SMTP_PASSWORD,
+        },
+      },
     });
 
-    console.log('SMTP connection established');
+    console.log('SMTP client initialized');
 
     const emailContent = `
       <!DOCTYPE html>
@@ -78,11 +78,11 @@ serve(async (req) => {
       from: SENDER_EMAIL,
       to: to,
       subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
-      content: "Please view this email in an HTML-capable client",
       html: emailContent,
     });
 
     console.log('Email sent successfully');
+    await client.close();
 
     return new Response(
       JSON.stringify({ success: true }), 
@@ -105,15 +105,5 @@ serve(async (req) => {
         status: 500,
       }
     );
-  } finally {
-    if (client) {
-      console.log('Closing SMTP connection...');
-      try {
-        await client.close();
-        console.log('SMTP connection closed successfully');
-      } catch (closeError) {
-        console.error('Error closing SMTP connection:', closeError);
-      }
-    }
   }
 });
