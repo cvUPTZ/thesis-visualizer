@@ -1,4 +1,4 @@
-import { Document, Paragraph, TextRun, HeadingLevel, TableOfContents, Packer } from "npm:docx";
+import { Document, Paragraph, TextRun, HeadingLevel, Packer } from 'docx';
 import { Chapter, Section } from '@/types/thesis';
 
 const generateThesisDocx = (thesis: {
@@ -59,12 +59,6 @@ const generateThesisDocx = (thesis: {
     }
   }
 
-  // Add table of contents
-  children.push(new TableOfContents("Table of Contents", {
-    hyperlink: true,
-    headingStyleRange: "1-5",
-  }));
-
   // Add abstract if available
   if (abstractPage) {
     children.push(
@@ -105,23 +99,6 @@ const generateThesisDocx = (thesis: {
     });
   });
 
-  // Add back matter
-  thesis.backMatter.forEach((section) => {
-    children.push(
-      new Paragraph({
-        text: section.title,
-        heading: HeadingLevel.HEADING_1,
-        spacing: { before: 400, after: 200 },
-      }),
-      new Paragraph({
-        children: [new TextRun(section.content)],
-        spacing: { before: 200, after: 400 },
-      })
-    );
-  });
-
-  console.log('Document structure generated');
-  
   return new Document({
     sections: [
       {
@@ -131,3 +108,5 @@ const generateThesisDocx = (thesis: {
     ],
   });
 };
+
+export default generateThesisDocx;
