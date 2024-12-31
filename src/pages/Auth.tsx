@@ -1,4 +1,4 @@
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ const Auth = () => {
   const inviteRole = searchParams.get('role');
   const { error } = useAuthFlow({ inviteThesisId, inviteRole });
   const { toast } = useToast();
+  const navigate = useNavigate();  // Initialize useNavigate
 
   useEffect(() => {
     const cleanupSession = async () => {
@@ -53,6 +54,10 @@ const Auth = () => {
     cleanupSession();
   }, [toast]);
 
+  const handleBack = () => {
+    navigate("/");  // Navigate to the home page when "Retour" is clicked
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
@@ -83,6 +88,13 @@ const Auth = () => {
             providers={[]}
             redirectTo={window.location.origin + '/auth'}
           />
+          {/* Back button */}
+          <button 
+            onClick={handleBack} 
+            className="mt-4 w-full bg-gray-200 text-gray-800 py-2 rounded-md text-center hover:bg-gray-300"
+          >
+            Retour
+          </button>
         </CardContent>
       </Card>
     </div>
