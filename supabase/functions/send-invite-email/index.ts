@@ -98,8 +98,7 @@ serve(async (req) => {
       from: SENDER_EMAIL,
       to: safeToEmail,
       subject: `Invitation to collaborate on thesis: ${safeThesisTitle}`,
-      content: emailContent,
-      html: true,
+      html: emailContent,
     };
 
     console.log('Sending email...');
