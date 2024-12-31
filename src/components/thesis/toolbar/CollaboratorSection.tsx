@@ -26,6 +26,9 @@ export const CollaboratorSection = ({
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
 
+  // Check if the user has the required role (admin or owner)
+  const canInviteCollaborators = isAdmin || canManageCollaborators;
+
   const handleInviteSuccess = () => {
     toast({
       title: "Success",
@@ -46,7 +49,7 @@ export const CollaboratorSection = ({
 
   return (
     <div className="flex items-center gap-2">
-      {canManageCollaborators && (
+      {canInviteCollaborators && (
         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
           <PopoverTrigger asChild>
             <Button
