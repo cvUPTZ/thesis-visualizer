@@ -1,7 +1,6 @@
-// File: src/components/thesis/ThesisToolbar.tsx
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Eye, EyeOff, Save, LogOut } from 'lucide-react';
+import { Download, Eye, EyeOff, LogOut } from 'lucide-react';
 import { ThesisSaveButton } from './ThesisSaveButton';
 import { Thesis } from '@/types/thesis';
 import { generateThesisDocx } from '@/utils/docxExport';
@@ -39,9 +38,13 @@ export const ThesisToolbar = ({
 
   const handleExportDocx = async () => {
     try {
+      console.log('Starting DOCX export with thesis data:', thesisData);
       const doc = generateThesisDocx(thesisData);
-      const blob = await Packer.toBlob(doc);
-      const url = window.URL.createObjectURL(blob);
+      console.log('Document generated, converting to blob...');
+      const blob = await Packer.toBuffer(doc);
+      console.log('Blob created, creating download link...');
+      
+      const url = window.URL.createObjectURL(new Blob([blob]));
       const link = document.createElement('a');
       link.href = url;
       link.download = `${thesisData.frontMatter[0]?.title || 'thesis'}.docx`;
