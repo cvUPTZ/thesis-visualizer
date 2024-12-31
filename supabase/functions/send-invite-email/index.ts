@@ -59,6 +59,7 @@ serve(async (req) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         </head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
@@ -79,16 +80,16 @@ serve(async (req) => {
     `.trim();
 
     console.log('Sending email...');
-    await client.send({
+
+    const message = {
       from: SENDER_EMAIL,
       to: to,
       subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
-      html: emailContent,
-      headers: {
-        "Content-Type": "text/html; charset=UTF-8",
-      },
-    });
+      content: emailContent,
+      html: true,
+    };
 
+    await client.send(message);
     console.log('Email sent successfully');
     await client.close();
     client = null;
