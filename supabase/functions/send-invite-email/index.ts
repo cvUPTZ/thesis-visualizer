@@ -53,6 +53,11 @@ serve(async (req) => {
 
     console.log('SMTP client initialized');
 
+    // Ensure all variables are strings before using them in the template
+    const safeThesisTitle = String(thesisTitle);
+    const safeRole = String(role);
+    const safeInviteLink = String(inviteLink);
+
     const emailContent = `
       <!DOCTYPE html>
       <html>
@@ -64,16 +69,16 @@ serve(async (req) => {
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <h2 style="color: #2563eb; margin-bottom: 20px;">You've been invited to collaborate!</h2>
-            <p style="margin-bottom: 16px;">You've been invited to collaborate on the thesis "${thesisTitle}" as a ${role}.</p>
+            <p style="margin-bottom: 16px;">You've been invited to collaborate on the thesis "${safeThesisTitle}" as a ${safeRole}.</p>
             <p style="margin-bottom: 24px;">Click the link below to accept the invitation:</p>
             <div style="text-align: center; margin: 24px 0;">
-              <a href="${inviteLink}" 
+              <a href="${safeInviteLink}" 
                  style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">
                 Accept Invitation
               </a>
             </div>
             <p style="margin-top: 24px; color: #666;">If you can't click the button, copy and paste this link in your browser:</p>
-            <p style="word-break: break-all; color: #4F46E5;">${inviteLink}</p>
+            <p style="word-break: break-all; color: #4F46E5;">${safeInviteLink}</p>
           </div>
         </body>
       </html>
@@ -84,7 +89,7 @@ serve(async (req) => {
     const message = {
       from: SENDER_EMAIL,
       to: to,
-      subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
+      subject: `Invitation to collaborate on thesis: ${safeThesisTitle}`,
       content: emailContent,
       html: true,
     };
