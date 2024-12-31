@@ -1,24 +1,23 @@
-import React from "react";
+import React, { memo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+// Navbar component
 const Navbar = () => (
   <nav className="fixed w-full bg-[#1A1F2C] text-white z-50 py-4">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center">
         <Link to="/" className="text-2xl font-bold text-[#9b87f5]">Thesis Visualizer</Link>
         <div className="hidden md:flex space-x-8">
-          <Link to="/features" className="hover:text-[#D6BCFA] transition-colors">Features</Link>
-          <Link to="/pricing" className="hover:text-[#D6BCFA] transition-colors">Pricing</Link>
-          <Link to="/about" className="hover:text-[#D6BCFA] transition-colors">About</Link>
+          <Link to="/features" className="hover:text-[#D6BCFA] transition-colors" aria-label="View Features">Features</Link>
+          <Link to="/pricing" className="hover:text-[#D6BCFA] transition-colors" aria-label="View Pricing">Pricing</Link>
+          <Link to="/about" className="hover:text-[#D6BCFA] transition-colors" aria-label="Learn About Us">About</Link>
         </div>
         <div className="flex space-x-4">
           <Link to="/auth">
-            <Button className="bg-[#9b87f5] text-white hover:bg-[#7E69AB] transition-colors">
-              Get Started
-            </Button>
+            <Button className="bg-[#9b87f5] text-white hover:bg-[#7E69AB] transition-colors" aria-label="Get Started">Get Started</Button>
           </Link>
         </div>
       </div>
@@ -26,7 +25,8 @@ const Navbar = () => (
   </nav>
 );
 
-const FeatureCard = ({ title, description, icon: Icon }: { title: string; description: string; icon: React.ElementType }) => (
+// FeatureCard component
+const FeatureCard = memo(({ title, description, icon: Icon }: { title: string; description: string; icon: React.ElementType }) => (
   <div className="p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow">
     <div className="w-12 h-12 bg-[#F1F0FB] rounded-lg flex items-center justify-center mb-4">
       <Icon className="w-6 h-6 text-[#9b87f5]" />
@@ -34,11 +34,30 @@ const FeatureCard = ({ title, description, icon: Icon }: { title: string; descri
     <h3 className="text-xl font-semibold mb-2">{title}</h3>
     <p className="text-gray-600">{description}</p>
   </div>
+));
+
+// TestimonialCard component
+const TestimonialCard = ({ quote, author, role }: { quote: string, author: string, role: string }) => (
+  <div className="bg-white p-6 rounded-xl shadow-lg">
+    <p className="text-gray-600 mb-4">{quote}</p>
+    <div>
+      <p className="font-semibold text-[#1A1F2C]">{author}</p>
+      <p className="text-sm text-gray-500">{role}</p>
+    </div>
+  </div>
+);
+
+// FooterLink component
+const FooterLink = ({ to, children }: { to: string, children: React.ReactNode }) => (
+  <Link to={to} className="text-gray-400 hover:text-[#D6BCFA] transition-colors" aria-label={children as string}>
+    {children}
+  </Link>
 );
 
 const LandingPage = () => {
   const { toast } = useToast();
 
+  // Feedback form handler
   const handleFeedback = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -57,13 +76,11 @@ const LandingPage = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .insert([
-          {
-            email,
-            role: 'feedback',
-            id: crypto.randomUUID(),
-          }
-        ]);
+        .insert([{
+          email,
+          role: 'feedback',
+          id: crypto.randomUUID(),
+        }]);
 
       if (error) throw error;
 
@@ -71,7 +88,7 @@ const LandingPage = () => {
         title: "Thank you!",
         description: "Your feedback has been received.",
       });
-      
+
       (event.target as HTMLFormElement).reset();
     } catch (error) {
       console.error('Error sending feedback:', error);
@@ -86,7 +103,7 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1A1F2C] to-[#2A2F3C]">
       <Navbar />
-
+      
       {/* Hero Section */}
       <section className="pt-32 pb-24 px-4">
         <div className="max-w-7xl mx-auto text-center">
@@ -138,82 +155,46 @@ const LandingPage = () => {
             Trusted by Academics Worldwide
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                quote: "The visual organization tools have completely transformed how I structure my research.",
-                author: "Dr. Sarah Chen",
-                role: "Research Professor"
-              },
-              {
-                quote: "Citation management has never been easier. This tool is a game-changer.",
-                author: "Michael Roberts",
-                role: "PhD Candidate"
-              },
-              {
-                quote: "Real-time collaboration with my supervisor has significantly improved my writing process.",
-                author: "Emma Thompson",
-                role: "Graduate Student"
-              }
-            ].map((testimonial, index) => (
-              <div key={index} className="bg-white p-6 rounded-xl shadow-lg">
-                <p className="text-gray-600 mb-4">{testimonial.quote}</p>
-                <div>
-                  <p className="font-semibold text-[#1A1F2C]">{testimonial.author}</p>
-                  <p className="text-sm text-gray-500">{testimonial.role}</p>
-                </div>
-              </div>
-            ))}
+            <TestimonialCard
+              quote="This tool helped me visualize my thesis like never before!"
+              author="Sarah B."
+              role="PhD Student"
+            />
+            <TestimonialCard
+              quote="Fantastic platform for researchers. Highly recommend!"
+              author="John D."
+              role="Researcher"
+            />
+            <TestimonialCard
+              quote="I saved so much time using this! 5 stars."
+              author="Emily T."
+              role="Graduate Student"
+            />
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-24 bg-[#1A1F2C] text-white">
-        <div className="max-w-3xl mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-8">Ready to Start Your Journey?</h2>
-          <p className="text-xl text-gray-300 mb-12">
-            Join thousands of researchers who have already transformed their thesis writing experience.
-          </p>
-          <Link to="/auth">
-            <Button className="bg-[#9b87f5] text-white text-lg px-8 py-6 rounded-lg hover:bg-[#7E69AB] transition-colors">
-              Get Started Now
-            </Button>
-          </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#1A1F2C] text-white py-12 border-t border-gray-800">
+      <footer className="bg-[#1A1F2C] text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-xl font-bold text-[#9b87f5] mb-4">Thesis Visualizer</h3>
-              <p className="text-gray-400">Making thesis writing easier</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="space-y-4">
+              <h4 className="font-semibold">About Us</h4>
+              <FooterLink to="/about">Learn More</FooterLink>
+              <FooterLink to="/team">Our Team</FooterLink>
+              <FooterLink to="/careers">Careers</FooterLink>
             </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Product</h4>
-              <ul className="space-y-2">
-                <li><Link to="/features" className="text-gray-400 hover:text-[#D6BCFA] transition-colors">Features</Link></li>
-                <li><Link to="/pricing" className="text-gray-400 hover:text-[#D6BCFA] transition-colors">Pricing</Link></li>
-              </ul>
+            <div className="space-y-4">
+              <h4 className="font-semibold">Support</h4>
+              <FooterLink to="/contact">Contact Us</FooterLink>
+              <FooterLink to="/faq">FAQs</FooterLink>
             </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Company</h4>
-              <ul className="space-y-2">
-                <li><Link to="/about" className="text-gray-400 hover:text-[#D6BCFA] transition-colors">About</Link></li>
-                <li><Link to="/contact" className="text-gray-400 hover:text-[#D6BCFA] transition-colors">Contact</Link></li>
-              </ul>
+            <div className="space-y-4">
+              <h4 className="font-semibold">Follow Us</h4>
+              <FooterLink to="https://twitter.com/thesis_visualizer">Twitter</FooterLink>
+              <FooterLink to="https://linkedin.com/company/thesis-visualizer">LinkedIn</FooterLink>
+              <FooterLink to="https://github.com/thesis-visualizer">GitHub</FooterLink>
             </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2">
-                <li><Link to="/privacy" className="text-gray-400 hover:text-[#D6BCFA] transition-colors">Privacy</Link></li>
-                <li><Link to="/terms" className="text-gray-400 hover:text-[#D6BCFA] transition-colors">Terms</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t border-gray-800 text-center">
-            <p className="text-gray-400">&copy; {new Date().getFullYear()} Thesis Visualizer. All rights reserved.</p>
           </div>
         </div>
       </footer>
