@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { SmtpClient } from "https://deno.land/x/smtp/mod.ts";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,7 +14,6 @@ interface EmailRequest {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -28,36 +27,32 @@ serve(async (req) => {
     }
 
     // Create SMTP client
-    const client = new SmtpClient({
+    const client = new SMTPClient({
       connection: {
         hostname: "smtp.gmail.com",
         port: 465,
         tls: true,
-        auth: {
-          username: SMTP_USERNAME,
-          password: SMTP_PASSWORD,
-        },
+      },
+      auth: {
+        username: SMTP_USERNAME,
+        password: SMTP_PASSWORD,
       },
     });
 
-    // Parse and validate request body
     const requestData: EmailRequest = await req.json();
     console.log('Received request data:', requestData);
 
     const { to, thesisTitle, inviteLink, role } = requestData;
 
-    // Validate required fields
     if (!to || !thesisTitle || !inviteLink || !role) {
       throw new Error('Missing required fields');
     }
 
-    // Sanitize inputs
     const safeToEmail = String(to).trim();
     const safeThesisTitle = String(thesisTitle).trim();
     const safeInviteLink = String(inviteLink).trim();
     const safeRole = String(role).trim();
 
-    // Create email content
     const emailContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Thesis Collaboration Invitation</h2>
@@ -76,13 +71,11 @@ serve(async (req) => {
       from: SMTP_USERNAME,
       to: safeToEmail,
       subject: `Invitation to collaborate on thesis: ${safeThesisTitle}`,
-      content: "text/html",
+      content: emailContent,
       html: emailContent,
     });
 
-    // Close the connection
     await client.close();
-
     console.log('Email sent successfully');
 
     return new Response(
