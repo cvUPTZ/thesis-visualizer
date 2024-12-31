@@ -13,45 +13,42 @@ const Auth = () => {
   const navigate = useNavigate();
   const inviteThesisId = searchParams.get('thesisId');
   const inviteRole = searchParams.get('role');
-  const redirectTo = searchParams.get('redirectTo');
   const { error } = useAuthFlow({ inviteThesisId, inviteRole });
   const { toast } = useToast();
 
   useEffect(() => {
     let mounted = true;
 
+    const checkAndRedirect = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && mounted) {
+          navigate('/create-thesis');
+        }
+      } catch (err) {
+        console.error('Error checking session:', err);
+      }
+    };
+
     const cleanupSession = async () => {
       try {
         console.log('Cleaning up session state...');
+        localStorage.removeItem('supabase.auth.token');
         
-        // Get current session first
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        
-        // Only proceed with cleanup if there's no valid session
-        if (!currentSession) {
-          // Clear any existing auth data from localStorage
-          localStorage.removeItem('supabase.auth.token');
-          
-          // Sign out to ensure clean state
-          const { error: signOutError } = await supabase.auth.signOut();
-          if (signOutError && mounted) {
-            console.error('Error during sign out:', signOutError);
-            toast({
-              title: "Error",
-              description: "Failed to clean up session. Please try again.",
-              variant: "destructive",
-            });
-            return;
-          }
+        const { error: signOutError } = await supabase.auth.signOut();
+        if (signOutError && mounted) {
+          console.error('Error during sign out:', signOutError);
+          toast({
+            title: "Error",
+            description: "Failed to clean up session. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
 
-          // Verify cleanup
-          const { data: { session } } = await supabase.auth.getSession();
-          if (!session && mounted) {
-            console.log('Session successfully cleaned up');
-          }
-        } else if (mounted) {
-          // If there's an active session, redirect to welcome page
-          navigate('/welcome');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session && mounted) {
+          console.log('Session successfully cleaned up');
         }
       } catch (err) {
         if (mounted) {
@@ -65,18 +62,13 @@ const Auth = () => {
       }
     };
     
+    checkAndRedirect();
     cleanupSession();
 
     return () => {
       mounted = false;
     };
   }, [toast, navigate]);
-
-  // Construct the redirect URL
-  const redirectUrl = new URL('/auth', window.location.origin);
-  if (redirectTo) redirectUrl.searchParams.set('redirectTo', redirectTo);
-  if (inviteThesisId) redirectUrl.searchParams.set('thesisId', inviteThesisId);
-  if (inviteRole) redirectUrl.searchParams.set('role', inviteRole);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -106,7 +98,7 @@ const Auth = () => {
               },
             }}
             providers={[]}
-            redirectTo={redirectUrl.toString()}
+            redirectTo={`${window.location.origin}/create-thesis`}
           />
         </CardContent>
       </Card>
