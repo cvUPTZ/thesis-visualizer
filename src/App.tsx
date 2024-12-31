@@ -10,7 +10,6 @@ import { ThesisEditor } from "@/components/ThesisEditor";
 import LandingPage from "./pages/LandingPage";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
-
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
