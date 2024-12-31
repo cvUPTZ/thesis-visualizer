@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import * as nodemailer from "npm:nodemailer";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,20 +26,18 @@ serve(async (req) => {
       throw new Error('Missing SMTP credentials');
     }
 
-    // Create SMTP client with enhanced security settings
-    const client = new SMTPClient({
-      connection: {
-        hostname: "smtp.gmail.com",
-        port: 587, // Changed to TLS port
-        tls: false, // Start with non-TLS
-        debug: true, // Enable debug logging
-      },
+    // Create transporter
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
       auth: {
-        username: SMTP_USERNAME,
-        password: SMTP_PASSWORD,
+        user: SMTP_USERNAME,
+        pass: SMTP_PASSWORD,
       },
-      pool: true, // Enable connection pooling
-      secure: true, // Use STARTTLS
+      tls: {
+        rejectUnauthorized: false
+      }
     });
 
     const requestData: EmailRequest = await req.json();
@@ -69,34 +67,23 @@ serve(async (req) => {
 
     console.log('Attempting to send email to:', safeToEmail);
     
-    try {
-      await client.send({
-        from: SMTP_USERNAME,
-        to: safeToEmail,
-        subject: `Invitation to collaborate on thesis: ${safeThesisTitle}`,
-        content: "This is a plain text fallback",
-        html: emailContent,
-        headers: {
-          "X-Priority": "1 (Highest)",
-          "X-MSMail-Priority": "High",
-          "Importance": "High",
-        },
-      });
+    // Send email
+    const info = await transporter.sendMail({
+      from: `"Thesis System" <${SMTP_USERNAME}>`,
+      to: safeToEmail,
+      subject: `Invitation to collaborate on thesis: ${safeThesisTitle}`,
+      text: `You have been invited to collaborate on the thesis: ${safeThesisTitle}. Role: ${safeRole}. Accept invitation here: ${safeInviteLink}`,
+      html: emailContent,
+    });
 
-      console.log('Email sent successfully');
-    } catch (emailError) {
-      console.error('SMTP Error:', emailError);
-      throw emailError;
-    } finally {
-      try {
-        await client.close();
-      } catch (closeError) {
-        console.error('Error closing SMTP connection:', closeError);
-      }
-    }
+    console.log('Email sent successfully:', info.messageId);
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Invitation sent successfully' }),
+      JSON.stringify({ 
+        success: true, 
+        message: 'Invitation sent successfully',
+        messageId: info.messageId 
+      }),
       {
         headers: {
           ...corsHeaders,
