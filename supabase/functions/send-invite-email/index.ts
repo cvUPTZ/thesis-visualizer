@@ -25,6 +25,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let client: SMTPClient | null = null;
+
   try {
     console.log('Starting email send process...');
     const { to, thesisTitle, inviteLink, role } = await req.json() as InviteEmailRequest;
@@ -37,7 +39,7 @@ serve(async (req) => {
       senderEmail: SENDER_EMAIL 
     });
 
-    const client = new SMTPClient({
+    client = new SMTPClient({
       connection: {
         hostname: SMTP_HOSTNAME,
         port: SMTP_PORT,
@@ -56,18 +58,21 @@ serve(async (req) => {
       <html>
         <head>
           <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #2563eb;">You've been invited to collaborate!</h2>
-            <p>You've been invited to collaborate on the thesis "${thesisTitle}" as a ${role}.</p>
-            <p>Click the link below to accept the invitation:</p>
-            <a href="${inviteLink}" 
-               style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">
-              Accept Invitation
-            </a>
-            <p style="margin-top: 20px;">If you can't click the button, copy and paste this link in your browser:</p>
-            <p style="word-break: break-all;">${inviteLink}</p>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h2 style="color: #2563eb; margin-bottom: 20px;">You've been invited to collaborate!</h2>
+            <p style="margin-bottom: 16px;">You've been invited to collaborate on the thesis "${thesisTitle}" as a ${role}.</p>
+            <p style="margin-bottom: 24px;">Click the link below to accept the invitation:</p>
+            <div style="text-align: center; margin: 24px 0;">
+              <a href="${inviteLink}" 
+                 style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">
+                Accept Invitation
+              </a>
+            </div>
+            <p style="margin-top: 24px; color: #666;">If you can't click the button, copy and paste this link in your browser:</p>
+            <p style="word-break: break-all; color: #4F46E5;">${inviteLink}</p>
           </div>
         </body>
       </html>
@@ -79,10 +84,14 @@ serve(async (req) => {
       to: to,
       subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
       html: emailContent,
+      headers: {
+        "Content-Type": "text/html; charset=UTF-8",
+      },
     });
 
     console.log('Email sent successfully');
     await client.close();
+    client = null;
 
     return new Response(
       JSON.stringify({ success: true }), 
@@ -94,6 +103,14 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in email sending process:', error);
+    
+    if (client) {
+      try {
+        await client.close();
+      } catch (closeError) {
+        console.error('Error closing SMTP client:', closeError);
+      }
+    }
     
     return new Response(
       JSON.stringify({ 
