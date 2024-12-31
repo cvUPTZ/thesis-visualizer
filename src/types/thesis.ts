@@ -66,7 +66,7 @@ export interface Section {
   figures: Figure[];
   tables: Table[];
   citations: Citation[];
-    references?: Reference[];
+  references?: Reference[];
 }
 
 export interface Chapter {
@@ -76,20 +76,21 @@ export interface Chapter {
   sections: Section[];
 }
 
-export interface Thesis {
-    id: string;
-    metadata: {
-        description: string,
-        keywords: string[],
-        createdAt: string,
-        universityName?: string;
-        departmentName?: string;
-        authorName?: string;
-        thesisDate?: string;
-      committeeMembers?: string[];
-    };
-    frontMatter: Section[];
-    chapters: Chapter[];
-    backMatter: Section[];
+export interface ThesisMetadata {
+  description: string;
+  keywords: string[];
+  createdAt: string;
+  universityName?: string;
+  departmentName?: string;
+  authorName?: string;
+  thesisDate?: string;
+  committeeMembers?: string[];
 }
 
+export interface Thesis {
+  id: string;
+  metadata: ThesisMetadata;
+  frontMatter: Section[];
+  chapters: Chapter[];
+  backMatter: Section[];
+}
