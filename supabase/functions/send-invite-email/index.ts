@@ -29,9 +29,16 @@ serve(async (req) => {
 
   try {
     console.log('Starting email send process...');
-    const { to, thesisTitle, inviteLink, role } = await req.json() as InviteEmailRequest;
+    const requestData = await req.json();
+    console.log('Request data:', requestData);
 
-    console.log('Request data:', { to, thesisTitle, role });
+    // Validate and sanitize input data
+    const { to, thesisTitle, inviteLink, role } = requestData as InviteEmailRequest;
+    
+    if (!to || !thesisTitle || !inviteLink || !role) {
+      throw new Error('Missing required fields');
+    }
+
     console.log('SMTP Configuration:', { 
       host: SMTP_HOSTNAME, 
       port: SMTP_PORT,
@@ -53,10 +60,18 @@ serve(async (req) => {
 
     console.log('SMTP client initialized');
 
-    // Ensure all variables are strings before using them in the template
-    const safeThesisTitle = String(thesisTitle);
-    const safeRole = String(role);
-    const safeInviteLink = String(inviteLink);
+    // Convert all variables to strings and trim them
+    const safeThesisTitle = String(thesisTitle).trim();
+    const safeRole = String(role).trim();
+    const safeInviteLink = String(inviteLink).trim();
+    const safeToEmail = String(to).trim();
+
+    console.log('Sanitized data:', {
+      safeThesisTitle,
+      safeRole,
+      safeInviteLink,
+      safeToEmail
+    });
 
     const emailContent = `
       <!DOCTYPE html>
@@ -84,18 +99,20 @@ serve(async (req) => {
       </html>
     `.trim();
 
-    console.log('Sending email...');
+    console.log('Email content prepared');
 
     const message = {
       from: SENDER_EMAIL,
-      to: to,
+      to: safeToEmail,
       subject: `Invitation to collaborate on thesis: ${safeThesisTitle}`,
       content: emailContent,
       html: true,
     };
 
+    console.log('Sending email...');
     await client.send(message);
     console.log('Email sent successfully');
+    
     await client.close();
     client = null;
 
