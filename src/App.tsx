@@ -1,3 +1,5 @@
+// File: src/App.tsx
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,7 +12,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import CreateThesis from "./pages/CreateThesis";
 import { ThesisEditor } from "@/components/ThesisEditor";
-import LandingPage from "./pages/LandingPage";
+import LandingPage from "./pages/LandingPage"; // Import the LandingPage
 
 const queryClient = new QueryClient();
 
@@ -26,12 +28,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       try {
         console.log('Checking authentication status...');
         
+        // Get current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error('Session error:', sessionError);
           if (mountedRef.current) {
             setIsAuthenticated(false);
+            // Clear all storage on session error
             localStorage.clear();
           }
           return;
@@ -41,19 +45,23 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           console.log('No active session found');
           if (mountedRef.current) {
             setIsAuthenticated(false);
+            // Clear storage when no session exists
             localStorage.clear();
           }
           return;
         }
 
+        // If we have a session, verify the user exists
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
         if (userError || !user) {
           console.error('User verification failed:', userError);
           if (mountedRef.current) {
             setIsAuthenticated(false);
+            // Clean up invalid session state
             localStorage.clear();
             try {
+              // Try to sign out without any scope parameter
               await supabase.auth.signOut();
             } catch (signOutError) {
               console.error('Error during sign out:', signOutError);
@@ -70,12 +78,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         console.log('Session verified successfully');
         if (mountedRef.current) {
           setIsAuthenticated(true);
+          // Schedule next check
           timeoutId = setTimeout(checkAuth, 5 * 60 * 1000);
         }
       } catch (error: any) {
         console.error('Error checking auth:', error);
         if (mountedRef.current) {
           setIsAuthenticated(false);
+          // Clean up on error
           localStorage.clear();
           toast({
             title: "Authentication Error",
@@ -86,8 +96,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
+    // Initial auth check
     checkAuth();
 
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session?.user?.email);
       
@@ -116,9 +128,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     };
   }, [toast]);
 
-  if (isAuthenticated === null) {
-    return <div>Loading...</div>;
-  }
+    if (isAuthenticated === null) {
+        return <div>Loading...</div>;
+    }
 
   return isAuthenticated ? children : <Navigate to="/auth" />;
 };
@@ -130,29 +142,32 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<LandingPage />} />
+            <Route path="/welcome" element={
+               <ProtectedRoute>
+                  <Index />
+                 </ProtectedRoute>
+                } />
+            <Route path="/" element={
+                <LandingPage />
+                }
+             />
+          <Route
+            path="/thesis/:thesisId"
+            element={
+              <ProtectedRoute>
+                <ThesisEditor />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/auth" element={<Auth />} />
-          
-          {/* Protected routes */}
-          <Route path="/welcome" element={
-            <ProtectedRoute>
-              <Index />
-            </ProtectedRoute>
-          } />
-          <Route path="/thesis/:thesisId" element={
-            <ProtectedRoute>
-              <ThesisEditor />
-            </ProtectedRoute>
-          } />
-          <Route path="/create-thesis" element={
-            <ProtectedRoute>
-              <CreateThesis />
-            </ProtectedRoute>
-          } />
-
-          {/* Catch-all redirect */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route
+            path="/create-thesis"
+            element={
+              <ProtectedRoute>
+                <CreateThesis />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
