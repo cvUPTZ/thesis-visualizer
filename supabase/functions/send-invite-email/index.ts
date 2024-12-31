@@ -35,49 +35,53 @@ serve(async (req) => {
 
     const client = new SmtpClient();
 
-    await client.connectTLS({
-      hostname: SMTP_HOSTNAME,
-      port: SMTP_PORT,
-      username: SMTP_USERNAME,
-      password: SMTP_PASSWORD,
-    });
+    try {
+      await client.connectTLS({
+        hostname: SMTP_HOSTNAME,
+        port: SMTP_PORT,
+        username: SMTP_USERNAME,
+        password: SMTP_PASSWORD,
+      });
 
-    console.log('SMTP connection established');
+      console.log('SMTP connection established');
 
-    const emailContent = `
-      <html>
-        <body>
-          <h2>You've been invited to collaborate!</h2>
-          <p>You've been invited to collaborate on the thesis "${thesisTitle}" as a ${role}.</p>
-          <p>Click the link below to accept the invitation:</p>
-          <a href="${inviteLink}" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">
-            Accept Invitation
-          </a>
-          <p>If you can't click the button, copy and paste this link in your browser:</p>
-          <p>${inviteLink}</p>
-        </body>
-      </html>
-    `;
+      const emailContent = `
+        <html>
+          <body>
+            <h2>You've been invited to collaborate!</h2>
+            <p>You've been invited to collaborate on the thesis "${thesisTitle}" as a ${role}.</p>
+            <p>Click the link below to accept the invitation:</p>
+            <a href="${inviteLink}" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">
+              Accept Invitation
+            </a>
+            <p>If you can't click the button, copy and paste this link in your browser:</p>
+            <p>${inviteLink}</p>
+          </body>
+        </html>
+      `;
 
-    await client.send({
-      from: SENDER_EMAIL,
-      to: to,
-      subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
-      content: "Please view this email in an HTML-capable client",
-      html: emailContent,
-    });
+      await client.send({
+        from: SENDER_EMAIL,
+        to: to,
+        subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
+        content: "Please view this email in an HTML-capable client",
+        html: emailContent,
+      });
 
-    console.log('Email sent successfully');
-    await client.close();
+      console.log('Email sent successfully');
+      await client.close();
 
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    });
-
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    } catch (smtpError) {
+      console.error('SMTP Error:', smtpError);
+      await client.close();
+      throw smtpError;
+    }
   } catch (error) {
     console.error('Error sending email:', error);
-    
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : 'Failed to send invitation email' 

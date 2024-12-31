@@ -11,17 +11,7 @@ export const generateThesisDocx = (thesis: {
       {
         properties: {},
         children: [
-          new TableOfContents("Table of Contents", {
-            hyperlink: true,
-            headingStyleRange: "1-5",
-            stylesWithLevels: [
-              { level: 1, styleId: "Heading1" },
-              { level: 2, styleId: "Heading2" },
-              { level: 3, styleId: "Heading3" },
-              { level: 4, styleId: "Heading4" },
-              { level: 5, styleId: "Heading5" },
-            ],
-          }),
+          new TableOfContents("Table of Contents"),
           ...generateSectionContent(thesis.frontMatter),
           ...generateChapterContent(thesis.chapters),
           ...generateSectionContent(thesis.backMatter),
