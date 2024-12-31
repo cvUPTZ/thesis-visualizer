@@ -1,26 +1,5 @@
-import { Document, Paragraph, TextRun, HeadingLevel, TableOfContents, StyleLevel } from 'docx';
+import { Document, Paragraph, TextRun, HeadingLevel, TableOfContents } from 'docx';
 import { Chapter, Section } from '@/types/thesis';
-
-const generateTableOfContents = () => {
-  return new TableOfContents({
-    headingStyleRange: '1-5',
-    stylesWithLevels: [
-      { level: 1, style: 'Heading1' },
-      { level: 2, style: 'Heading2' },
-      { level: 3, style: 'Heading3' },
-      { level: 4, style: 'Heading4' },
-      { level: 5, style: 'Heading5' },
-    ] as StyleLevel[],
-    hyperlink: true,
-    headingStyles: [
-      HeadingLevel.HEADING_1,
-      HeadingLevel.HEADING_2,
-      HeadingLevel.HEADING_3,
-      HeadingLevel.HEADING_4,
-      HeadingLevel.HEADING_5,
-    ],
-  });
-};
 
 export const generateThesisDocx = (thesis: {
   frontMatter: Section[];
@@ -32,7 +11,17 @@ export const generateThesisDocx = (thesis: {
       {
         properties: {},
         children: [
-          generateTableOfContents(),
+          new TableOfContents("Table of Contents", {
+            hyperlink: true,
+            headingStyleRange: "1-5",
+            stylesWithLevels: [
+              { level: 1, styleId: "Heading1" },
+              { level: 2, styleId: "Heading2" },
+              { level: 3, styleId: "Heading3" },
+              { level: 4, styleId: "Heading4" },
+              { level: 5, styleId: "Heading5" },
+            ],
+          }),
           ...generateSectionContent(thesis.frontMatter),
           ...generateChapterContent(thesis.chapters),
           ...generateSectionContent(thesis.backMatter),
