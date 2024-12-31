@@ -39,11 +39,17 @@ serve(async (req) => {
       throw new Error('Missing required fields');
     }
 
-    console.log('SMTP Configuration:', { 
-      host: SMTP_HOSTNAME, 
-      port: SMTP_PORT,
-      username: SMTP_USERNAME,
-      senderEmail: SENDER_EMAIL 
+    // Convert all variables to strings and trim them
+    const safeToEmail = String(to).trim();
+    const safeThesisTitle = String(thesisTitle).trim();
+    const safeInviteLink = String(inviteLink).trim();
+    const safeRole = String(role).trim();
+
+    console.log('Sanitized data:', {
+      safeToEmail,
+      safeThesisTitle,
+      safeInviteLink,
+      safeRole
     });
 
     client = new SMTPClient({
@@ -59,19 +65,6 @@ serve(async (req) => {
     });
 
     console.log('SMTP client initialized');
-
-    // Convert all variables to strings and trim them
-    const safeThesisTitle = String(thesisTitle).trim();
-    const safeRole = String(role).trim();
-    const safeInviteLink = String(inviteLink).trim();
-    const safeToEmail = String(to).trim();
-
-    console.log('Sanitized data:', {
-      safeThesisTitle,
-      safeRole,
-      safeInviteLink,
-      safeToEmail
-    });
 
     const emailContent = `
       <!DOCTYPE html>
@@ -97,7 +90,7 @@ serve(async (req) => {
           </div>
         </body>
       </html>
-    `.trim();
+    `;
 
     console.log('Email content prepared');
 
