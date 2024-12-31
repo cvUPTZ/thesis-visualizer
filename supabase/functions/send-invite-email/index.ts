@@ -26,7 +26,7 @@ serve(async (req) => {
     }
 
     const resend = new Resend(RESEND_API_KEY);
-    const SENDER_EMAIL = Deno.env.get('SENDER_EMAIL') || 'onboarding@resend.dev';
+    const SENDER_EMAIL = 'onboarding@resend.dev'; // Using Resend's default sender
 
     // Parse and validate request body
     const requestData: EmailRequest = await req.json();
@@ -69,29 +69,23 @@ serve(async (req) => {
 
       if (error) {
         console.error('Resend error:', error);
-        
-        // Check if it's a domain verification error
-        if (error.message?.includes('domain is not verified')) {
-          return new Response(
-            JSON.stringify({
-              error: error.message,
-              details: {
-                statusCode: 403,
-                message: error.message,
-                name: 'validation_error'
-              }
-            }),
-            {
-              headers: {
-                ...corsHeaders,
-                'Content-Type': 'application/json',
-              },
-              status: 403,
+        return new Response(
+          JSON.stringify({
+            error: error.message,
+            details: {
+              statusCode: error.statusCode || 500,
+              message: error.message,
+              name: error.name || 'unknown_error'
             }
-          );
-        }
-        
-        throw error;
+          }),
+          {
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json',
+            },
+            status: error.statusCode || 500,
+          }
+        );
       }
 
       console.log('Email sent successfully:', data);
