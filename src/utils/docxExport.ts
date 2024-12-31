@@ -1,6 +1,4 @@
-// import { Document, Paragraph, TextRun, HeadingLevel, TableOfContents } from 'docx';
-import { Document, Paragraph, TextRun, HeadingLevel, TableOfContents } from 'docx-browser';
-
+import { Document, Paragraph, TextRun, HeadingLevel, TableOfContents } from 'docx';
 import { Chapter, Section } from '@/types/thesis';
 
 export const generateThesisDocx = (thesis: {

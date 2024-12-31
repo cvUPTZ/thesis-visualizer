@@ -1,7 +1,5 @@
-// Follow this setup guide to integrate the Deno runtime into your project:
-// https://deno.land/manual/getting_started/setup_your_environment
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Document, Paragraph, TextRun, HeadingLevel, TableOfContents, Packer } from 'https://deno.land/x/docx/mod.ts';
+import { Document, Paragraph, TextRun, HeadingLevel, TableOfContents, Packer } from "npm:docx";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
