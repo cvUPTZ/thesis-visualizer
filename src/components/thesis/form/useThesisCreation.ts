@@ -1,5 +1,3 @@
-// File: src/components/thesis/form/useThesisCreation.ts
-
 import { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +7,7 @@ import { ThesisSectionType } from '@/types/thesis';
 interface ThesisMetadata {
   title: string;
   description: string;
-  keywords: string | undefined;
+  keywords: string;
   universityName?: string;
   departmentName?: string;
   authorName?: string;
@@ -21,7 +19,7 @@ export const useThesisCreation = () => {
   const { toast } = useToast();
 
   const createThesis = async (
-    metadata: ThesisMetadata,
+      metadata: ThesisMetadata,
     userId: string
   ) => {
     setIsSubmitting(true);
@@ -29,23 +27,23 @@ export const useThesisCreation = () => {
       console.log('Starting thesis creation with metadata:', metadata);
 
       const thesisId = crypto.randomUUID();
-        
-       const keywordsArray = metadata.keywords
-            ? metadata.keywords.split(',').map(k => k.trim()).filter(k => k)
-           : [];
-        
+
+      const keywordsArray = metadata.keywords
+          ? metadata.keywords.split(',').map(k => k.trim()).filter(k => k)
+          : [];
+
       // Prepare thesis content with proper typing
       const thesisContent = {
         metadata: {
           description: metadata.description,
           keywords: keywordsArray,
-          createdAt: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
             universityName: metadata.universityName,
             departmentName: metadata.departmentName,
-            authorName: metadata.authorName,
-            thesisDate: metadata.thesisDate,
+             authorName: metadata.authorName,
+           thesisDate: metadata.thesisDate,
             committeeMembers: metadata.committeeMembers
-        },
+         },
         frontMatter: [
           {
             id: crypto.randomUUID(),
@@ -61,10 +59,10 @@ export const useThesisCreation = () => {
           {
             id: crypto.randomUUID(),
             title: 'Abstract',
-            content: metadata.description,
+              content: metadata.description,
             type: 'abstract' as ThesisSectionType,
             required: true,
-            order: 2,
+              order: 2,
             figures: [],
             tables: [],
             citations: []
@@ -74,7 +72,7 @@ export const useThesisCreation = () => {
         backMatter: [
             {
                 id: crypto.randomUUID(),
-                title: 'References',
+               title: 'References',
                 content: '',
                 type: 'references' as ThesisSectionType,
                 required: true,
@@ -139,7 +137,7 @@ export const useThesisCreation = () => {
       console.error('Error in thesis creation:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to create thesis. Please try again.",
+          description: error.message || "Failed to create thesis. Please try again.",
         variant: "destructive",
       });
        return null;

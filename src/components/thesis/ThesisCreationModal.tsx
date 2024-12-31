@@ -1,80 +1,81 @@
-// File: src/components/thesis/ThesisCreationModal.tsx
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from 'react-router-dom';
-import { ThesisMetadataFields } from './form/ThesisMetadataFields';
-import { useThesisCreation } from './form/useThesisCreation';
+import { useForm } from './form/useForm';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from "@/components/ui/input";
+import { useThesisCreation } from './form/useThesisCreation';
 
 interface ThesisCreationModalProps {
     onThesisCreated: (thesisId: string, title: string) => void;
 }
 
 export const ThesisCreationModal = ({ onThesisCreated }: ThesisCreationModalProps) => {
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [keywords, setKeywords] = useState('');
-    const [universityName, setUniversityName] = useState('');
-    const [departmentName, setDepartmentName] = useState('');
-    const [authorName, setAuthorName] = useState('');
-    const [thesisDate, setThesisDate] = useState('');
-    const [committeeMembers, setCommitteeMembers] = useState(['', '', '']);
+   const {
+        values,
+        errors,
+        isSubmitting,
+        handleChange,
+       handleSubmit,
+        handleArrayChange,
+   } = useForm({
+        initialValues: {
+          title: '',
+          description: '',
+           keywords: '',
+            universityName: '',
+          departmentName: '',
+            authorName: '',
+           thesisDate: '',
+            committeeMembers: ['', '', '']
+        },
+       validate: (values) => {
+            const err: any = {};
+           if (!values.title) {
+             err.title = "Title is required";
+            }
+
+            if (!values.description) {
+              err.description = "Description is required";
+             }
+
+            if (!values.keywords) {
+               err.keywords = "Keywords are required";
+            }
+
+            return err;
+        },
+       onSubmit: async (values) => {
+         const { data: { session } } = await supabase.auth.getSession();
+           if (!session?.user?.id) {
+               setError('You must be logged in to create a thesis');
+              return;
+            }
+            const metadata = {
+                ...values,
+                keywords: values.keywords
+             };
+         const result = await createThesis(metadata, session.user.id);
+          if (result?.thesisId) {
+           setOpen(false);
+            onThesisCreated(result.thesisId, values.title);
+            navigate(`/thesis/${result.thesisId}`);
+         }
+      }
+   });
 
     const [error, setError] = useState<string | null>(null);
-    const { createThesis, isSubmitting } = useThesisCreation();
+    const { createThesis } = useThesisCreation();
     const { toast } = useToast();
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
-    
-    const handleCommitteeMemberChange = (index: number, value: string) => {
-        const updatedMembers = [...committeeMembers];
-        updatedMembers[index] = value;
-        setCommitteeMembers(updatedMembers);
-    };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session?.user?.id) {
-                setError('You must be logged in to create a thesis');
-                return;
-            }
-
-            const metadata = {
-                title,
-                description,
-                keywords,
-                universityName,
-                departmentName,
-                authorName,
-                thesisDate,
-                committeeMembers
-            };
-
-            const result = await createThesis(metadata, session.user.id);
-            
-            if (result?.thesisId) {
-                setOpen(false);
-                onThesisCreated(result.thesisId, title);
-                navigate(`/thesis/${result.thesisId}`);
-            }
-        } catch (err: any) {
-            console.error('Error creating thesis:', err);
-            setError(err.message || 'Failed to create thesis');
-            toast({
-                title: "Error",
-                description: err.message || "Failed to create thesis",
-                variant: "destructive"
-            });
-        }
+     const handleCommitteeMemberChange = (index: number, value: string) => {
+       handleArrayChange('committeeMembers', index, value)
     };
 
     return (
@@ -99,21 +100,23 @@ export const ThesisCreationModal = ({ onThesisCreated }: ThesisCreationModalProp
                         </label>
                         <Input
                             id="title"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
+                             name="title"
+                            value={values.title}
+                            onChange={handleChange}
                             placeholder="Enter thesis title"
                             required
                         />
                     </div>
-            
+
                     <div>
                         <label htmlFor="description" className="block text-sm font-medium mb-1">
                             Description
                         </label>
                         <Input
                             id="description"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
+                             name="description"
+                            value={values.description}
+                          onChange={handleChange}
                             placeholder="Enter a brief description of your thesis"
                             required
                         />
@@ -125,47 +128,51 @@ export const ThesisCreationModal = ({ onThesisCreated }: ThesisCreationModalProp
                         </label>
                         <Input
                             id="keywords"
-                            value={keywords}
-                            onChange={(e) => setKeywords(e.target.value)}
+                             name="keywords"
+                            value={values.keywords}
+                            onChange={handleChange}
                             placeholder="Enter keywords separated by commas"
                             required
                         />
                     </div>
-            
+
                     <div>
                         <label htmlFor="universityName" className="block text-sm font-medium mb-1">
                             University Name
                         </label>
                         <Input
                             id="universityName"
-                            value={universityName}
-                            onChange={(e) => setUniversityName(e.target.value)}
+                            name="universityName"
+                          value={values.universityName}
+                            onChange={handleChange}
                             placeholder="Enter university name"
                             required
                         />
                     </div>
-            
+
                     <div>
                         <label htmlFor="departmentName" className="block text-sm font-medium mb-1">
                             Department Name
                         </label>
                         <Input
                             id="departmentName"
-                            value={departmentName}
-                            onChange={(e) => setDepartmentName(e.target.value)}
+                             name="departmentName"
+                          value={values.departmentName}
+                            onChange={handleChange}
                             placeholder="Enter department name"
                             required
                         />
                     </div>
-            
+
                     <div>
                         <label htmlFor="authorName" className="block text-sm font-medium mb-1">
                             Author Name
                         </label>
                         <Input
                             id="authorName"
-                            value={authorName}
-                            onChange={(e) => setAuthorName(e.target.value)}
+                             name="authorName"
+                            value={values.authorName}
+                            onChange={handleChange}
                             placeholder="Enter author name"
                             required
                         />
@@ -177,26 +184,28 @@ export const ThesisCreationModal = ({ onThesisCreated }: ThesisCreationModalProp
                         </label>
                         <Input
                             id="thesisDate"
-                            value={thesisDate}
-                            onChange={(e) => setThesisDate(e.target.value)}
+                             name="thesisDate"
+                            value={values.thesisDate}
+                            onChange={handleChange}
                             placeholder="Enter date of thesis submission"
                             required
                         />
                     </div>
-            
+
                     <div>
                         <label className="block text-sm font-medium mb-1">
                             Committee Members
                         </label>
-                        {committeeMembers.map((member, index) => (
-                            <Input
-                                key={index}
-                                value={member}
-                                onChange={(e) => handleCommitteeMemberChange(index, e.target.value)}
-                                placeholder={`Committee Member ${index + 1}`}
-                                className="mb-2"
-                            />
-                        ))}
+                        {values.committeeMembers.map((member, index) => (
+                                <Input
+                                    key={index}
+                                      name={`committeeMembers[${index}]`}
+                                    value={member}
+                                     onChange={(e) => handleCommitteeMemberChange(index, e.target.value)}
+                                    placeholder={`Committee Member ${index + 1}`}
+                                  className="mb-2"
+                                />
+                            ))}
                     </div>
 
                     <Button type="submit" disabled={isSubmitting} className="mt-6">
