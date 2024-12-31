@@ -142,12 +142,12 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-            <Route path="/" element={
+            <Route path="/welcome" element={
                <ProtectedRoute>
                   <Index />
                  </ProtectedRoute>
                 } />
-            <Route path="/welcome" element={
+            <Route path="/" element={
                 <LandingPage />
                 }
              />
