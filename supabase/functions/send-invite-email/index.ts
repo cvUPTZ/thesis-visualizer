@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Resend } from 'https://esm.sh/resend@2.0.0';
+import { SmtpClient } from "https://deno.land/x/smtp/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,13 +20,25 @@ serve(async (req) => {
   }
 
   try {
-    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-    if (!RESEND_API_KEY) {
-      throw new Error('Missing RESEND_API_KEY');
+    const SMTP_USERNAME = Deno.env.get('SMTP_USERNAME');
+    const SMTP_PASSWORD = Deno.env.get('SMTP_PASSWORD');
+    
+    if (!SMTP_USERNAME || !SMTP_PASSWORD) {
+      throw new Error('Missing SMTP credentials');
     }
 
-    const resend = new Resend(RESEND_API_KEY);
-    const SENDER_EMAIL = 'onboarding@resend.dev'; // Using Resend's default sender
+    // Create SMTP client
+    const client = new SmtpClient({
+      connection: {
+        hostname: "smtp.gmail.com",
+        port: 465,
+        tls: true,
+        auth: {
+          username: SMTP_USERNAME,
+          password: SMTP_PASSWORD,
+        },
+      },
+    });
 
     // Parse and validate request body
     const requestData: EmailRequest = await req.json();
@@ -59,54 +71,33 @@ serve(async (req) => {
 
     console.log('Sending email to:', safeToEmail);
     
-    try {
-      const { data, error } = await resend.emails.send({
-        from: SENDER_EMAIL,
-        to: safeToEmail,
-        subject: `Invitation to collaborate on thesis: ${safeThesisTitle}`,
-        html: emailContent,
-      });
+    // Send email using SMTP
+    await client.send({
+      from: SMTP_USERNAME,
+      to: safeToEmail,
+      subject: `Invitation to collaborate on thesis: ${safeThesisTitle}`,
+      content: "text/html",
+      html: emailContent,
+    });
 
-      if (error) {
-        console.error('Resend error:', error);
-        return new Response(
-          JSON.stringify({
-            error: error.message,
-            details: {
-              statusCode: error.statusCode || 500,
-              message: error.message,
-              name: error.name || 'unknown_error'
-            }
-          }),
-          {
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'application/json',
-            },
-            status: error.statusCode || 500,
-          }
-        );
+    // Close the connection
+    await client.close();
+
+    console.log('Email sent successfully');
+
+    return new Response(
+      JSON.stringify({ success: true, message: 'Invitation sent successfully' }),
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+        status: 200,
       }
-
-      console.log('Email sent successfully:', data);
-
-      return new Response(
-        JSON.stringify({ success: true, message: 'Invitation sent successfully' }),
-        {
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
-          status: 200,
-        }
-      );
-    } catch (error) {
-      console.error('Error sending email:', error);
-      throw error;
-    }
+    );
 
   } catch (error) {
-    console.error('Error in edge function:', error);
+    console.error('Error sending invitation:', error);
     
     return new Response(
       JSON.stringify({
