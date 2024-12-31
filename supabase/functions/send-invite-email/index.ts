@@ -1,18 +1,13 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
-
-const SMTP_HOSTNAME = Deno.env.get('SMTP_HOST')!;
-const SMTP_PORT = parseInt(Deno.env.get('SMTP_PORT')!);
-const SMTP_USERNAME = Deno.env.get('SMTP_USERNAME')!;
-const SMTP_PASSWORD = Deno.env.get('SMTP_PASSWORD')!;
-const SENDER_EMAIL = Deno.env.get('SENDER_EMAIL')!;
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import { Resend } from 'https://esm.sh/resend@2.0.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface InviteEmailRequest {
+interface EmailRequest {
   to: string;
   thesisTitle: string;
   inviteLink: string;
@@ -22,118 +17,88 @@ interface InviteEmailRequest {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
-  let client: SMTPClient | null = null;
-
   try {
-    console.log('Starting email send process...');
-    const requestData = await req.json();
-    console.log('Request data:', requestData);
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+    if (!RESEND_API_KEY) {
+      throw new Error('Missing RESEND_API_KEY');
+    }
 
-    // Validate and sanitize input data
-    const { to, thesisTitle, inviteLink, role } = requestData as InviteEmailRequest;
-    
+    const resend = new Resend(RESEND_API_KEY);
+    const SENDER_EMAIL = Deno.env.get('SENDER_EMAIL') || 'onboarding@resend.dev';
+
+    // Parse and validate request body
+    const requestData: EmailRequest = await req.json();
+    console.log('Received request data:', requestData);
+
+    const { to, thesisTitle, inviteLink, role } = requestData;
+
+    // Validate required fields
     if (!to || !thesisTitle || !inviteLink || !role) {
       throw new Error('Missing required fields');
     }
 
-    // Convert all variables to strings and trim them
+    // Sanitize inputs
     const safeToEmail = String(to).trim();
     const safeThesisTitle = String(thesisTitle).trim();
     const safeInviteLink = String(inviteLink).trim();
     const safeRole = String(role).trim();
 
-    console.log('Sanitized data:', {
-      safeToEmail,
-      safeThesisTitle,
-      safeInviteLink,
-      safeRole
-    });
-
-    client = new SMTPClient({
-      connection: {
-        hostname: SMTP_HOSTNAME,
-        port: SMTP_PORT,
-        tls: true,
-        auth: {
-          username: SMTP_USERNAME,
-          password: SMTP_PASSWORD,
-        },
-      },
-    });
-
-    console.log('SMTP client initialized');
-
+    // Create email content
     const emailContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px;">
-          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h2 style="color: #2563eb; margin-bottom: 20px;">You've been invited to collaborate!</h2>
-            <p style="margin-bottom: 16px;">You've been invited to collaborate on the thesis "${safeThesisTitle}" as a ${safeRole}.</p>
-            <p style="margin-bottom: 24px;">Click the link below to accept the invitation:</p>
-            <div style="text-align: center; margin: 24px 0;">
-              <a href="${safeInviteLink}" 
-                 style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">
-                Accept Invitation
-              </a>
-            </div>
-            <p style="margin-top: 24px; color: #666;">If you can't click the button, copy and paste this link in your browser:</p>
-            <p style="word-break: break-all; color: #4F46E5;">${safeInviteLink}</p>
-          </div>
-        </body>
-      </html>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2>Thesis Collaboration Invitation</h2>
+        <p>You have been invited to collaborate on the thesis: <strong>${safeThesisTitle}</strong></p>
+        <p>You have been assigned the role of: <strong>${safeRole}</strong></p>
+        <p>Click the link below to accept the invitation:</p>
+        <p><a href="${safeInviteLink}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">Accept Invitation</a></p>
+        <p style="color: #666; font-size: 0.9em;">If you cannot click the button, copy and paste this link into your browser: ${safeInviteLink}</p>
+      </div>
     `;
 
-    console.log('Email content prepared');
-
-    const message = {
+    console.log('Sending email to:', safeToEmail);
+    
+    // Send email using Resend
+    const { data, error } = await resend.emails.send({
       from: SENDER_EMAIL,
       to: safeToEmail,
       subject: `Invitation to collaborate on thesis: ${safeThesisTitle}`,
       html: emailContent,
-    };
+    });
 
-    console.log('Sending email...');
-    await client.send(message);
-    console.log('Email sent successfully');
-    
-    await client.close();
-    client = null;
+    if (error) {
+      console.error('Resend error:', error);
+      throw error;
+    }
+
+    console.log('Email sent successfully:', data);
 
     return new Response(
-      JSON.stringify({ success: true }), 
+      JSON.stringify({ success: true, message: 'Invitation sent successfully' }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
         status: 200,
       }
     );
 
   } catch (error) {
-    console.error('Error in email sending process:', error);
-    
-    if (client) {
-      try {
-        await client.close();
-      } catch (closeError) {
-        console.error('Error closing SMTP client:', closeError);
-      }
-    }
+    console.error('Error sending invitation:', error);
     
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Failed to send invitation email',
-        details: error
+      JSON.stringify({
+        error: error.message || 'Failed to send invitation',
+        details: error,
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
         status: 500,
       }
     );
