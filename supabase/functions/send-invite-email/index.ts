@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 import { Resend } from 'https://esm.sh/resend@2.0.0';
 
 const corsHeaders = {
@@ -60,34 +59,60 @@ serve(async (req) => {
 
     console.log('Sending email to:', safeToEmail);
     
-    // Send email using Resend
-    const { data, error } = await resend.emails.send({
-      from: SENDER_EMAIL,
-      to: safeToEmail,
-      subject: `Invitation to collaborate on thesis: ${safeThesisTitle}`,
-      html: emailContent,
-    });
+    try {
+      const { data, error } = await resend.emails.send({
+        from: SENDER_EMAIL,
+        to: safeToEmail,
+        subject: `Invitation to collaborate on thesis: ${safeThesisTitle}`,
+        html: emailContent,
+      });
 
-    if (error) {
-      console.error('Resend error:', error);
+      if (error) {
+        console.error('Resend error:', error);
+        
+        // Check if it's a domain verification error
+        if (error.message?.includes('domain is not verified')) {
+          return new Response(
+            JSON.stringify({
+              error: error.message,
+              details: {
+                statusCode: 403,
+                message: error.message,
+                name: 'validation_error'
+              }
+            }),
+            {
+              headers: {
+                ...corsHeaders,
+                'Content-Type': 'application/json',
+              },
+              status: 403,
+            }
+          );
+        }
+        
+        throw error;
+      }
+
+      console.log('Email sent successfully:', data);
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Invitation sent successfully' }),
+        {
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+          status: 200,
+        }
+      );
+    } catch (error) {
+      console.error('Error sending email:', error);
       throw error;
     }
 
-    console.log('Email sent successfully:', data);
-
-    return new Response(
-      JSON.stringify({ success: true, message: 'Invitation sent successfully' }),
-      {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
-        status: 200,
-      }
-    );
-
   } catch (error) {
-    console.error('Error sending invitation:', error);
+    console.error('Error in edge function:', error);
     
     return new Response(
       JSON.stringify({

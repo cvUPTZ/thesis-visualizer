@@ -1,4 +1,3 @@
-// File: src/components/collaboration/CollaboratorInviteForm.tsx
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -48,13 +47,12 @@ export const CollaboratorInviteForm = ({
 
     setIsInviting(true);
     try {
-      // Fix: Remove any trailing slashes and ensure proper URL formatting
       const baseUrl = window.location.origin.replace(/\/$/, '');
       const inviteLink = `${baseUrl}/auth?thesisId=${thesisId}&role=${role}`;
 
-      console.log('Sending invitation with link:', inviteLink); // Debug log
+      console.log('Sending invitation with link:', inviteLink);
 
-      const { error } = await supabase.functions.invoke('send-invite-email', {
+      const { error, data } = await supabase.functions.invoke('send-invite-email', {
         body: {
           to: cleanEmail,
           thesisTitle,
@@ -64,13 +62,13 @@ export const CollaboratorInviteForm = ({
       });
 
       if (error) {
-        console.error('Error from edge function:', error); // Debug log
+        console.error('Error from edge function:', error);
         
         // Check if it's a domain verification error
-        if (error.message?.includes('Domain verification required')) {
+        if (error.message?.toLowerCase().includes('domain is not verified')) {
           toast({
             title: "Domain Verification Required",
-            description: "Please verify your email domain at Resend.com before sending invitations.",
+            description: "The email domain needs to be verified. Please verify your domain at Resend.com before sending invitations.",
             variant: "destructive",
           });
         } else {
