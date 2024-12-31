@@ -31,12 +31,12 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={
+            <Route path="/dashboard" element={
               <ProtectedRoute>
                  <Index />
               </ProtectedRoute>
              } />
-               <Route path="/welcome" element={
+               <Route path="/" element={
                 <LandingPage />
                 }
              />

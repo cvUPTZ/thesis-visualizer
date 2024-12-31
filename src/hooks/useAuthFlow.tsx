@@ -139,7 +139,7 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
               title: "Welcome!",
               description: "You have successfully signed in.",
             });
-            navigate("/");
+            navigate("/dashboard");
           } catch (error) {
             console.error('Error handling sign in:', error);
             setError("Error processing sign in. Please try again.");
