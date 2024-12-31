@@ -26,17 +26,20 @@ serve(async (req) => {
       throw new Error('Missing SMTP credentials');
     }
 
-    // Create SMTP client
+    // Create SMTP client with enhanced security settings
     const client = new SMTPClient({
       connection: {
         hostname: "smtp.gmail.com",
-        port: 465,
-        tls: true,
+        port: 587, // Changed to TLS port
+        tls: false, // Start with non-TLS
+        debug: true, // Enable debug logging
       },
       auth: {
         username: SMTP_USERNAME,
         password: SMTP_PASSWORD,
       },
+      pool: true, // Enable connection pooling
+      secure: true, // Use STARTTLS
     });
 
     const requestData: EmailRequest = await req.json();
@@ -64,19 +67,33 @@ serve(async (req) => {
       </div>
     `;
 
-    console.log('Sending email to:', safeToEmail);
+    console.log('Attempting to send email to:', safeToEmail);
     
-    // Send email using SMTP
-    await client.send({
-      from: SMTP_USERNAME,
-      to: safeToEmail,
-      subject: `Invitation to collaborate on thesis: ${safeThesisTitle}`,
-      content: emailContent,
-      html: emailContent,
-    });
+    try {
+      await client.send({
+        from: SMTP_USERNAME,
+        to: safeToEmail,
+        subject: `Invitation to collaborate on thesis: ${safeThesisTitle}`,
+        content: "This is a plain text fallback",
+        html: emailContent,
+        headers: {
+          "X-Priority": "1 (Highest)",
+          "X-MSMail-Priority": "High",
+          "Importance": "High",
+        },
+      });
 
-    await client.close();
-    console.log('Email sent successfully');
+      console.log('Email sent successfully');
+    } catch (emailError) {
+      console.error('SMTP Error:', emailError);
+      throw emailError;
+    } finally {
+      try {
+        await client.close();
+      } catch (closeError) {
+        console.error('Error closing SMTP connection:', closeError);
+      }
+    }
 
     return new Response(
       JSON.stringify({ success: true, message: 'Invitation sent successfully' }),
