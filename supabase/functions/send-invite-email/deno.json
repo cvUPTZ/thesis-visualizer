@@ -1,0 +1,14 @@
+{
+    "tasks": {
+      "start": "deno run --allow-net --allow-env index.ts"
+    },
+    "importMap": {
+      "imports": {
+        "npm:": "https://jspm.dev/npm:"
+      }
+    },
+    "permissions": {
+      "net": true,
+      "env": true
+    }
+  }
