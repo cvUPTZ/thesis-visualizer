@@ -1,10 +1,10 @@
 import React, { createContext, useContext } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { Toast } from "@/components/ui/toast";
-import { ToasterToast } from "@/hooks/use-toast";
+import { Toast as ToastComponent } from "@/components/ui/toast";
+import type { ToastProps } from "@/components/ui/toast";
 
 interface NotificationContextType {
-    toast: ({ ...props }: Toast) => { id: string; dismiss: () => void; update: (props: ToasterToast) => void; };
+    toast: ReturnType<typeof useToast>['toast'];
     notifyDomainError: () => void;
 }
 

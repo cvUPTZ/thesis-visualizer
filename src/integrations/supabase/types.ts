@@ -14,19 +14,42 @@ export type Database = {
           created_at: string
           email: string
           id: string
-          role: string | null
+          role_id: string | null
         }
         Insert: {
           created_at?: string
           email: string
           id: string
-          role?: string | null
+          role_id?: string | null
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
-          role?: string | null
+          role_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          id: string
+          name: string
+        }
+        Insert: {
+          id?: string
+          name: string
+        }
+        Update: {
+          id?: string
+          name?: string
         }
         Relationships: []
       }

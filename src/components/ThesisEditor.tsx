@@ -14,6 +14,7 @@ import { useThesisData } from '@/hooks/useThesisData';
 import { Skeleton } from './ui/skeleton';
 import { useCollaboratorPermissions } from '@/hooks/useCollaboratorPermissions';
 import { LoadingScreen } from '@/components/ui/loading-screen';
+
 interface ThesisEditorProps {
   thesisId?: string;
 }
@@ -23,14 +24,14 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
   const currentThesisId = propsThesisId || routeThesisId;
   
   const { thesis, setThesis, isLoading, error } = useThesisData(currentThesisId);
-    const [activeSection, setActiveSection] = useState<string>('');
-    const [showPreview, setShowPreview] = useState(false);
-    const previewRef = useRef<HTMLDivElement>(null);
-    const { currentUserRole } = useCollaboratorPermissions(currentThesisId || '');
+  const [activeSection, setActiveSection] = useState<string>('');
+  const [showPreview, setShowPreview] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const { currentUserRole } = useCollaboratorPermissions(currentThesisId || '');
     
   // Initialize hooks
-    useThesisAutosave(thesis);
-    useThesisInitialization(thesis);
+  useThesisAutosave(thesis);
+  useThesisInitialization(thesis);
 
   const handleThesisCreated = (thesisId: string, title: string) => {
       setThesis(prev => {
@@ -193,7 +194,9 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
        <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <h2 className="text-2xl font-semibold text-destructive">Error Loading Thesis</h2>
-            <p className="text-muted-foreground">{error || "Thesis not found"}</p>
+          <p className="text-muted-foreground">
+              {error instanceof Error ? error.message : error || "Thesis not found"}
+          </p>
         </div>
       </div>
     );
