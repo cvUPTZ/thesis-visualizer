@@ -1,3 +1,5 @@
+// File: src/services/thesisService.ts
+
 import { supabase } from '@/integrations/supabase/client';
 import { Thesis, Chapter, Section, Reference } from '@/types/thesis';
 import { Json } from '@/integrations/supabase/types';
@@ -156,6 +158,7 @@ const thesisContentSchema = z.object({
     }))
 });
 
+
 export const thesisService = {
     async createThesis(metadata: any, userId: string): Promise<{ thesisId: string, title: string } | null> {
         try {
@@ -285,10 +288,10 @@ export const thesisService = {
                 return null;
             }
 
-            const content = typeof data.content === 'string' ? JSON.parse(data.content) : data.content;
+           const content = typeof data.content === 'string' ? JSON.parse(data.content) : data.content;
 
             // Ensure all required properties are present
-            const thesisData: Thesis = {
+             const thesisData: Thesis = {
                 id: data.id,
                 metadata: {
                     description: content.metadata.description || '',
@@ -343,6 +346,7 @@ export const thesisService = {
                 }))
             };
 
+
             return thesisData;
         } catch (error: any) {
             console.error('Error in getThesis:', error);
@@ -391,24 +395,25 @@ export const thesisService = {
             console.log('Current user:', user.id);
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
-                .select('*')
+                 .select('*')
                 .eq('id', user.id)
-                .maybeSingle();
+                 .maybeSingle();
             if (profileError) {
                 console.error('Error fetching profile:', profileError);
-                throw new Error(profileError.message);
+                 throw new Error(profileError.message);
             }
 
             console.log('User profile:', profile);
-            const { data: existingThesis, error: checkError } = await supabase
+           const { data: existingThesis, error: checkError } = await supabase
                 .from('theses')
                 .select('*')
-                .eq('id', thesis.id)
-                .maybeSingle();
+               .eq('id', thesis.id)
+              .maybeSingle();
             if (checkError) {
                 console.error('Error checking thesis:', checkError);
                 throw new Error(checkError.message);
             }
+
             if (!existingThesis) {
                 console.log('Creating new thesis with user_id:', user.id);
 
@@ -416,7 +421,7 @@ export const thesisService = {
                     frontMatter: thesis.frontMatter.map(section => ({
                         ...section,
                         figures: section.figures || [],
-                        tables: section.tables || [],
+                       tables: section.tables || [],
                         citations: section.citations || [],
                         references: section.references || []
                     })),
@@ -427,46 +432,48 @@ export const thesisService = {
                             figures: section.figures || [],
                             tables: section.tables || [],
                             citations: section.citations || [],
-                            references: section.references || []
-                        }))
+                           references: section.references || []
+                       }))
                     })),
                     backMatter: thesis.backMatter.map(section => ({
-                        ...section,
+                       ...section,
                         figures: section.figures || [],
-                        tables: section.tables || [],
+                       tables: section.tables || [],
                         citations: section.citations || [],
                         references: section.references || []
                     }))
                 } as unknown as Json;
+
                 const { error: thesisError } = await supabase
                     .from('theses')
-                    .insert({
+                   .insert({
                         id: thesis.id,
-                        title: 'Untitled Thesis',
+                       title: 'Untitled Thesis',
                         content: thesisContent,
-                        user_id: user.id
+                       user_id: user.id
                     });
                 if (thesisError) {
                     console.error('Error creating thesis:', thesisError);
                     throw new Error(thesisError.message);
                 }
+
                 const { error: collaboratorError } = await supabase
-                    .from('thesis_collaborators')
+                   .from('thesis_collaborators')
                     .insert({
                         thesis_id: thesis.id,
                         user_id: user.id,
-                        role: 'owner'
+                       role: 'owner'
                     });
                 if (collaboratorError) {
-                    console.error('Error adding thesis owner:', collaboratorError);
+                  console.error('Error adding thesis owner:', collaboratorError);
                     await supabase
                         .from('theses')
                         .delete()
                         .eq('id', thesis.id);
-                    throw new Error(collaboratorError.message);
+                   throw new Error(collaboratorError.message);
                 }
-
                 console.log('Added user as thesis owner');
+
             }
         } catch (error: any) {
             console.error('Error in thesis initialization:', error);
@@ -485,40 +492,63 @@ export const thesisService = {
                   created_at,
                   profiles (
                       email,
-                      role
-                  )
+                      roles (name)
+                   )
                 `)
                 .eq('thesis_id', thesisId);
             if (error) {
                 console.error('Error fetching collaborators:', error);
                 throw new Error(error.message);
             }
-            return data as Collaborator[];
+            return data.map(item => ({
+                ...item,
+              profiles: {
+                    ...item.profiles,
+                   role: item.profiles?.roles?.name
+                  }
+             })) as Collaborator[];
         } catch (error: any) {
-            console.error('Error in fetchCollaborators:', error);
-            throw new Error(error.message || 'Failed to fetch collaborators. Please try again.');
+           console.error('Error in fetchCollaborators:', error);
+           throw new Error(error.message || 'Failed to fetch collaborators. Please try again.');
         }
     },
 
+
     async getUserProfile(userId: string): Promise<Profile | null> {
-        try {
-            const { data, error } = await supabase
+       try {
+             const { data, error } = await supabase
                 .from('profiles')
-                .select('*')
-                .eq('id', userId)
-                .maybeSingle();
+                .select(`
+                  id,
+                    email,
+                  created_at,
+                  roles(name)
+               `)
+               .eq('id', userId)
+               .maybeSingle();
+
 
             if (error) {
                 console.error('Error fetching profile:', error);
-                throw new Error(error.message);
+                 throw new Error(error.message);
             }
 
-            return data as Profile;
-        } catch (error: any) {
-            console.error('Error in getUserProfile:', error);
+             if (!data) {
+                 return null;
+           }
+            return {
+                id: data.id,
+              email: data.email,
+               role: data.roles?.name,
+             created_at: data.created_at
+            } as Profile;
+
+
+         } catch (error: any) {
+           console.error('Error in getUserProfile:', error);
             throw new Error(error.message || 'Failed to fetch user profile. Please try again.');
-        }
-    },
+         }
+   },
 
     async saveToJson(thesis: Thesis) {
         try {
@@ -527,13 +557,13 @@ export const thesisService = {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `thesis_${thesis.id}_${new Date().toISOString()}.json`;
+           link.download = `thesis_${thesis.id}_${new Date().toISOString()}.json`;
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
+          document.body.removeChild(link);
             URL.revokeObjectURL(url);
         } catch (error) {
-            console.error('Error saving thesis to JSON:', error);
+             console.error('Error saving thesis to JSON:', error);
             throw new Error('Failed to save thesis as JSON file.');
         }
     }
