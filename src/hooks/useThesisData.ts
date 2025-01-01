@@ -14,30 +14,31 @@ export const useThesisData = (thesisId: string | undefined) => {
     error,
   } = useQuery<Thesis | null, Error>({
     queryKey: ['thesis', thesisId],
-        queryFn: async () => {
-            if (!thesisId) {
-               console.log('No thesis ID provided');
-                return null;
-            }
-
+    queryFn: async () => {
+          if (!thesisId) {
+              console.log('No thesis ID provided on useThesisData hook');
+            return null;
+        }
             if (!validateUUID(thesisId)) {
-             console.error('Invalid thesis ID format:', thesisId);
-               throw new Error('Invalid thesis ID format');
+              console.error('Invalid thesis ID format:', thesisId);
+              throw new Error('Invalid thesis ID format');
            }
-            try {
-              return await thesisService.getThesis(thesisId)
-            } catch (err: any) {
-              console.error("Error in useThesisData:", err);
+         try {
+            console.log('Fetching thesis data with ID:', thesisId);
+            return await thesisService.getThesis(thesisId);
+          } catch (err: any) {
+             console.error("Error in useThesisData:", err);
              toast({
                    title: "Error",
                     description: "Failed to load thesis data. Please try again.",
                     variant: "destructive",
-                });
-              throw err;
-           }
+               });
+            throw err;
+         }
        },
-    enabled: !!thesisId,
+      enabled: !!thesisId, // Skip if no thesisId
   });
+
 
     const setThesis = (newThesis: Thesis | ((prev: Thesis | null) => Thesis | null)) => {
        queryClient.setQueryData(['thesis', thesisId], newThesis);
