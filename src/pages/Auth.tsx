@@ -56,6 +56,10 @@ const Auth = () => {
     };
   }, [navigate, toast]);
 
+  // Get the current origin without any trailing slash
+  const siteUrl = window.location.origin.replace(/\/$/, '');
+  console.log('Current site URL:', siteUrl);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow">
@@ -71,7 +75,7 @@ const Auth = () => {
           supabaseClient={supabase}
           appearance={{ theme: ThemeSupa }}
           providers={["google"]}
-          redirectTo={`${window.location.origin}/dashboard`}
+          redirectTo={`${siteUrl}/dashboard`}
         />
       </div>
     </div>
