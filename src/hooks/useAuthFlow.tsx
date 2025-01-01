@@ -72,7 +72,7 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
  };
 
  useEffect(() => {
-        console.log('Auth flow initialized');
+       console.log('Auth flow initialized');
         console.log('Invite params:', { inviteThesisId, inviteRole });
 
 
@@ -112,34 +112,9 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
             }
         };
 
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-          console.log("Auth state changed:", event, session?.user?.email);
-
-       if (event === "SIGNED_IN" && session) {
-              console.log('User signed in:', session.user.email);
-              try {
-                  if (inviteThesisId && inviteRole) {
-                      await handleInviteAcceptance(session.user.id, inviteThesisId, inviteRole);
-                 }
-                  toast({
-                      title: "Welcome!",
-                      description: "You have successfully signed in.",
-                  });
-                  navigate("/dashboard");
-              } catch (error) {
-                    console.error('Error handling sign in:', error);
-                    setError("Error processing sign in. Please try again.");
-                }
-            }
-      }
-    );
     checkUser();
-    return () => {
-      if (subscription) subscription.unsubscribe();
-    };
-}, [navigate, toast, inviteThesisId, inviteRole, pathname]);
+
+ }, [navigate, toast, inviteThesisId, inviteRole, pathname]);
 
     return { error };
 };
