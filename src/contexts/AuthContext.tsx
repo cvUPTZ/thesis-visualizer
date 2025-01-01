@@ -1,6 +1,4 @@
-// src/contexts/AuthContext.tsx
-
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { thesisService } from '@/services/thesisService';
@@ -25,6 +23,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [userId, setUserId] = useState<string | null>(null);
     const [userRole, setUserRole] = useState<string | null>(null);
     const { toast } = useToast();
+    const authCheckCompleted = useRef(false); // prevent infinite loop
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -38,7 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     console.error('Error checking session:', error);
                     toast({
                         title: 'Authentication Error',
-                        description: 'There was an error checking your authentication status.',
+                       description: 'There was an error checking your authentication status.',
                         variant: 'destructive',
                     });
                      return;
@@ -55,58 +54,60 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
                      if (profile) {
                          setUserRole(profile.role || null);
-                        console.log('User role:', profile?.role || null);
+                       console.log('User role:', profile?.role || null);
                     }
 
 
                 } else {
                      setIsAuthenticated(false);
-                   setUserId(null);
+                    setUserId(null);
                     setUserRole(null);
-                   console.log('No session found');
-               }
-
-           } catch (error) {
+                  console.log('No session found');
+                }
+            } catch (error) {
                 console.error('Error in checkAuth:', error);
            } finally {
-              console.log('Setting loading to false')
-              setLoading(false);
-           }
+               console.log('Setting loading to false')
+                setLoading(false);
+            }
         };
 
         checkAuth();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if(!session && event !== 'SIGNED_OUT') { // to avoid infinite loop when not logged
-               return
-           }
-            console.log('Auth state changed:', event, session?.user?.email);
-           if (event === 'SIGNED_IN' && session) {
-                setIsAuthenticated(true);
-              setUserId(session.user.id);
-                 console.log('User ID:', session.user.id);
+       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+           if (authCheckCompleted.current) {
+              console.log('authCheckCompleted is true, skipping onAuthStateChange')
+              return; //skip the execution if already executed
+          }
+          console.log('Auth state changed:', event, session?.user?.email);
+
+          if (event === 'SIGNED_IN' && session) {
+               setIsAuthenticated(true);
+             setUserId(session.user.id);
+               console.log('User ID:', session.user.id);
 
                 // Fetch user profile when signed in
-               const profile = await thesisService.getUserProfile(session.user.id);
+                const profile = await thesisService.getUserProfile(session.user.id);
 
                if (profile) {
                    setUserRole(profile?.role || null);
-                   console.log('User role:', profile?.role || null);
+                    console.log('User role:', profile?.role || null);
                 }
-
-            } else if (event === 'SIGNED_OUT') {
-                 setIsAuthenticated(false);
-               setUserId(null);
-                 setUserRole(null);
-                console.log('User signed out');
-             }
+             } else if (event === 'SIGNED_OUT') {
+                setIsAuthenticated(false);
+                setUserId(null);
+               setUserRole(null);
+              console.log('User signed out');
+            }
+            authCheckCompleted.current = true;
       });
 
 
-      return () => {
+       return () => {
             subscription.unsubscribe();
-      };
-    }, [toast]);
+       };
+
+   }, [toast]);
 
     return (
         <AuthContext.Provider value={{ isAuthenticated, loading, userId, userRole }}>
