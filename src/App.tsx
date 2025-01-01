@@ -10,84 +10,104 @@ import { ThesisEditor } from "@/components/ThesisEditor";
 import LandingPage from "./pages/LandingPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { NotificationProvider } from "@/contexts/NotificationContext"; // New Context
+import { NotificationProvider } from "@/contexts/NotificationContext";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    const { isAuthenticated, loading } = useAuth();
-    console.log('ProtectedRoute - loading:', loading, 'isAuthenticated:', isAuthenticated)
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-     // if loading is false, you will redirect or return the components.
-    return isAuthenticated ? children : <Navigate to="/auth" />;
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return <LoadingScreen title="Loading..." />;
+  }
+  
+  return isAuthenticated ? children : <Navigate to="/auth" replace />;
 };
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-    const { isAuthenticated, loading, userRole } = useAuth();
-      console.log('AdminRoute - loading:', loading, 'isAuthenticated:', isAuthenticated, 'userRole:', userRole)
-    if (loading) {
-       return <div>Loading...</div>;
-    }
-      // if loading is false, you will redirect or return the components.
-    if (!isAuthenticated) {
-        return <Navigate to="/auth" />;
-    }
-     // if loading is false and the user is not an admin, redirect to /dashboard
-    return userRole === 'admin' ? children : <Navigate to="/dashboard" />;
+  const { isAuthenticated, loading, userRole } = useAuth();
+  
+  if (loading) {
+    return <LoadingScreen title="Checking permissions..." />;
+  }
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+  
+  return userRole === 'admin' ? children : <Navigate to="/dashboard" replace />;
+};
+
+const AppRoutes = () => {
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <Routes>
+      <Route 
+        path="/" 
+        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />} 
+      />
+      <Route
+        path="/auth"
+        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Auth />}
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Index />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/thesis/:thesisId"
+        element={
+          <ProtectedRoute>
+            <ThesisEditor />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create-thesis"
+        element={
+          <ProtectedRoute>
+            <CreateThesis />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 };
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-    <NotificationProvider>
-        <AuthProvider>
-          <Toaster />
-            <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route
-                  path="/dashboard"
-                  element={
-                  <ProtectedRoute>
-                      <Index />
-                  </ProtectedRoute>
-                  }
-                />
-                <Route
-                    path="/auth"
-                    element={<Auth />}
-                    />
-                <Route
-                  path="/thesis/:thesisId"
-                    element={
-                    <ProtectedRoute>
-                      <ThesisEditor />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                    path="/create-thesis"
-                    element={
-                      <ProtectedRoute>
-                          <CreateThesis />
-                      </ProtectedRoute>
-                  }
-                />
-                 <Route
-                  path="/admin"
-                  element={
-                      <AdminRoute>
-                        <AdminDashboard />
-                      </AdminRoute>
-                   }
-                />
-              </Routes>
-            </BrowserRouter>
-        </AuthProvider>
-      </NotificationProvider>
-    </TooltipProvider>
+    <BrowserRouter>
+      <TooltipProvider>
+        <NotificationProvider>
+          <AuthProvider>
+            <Toaster />
+            <AppRoutes />
+          </AuthProvider>
+        </NotificationProvider>
+      </TooltipProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
