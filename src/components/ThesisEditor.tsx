@@ -3,6 +3,7 @@ import { ThesisSidebar } from './ThesisSidebar';
 import { ThesisPreview } from './ThesisPreview';
 import { ThesisContent } from './thesis/ThesisContent';
 import { ThesisToolbar } from './thesis/ThesisToolbar';
+import { ReviewPanel } from './thesis/review/ReviewPanel';
 import { Chapter, Section, ThesisSectionType, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
@@ -11,6 +12,7 @@ import { ThesisCreationModal } from './thesis/ThesisCreationModal';
 import { ThesisList } from './thesis/ThesisList';
 import { useThesisData } from '@/hooks/useThesisData';
 import { Skeleton } from './ui/skeleton';
+import { useCollaboratorPermissions } from '@/hooks/useCollaboratorPermissions';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -24,6 +26,7 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
   const [activeSection, setActiveSection] = useState<string>('');
   const [showPreview, setShowPreview] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
+  const { currentUserRole } = useCollaboratorPermissions(currentThesisId || '');
 
   // Initialize hooks
   useThesisAutosave(thesis);
@@ -167,18 +170,18 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
         onSectionSelect={setActiveSection}
       />
       <main className="flex-1 p-8 flex">
-        <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
+        <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : currentUserRole === 'reviewer' ? 'w-2/3' : 'w-full'}`}>
           <div className="max-w-4xl mx-auto space-y-6">
             <ThesisToolbar
-              thesisId={thesis!.id}
-              thesisData={thesis!}
+              thesisId={thesis.id}
+              thesisData={thesis}
               showPreview={showPreview}
               onTogglePreview={() => setShowPreview(!showPreview)}
             />
             <ThesisContent
-              frontMatter={thesis!.frontMatter}
-              chapters={thesis!.chapters}
-              backMatter={thesis!.backMatter}
+              frontMatter={thesis.frontMatter}
+              chapters={thesis.chapters}
+              backMatter={thesis.backMatter}
               activeSection={activeSection}
               onContentChange={handleContentChange}
               onTitleChange={handleTitleChange}
@@ -192,6 +195,11 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
             <div ref={previewRef}>
               {thesis && <ThesisPreview thesis={thesis} />}
             </div>
+          </div>
+        )}
+        {currentUserRole === 'reviewer' && (
+          <div className="w-1/3 border-l">
+            <ReviewPanel thesisId={thesis.id} />
           </div>
         )}
       </main>
