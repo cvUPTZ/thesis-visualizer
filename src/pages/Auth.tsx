@@ -5,8 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuthFlow } from "@/hooks/useAuthFlow";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -14,17 +16,14 @@ const Auth = () => {
   const inviteRole = searchParams.get('role');
   const { error } = useAuthFlow({ inviteThesisId, inviteRole });
   const { toast } = useToast();
-  const navigate = useNavigate();  // Initialize useNavigate
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const cleanupSession = async () => {
       try {
         console.log('Cleaning up session state...');
-        
-        // Clear any existing auth data from localStorage
         localStorage.removeItem('supabase.auth.token');
-        
-        // Sign out to ensure clean state
         const { error: signOutError } = await supabase.auth.signOut();
         if (signOutError) {
           console.error('Error during sign out:', signOutError);
@@ -35,8 +34,6 @@ const Auth = () => {
           });
           return;
         }
-
-        // Get current session to verify cleanup
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
           console.log('Session successfully cleaned up');
@@ -55,7 +52,15 @@ const Auth = () => {
   }, [toast]);
 
   const handleBack = () => {
-    navigate("/");  // Navigate to the home page when "Retour" is clicked
+    navigate("/");
+  };
+
+  const togglePassword = () => {
+    const passwordInputs = document.querySelectorAll('input[type="password"]');
+    passwordInputs.forEach(input => {
+      input.type = showPassword ? 'password' : 'text';
+    });
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -72,23 +77,37 @@ const Auth = () => {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <SupabaseAuth
-            supabaseClient={supabase}
-            appearance={{
-              theme: ThemeSupa,
-              variables: {
-                default: {
-                  colors: {
-                    brand: '#2563eb',
-                    brandAccent: '#1d4ed8',
+          <div className="relative">
+            <SupabaseAuth
+              supabaseClient={supabase}
+              appearance={{
+                theme: ThemeSupa,
+                variables: {
+                  default: {
+                    colors: {
+                      brand: '#2563eb',
+                      brandAccent: '#1d4ed8',
+                    },
                   },
                 },
-              },
-            }}
-            providers={[]}
-            redirectTo={window.location.origin + '/auth'}
-          />
-          {/* Back button */}
+              }}
+              providers={[]}
+              redirectTo={window.location.origin + '/auth'}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute top-[6.5rem] right-3 h-8 w-8 p-0"
+              onClick={togglePassword}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
           <button 
             onClick={handleBack} 
             className="mt-4 w-full bg-gray-200 text-gray-800 py-2 rounded-md text-center hover:bg-gray-300"
