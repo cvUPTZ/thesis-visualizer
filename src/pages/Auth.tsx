@@ -23,39 +23,39 @@ const Auth = () => {
                          title: "Authentication Error",
                         description: "There was an error checking your session.",
                         variant: "destructive",
-                    });
-                     return;
+                   });
+                      return;
                 }
 
-               if (session) {
+                if (session) {
                     console.log('User is already authenticated, redirecting to dashboard');
-                    navigate('/dashboard');
+                     navigate('/dashboard');
                     return; // Stop function if logged in
                 }
             } catch (error) {
                 console.error('Error in checkUser:', error);
-            }
-        };
+           }
+       };
         checkUser();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            console.log('Auth state changed in Auth page:', event);
-           if (event === 'SIGNED_IN' && session) {
-               console.log('Session detected, redirecting to dashboard');
-               toast({
+       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+           console.log('Auth state changed in Auth page:', event);
+            if (event === 'SIGNED_IN' && session) {
+                console.log('Session detected, redirecting to dashboard');
+              toast({
                    title: "Welcome!",
                     description: "You have successfully signed in.",
-               });
-               navigate('/dashboard');
-           } else if (event === 'SIGNED_OUT') {
-              console.log('User signed out');
-               navigate('/auth');
+              });
+              navigate('/dashboard');
+            } else if (event === 'SIGNED_OUT') {
+                console.log('User signed out');
+              navigate('/auth');
             }
         });
 
         return () => {
             subscription.unsubscribe();
-        };
+       };
     }, [navigate, toast]);
 
 
@@ -69,17 +69,17 @@ const Auth = () => {
             <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow">
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                      Welcome Back
+                        Welcome Back
                     </h2>
                     <p className="mt-2 text-center text-sm text-gray-600">
-                        Sign in to access your thesis workspace
+                       Sign in to access your thesis workspace
                     </p>
                 </div>
                 <SupabaseAuth
                     supabaseClient={supabase}
                     appearance={{ theme: ThemeSupa }}
                     providers={["google"]}
-                    // redirectTo={`${siteUrl}/dashboard`} // Removed this as well
+                   // redirectTo={`${siteUrl}/dashboard`}  Removed this
                 />
             </div>
         </div>
