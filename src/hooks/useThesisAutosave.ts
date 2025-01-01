@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 import { debounce } from 'lodash';
 import { useNotification } from '@/contexts/NotificationContext';
 import { Thesis } from '@/types/thesis';
 import { thesisService } from '@/services/thesisService';
 import { useLocalStorage } from 'usehooks-ts';
+
 export const useThesisAutosave = (thesis: Thesis | null) => {
   const { toast } = useNotification();
   const [lastSavedContent, setLastSavedContent] = useLocalStorage<string | null>('lastSavedContent', null);
@@ -15,7 +16,7 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
         console.log('Auto-saving thesis:', thesisData.id);
         await thesisService.updateThesis(thesisData.id, thesisData);
         setLastSavedContent(JSON.stringify(thesisData));
-         console.log('Auto-save successful');
+        console.log('Auto-save successful');
         toast({
             title: "Auto-saved",
             description: "Your thesis has been automatically saved.",
