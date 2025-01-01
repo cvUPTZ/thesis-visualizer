@@ -11,6 +11,7 @@ import { useCollaboratorPermissions } from '@/hooks/useCollaboratorPermissions';
 import { CollaboratorWithProfile } from '@/types/collaborator';
 import { thesisService } from '@/services/thesisService';
 import { ReviewerManager } from './review/ReviewerManager';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ThesisToolbarProps {
     thesisId: string;

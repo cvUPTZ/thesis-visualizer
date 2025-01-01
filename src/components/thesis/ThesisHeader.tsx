@@ -10,25 +10,24 @@ import { UserInfo } from './UserInfo';
 import { CollaboratorsList } from './CollaboratorsList';
 import { useUser } from '@/hooks/useUser';
 import { thesisService } from '@/services/thesisService';
-interface ThesisHeaderProps {
-  showPreview: boolean;
-  onTogglePreview: () => void;
-  thesisId: string;
-  thesisTitle: string;
-  isAdmin?: boolean;
-  thesisData: any;
-}
 
+interface ThesisHeaderProps {
+    showPreview: boolean;
+    onTogglePreview: () => void;
+    thesisId: string;
+    thesisTitle: string;
+    isAdmin?: boolean;
+    thesisData: any;
+}
 
 interface Collaborator {
     user_id: string;
     role: string;
-  profiles?: {
-    email: string;
-    role: string;
-  };
+    profiles?: {
+        email: string;
+        role: string;
+    };
 }
-
 
 export const ThesisHeader = ({
     showPreview,
@@ -41,33 +40,30 @@ export const ThesisHeader = ({
     const navigate = useNavigate();
     const { toast } = useNotification();
     const { userEmail, userRole, handleLogout } = useUser();
-  const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
-  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+    const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+    const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
     const [isInviting, setIsInviting] = useState(false);
 
     useEffect(() => {
         const fetchUserProfile = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-              const profile = await thesisService.getUserProfile(user.id)
+                const profile = await thesisService.getUserProfile(user.id);
 
-             if(profile) {
-                  setUserEmail(profile.email);
-                   setUserRole(profile.role || '');
-              }
-
-            const { data: collaboratorData } = await supabase
-                    .from('thesis_collaborators')
-                    .select('role')
-                    .eq('thesis_id', thesisId)
-                   .eq('user_id', user.id)
-                    .single();
-               setCurrentUserRole(collaboratorData?.role || null);
+                if (profile) {
+                    const { data: collaboratorData } = await supabase
+                        .from('thesis_collaborators')
+                        .select('role')
+                        .eq('thesis_id', thesisId)
+                        .eq('user_id', user.id)
+                        .single();
+                    setCurrentUserRole(collaboratorData?.role || null);
+                }
             }
         };
 
-       fetchUserProfile();
-  }, [thesisId]);
+        fetchUserProfile();
+    }, [thesisId]);
 
     useEffect(() => {
         const fetchCollaborators = async () => {
