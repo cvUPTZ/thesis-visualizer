@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { thesisService } from '@/services/thesisService';
+import { Profile } from '@/types/profile';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -17,101 +19,104 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const { toast } = useToast();
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [userId, setUserId] = useState<string | null>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const { toast } = useToast();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        console.log('Checking authentication status...');
-        const { data: { session }, error } = await supabase.auth.getSession();
 
-        if (error) {
-          console.error('Error checking session:', error);
-          toast({
-            title: 'Authentication Error',
-            description: 'There was an error checking your authentication status.',
-            variant: 'destructive',
-          });
-          return;
-        }
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                 console.log('Checking authentication status...');
+                const { data: { session }, error } = await supabase.auth.getSession();
+                console.log('Session data:', session);
+                 console.log('Session error:', error);
 
-        if (session) {
-          console.log('Session verified successfully');
-          setIsAuthenticated(true);
-          setUserId(session.user.id);
+                if (error) {
+                   console.error('Error checking session:', error);
+                    toast({
+                        title: 'Authentication Error',
+                       description: 'There was an error checking your authentication status.',
+                        variant: 'destructive',
+                    });
+                     return;
+                }
 
-          // Fetch user role from profiles
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
+                if (session) {
+                     console.log('Session verified successfully');
+                    setIsAuthenticated(true);
+                    setUserId(session.user.id);
+                   console.log('User ID:', session.user.id);
 
-          if (profileError) {
-            console.error('Error fetching user role:', profileError);
-          } else {
-            setUserRole(profile?.role || null);
-          }
-        } else {
-          setIsAuthenticated(false);
-          setUserId(null);
-          setUserRole(null);
-        }
-      } catch (error) {
-        console.error('Error in checkAuth:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+                    // Fetch user profile and role
+                    const profile = await thesisService.getUserProfile(session.user.id);
 
-    checkAuth();
+                     if (profile) {
+                         setUserRole(profile.role || null);
+                        console.log('User role:', profile?.role || null);
+                    }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-      
-      if (event === 'SIGNED_IN' && session) {
-        setIsAuthenticated(true);
-        setUserId(session.user.id);
 
-        // Fetch user role when signed in
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
+                } else {
+                     setIsAuthenticated(false);
+                   setUserId(null);
+                     setUserRole(null);
+                   console.log('No session found');
+               }
 
-        if (profileError) {
-          console.error('Error fetching user role:', profileError);
-        } else {
-          setUserRole(profile?.role || null);
-        }
-      } else if (event === 'SIGNED_OUT') {
-        setIsAuthenticated(false);
-        setUserId(null);
-        setUserRole(null);
-      }
-    });
+           } catch (error) {
+                console.error('Error in checkAuth:', error);
+           } finally {
+              console.log('Setting loading to false')
+              setLoading(false);
+           }
+        };
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [toast]);
+        checkAuth();
 
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, loading, userId, userRole }}>
-      {children}
-    </AuthContext.Provider>
-  );
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log('Auth state changed:', event, session?.user?.email);
+            if (event === 'SIGNED_IN' && session) {
+                setIsAuthenticated(true);
+                setUserId(session.user.id);
+                 console.log('User ID:', session.user.id);
+
+
+                // Fetch user profile and role
+                const profile = await thesisService.getUserProfile(session.user.id);
+
+                 if (profile) {
+                   setUserRole(profile.role || null);
+                  console.log('User role:', profile?.role || null);
+                 }
+
+
+            } else if (event === 'SIGNED_OUT') {
+              setIsAuthenticated(false);
+                setUserId(null);
+               setUserRole(null);
+              console.log('User signed out');
+           }
+       });
+
+      return () => {
+           subscription.unsubscribe();
+        };
+   }, [toast]);
+
+    return (
+        <AuthContext.Provider value={{ isAuthenticated, loading, userId, userRole }}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
 };
