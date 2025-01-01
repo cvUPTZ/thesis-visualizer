@@ -22,51 +22,63 @@ export const ReviewerManager = ({ thesisId }: ReviewerManagerProps) => {
   const [reviewerEmail, setReviewerEmail] = React.useState('');
   const [isOpen, setIsOpen] = React.useState(false);
 
-    const assignReviewer = async () => {
-        try {
-         // First get the user profile by email
+  const assignReviewer = async () => {
+    console.log('Starting assignReviewer');
+    try {
+        // First get the user profile by email
+        console.log('Fetching profile for email:', reviewerEmail);
         const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('email', reviewerEmail)
-                .single();
+            .from('profiles')
+            .select('id')
+            .eq('email', reviewerEmail)
+            .single();
 
-            if (profileError) throw new Error(profileError.message);
+        if (profileError) {
+            console.error('Error fetching profile:', profileError);
+            throw new Error(profileError.message);
+        }
 
-            if (!profile) {
-                toast({
-                    title: "User not found",
-                   description: "No user found with this email address.",
-                    variant: "destructive",
-               });
-                return;
-           }
-           // Add reviewer role in thesis_collaborators
-           const { error: collaboratorError } = await supabase
-               .from('thesis_collaborators')
-               .insert({
-                  thesis_id: thesisId,
-                    user_id: profile.id,
-                   role: 'reviewer'
-               });
-
-           if (collaboratorError) throw new Error(collaboratorError.message);
+        if (!profile) {
+            console.log('User not found with email:', reviewerEmail);
             toast({
-                title: "Reviewer assigned",
-              description: "The reviewer has been successfully assigned to this thesis.",
-            });
-            setReviewerEmail('');
-           setIsOpen(false);
-        } catch (error: any) {
-            console.error('Error assigning reviewer:', error);
-           toast({
-                title: "Error",
-                description: error.message || "Failed to assign reviewer. Please try again.",
+                title: "User not found",
+               description: "No user found with this email address.",
                 variant: "destructive",
             });
-       }
-   };
+            return;
+        }
+       console.log('Profile found, user ID:', profile.id);
 
+       // Add reviewer role in thesis_collaborators
+       console.log('Inserting reviewer to thesis_collaborators:', thesisId, profile.id);
+        const { error: collaboratorError } = await supabase
+            .from('thesis_collaborators')
+            .insert({
+                thesis_id: thesisId,
+                user_id: profile.id,
+                role: 'reviewer'
+            });
+
+        if (collaboratorError) {
+             console.error('Error inserting collaborator:', collaboratorError);
+           throw new Error(collaboratorError.message);
+        }
+        console.log('Successfully inserted reviewer to thesis_collaborators');
+       toast({
+            title: "Reviewer assigned",
+           description: "The reviewer has been successfully assigned to this thesis.",
+       });
+        setReviewerEmail('');
+       setIsOpen(false);
+    } catch (error: any) {
+        console.error('Error assigning reviewer:', error);
+        toast({
+            title: "Error",
+            description: error.message || "Failed to assign reviewer. Please try again.",
+            variant: "destructive",
+        });
+   }
+};
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
