@@ -1,5 +1,4 @@
-// File: src/components/citation/CitationCard.tsx
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Citation } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,10 +24,11 @@ interface CitationCardProps {
 export const CitationCard = ({ citation, onRemove, onUpdate }: CitationCardProps) => {
   const [authors, setAuthors] = useState(citation.authors)
 
-  const handleAuthorChange = (tags: string[]) => {
-    setAuthors(tags);
-    onUpdate({...citation, authors: tags})
+   const handleAuthorChange = (tags: string[]) => {
+     setAuthors(tags);
+      onUpdate({...citation, authors: tags})
   }
+
   return (
     <Card className="border-2 border-editor-border">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -79,11 +79,11 @@ export const CitationCard = ({ citation, onRemove, onUpdate }: CitationCardProps
           }
           className="mb-2"
         />
-        <TagInput
-           placeholder="Authors (comma-separated)"
-           tags={authors}
-           onChange={handleAuthorChange}
-        />
+          <TagInput
+              placeholder="Authors (comma-separated)"
+              tags={authors}
+              onChange={handleAuthorChange}
+          />
         <Input
           placeholder="Year"
           value={citation.year}

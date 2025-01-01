@@ -1,64 +1,76 @@
-import React, { useState, KeyboardEvent } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from './button';
 
 interface TagInputProps {
-  tags: string[];
-  onChange: (tags: string[]) => void;
-  placeholder?: string;
-  className?: string;
+    placeholder?: string;
+    tags: string[];
+    onChange: (tags: string[]) => void;
 }
 
-export const TagInput = ({ tags, onChange, placeholder = 'Add tag...', className }: TagInputProps) => {
-  const [input, setInput] = useState('');
+export const TagInput = ({ placeholder, tags: initialTags, onChange }: TagInputProps) => {
+    const [tags, setTags] = useState(initialTags);
+    const [inputValue, setInputValue] = useState('');
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      if (input.trim()) {
-        const newTag = input.trim();
-        if (!tags.includes(newTag)) {
-          onChange([...tags, newTag]);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setInputValue(e.target.value);
+    };
+
+  useEffect(() => {
+        onChange(tags)
+   }, [tags, onChange])
+
+
+  const handleAddTag = useCallback(() => {
+        const trimmedValue = inputValue.trim();
+       if (trimmedValue && !tags.includes(trimmedValue)) {
+            setTags(prevTags => [...prevTags, trimmedValue]);
+            setInputValue('');
         }
-        setInput('');
-      }
-    } else if (e.key === 'Backspace' && !input && tags.length > 0) {
-      onChange(tags.slice(0, -1));
-    }
-  };
+  }, [inputValue, tags]);
 
-  const removeTag = (tagToRemove: string) => {
-    onChange(tags.filter(tag => tag !== tagToRemove));
-  };
+   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+     if (e.key === 'Enter' || e.key === ',') {
+          e.preventDefault(); // Prevents the default form submission when pressing enter.
+          handleAddTag();
+        }
+   }, [handleAddTag]);
 
-  return (
-    <div className={cn("flex flex-wrap gap-2 p-2 border rounded-md bg-background", className)}>
-      {tags.map((tag, index) => (
-        <span
-          key={`${tag}-${index}`}
-          className="flex items-center gap-1 px-2 py-1 text-sm bg-muted rounded-md"
-        >
-          {tag}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-4 w-4 p-0 hover:bg-transparent"
-            onClick={() => removeTag(tag)}
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        </span>
-      ))}
-      <input
-        type="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={tags.length === 0 ? placeholder : ''}
-        className="flex-1 min-w-[120px] bg-transparent outline-none placeholder:text-muted-foreground"
-      />
-    </div>
-  );
+  const handleRemoveTag = useCallback((tagToRemove: string) => {
+        setTags(prevTags => prevTags.filter(tag => tag !== tagToRemove));
+   }, []);
+
+
+    return (
+        <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Input
+                  placeholder={placeholder}
+                 value={inputValue}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                />
+                <Button type="button" size="sm" onClick={handleAddTag} disabled={!inputValue.trim()}>
+                  Add
+                </Button>
+            </div>
+             <div className="flex flex-wrap gap-2">
+              {tags.map(tag => (
+                  <div key={tag} className="bg-muted px-2 py-1 rounded-full flex items-center gap-1">
+                    <span>{tag}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                      onClick={() => handleRemoveTag(tag)}
+                          className="p-0 h-5 w-5"
+                      >
+                          <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
 };

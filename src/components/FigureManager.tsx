@@ -1,9 +1,11 @@
+// Example for FigureManager, other managers follow the same pattern
 import React from 'react';
 import { Figure } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlusCircle, X, Image } from 'lucide-react';
+import { useId } from 'react'; // Use react hook to generate IDs
 
 interface FigureManagerProps {
   figures: Figure[];
@@ -18,9 +20,11 @@ export const FigureManager = ({
   onRemoveFigure,
   onUpdateFigure
 }: FigureManagerProps) => {
+     const generateId = useId(); // Generate unique ID prefix
+    
   const handleAddFigure = () => {
     const newFigure: Figure = {
-      id: Date.now().toString(),
+      id: `${generateId}-figure-${Date.now()}`,
       caption: '',
       imageUrl: '',
       altText: '',

@@ -1,234 +1,230 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useNotification } from "@/contexts/NotificationContext";
 import { useNavigate } from 'react-router-dom';
-import { useForm } from '@/hooks/useForm';
-import { ThesisMetadataFields } from '@/components/thesis/form/ThesisMetadataFields';
-import { useThesisCreation } from '@/components/thesis/form/useThesisCreation';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {  Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
+import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
+import { thesisService } from '@/services/thesisService';
+import { Link } from 'react-router-dom';
+
+const thesisSchema = z.object({
+    title: z.string().min(1, "Title is required"),
+    description: z.string().min(1, "Description is required"),
+    keywords: z.string().min(1, "Keywords are required"),
+    universityName: z.string().optional(),
+    departmentName: z.string().optional(),
+    authorName: z.string().optional(),
+    thesisDate: z.string().optional(),
+    committeeMembers: z.array(z.string()).optional(),
+});
+
+type ThesisSchemaType = z.infer<typeof thesisSchema>;
 
 export const ThesisCreationForm = () => {
-  const {
-    values,
-    errors,
-    isSubmitting,
-    handleChange,
-    handleSubmit,
-    setFieldValue,
-    handleArrayChange,
-  } = useForm({
-    initialValues: {
-      title: '',
-      description: '',
-      keywords: '',
-      universityName: '',
-      departmentName: '',
-      authorName: '',
-      thesisDate: '',
-      committeeMembers: ['', '', ''],
-    },
-    validate: (values) => {
-      const err: any = {};
-      if (!values.title) {
-        err.title = "Title is required";
+    const { toast } = useNotification();
+    const navigate = useNavigate();
+    const [error, setError] = useState<string | null>(null);
+    const { register, handleSubmit, formState: { errors, isSubmitting }, control, setValue } = useForm<ThesisSchemaType>({
+      resolver: zodResolver(thesisSchema),
+        defaultValues: {
+           title: '',
+            description: '',
+          keywords: '',
+           universityName: '',
+            departmentName: '',
+           authorName: '',
+            thesisDate: '',
+          committeeMembers: ['', '', ''],
       }
+    });
 
-      if (!values.description) {
-        err.description = "Description is required";
-      }
+    useEffect(() => {
+        const checkAuth = async () => {
+            const { data: { session }, error: authError } = await supabase.auth.getSession();
+            if (authError || !session) {
+                console.error('Authentication error:', authError);
+               toast({
+                    title: "Authentication Required",
+                    description: "Please sign in to create a thesis.",
+                   variant: "destructive",
+                });
+                navigate('/auth');
+            }
+        };
 
-      if (!values.keywords) {
-        err.keywords = "Keywords are required";
-      }
-      return err;
-    },
-    onSubmit: async (values) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user?.id) {
-        setError('You must be logged in to create a thesis');
-        return;
-      }
+        checkAuth();
+   }, [navigate, toast]);
 
-      const metadata = {
-        ...values,
-        keywords: values.keywords,
-      };
-      const result = await createThesis(metadata, session.user.id);
-      if (result?.thesisId) {
-        navigate(`/thesis/${result.thesisId}`);
-      }
-    },
-  });
+    const onSubmit = async (values: ThesisSchemaType) => {
+        const { data: { session } } = await supabase.auth.getSession();
+       if (!session?.user?.id) {
+            setError('You must be logged in to create a thesis');
+           return;
+       }
+        try {
+          const metadata = {
+              ...values,
+                keywords: values.keywords,
+          };
 
-  const [error, setError] = useState<string | null>(null);
-  const { createThesis } = useThesisCreation();
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session }, error: authError } = await supabase.auth.getSession();
-      if (authError || !session) {
-        console.error('Authentication error:', authError);
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to create a thesis.",
-          variant: "destructive",
-        });
-        navigate('/auth');
-      }
+            const result = await thesisService.createThesis(metadata, session.user.id);
+            if (result?.thesisId) {
+                navigate(`/thesis/${result.thesisId}`);
+           }
+       } catch (error: any) {
+         setError(error.message);
+       }
     };
 
-    checkAuth();
-  }, [navigate, toast]);
-
-  const handleCommitteeMemberChange = (index: number, value: string) => {
-    handleArrayChange('committeeMembers', index, value);
-  };
+    const handleCommitteeMemberChange = (index: number, value: string) => {
+        const updatedCommitteeMembers = [...(control._defaultValues?.committeeMembers as string[] || [])];
+        updatedCommitteeMembers[index] = value;
+        setValue('committeeMembers', updatedCommitteeMembers, { shouldValidate: true});
+    };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Create New Thesis</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl mx-auto p-6">
+            <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl font-bold">Create New Thesis</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {error && (
+                     <Alert variant="destructive" className="mb-4">
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
 
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium mb-1">
-              Title
-            </label>
-            <Input
-              id="title"
-              name="title"
-              value={values.title}
-              onChange={handleChange}
-              placeholder="Enter thesis title"
-              required
-            />
-          </div>
+                   <div>
+                      <label htmlFor="title" className="block text-sm font-medium mb-1">
+                          Title
+                        </label>
+                       <Input
+                            id="title"
+                            {...register("title")}
+                            placeholder="Enter thesis title"
+                            required
+                           className={errors.title ? 'border-destructive' : ''}
+                       />
+                       {errors.title && (
+                          <p className="text-sm text-destructive mt-1">
+                               {errors.title.message}
+                          </p>
+                        )}
+                   </div>
 
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium mb-1">
-              Description
-            </label>
-            <Input
-              id="description"
-              name="description"
-              value={values.description}
-              onChange={handleChange}
-              placeholder="Enter a brief description of your thesis"
-              required
-            />
-          </div>
+                    <div>
+                        <label htmlFor="description" className="block text-sm font-medium mb-1">
+                          Description
+                        </label>
+                      <Input
+                            id="description"
+                            {...register("description")}
+                            placeholder="Enter a brief description of your thesis"
+                           required
+                         className={errors.description ? 'border-destructive' : ''}
+                       />
+                        {errors.description && (
+                           <p className="text-sm text-destructive mt-1">
+                                {errors.description.message}
+                           </p>
+                       )}
+                    </div>
 
-          <div>
-            <label htmlFor="keywords" className="block text-sm font-medium mb-1">
-              Keywords
-            </label>
-            <Input
-              id="keywords"
-              name="keywords"
-              value={values.keywords}
-              onChange={handleChange}
-              placeholder="Enter keywords separated by commas"
-              required
-            />
-          </div>
+                    <div>
+                      <label htmlFor="keywords" className="block text-sm font-medium mb-1">
+                           Keywords
+                       </label>
+                        <Input
+                            id="keywords"
+                            {...register("keywords")}
+                           placeholder="Enter keywords separated by commas"
+                         required
+                         className={errors.keywords ? 'border-destructive' : ''}
+                        />
+                       {errors.keywords && (
+                          <p className="text-sm text-destructive mt-1">
+                               {errors.keywords.message}
+                            </p>
+                        )}
+                    </div>
+                  <div>
+                      <label htmlFor="universityName" className="block text-sm font-medium mb-1">
+                          University Name
+                       </label>
+                      <Input
+                        id="universityName"
+                         {...register("universityName")}
+                       placeholder="Enter university name"
+                     />
+                  </div>
 
-          <div>
-            <label htmlFor="universityName" className="block text-sm font-medium mb-1">
-              University Name
-            </label>
-            <Input
-              id="universityName"
-              name="universityName"
-              value={values.universityName}
-              onChange={handleChange}
-              placeholder="Enter university name"
-              required
-            />
-          </div>
+                  <div>
+                      <label htmlFor="departmentName" className="block text-sm font-medium mb-1">
+                           Department Name
+                        </label>
+                       <Input
+                            id="departmentName"
+                           {...register("departmentName")}
+                            placeholder="Enter department name"
+                        />
+                   </div>
 
-          <div>
-            <label htmlFor="departmentName" className="block text-sm font-medium mb-1">
-              Department Name
-            </label>
-            <Input
-              id="departmentName"
-              name="departmentName"
-              value={values.departmentName}
-              onChange={handleChange}
-              placeholder="Enter department name"
-              required
-            />
-          </div>
+                    <div>
+                        <label htmlFor="authorName" className="block text-sm font-medium mb-1">
+                         Author Name
+                       </label>
+                        <Input
+                          id="authorName"
+                           {...register("authorName")}
+                          placeholder="Enter author name"
+                       />
+                   </div>
 
-          <div>
-            <label htmlFor="authorName" className="block text-sm font-medium mb-1">
-              Author Name
-            </label>
-            <Input
-              id="authorName"
-              name="authorName"
-              value={values.authorName}
-              onChange={handleChange}
-              placeholder="Enter author name"
-              required
-            />
-          </div>
+                  <div>
+                      <label htmlFor="thesisDate" className="block text-sm font-medium mb-1">
+                           Thesis Date
+                       </label>
+                        <Input
+                          id="thesisDate"
+                           {...register("thesisDate")}
+                         placeholder="Enter date of thesis submission"
+                         />
+                   </div>
+                   <div>
+                     <label className="block text-sm font-medium mb-1">
+                       Committee Members
+                     </label>
+                      {control._defaultValues?.committeeMembers?.map((member, index) => (
+                        <Input
+                             key={index}
+                             placeholder={`Committee Member ${index + 1}`}
+                             value={member}
+                            onChange={(e) => handleCommitteeMemberChange(index, e.target.value)}
+                          className="mb-2"
+                        />
+                        ))}
+                   </div>
 
-          <div>
-            <label htmlFor="thesisDate" className="block text-sm font-medium mb-1">
-              Thesis Date
-            </label>
-            <Input
-              id="thesisDate"
-              name="thesisDate"
-              value={values.thesisDate}
-              onChange={handleChange}
-              placeholder="Enter date of thesis submission"
-              required
-            />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Committee Members
-            </label>
-            {values.committeeMembers.map((member, index) => (
-              <Input
-                key={index}
-                name={`committeeMembers[${index}]`}
-                value={member}
-                onChange={(e) => handleCommitteeMemberChange(index, e.target.value)}
-                placeholder={`Committee Member ${index + 1}`}
-                className="mb-2"
-              />
-            ))}
-          </div>
+                   <Button type="submit" disabled={isSubmitting} className="mt-6">
+                     {isSubmitting ? 'Creating...' : 'Create Thesis'}
+                 </Button>
 
-          <Button type="submit" disabled={isSubmitting} className="mt-6">
-            {isSubmitting ? 'Creating...' : 'Create Thesis'}
-          </Button>
-
-          {/* Retour Button */}
-          <Button 
-            type="button" 
-            className="mt-4 bg-gray-300 hover:bg-gray-400 text-black" 
-            onClick={() => navigate('/dashboard')}>
-            Retour
-          </Button>
-        </CardContent>
-      </Card>
-    </form>
+                    {/* Retour Button */}
+                    <Button
+                      type="button"
+                        className="mt-4 bg-gray-300 hover:bg-gray-400 text-black"
+                     >
+                        <Link to="/dashboard" className="text-black">Retour</Link>
+                    </Button>
+                </CardContent>
+           </Card>
+       </form>
   );
 };

@@ -7,5 +7,10 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
-
+if (!SUPABASE_URL) {
+    throw new Error("Missing env variable VITE_SUPABASE_URL")
+}
+if (!SUPABASE_PUBLISHABLE_KEY) {
+  throw new Error("Missing env variable VITE_SUPABASE_ANON_KEY")
+}
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);

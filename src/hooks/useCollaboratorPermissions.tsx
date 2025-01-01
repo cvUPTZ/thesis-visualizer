@@ -1,136 +1,78 @@
-// File: src/hooks/useCollaboratorPermissions.tsx
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types/profile';
-
-interface Collaborator {
-    user_id: string;
-    role: string;
-    profiles?: {
-        email: string;
-        role: string;
-    };
-}
+import { useQuery } from '@tanstack/react-query';
+import { thesisService } from '@/services/thesisService';
+import { Collaborator } from '@/types/collaborator';
 
 export const useCollaboratorPermissions = (thesisId: string) => {
-    const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
-    const [canManageCollaborators, setCanManageCollaborators] = useState(false);
-    const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [canManageCollaborators, setCanManageCollaborators] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
     const [userProfile, setUserProfile] = useState<Profile | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
 
-    const checkPermissions = async () => {
-        try {
-            setLoading(true);
-            console.log('Checking permissions for thesis:', thesisId);
+  const { data: collaborators, isLoading, error } = useQuery({
+        queryKey: ['collaborators', thesisId],
+        queryFn: () => thesisService.fetchCollaborators(thesisId),
+        enabled: !!thesisId,
+   });
+    const { data: profileData } = useQuery({
+        queryKey: ['user-profile'],
+        queryFn: async () => {
             const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                console.log('No session found');
-                return;
-            }
-
-            // Get user profile to check admin status
-            const { data: profileData, error: profileError } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .maybeSingle();
-
-            if (profileError) {
-                console.error('Error fetching profile:', profileError);
-                setError(profileError);
-                return;
-            }
-
-            if (profileData) {
-                setUserProfile(profileData);
-                console.log('User profile:', profileData);
-            }
-
-            // Check thesis-specific role
-            const { data: collaboratorData, error: collaboratorError } = await supabase
-                .from('thesis_collaborators')
-                .select('role')
-                .eq('thesis_id', thesisId)
-                .eq('user_id', session.user.id)
-                .maybeSingle();
-
-            if (collaboratorError) {
-                console.error('Error checking permissions:', collaboratorError);
-                setError(collaboratorError);
-                return;
-            }
-
-            const role = collaboratorData?.role;
-            setCurrentUserRole(role);
-            setCanManageCollaborators(
-                role === 'owner' ||
-                role === 'admin' ||
-                profileData?.role === 'admin'
-            );
-            console.log('Current user role:', role);
-        } catch (error: any) {
-            console.error('Error checking permissions:', error);
-            setError(error);
-        } finally {
-            setLoading(false);
+            if(!session) return null
+            return thesisService.getUserProfile(session.user.id)
         }
-    };
-
-    const fetchCollaborators = async () => {
-       try {
-            setLoading(true);
-            console.log('Fetching collaborators for thesis:', thesisId);
-
-            const { data, error } = await supabase
-                .from('thesis_collaborators')
-                .select(`
-                    user_id,
-                    role,
-                    created_at,
-                    profiles (
-                      email,
-                      role
-                    )
-                `)
-                .eq('thesis_id', thesisId);
-
-           if (error) {
-            console.error('Error fetching collaborators:', error);
-                setError(new Error(error.message || 'Failed to fetch collaborators.')); // Wrap error
-               return;
-           }
-
-         if (data) {
-               console.log('Fetched collaborators data:', data);
-              setCollaborators(data as Collaborator[]);
-         }
+  })
 
 
-        } catch (error: any) {
-            console.error('Error fetching collaborators:', error);
-            setError(new Error(error.message || 'An unexpected error occurred while fetching collaborators.')); // Wrap error
-        } finally {
-            setLoading(false);
-        }
-    };
-  
+     useEffect(() => {
+       const checkPermissions = async () => {
+         try {
+                if (!profileData) return;
+             setUserProfile(profileData);
+               const { data: { session } } = await supabase.auth.getSession();
 
-    useEffect(() => {
-        if (thesisId) {
-            checkPermissions();
-            fetchCollaborators();
-        }
-    }, [thesisId]);
+             if (!session) {
+                 console.log('No session found');
+                 return;
+               }
+               const { data: collaboratorData } = await supabase
+                   .from('thesis_collaborators')
+                  .select('role')
+                  .eq('thesis_id', thesisId)
+                    .eq('user_id', session.user.id)
+                   .maybeSingle();
 
-    return {
-        collaborators,
-        canManageCollaborators,
-        currentUserRole,
-        userProfile,
-        loading,
-        error,
-        fetchCollaborators
-    };
+               const role = collaboratorData?.role;
+               setCurrentUserRole(role);
+               setCanManageCollaborators(
+                 role === 'owner' ||
+                 role === 'admin' ||
+                   profileData?.role === 'admin'
+                );
+            } catch (error: any) {
+              console.error('Error checking permissions:', error);
+              throw new Error(error.message);
+          }
+       };
+
+       if (thesisId && profileData) {
+          checkPermissions()
+      }
+
+    }, [thesisId, profileData]);
+
+  return {
+       collaborators: collaborators as Collaborator[],
+      canManageCollaborators,
+      currentUserRole,
+      userProfile,
+     loading: isLoading,
+      error,
+    fetchCollaborators: () => {
+      return  void  (async () => {
+         return void  await supabase.from('thesis_collaborators').select('*').eq('thesis_id', thesisId);
+       })()
+     },
+  };
 };

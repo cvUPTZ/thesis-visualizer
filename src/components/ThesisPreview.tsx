@@ -1,7 +1,5 @@
-// File: src/components/ThesisPreview.tsx
-
-import React from 'react';
-import { Thesis, Section, ThesisSectionType } from '@/types/thesis';
+import React, { useMemo } from 'react';
+import { Thesis, Section } from '@/types/thesis';
 import MDEditor from '@uiw/react-md-editor';
 
 interface ThesisPreviewProps {
@@ -11,9 +9,24 @@ interface ThesisPreviewProps {
 export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     console.log('Rendering ThesisPreview with data:', thesis);
 
-    const titleSection = thesis.frontMatter.find(section => section.type === 'title');
-    const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
-    
+    const titleSection = useMemo(() => thesis.frontMatter.find(section => section.type === 'title'), [thesis]);
+    const abstractSection = useMemo(() => thesis.frontMatter.find(section => section.type === 'abstract'), [thesis]);
+
+  const renderCommitteeMembers = () => {
+      if (!thesis.metadata?.committeeMembers) return null;
+      return (
+        <div>
+          Thesis Committee:<br />
+            {thesis.metadata.committeeMembers?.map((member, index) => (
+              <React.Fragment key={index}>
+                {member}
+                <br />
+              </React.Fragment>
+            ))}
+          </div>
+        );
+  }
+
     const renderTitlePage = () => {
         console.log('Rendering Title Page with data:', thesis.metadata);
         return (
@@ -33,19 +46,10 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
                         by<br />
                         {thesis.metadata?.authorName || "Author Name"}
                     </div>
-                    <div className="thesis-date">
+                     <div className="thesis-date">
                          {thesis.metadata?.thesisDate || "Month Year"}
                     </div>
-                    <div className="thesis-committee">
-                        Thesis Committee:<br />
-                        {thesis.metadata?.committeeMembers?.map((member, index) => (
-                          <React.Fragment key={index}>
-                            {member}
-                            <br />
-                          </React.Fragment>
-                        ))
-                        }
-                    </div>
+                    {renderCommitteeMembers()}
                 </div>
             </div>
         );
@@ -59,22 +63,22 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
                 </div>
                 <div className="thesis-content thesis-abstract">
                     <h2 className="text-2xl font-serif mb-4">Abstract</h2>
-                    <MDEditor.Markdown source={thesis.metadata.description || "No Description Provided"}/>
+                    <MDEditor.Markdown source={thesis.metadata?.description || "No Description Provided"}/>
                 </div>
             </div>
         );
     };
 
-    const renderSection = (section: Section, chapterTitle?: string) => {
-        if (section.type === 'title') {
-            return renderTitlePage();
-        }
-        if (section.type === 'abstract') {
-            return renderAbstract();
-        }
+    const renderSectionContent = (section: Section, chapterTitle?: string) => {
+      if (section.type === 'title') {
+        return renderTitlePage();
+      }
+      if (section.type === 'abstract') {
+         return renderAbstract();
+       }
 
         const isSpecialSection = section.type === 'references' || section.type === 'table-of-contents';
-        
+
         return (
             <div key={section.id} className={`thesis-page ${isSpecialSection ? 'no-footer' : ''} ${section.type === 'table-of-contents' ? 'no-header': ''}`}>
                 <div className="thesis-header">
@@ -84,11 +88,23 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
                     {section.type !== 'table-of-contents' && (
                         <>
                             {chapterTitle && <h2 className="text-2xl font-serif mb-4">{section.title}</h2>}
-                            <MDEditor.Markdown source={section.content} />
+                           <MDEditor.Markdown source={section.content} />
                         </>
                     )}
                     {section.type === 'table-of-contents' && (
                         <>
+                          {/* Render the chapter names and sections */}
+                          <h2 className="text-2xl font-serif mb-4">Table of Contents</h2>
+                            {thesis.chapters.map((chapter) => (
+                              <div key={chapter.id} className="mb-4">
+                                <h3 className="text-xl font-serif font-medium">{chapter.title}</h3>
+                                 <ul className="list-disc list-inside ml-6">
+                                  {chapter.sections.map((section) => (
+                                      <li key={section.id}>{section.title}</li>
+                                   ))}
+                                </ul>
+                              </div>
+                           ))}
                         </>
                     )}
                 </div>
@@ -102,15 +118,15 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     return (
         <div className="thesis-preview-scroll-container">
             <div className="thesis-preview">
-                {thesis.frontMatter.map((section) => renderSection(section))}
+                {thesis.frontMatter.map((section) => renderSectionContent(section))}
                 {thesis.chapters.map((chapter) => (
                     <div key={chapter.id}>
                         {chapter.sections.map((section) => (
-                            renderSection(section, chapter.title)
+                            renderSectionContent(section, chapter.title)
                         ))}
                     </div>
                 ))}
-                {thesis.backMatter.map((section) => renderSection(section))}
+                {thesis.backMatter.map((section) => renderSectionContent(section))}
             </div>
         </div>
     );
