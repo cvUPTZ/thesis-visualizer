@@ -291,7 +291,7 @@ export const thesisService = {
            const content = typeof data.content === 'string' ? JSON.parse(data.content) : data.content;
 
             // Ensure all required properties are present
-            const thesisData: Thesis = {
+             const thesisData: Thesis = {
                 id: data.id,
                 metadata: {
                     description: content.metadata.description || '',
@@ -526,21 +526,22 @@ export const thesisService = {
                .eq('id', userId)
                .maybeSingle();
 
-             if (error) {
+
+            if (error) {
                 console.error('Error fetching profile:', error);
                  throw new Error(error.message);
-           }
+            }
             if (!data) {
                 return null;
            }
             return {
-               id: data.id,
-               email: data.email,
-                role: data.roles?.name,
-              created_at: data.created_at
+                id: data.id,
+              email: data.email,
+               role: data.roles?.name,
+             created_at: data.created_at
             } as Profile;
 
-        } catch (error: any) {
+         } catch (error: any) {
            console.error('Error in getUserProfile:', error);
              throw new Error(error.message || 'Failed to fetch user profile. Please try again.');
         }
@@ -553,14 +554,14 @@ export const thesisService = {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `thesis_${thesis.id}_${new Date().toISOString()}.json`;
+           link.download = `thesis_${thesis.id}_${new Date().toISOString()}.json`;
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
+          document.body.removeChild(link);
             URL.revokeObjectURL(url);
         } catch (error) {
              console.error('Error saving thesis to JSON:', error);
             throw new Error('Failed to save thesis as JSON file.');
-       }
+        }
     }
 };
