@@ -44,11 +44,18 @@ export const ReviewPanel = ({ thesisId }: ReviewPanelProps) => {
 
   const submitReview = async () => {
     try {
+      // Get current user's ID
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) {
+        throw new Error('No authenticated user found');
+      }
+
       const { data: existingReview } = await supabase
         .from('thesis_reviews')
         .select('id')
         .eq('thesis_id', thesisId)
-        .single();
+        .eq('reviewer_id', session.user.id)
+        .maybeSingle();
 
       if (existingReview) {
         const { error: updateError } = await supabase
@@ -65,6 +72,7 @@ export const ReviewPanel = ({ thesisId }: ReviewPanelProps) => {
           .from('thesis_reviews')
           .insert({
             thesis_id: thesisId,
+            reviewer_id: session.user.id,
             content: { feedback },
             status: 'completed',
           });
