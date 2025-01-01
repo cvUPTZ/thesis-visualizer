@@ -45,6 +45,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<LandingPage />} />
             <Route
               path="/dashboard"
               element={
@@ -53,7 +54,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/auth" element={<Auth />} />
             <Route
               path="/thesis/:thesisId"
               element={
@@ -62,7 +63,6 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route path="/auth" element={<Auth />} />
             <Route
               path="/create-thesis"
               element={

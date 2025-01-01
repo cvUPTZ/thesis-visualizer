@@ -9,16 +9,20 @@ const Auth = () => {
 
   useEffect(() => {
     const checkUser = async () => {
+      console.log('Checking user session in Auth page');
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate('/');
+        console.log('User is already authenticated, redirecting to dashboard');
+        navigate('/dashboard');
       }
     };
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed in Auth page:', event);
       if (session) {
-        navigate('/');
+        console.log('Session detected, redirecting to dashboard');
+        navigate('/dashboard');
       }
     });
 
