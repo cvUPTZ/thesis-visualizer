@@ -16,7 +16,7 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, loading } = useAuth();
-
+    console.log('ProtectedRoute - loading:', loading, 'isAuthenticated:', isAuthenticated)
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -26,7 +26,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, loading, userRole } = useAuth();
-
+      console.log('AdminRoute - loading:', loading, 'isAuthenticated:', isAuthenticated, 'userRole:', userRole)
     if (loading) {
        return <div>Loading...</div>;
     }
