@@ -1,3 +1,4 @@
+// src/App.tsx
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -14,27 +15,27 @@ import { NotificationProvider } from "@/contexts/NotificationContext"; // New Co
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading } = useAuth();
+    const { isAuthenticated, loading } = useAuth();
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  return isAuthenticated ? children : <Navigate to="/auth" />;
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+     // if loading is false, you will redirect or return the components.
+    return isAuthenticated ? children : <Navigate to="/auth" />;
 };
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, loading, userRole } = useAuth();
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!isAuthenticated) {
-      return <Navigate to="/auth" />;
-  }
-
-  return userRole === 'admin' ? children : <Navigate to="/dashboard" />;
+    if (loading) {
+       return <div>Loading...</div>;
+    }
+      // if loading is false, you will redirect or return the components.
+    if (!isAuthenticated) {
+        return <Navigate to="/auth" />;
+    }
+     // if loading is false and the user is not an admin, redirect to /dashboard
+    return userRole === 'admin' ? children : <Navigate to="/dashboard" />;
 };
 
 const App = () => (
