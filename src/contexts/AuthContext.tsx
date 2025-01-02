@@ -6,10 +6,12 @@ import { useNotification } from './NotificationContext';
 import { AuthState, AuthContextType, User } from '@/types/auth';
 
 const initialState: AuthState = {
-  user: null,
-  isAuthenticated: false,
-  isLoading: true,
-  error: null,
+    user: null,
+    isAuthenticated: false,
+    isLoading: true,
+    loading: true,
+    userRole: undefined,
+    error: null,
 };
 
 const authReducer = (state: AuthState, action: any): AuthState => {

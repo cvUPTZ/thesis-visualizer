@@ -39,7 +39,7 @@ export const ThesisHeader = ({
 }: ThesisHeaderProps) => {
     const navigate = useNavigate();
     const { toast } = useNotification();
-    const { userEmail, userRole, handleLogout } = useUser();
+    const { email, role, handleLogout } = useUser();
     const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
     const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
     const [isInviting, setIsInviting] = useState(false);
@@ -69,45 +69,44 @@ export const ThesisHeader = ({
         const fetchCollaborators = async () => {
             try {
                 const data = await thesisService.fetchCollaborators(thesisId)
-               setCollaborators(data);
+                setCollaborators(data);
             } catch (error) {
-               console.error('Error fetching collaborators:', error);
-           }
+                console.error('Error fetching collaborators:', error);
+            }
         };
 
-       if (thesisId) {
+        if (thesisId) {
             fetchCollaborators();
-      }
-   }, [thesisId]);
-
+        }
+    }, [thesisId]);
 
     const handleInviteSuccess = () => {
         toast({
             title: "Success",
-           description: "Collaborator has been invited successfully.",
+            description: "Collaborator has been invited successfully.",
         });
     };
 
     const handleInviteError = (error: Error) => {
         toast({
             title: "Error",
-           description: error.message || "Failed to invite collaborator. Please try again.",
+            description: error.message || "Failed to invite collaborator. Please try again.",
             variant: "destructive",
         });
     };
 
-     const handleSaveToJson = async () => {
+    const handleSaveToJson = async () => {
         try {
             await thesisService.saveToJson(thesisData);
-           toast({
-               title: "Success",
-              description: "Thesis saved as JSON file.",
+            toast({
+                title: "Success",
+                description: "Thesis saved as JSON file.",
             });
-       } catch (error: any) {
+        } catch (error: any) {
             console.error('Error saving thesis to JSON:', error);
-           toast({
+            toast({
                 title: "Error",
-              description: "Failed to save thesis as JSON file.",
+                description: "Failed to save thesis as JSON file.",
                 variant: "destructive",
             });
         }
@@ -119,67 +118,67 @@ export const ThesisHeader = ({
         <div className="flex justify-between items-center">
             <h1 className="text-2xl font-serif">Thesis Editor</h1>
             <div className="flex items-center gap-4">
-                {userEmail && <UserInfo email={userEmail} role={userRole} />}
+                {email && <UserInfo email={email} role={role} />}
                 <CollaboratorsList collaborators={collaborators} thesisId={thesisId} />
-               {canManageCollaborators && (
-                  <Popover>
-                       <PopoverTrigger asChild>
-                          <Button
-                              variant="outline"
-                              size="sm"
-                             className="gap-2"
+                {canManageCollaborators && (
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
                             >
-                              <UserPlus className="w-4 h-4" />
+                                <UserPlus className="w-4 h-4" />
                                 Add Collaborator
-                         </Button>
-                       </PopoverTrigger>
-                      <PopoverContent className="w-80">
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
                             <CollaboratorInviteForm
                                 thesisId={thesisId}
-                              thesisTitle={thesisTitle}
+                                thesisTitle={thesisTitle}
                                 onInviteSuccess={handleInviteSuccess}
-                               onInviteError={handleInviteError}
-                               isAdmin={isAdmin}
-                               setIsInviting={setIsInviting}
+                                onInviteError={handleInviteError}
+                                isAdmin={isAdmin}
+                                setIsInviting={setIsInviting}
                             />
-                       </PopoverContent>
-                  </Popover>
-              )}
-                 <Button
-                   variant="outline"
+                        </PopoverContent>
+                    </Popover>
+                )}
+                <Button
+                    variant="outline"
                     size="sm"
                     onClick={onTogglePreview}
                     className="gap-2"
-                 >
-                   {showPreview ? (
-                       <>
-                           <EyeOff className="w-4 h-4" />
+                >
+                    {showPreview ? (
+                        <>
+                            <EyeOff className="w-4 h-4" />
                             Hide Preview
                         </>
-                   ) : (
-                      <>
-                           <Eye className="w-4 h-4" />
-                          Show Preview
-                      </>
-                   )}
-                 </Button>
-                 <Button
-                   variant="outline"
+                    ) : (
+                        <>
+                            <Eye className="w-4 h-4" />
+                            Show Preview
+                        </>
+                    )}
+                </Button>
+                <Button
+                    variant="outline"
                     size="sm"
                     onClick={handleSaveToJson}
-                   className="gap-2"
+                    className="gap-2"
                 >
                     <Save className="w-4 h-4" />
-                     Save as JSON
-                 </Button>
+                    Save as JSON
+                </Button>
                 <Button
-                  variant="outline"
-                  size="sm"
+                    variant="outline"
+                    size="sm"
                     onClick={handleLogout}
                 >
-                 Logout
-              </Button>
-          </div>
-       </div>
+                    Logout
+                </Button>
+            </div>
+        </div>
     );
 };
