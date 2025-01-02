@@ -1,19 +1,17 @@
-// src/components/ui/loading-screen.tsx
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+// src/components/LoadingScreen.tsx
+import { Spinner } from '@/components/ui/spinner';
 
 interface LoadingScreenProps {
-  title?: string;
+  message?: string;
 }
 
-export const LoadingScreen = ({ title = "Loading..." }: LoadingScreenProps) => {
-  return (
-    <Dialog open>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogTitle className="text-center">{title}</DialogTitle>
-        <div className="flex items-center justify-center p-6">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
+export const LoadingScreen: React.FC<LoadingScreenProps> = ({ 
+  message = 'Loading...' 
+}) => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="text-center">
+      <Spinner className="h-8 w-8 mb-4" />
+      <p className="text-sm text-muted-foreground">{message}</p>
+    </div>
+  </div>
+);
