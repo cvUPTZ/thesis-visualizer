@@ -1,47 +1,62 @@
-    // src/hooks/useThesisAutosave.ts
-    import { useCallback, useEffect } from 'react';
-    import { debounce } from 'lodash';
-    import { useNotification } from '@/contexts/NotificationContext';
-    import { Thesis } from '@/types/thesis';
-    import { thesisService } from '@/services/thesisService';
+// src/hooks/useThesisAutosave.ts
+import { useCallback, useEffect, useRef } from 'react';
+import { debounce } from 'lodash';
+import { useNotification } from '@/contexts/NotificationContext';
+import { Thesis } from '@/types/thesis';
+import { thesisService } from '@/services/thesisService';
 
-    export const useThesisAutosave = (thesis: Thesis | null) => {
-        const { toast } = useNotification();
+interface AutosaveOptions {
+  debounceMs?: number;
+  showToast?: boolean;
+}
 
-      const saveThesis = useCallback(async (thesisData: Thesis) => {
-            if (!thesisData) return;
+export const useThesisAutosave = (
+  thesis: Thesis | null, 
+  options: AutosaveOptions = {}
+) => {
+  const { toast } = useNotification();
+  const saveInProgressRef = useRef<boolean>(false);
+  const { debounceMs = 2000, showToast = true } = options;
 
-            try {
-              console.log('Auto-saving thesis:', thesisData.id);
-             await thesisService.updateThesis(thesisData.id, thesisData);
-                console.log('Auto-save successful');
-               toast({
-                    title: "Auto-saved",
-                     description: "Your thesis has been automatically saved.",
-                });
-           } catch (error: any) {
-              console.error('Error auto-saving thesis:', error);
-                toast({
-                    title: "Auto-save failed",
-                   description: "Failed to auto-save your thesis. Your changes will be saved on next successful attempt.",
-                   variant: "destructive",
-                });
-             }
-       }, [toast]);
+  const saveThesis = useCallback(async (thesisData: Thesis) => {
+    if (!thesisData || saveInProgressRef.current) return;
 
-        const debouncedSave = useCallback(
-            debounce((thesisData: Thesis) => {
-                saveThesis(thesisData);
-            }, 2000),
-            [saveThesis]
-        );
+    try {
+      saveInProgressRef.current = true;
+      await thesisService.updateThesis(thesisData.id, thesisData);
+      
+      if (showToast) {
+        toast({
+          title: "Auto-saved",
+          description: "Your thesis has been automatically saved.",
+        });
+      }
+    } catch (error) {
+      console.error('Error auto-saving thesis:', error);
+      toast({
+        title: "Auto-save failed",
+        description: "Failed to auto-save your thesis. Your changes will be saved on next successful attempt.",
+        variant: "destructive",
+      });
+    } finally {
+      saveInProgressRef.current = false;
+    }
+  }, [toast, showToast]);
 
-       useEffect(() => {
-            if (thesis) {
-               debouncedSave(thesis);
-           }
-           return () => {
-                 debouncedSave.cancel();
-            };
-        }, [thesis, debouncedSave]);
+  const debouncedSave = useCallback(
+    debounce((thesisData: Thesis) => {
+      saveThesis(thesisData);
+    }, debounceMs),
+    [saveThesis, debounceMs]
+  );
+
+  useEffect(() => {
+    if (thesis) {
+      debouncedSave(thesis);
+    }
+
+    return () => {
+      debouncedSave.cancel();
     };
+  }, [thesis, debouncedSave]);
+};
