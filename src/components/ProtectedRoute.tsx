@@ -1,4 +1,3 @@
-// components/ProtectedRoute.tsx
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,7 +46,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }, []);
 
   if (loading) {
-    return <LoadingScreen />;
+    return <LoadingScreen title="Checking authentication..." />;
   }
 
   if (!isAuthenticated) {

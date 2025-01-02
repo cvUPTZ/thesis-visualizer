@@ -1,4 +1,3 @@
-// src/hooks/useCollaboratorPermissions.tsx
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types/profile';
@@ -49,7 +48,7 @@ export const useCollaboratorPermissions = (thesisId: string) => {
                 const role = collaboratorData?.role;
                 setCurrentUserRole(role || null);
                 
-                const isAdmin = profileData.roles?.name === 'admin';
+                const isAdmin = profileData.role === 'admin';
                 const isOwnerOrAdmin = role === 'owner' || role === 'admin' || isAdmin;
                 
                 setCanManageCollaborators(isOwnerOrAdmin);
