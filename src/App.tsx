@@ -29,9 +29,9 @@ const AppRoutes = () => {
   const { isAuthenticated, loading, userRole } = useAuth();
   const location = useLocation();
 
-  if (loading) {
-    return <LoadingScreen title="Loading..." />;
-  }
+  // if (loading) {
+  //   return <LoadingScreen title="Loading..." />;
+  // }
 
   return (
     <Routes>
