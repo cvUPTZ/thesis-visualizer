@@ -99,7 +99,7 @@ export const useUser = () => {
                   });
                 }
               } catch (error) {
-                dispatch({ type: 'SET_ERROR', error as Error });
+                dispatch({ type: 'SET_ERROR', payload: error as Error });
                 navigate('/auth');
               }
             }
