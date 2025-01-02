@@ -1,4 +1,3 @@
-// src/App.tsx
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,7 +9,7 @@ import CreateThesis from "./pages/CreateThesis";
 import { ThesisEditor } from "@/components/ThesisEditor";
 import LandingPage from "./pages/LandingPage";
 import AdminDashboard from "./pages/AdminDashboard";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider, useNotification } from "@/contexts/NotificationContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
