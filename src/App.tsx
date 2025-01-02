@@ -14,7 +14,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider, useNotification } from "@/contexts/NotificationContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import DevPanel from "@/components/DevPanel"; // Import DevPanel
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -114,7 +113,6 @@ const AppContent = () => {
                     <NotificationProvider>
                         <AuthProvider>
                             <AppRoutes />
-                            <DevPanel /> {/* Add DevPanel Here */}
                             <Toaster />
                         </AuthProvider>
                     </NotificationProvider>
