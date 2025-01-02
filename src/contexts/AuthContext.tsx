@@ -1,14 +1,8 @@
-// src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from './NotificationContext';
-
-type AuthAction =
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_USER'; payload: User | null }
-  | { type: 'SET_ERROR'; payload: Error | null }
-  | { type: 'RESET_STATE' };
+import { AuthState, AuthContextType, User } from '@/types/auth';
 
 const initialState: AuthState = {
   user: null,
@@ -17,7 +11,7 @@ const initialState: AuthState = {
   error: null,
 };
 
-const authReducer = (state: AuthState, action: AuthAction): AuthState => {
+const authReducer = (state: AuthState, action: any): AuthState => {
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
@@ -38,6 +32,14 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
@@ -165,4 +167,3 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </AuthContext.Provider>
   );
 };
-

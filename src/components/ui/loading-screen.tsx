@@ -4,9 +4,7 @@ interface LoadingScreenProps {
   message?: string;
 }
 
-export const LoadingScreen: React.FC<LoadingScreenProps> = ({ 
-  message = 'Loading...' 
-}) => (
+export const LoadingScreen = ({ message = 'Loading...' }: LoadingScreenProps) => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="text-center">
       <Spinner className="h-8 w-8 mb-4" />

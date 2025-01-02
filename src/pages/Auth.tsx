@@ -1,9 +1,9 @@
-// src/pages/Auth.tsx
 import { Auth as SupabaseAuth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
+import { XCircle } from 'lucide-react';
 
 const Auth = () => {
   const { isLoading, error, clearError } = useAuth();
@@ -20,7 +20,7 @@ const Auth = () => {
           <div className="bg-red-50 p-4 rounded-md mb-4">
             <div className="flex">
               <div className="flex-shrink-0">
-                <XCircleIcon className="h-5 w-5 text-red-400" />
+                <XCircle className="h-5 w-5 text-red-400" />
               </div>
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800">
