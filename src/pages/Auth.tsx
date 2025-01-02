@@ -3,22 +3,28 @@ import { useEffect } from "react";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, loading } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard', { replace: true });
+    if (!loading && isAuthenticated) {
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, loading, navigate, location]);
 
   if (loading) {
     return <LoadingScreen title="Checking authentication..." />;
+  }
+
+  if (isAuthenticated) {
+    return null;
   }
 
   return (
