@@ -35,6 +35,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const { toast } = useNotification();
 
+  const fetchUserRole = async (userId: string) => {
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select(`
+          role_id,
+          roles (
+            name
+          )
+        `)
+        .eq('id', userId)
+        .single();
+
+      if (profileError) throw profileError;
+      
+      return profile?.roles?.name || null;
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -50,17 +72,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setIsAuthenticated(true);
           setUserId(currentSession.user.id);
           
-          // Fetch user role from profiles table
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', currentSession.user.id)
-            .single();
-
-          if (profileError) throw profileError;
+          const userRole = await fetchUserRole(currentSession.user.id);
           
           if (mounted) {
-            setUserRole(profile?.role || null);
+            setUserRole(userRole);
           }
         } else if (mounted) {
           setIsAuthenticated(false);
@@ -97,13 +112,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setIsAuthenticated(true);
           setUserId(currentSession.user.id);
           
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', currentSession.user.id)
-            .single();
-            
-          setUserRole(profile?.role || null);
+          const userRole = await fetchUserRole(currentSession.user.id);
+          setUserRole(userRole);
           setLoading(false);
           
           toast({
