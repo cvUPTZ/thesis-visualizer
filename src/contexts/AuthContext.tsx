@@ -25,6 +25,27 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
 });
 
+const fetchUserRole = async (userId: string) => {
+  try {
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select(`
+        role_id,
+        roles (
+          name
+        )
+      `)
+      .eq('id', userId)
+      .single();
+
+    if (profileError) throw profileError;
+    return profile?.roles?.name || null;
+  } catch (error) {
+    console.error('Error fetching user role:', error);
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -34,28 +55,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const navigate = useNavigate();
   const { toast } = useNotification();
-
-  const fetchUserRole = async (userId: string) => {
-    try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select(`
-          role_id,
-          roles (
-            name
-          )
-        `)
-        .eq('id', userId)
-        .single();
-
-      if (profileError) throw profileError;
-      
-      return profile?.roles?.name || null;
-    } catch (error) {
-      console.error('Error fetching user role:', error);
-      return null;
-    }
-  };
 
   const updateAuthState = async (currentSession: Session | null, showToast = false) => {
     if (!currentSession?.user) {
@@ -67,18 +66,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
-    const userRole = await fetchUserRole(currentSession.user.id);
-    setSession(currentSession);
-    setUser(currentSession.user);
-    setIsAuthenticated(true);
-    setUserId(currentSession.user.id);
-    setUserRole(userRole);
+    try {
+      const userRole = await fetchUserRole(currentSession.user.id);
+      setSession(currentSession);
+      setUser(currentSession.user);
+      setIsAuthenticated(true);
+      setUserId(currentSession.user.id);
+      setUserRole(userRole);
 
-    if (showToast) {
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in."
-      });
+      if (showToast) {
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in."
+        });
+      }
+    } catch (error) {
+      console.error('Error updating auth state:', error);
+      // Reset auth state on error
+      setIsAuthenticated(false);
+      setUserRole(null);
+      setUserId(null);
+      setUser(null);
+      setSession(null);
     }
   };
 
@@ -111,17 +120,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       async (event, currentSession) => {
         if (!mounted) return;
 
-        setLoading(true);
+        console.log('Auth state changed:', event);
         
         try {
+          setLoading(true);
+
           if (event === 'SIGNED_IN') {
             await updateAuthState(currentSession, true);
+            navigate('/dashboard', { replace: true });
           } else if (event === 'SIGNED_OUT') {
             await updateAuthState(null);
             navigate('/auth', { replace: true });
+          } else if (event === 'TOKEN_REFRESHED') {
+            await updateAuthState(currentSession);
           }
         } catch (error) {
-          console.error('Auth state change error:', error);
+          console.error('Error handling auth state change:', error);
           await updateAuthState(null);
         } finally {
           if (mounted) {
@@ -131,8 +145,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
+    // Initialize auth state
     initializeAuth();
 
+    // Cleanup function
     return () => {
       mounted = false;
       subscription.unsubscribe();
@@ -149,9 +165,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Success",
         description: "You have been signed out successfully."
       });
+      
+      // Reset auth state
+      await updateAuthState(null);
       navigate('/auth', { replace: true });
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error('Error signing out:', error);
       toast({
         title: "Error",
         description: "Failed to sign out. Please try again.",
@@ -179,4 +198,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
