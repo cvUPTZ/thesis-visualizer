@@ -9,13 +9,12 @@ export const useAuthRedirect = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const from = location.state?.from?.pathname || '/dashboard';
 
-  useEffect(() => {
-    if (!isLoading) {
-      if (isAuthenticated && location.pathname === '/auth') {
-        navigate(from, { replace: true });
+    useEffect(() => {
+        if (isLoading) return;
+        if (isAuthenticated && location.pathname === '/auth') {
+            navigate(from, { replace: true });
       } else if (!isAuthenticated && location.pathname !== '/auth' && location.pathname !== '/') {
-        navigate('/auth', { state: { from: location }, replace: true });
-      }
-    }
-  }, [isAuthenticated, isLoading, location, navigate, from]);
+           navigate('/auth', { state: { from: location }, replace: true });
+       }
+    }, [isAuthenticated, isLoading, location, navigate, from]);
 };

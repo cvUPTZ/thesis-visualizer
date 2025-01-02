@@ -9,7 +9,7 @@ export const corsConfig = {
       }
     },
     production: {
-      apiUrl: 'https://your-project.supabase.co',  // Your Supabase project URL
+      apiUrl: 'https://xkwdfddamvuhucorwttw.supabase.co',  // Your Supabase project URL
       credentials: 'include' as const,
       headers: {
         'Content-Type': 'application/json',

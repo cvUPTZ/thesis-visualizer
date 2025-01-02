@@ -1,3 +1,4 @@
+// src/hooks/useForm.ts
 import { useState, useCallback } from 'react';
 
 interface FormState<T> {
@@ -14,95 +15,105 @@ interface UseFormOptions<T> {
 
 export const useForm = <T extends Record<string, any>>({
   initialValues,
-  validate,
-  onSubmit,
+    validate,
+    onSubmit,
 }: UseFormOptions<T>) => {
-  const [formState, setFormState] = useState<FormState<T>>({
-    values: initialValues,
-    errors: {},
-    isSubmitting: false,
-  });
+    const [formState, setFormState] = useState<FormState<T>>({
+       values: initialValues,
+        errors: {},
+       isSubmitting: false,
+   });
 
-   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-        setFormState(prev => ({
-         ...prev,
-        values: {
-            ...prev.values,
-            [name]: value
-          },
+
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+       const { name, value } = e.target;
+       setFormState(prev => ({
+            ...prev,
+          values: {
+              ...prev.values,
+                [name]: value
+           },
           errors: {
-            ...prev.errors,
-              [name]: undefined
-            }
-        }));
-      }, []);
+                ...prev.errors,
+                [name]: undefined
+          }
+       }));
+   }, []);
 
 
     const setFieldValue = useCallback((field: keyof T, value: any) => {
-     setFormState(prev => ({
-        ...prev,
-          values: {
-            ...prev.values,
-            [field]: value
-          },
-        errors: {
-            ...prev.errors,
-              [field]: undefined
-            }
-     }))
-    }, []);
+        setFormState(prev => ({
+            ...prev,
+            values: {
+                ...prev.values,
+               [field]: value
+            },
+             errors: {
+                 ...prev.errors,
+                 [field]: undefined
+             }
+       }))
+   }, []);
 
     const handleArrayChange = useCallback((field: keyof T, index: number, value: any) => {
-      setFormState(prev => {
-           const values = Array.isArray(prev.values[field]) ? [...(prev.values[field] as any[])] : []
-          values[index] = value;
-           return {
+        setFormState(prev => {
+            const values = Array.isArray(prev.values[field]) ? [...(prev.values[field] as any[])] : []
+            values[index] = value;
+            return {
                 ...prev,
-                values: {
-                    ...prev.values,
-                    [field]: values
-                 },
-                 errors: {
-                    ...prev.errors,
-                      [field]: undefined
-                   }
-               }
-       })
+               values: {
+                 ...prev.values,
+                  [field]: values
+                },
+               errors: {
+                 ...prev.errors,
+                 [field]: undefined
+                }
+            }
+        })
     }, []);
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validate) {
-         const errors = validate(formState.values);
-        setFormState(prev => ({
-           ...prev,
-            errors: errors
-         }))
-        if (Object.keys(errors).length > 0) return;
-    }
+    const resetForm = useCallback(() => {
+        setFormState({
+            values: initialValues,
+            errors: {},
+             isSubmitting: false,
+         });
+    },[initialValues])
 
-    setFormState(prev => ({
-        ...prev,
-         isSubmitting: true,
+    const handleSubmit = async (e: React.FormEvent) => {
+       e.preventDefault();
+        if (validate) {
+           const errors = validate(formState.values);
+           setFormState(prev => ({
+               ...prev,
+                errors: errors
+            }))
+            if (Object.keys(errors).length > 0) return;
+        }
+
+        setFormState(prev => ({
+            ...prev,
+             isSubmitting: true,
         }))
 
-    try {
-      await onSubmit(formState.values);
-    } finally {
-        setFormState(prev => ({
-         ...prev,
-         isSubmitting: false,
-        }))
-    }
-  };
+      try {
+            await onSubmit(formState.values);
+        } finally {
+           setFormState(prev => ({
+              ...prev,
+                isSubmitting: false,
+           }))
+       }
+    };
 
-  return {
-    ...formState,
-     setFieldValue,
-    handleArrayChange,
-    handleChange,
-    handleSubmit,
-  };
+    return {
+        ...formState,
+        setFieldValue,
+         handleArrayChange,
+         handleChange,
+        handleSubmit,
+        resetForm
+   };
 };
