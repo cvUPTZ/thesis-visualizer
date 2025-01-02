@@ -13,106 +13,122 @@ import AdminDashboard from "./pages/AdminDashboard";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider, useNotification } from "@/contexts/NotificationContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
     },
   },
 });
 
 const AppRoutes = () => {
-    const { isAuthenticated, loading } = useAuth();
-    const location = useLocation()
-    const isAuthPage = location.pathname === '/auth'
-   
-    return (
-        <Routes>
-          <Route
-                path="/"
-                element={!isAuthenticated && !loading? <LandingPage /> : <Navigate to="/dashboard" replace />}
-            />
-            <Route
-                path="/auth"
-                element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Auth />}
-            />
-            <Route
-                path="/dashboard"
-                element={
-                        <Index />
-                }
-            />
-            <Route
-                path="/thesis/:thesisId"
-                element={
-                        <ThesisEditor />
-                }
-            />
-            <Route
-                path="/create-thesis"
-                element={
-                       <CreateThesis />
-                }
-            />
-           <Route
-                path="/admin"
-                element={
-                       <AdminDashboard />
-                }
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-    );
+  const { isAuthenticated, loading, userRole } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <LoadingScreen title="Loading..." />;
+  }
+
+  return (
+    <Routes>
+      <Route 
+        path="/" 
+        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />} 
+      />
+      <Route
+        path="/auth"
+        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Auth />}
+      />
+      <Route
+        path="/dashboard"
+        element={!isAuthenticated ? (
+          <Navigate to="/auth" state={{ from: location }} replace />
+        ) : (
+          <Index />
+        )}
+      />
+      <Route
+        path="/thesis/:thesisId"
+        element={!isAuthenticated ? (
+          <Navigate to="/auth" state={{ from: location }} replace />
+        ) : (
+          <ThesisEditor />
+        )}
+      />
+      <Route
+        path="/create-thesis"
+        element={!isAuthenticated ? (
+          <Navigate to="/auth" state={{ from: location }} replace />
+        ) : (
+          <CreateThesis />
+        )}
+      />
+      <Route
+        path="/admin"
+        element={
+          !isAuthenticated ? (
+            <Navigate to="/auth" state={{ from: location }} replace />
+          ) : userRole !== 'admin' ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <AdminDashboard />
+          )
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 };
 
 const AppContent = () => {
-    const { toast } = useNotification();
+  const { toast } = useNotification();
 
-    useEffect(() => {
-        const handleError = (event: ErrorEvent) => {
-            console.error('Global error:', event.error);
-            toast({
-                title: "Error",
-                description: "An unexpected error occurred. Please try again.",
-                variant: "destructive",
-            });
-        };
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error('Global error:', event.error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    };
 
-        const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-            console.error('Unhandled promise rejection:', event.reason);
-            toast({
-                title: "Error",
-                description: "An unexpected error occurred. Please try again.",
-                variant: "destructive",
-            });
-        };
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('Unhandled promise rejection:', event.reason);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    };
 
-        window.addEventListener('error', handleError);
-        window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
-        return () => {
-            window.removeEventListener('error', handleError);
-            window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-        };
-    }, [toast]);
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, [toast]);
 
-    return (
-        <QueryClientProvider client={queryClient}>
-            <BrowserRouter>
-                <TooltipProvider>
-                    <NotificationProvider>
-                        <AuthProvider>
-                            <AppRoutes />
-                            <Toaster />
-                        </AuthProvider>
-                    </NotificationProvider>
-                </TooltipProvider>
-            </BrowserRouter>
-        </QueryClientProvider>
-    );
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <TooltipProvider>
+          <NotificationProvider>
+            <AuthProvider>
+              <AppRoutes />
+              <Toaster />
+            </AuthProvider>
+          </NotificationProvider>
+        </TooltipProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
 };
 
 const App = () => {
