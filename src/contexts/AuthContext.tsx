@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.tsx
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -37,6 +36,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchUserRole = async (userId: string) => {
     try {
+      console.log('Fetching user role for:', userId);
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select(`
@@ -48,25 +48,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .eq('id', userId)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Error fetching user role:', profileError);
+        throw profileError;
+      }
       
+      console.log('Fetched profile:', profile);
       return profile?.roles?.name || null;
     } catch (error) {
-      console.error('Error fetching user role:', error);
+      console.error('Error in fetchUserRole:', error);
       return null;
     }
   };
 
   useEffect(() => {
     let mounted = true;
+    console.log('AuthProvider mounted, initializing...');
 
     const checkUser = async () => {
       try {
+        console.log('Checking user session...');
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
-        if (error) throw error;
+        if (error) {
+          console.error('Session error:', error);
+          throw error;
+        }
 
         if (currentSession?.user && mounted) {
+          console.log('Active session found:', currentSession.user.email);
           setSession(currentSession);
           setUser(currentSession.user);
           setIsAuthenticated(true);
@@ -76,8 +86,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           if (mounted) {
             setUserRole(userRole);
+            console.log('User role set:', userRole);
           }
         } else if (mounted) {
+          console.log('No active session found');
           setIsAuthenticated(false);
           setUserRole(null);
           setUserId(null);
@@ -95,18 +107,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } finally {
         if (mounted) {
+          console.log('Initial auth check complete');
           setLoading(false);
         }
       }
     };
 
-    checkUser();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      if (mounted) {
-        console.log('Auth state changed:', event, currentSession?.user?.email);
-        
-        if (event === 'SIGNED_IN' && currentSession) {
+      if (!mounted) return;
+      
+      console.log('Auth state changed:', event, currentSession?.user?.email);
+      
+      if (event === 'SIGNED_IN' && currentSession) {
+        setLoading(true);
+        try {
+          console.log('Processing sign in for:', currentSession.user.email);
           setSession(currentSession);
           setUser(currentSession.user);
           setIsAuthenticated(true);
@@ -114,25 +129,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           const userRole = await fetchUserRole(currentSession.user.id);
           setUserRole(userRole);
-          setLoading(false);
           
           toast({
             title: "Welcome back!",
             description: "You have successfully signed in."
           });
-        } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-          setIsAuthenticated(false);
-          setUserRole(null);
-          setUserId(null);
-          setUser(null);
-          setSession(null);
+        } catch (error) {
+          console.error('Error processing sign in:', error);
+          toast({
+            title: "Error",
+            description: "There was an error signing in. Please try again.",
+            variant: "destructive"
+          });
+        } finally {
           setLoading(false);
-          navigate('/auth', { replace: true });
         }
+      } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
+        setIsAuthenticated(false);
+        setUserRole(null);
+        setUserId(null);
+        setUser(null);
+        setSession(null);
+        setLoading(false);
+        navigate('/auth', { replace: true });
       }
     });
 
+    checkUser();
+
     return () => {
+      console.log('AuthProvider unmounting, cleaning up...');
       mounted = false;
       subscription.unsubscribe();
     };
@@ -141,6 +168,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       setLoading(true);
+      console.log('Signing out...');
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
