@@ -57,3 +57,111 @@
     line-height: 1.5;
     text-align: left;
 }
+
+.thesis-content {
+    @apply prose prose-lg max-w-none prose-headings:font-serif prose-headings:text-primary;
+    line-height: 2;
+    counter-reset: page 1;
+    font-size: 12pt;
+    font-family: 'Times New Roman', serif;
+    margin: 1in;
+}
+
+/* Added a specific style for abstract */
+.thesis-abstract {
+    margin-top: 2in; /* Add more spacing */
+    text-align: center;
+}
+/* Add spacing to references */
+.thesis-references {
+    line-height: 1.5;
+}
+
+.thesis-page {
+    position: relative;
+    min-height: 11in; /* Ensure a minimum height */
+    width: 8.5in;
+    background: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    page-break-after: always;
+    counter-increment: page;
+    padding: 1in;
+    box-sizing: border-box;
+}
+
+.thesis-page::after {
+    content: counter(page);
+    position: absolute;
+    bottom: 0.5in;
+    right: 0.5in;
+    font-size: 12pt;
+    font-family: 'Times New Roman', serif; /* Ensure consistent font for page number */
+}
+
+.thesis-header {
+    position: absolute;
+    top: 0.5in;
+    left: 0.5in;
+    right: 0.5in;
+    text-align: left;
+    font-size: 10pt;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.1in;
+    font-family: 'Times New Roman', serif; /* Consistent font for header */
+    white-space: nowrap; /* Prevent wrapping */
+    overflow: hidden;    /* Ensure no overflow */
+    text-overflow: ellipsis; /* Indicate overflow */
+}
+
+.thesis-footer {
+    position: absolute;
+    bottom: 0.5in;
+    left: 0.5in;
+    right: 0.5in;
+    text-align: right; /* Aligned page number to the right */
+    font-size: 10pt;
+    font-family: 'Times New Roman', serif; /* Consistent font for footer */
+}
+.thesis-footer .page-number {
+    content: counter(page);
+}
+.thesis-preview-scroll-container {
+  overflow-y: auto;
+  max-height: 100vh;
+}
+
+.editor-section {
+    @apply bg-editor-bg border border-editor-border rounded-lg p-6 mb-4;
+}
+
+
+@media print {
+    .thesis-content {
+        margin: 0;
+        padding: 0;
+    }
+
+    .thesis-page {
+        box-shadow: none;
+        margin: 0;
+        height: auto; /* Allow content to define height in print */
+        min-height: 100vh;
+        width: 100%; /* Take full width in print */
+        padding: 1in;
+        box-sizing: border-box;
+    }
+
+    .page-break-before {
+        page-break-before: always;
+    }
+}
+.no-header {
+    .thesis-header {
+        display: none;
+    }
+}
+.no-footer {
+    .thesis-footer {
+        display: none;
+    }
+}

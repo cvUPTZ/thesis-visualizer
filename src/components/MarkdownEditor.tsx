@@ -24,21 +24,22 @@ export const MarkdownEditor = ({
                 className="border-none bg-transparent"
                 hideToolbar={false}
                 textareaProps={{
-                    placeholder
+                    placeholder,
+                    className: "focus:outline-none" // add a consistent classname for focus
                 }}
                 previewOptions={{
-                  skipHtml: false,
-                 rehypeRewrite: (node: any) => {
-                    if (node.type === 'element' && node.tagName === 'a') {
-                      node.properties = {
-                        ...node.properties,
-                         target: '_blank',
-                        rel: 'noopener noreferrer'
-                      };
-                   }
-                 }
-               }}
-          />
+                    skipHtml: false,
+                    rehypeRewrite: (node: any) => {
+                        if (node.type === 'element' && node.tagName === 'a') {
+                            node.properties = {
+                                ...node.properties,
+                                target: '_blank',
+                                rel: 'noopener noreferrer'
+                            };
+                        }
+                    }
+                }}
+            />
         </div>
-   );
+    );
 };
