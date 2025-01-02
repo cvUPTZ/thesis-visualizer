@@ -1,8 +1,9 @@
+// src/App.tsx
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import CreateThesis from "./pages/CreateThesis";
@@ -12,26 +13,27 @@ import AdminDashboard from "./pages/AdminDashboard";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider, useNotification } from "@/contexts/NotificationContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient({
-    defaultOptions: {
-        queries: {
-            retry: 1,
-            refetchOnWindowFocus: false,
-            staleTime: 5 * 60 * 1000, // 5 minutes
-        },
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
+  },
 });
 
 const AppRoutes = () => {
-    const { isAuthenticated } = useAuth();
-
+    const { isAuthenticated, loading } = useAuth();
+    const location = useLocation()
+    const isAuthPage = location.pathname === '/auth'
+   
     return (
         <Routes>
-            <Route
+          <Route
                 path="/"
-                element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />}
+                element={!isAuthenticated && !loading? <LandingPage /> : <Navigate to="/dashboard" replace />}
             />
             <Route
                 path="/auth"
@@ -40,33 +42,25 @@ const AppRoutes = () => {
             <Route
                 path="/dashboard"
                 element={
-                    <ProtectedRoute>
                         <Index />
-                    </ProtectedRoute>
                 }
             />
             <Route
                 path="/thesis/:thesisId"
                 element={
-                    <ProtectedRoute>
                         <ThesisEditor />
-                    </ProtectedRoute>
                 }
             />
             <Route
                 path="/create-thesis"
                 element={
-                    <ProtectedRoute>
-                        <CreateThesis />
-                    </ProtectedRoute>
+                       <CreateThesis />
                 }
             />
-            <Route
+           <Route
                 path="/admin"
                 element={
-                    <ProtectedRoute requireRole="admin">
-                        <AdminDashboard />
-                    </ProtectedRoute>
+                       <AdminDashboard />
                 }
             />
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -122,30 +116,30 @@ const AppContent = () => {
 };
 
 const App = () => {
-    return (
-        <ErrorBoundary
-            fallback={
-                <div className="min-h-screen flex items-center justify-center bg-background">
-                    <div className="text-center p-6 rounded-lg shadow-lg bg-card">
-                        <h1 className="text-2xl font-bold mb-4 text-foreground">
-                            Something went wrong
-                        </h1>
-                        <p className="text-sm text-muted-foreground mb-4">
-                            The application encountered an unexpected error.
-                        </p>
-                        <button
-                            className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
-                            onClick={() => window.location.reload()}
-                        >
-                            Reload Application
-                        </button>
-                    </div>
-                </div>
-            }
-        >
-            <AppContent />
-        </ErrorBoundary>
-    );
+  return (
+    <ErrorBoundary
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="text-center p-6 rounded-lg shadow-lg bg-card">
+            <h1 className="text-2xl font-bold mb-4 text-foreground">
+              Something went wrong
+            </h1>
+            <p className="text-sm text-muted-foreground mb-4">
+              The application encountered an unexpected error.
+            </p>
+            <button
+              className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+              onClick={() => window.location.reload()}
+            >
+              Reload Application
+            </button>
+          </div>
+        </div>
+      }
+    >
+      <AppContent />
+    </ErrorBoundary>
+  );
 };
 
 export default App;
