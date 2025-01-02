@@ -1,4 +1,3 @@
-// src/components/LoadingScreen.tsx
 import { Spinner } from '@/components/ui/spinner';
 
 interface LoadingScreenProps {
