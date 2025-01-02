@@ -1,3 +1,4 @@
+// src/hooks/useThesisData.ts
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNotification } from '@/contexts/NotificationContext';
 import { validate as validateUUID } from 'uuid';
@@ -25,7 +26,7 @@ export const useThesisData = (thesisId: string | undefined) => {
              console.error("Error in useThesisData:", err);
              toast({
                   title: "Error",
-                  description: "Failed to load thesis data. Please try again.",
+                  description: err.message || "Failed to load thesis data. Please try again.",
                   variant: "destructive",
               });
            throw err;

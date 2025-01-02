@@ -2,7 +2,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,24 +12,32 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children, requireRole }: ProtectedRouteProps) => {
   const { isAuthenticated, loading, userRole } = useAuth();
   const location = useLocation();
+    const [authCheckTimeout, setAuthCheckTimeout] = useState(false);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
-
-    if (loading) {
-      timeoutId = setTimeout(() => {
-        console.log('Auth check taking longer than expected...');
-      }, 5000); // Show warning if loading takes more than 5 seconds
-    }
+      if (loading) {
+          timeoutId = setTimeout(() => {
+              console.log('Auth check taking longer than expected...');
+              setAuthCheckTimeout(true)
+          }, 5000);
+      } else {
+          setAuthCheckTimeout(false)
+      }
 
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, [loading]);
 
-  if (loading) {
+    if (loading && !authCheckTimeout) {
     return <LoadingScreen title="Checking authentication..." />;
   }
+
+    if(loading && authCheckTimeout) {
+        return <LoadingScreen title="Authentication check is taking longer than expected"/>
+    }
+
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" state={{ from: location }} replace />;

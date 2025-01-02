@@ -26,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 const fetchUserRole = async (userId: string) => {
+    console.log(`Fetching user role for user ID: ${userId}`);
   try {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -38,11 +39,15 @@ const fetchUserRole = async (userId: string) => {
       .eq('id', userId)
       .single();
 
-    if (profileError) throw profileError;
-    return profile?.roles?.name || null;
-  } catch (error) {
+    if (profileError) {
+      console.error('Error fetching user role:', profileError);
+        throw profileError
+    }
+    console.log(`Fetched user role: ${profile?.roles?.name || null}`);
+      return profile?.roles?.name || null;
+  } catch (error:any) {
     console.error('Error fetching user role:', error);
-    return null;
+      return null;
   }
 };
 
@@ -57,22 +62,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useNotification();
 
   const updateAuthState = async (currentSession: Session | null, showToast = false) => {
+      console.log('Updating auth state with session:', currentSession);
     if (!currentSession?.user) {
       setIsAuthenticated(false);
       setUserRole(null);
       setUserId(null);
       setUser(null);
       setSession(null);
-      return;
+        console.log('No user in session. Auth state reset.');
+        return;
     }
 
     try {
-      const userRole = await fetchUserRole(currentSession.user.id);
+      const role = await fetchUserRole(currentSession.user.id);
       setSession(currentSession);
       setUser(currentSession.user);
       setIsAuthenticated(true);
       setUserId(currentSession.user.id);
-      setUserRole(userRole);
+      setUserRole(role);
+        console.log('Auth state updated successfully:', {user: currentSession.user.email, role});
 
       if (showToast) {
         toast({
@@ -80,7 +88,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           description: "You have successfully signed in."
         });
       }
-    } catch (error) {
+    } catch (error:any) {
       console.error('Error updating auth state:', error);
       // Reset auth state on error
       setIsAuthenticated(false);
@@ -88,6 +96,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUserId(null);
       setUser(null);
       setSession(null);
+      toast({
+          title: "Authentication error",
+          description: "Failed to update auth state" ,
+          variant: "destructive"
+      });
     }
   };
 
@@ -95,16 +108,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     let mounted = true;
 
     const initializeAuth = async () => {
+        console.log('Initializing auth state...');
       try {
         setLoading(true);
         const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) throw error;
-        
+          if(error) {
+             console.error("Error getting session", error)
+              throw error;
+          }
+
         if (mounted) {
+            console.log('Session data received:', session);
           await updateAuthState(session);
         }
-      } catch (error) {
+      } catch (error:any) {
         console.error('Auth initialization error:', error);
         if (mounted) {
           await updateAuthState(null);
@@ -112,34 +129,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } finally {
         if (mounted) {
           setLoading(false);
+            console.log('Auth initialization complete. Loading:', false);
         }
       }
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        if (!mounted) return;
-
+          if (!mounted) return;
         console.log('Auth state changed:', event);
-        
         try {
           setLoading(true);
-
+           console.log('Auth state changed to:', event);
           if (event === 'SIGNED_IN') {
             await updateAuthState(currentSession, true);
             navigate('/dashboard', { replace: true });
           } else if (event === 'SIGNED_OUT') {
             await updateAuthState(null);
+              console.log("User signed out, redirecting to auth")
             navigate('/auth', { replace: true });
           } else if (event === 'TOKEN_REFRESHED') {
+              console.log('Token refreshed, updating auth state');
             await updateAuthState(currentSession);
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error handling auth state change:', error);
           await updateAuthState(null);
+            toast({
+                title: "Authentication error",
+                description: "Failed to handle auth state change" ,
+                variant: "destructive"
+            });
         } finally {
           if (mounted) {
             setLoading(false);
+              console.log('Auth state change processing complete. Loading:', false);
           }
         }
       }
@@ -156,11 +180,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [navigate, toast]);
 
   const signOut = async () => {
+      console.log('Attempting sign out');
     try {
       setLoading(true);
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
+      if (error) {
+        console.error('Error signing out:', error);
+          throw error
+        }
+
       toast({
         title: "Success",
         description: "You have been signed out successfully."
@@ -169,13 +197,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Reset auth state
       await updateAuthState(null);
       navigate('/auth', { replace: true });
-    } catch (error) {
+        console.log('Sign out complete');
+    } catch (error:any) {
       console.error('Error signing out:', error);
-      toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive"
-      });
+        toast({
+            title: "Error",
+            description: "Failed to sign out. Please try again.",
+            variant: "destructive"
+        });
     } finally {
       setLoading(false);
     }
