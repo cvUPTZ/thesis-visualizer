@@ -1,21 +1,19 @@
-import { Spinner } from '@/components/ui/spinner';
+// src/components/ui/loading-screen.tsx
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
-export interface LoadingScreenProps {
-  message?: string;
+interface LoadingScreenProps {
   title?: string;
 }
 
-export const LoadingScreen = ({ 
-  message = 'Loading...', 
-  title 
-}: LoadingScreenProps) => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="text-center">
-      <Spinner className="h-8 w-8 mb-4" />
-      {title && (
-        <h2 className="text-lg font-semibold mb-2">{title}</h2>
-      )}
-      <p className="text-sm text-muted-foreground">{message}</p>
-    </div>
-  </div>
-);
+export const LoadingScreen = ({ title = "Loading..." }: LoadingScreenProps) => {
+  return (
+    <Dialog open>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogTitle className="text-center">{title}</DialogTitle>
+        <div className="flex items-center justify-center p-6">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};

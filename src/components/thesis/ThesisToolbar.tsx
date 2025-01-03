@@ -27,7 +27,7 @@ export const ThesisToolbar = ({
     onTogglePreview,
 }: ThesisToolbarProps) => {
     const { toast } = useNotification();
-    const { email, role, handleLogout } = useUser();
+    const { userEmail, userRole, handleLogout } = useUser();
     const {
         collaborators,
         canManageCollaborators,
@@ -37,116 +37,116 @@ export const ThesisToolbar = ({
         error,
     } = useCollaboratorPermissions(thesisId);
 
-    const handleExportDocx = async () => {
-        try {
-            console.log('Starting DOCX export with thesis data:', thesisData);
-            const { data, error: functionError } = await supabase.functions.invoke('generate-docx', {
-                body: thesisData
-            });
 
-            if (functionError) {
-                console.error('Error from edge function:', functionError);
-                toast({
-                    title: "Error",
-                    description: "Failed to generate the docx",
-                    variant: "destructive"
-                })
-                return;
-            }
+  const handleExportDocx = async () => {
+    try {
+          console.log('Starting DOCX export with thesis data:', thesisData);
+      const { data, error: functionError } = await supabase.functions.invoke('generate-docx', {
+            body: thesisData
+      });
 
-            const blob = new Blob([data as ArrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `${thesisData.frontMatter[0]?.title || 'thesis'}.docx`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
+      if (functionError) {
+          console.error('Error from edge function:', functionError);
+         toast({
+             title: "Error",
+             description: "Failed to generate the docx",
+            variant: "destructive"
+         })
+           return;
+      }
 
-            toast({
-                title: "Success",
-                description: "Your thesis has been exported as a DOCX file.",
-            });
-        } catch (error: any) {
+     const blob = new Blob([data as ArrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+        const url = window.URL.createObjectURL(blob);
+       const link = document.createElement('a');
+      link.href = url;
+       link.download = `${thesisData.frontMatter[0]?.title || 'thesis'}.docx`;
+     document.body.appendChild(link);
+      link.click();
+       document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+
+          toast({
+            title: "Success",
+              description: "Your thesis has been exported as a DOCX file.",
+          });
+     } catch (error: any) {
             console.error('Error exporting DOCX:', error);
-            toast({
+           toast({
                 title: "Error",
                 description: error.message || "Failed to export thesis as DOCX. Please try again.",
                 variant: "destructive",
             });
-        }
-    };
-
-    const handleSaveToJson = async () => {
+      }
+ };
+     const handleSaveToJson = async () => {
         try {
             await thesisService.saveToJson(thesisData);
-            toast({
-                title: "Success",
-                description: "Thesis saved as JSON file.",
+          toast({
+               title: "Success",
+              description: "Thesis saved as JSON file.",
             });
-        } catch (error: any) {
+       } catch (error: any) {
             console.error('Error saving thesis to JSON:', error);
             toast({
                 title: "Error",
-                description: "Failed to save thesis as JSON file.",
+              description: "Failed to save thesis as JSON file.",
                 variant: "destructive",
-            });
+           });
         }
     }
-
     const canManageCollaboratorsProp = currentUserRole === 'owner' || currentUserRole === 'admin' || userProfile?.role === 'admin';
-    return (
+  return (
         <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-                <ThesisSaveButton thesisId={thesisId} thesisData={thesisData} />
-                <Button onClick={handleExportDocx} variant="outline" className="gap-2">
+           <div className="flex items-center gap-2">
+              <ThesisSaveButton thesisId={thesisId} thesisData={thesisData} />
+               <Button onClick={handleExportDocx} variant="outline" className="gap-2">
                     <Download className="h-4 w-4" />
                     Export DOCX
                 </Button>
-                {email && <UserInfo email={email} role={role} />}
-                <CollaboratorSection
-                    collaborators={collaborators as CollaboratorWithProfile[]}
-                    thesisId={thesisId}
-                    thesisTitle={thesisData.frontMatter[0]?.title || 'Untitled Thesis'}
+                {userEmail && <UserInfo email={userEmail} role={userRole} />}
+               <CollaboratorSection
+                   collaborators={collaborators as CollaboratorWithProfile[]}
+                   thesisId={thesisId}
+                   thesisTitle={thesisData.frontMatter[0]?.title || 'Untitled Thesis'}
                     canManageCollaborators={canManageCollaboratorsProp}
                     isAdmin={userProfile?.role === 'admin'}
                 />
-                {canManageCollaborators && (
+               {canManageCollaborators && (
                     <ReviewerManager thesisId={thesisId} />
-                )}
+               )}
             </div>
             <div className="flex items-center gap-2">
                 <Button onClick={onTogglePreview} variant="outline" className="gap-2">
-                    {showPreview ? (
-                        <>
-                            <EyeOff className="h-4 w-4" />
-                            Hide Preview
-                        </>
+                   {showPreview ? (
+                      <>
+                        <EyeOff className="h-4 w-4" />
+                       Hide Preview
+                    </>
                     ) : (
-                        <>
-                            <Eye className="h-4 w-4" />
-                            Show Preview
+                      <>
+                         <Eye className="h-4 w-4" />
+                          Show Preview
                         </>
                     )}
                 </Button>
-                <Button
+              <Button
                     variant="outline"
-                    size="sm"
-                    onClick={handleSaveToJson}
-                    className="gap-2"
+                   size="sm"
+                   onClick={handleSaveToJson}
+                   className="gap-2"
                 >
                     Save as JSON
                 </Button>
                 <Button
-                    variant="outline"
-                    size="sm"
+                  variant="outline"
+                   size="sm"
                     onClick={handleLogout}
-                    className="gap-2"
+                  className="gap-2"
                 >
-                    <LogOut className="h-4 w-4" />
-                    Logout
-                </Button>
+                   <LogOut className="h-4 w-4" />
+                  Logout
+              </Button>
             </div>
         </div>
     );
