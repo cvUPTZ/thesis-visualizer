@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.tsx
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -41,13 +40,13 @@ const fetchUserRole = async (userId: string) => {
 
     if (profileError) {
       console.error('Error fetching user role:', profileError);
-        throw profileError
+      throw profileError;
     }
     console.log(`Fetched user role: ${profile?.roles?.name || null}`);
-      return profile?.roles?.name || null;
-  } catch (error:any) {
+    return profile?.roles?.name || null;
+  } catch (error) {
     console.error('Error fetching user role:', error);
-      return null;
+    return null;
   }
 };
 
@@ -62,15 +61,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useNotification();
 
   const updateAuthState = async (currentSession: Session | null, showToast = false) => {
-      console.log('Updating auth state with session:', currentSession);
+    console.log('Updating auth state with session:', currentSession?.user?.email);
     if (!currentSession?.user) {
       setIsAuthenticated(false);
       setUserRole(null);
       setUserId(null);
       setUser(null);
       setSession(null);
-        console.log('No user in session. Auth state reset.');
-        return;
+      console.log('No user in session. Auth state reset.');
+      return;
     }
 
     try {
@@ -80,7 +79,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsAuthenticated(true);
       setUserId(currentSession.user.id);
       setUserRole(role);
-        console.log('Auth state updated successfully:', {user: currentSession.user.email, role});
+      console.log('Auth state updated successfully:', { user: currentSession.user.email, role });
 
       if (showToast) {
         toast({
@@ -88,91 +87,107 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           description: "You have successfully signed in."
         });
       }
-    } catch (error:any) {
+    } catch (error) {
       console.error('Error updating auth state:', error);
-      // Reset auth state on error
-      setIsAuthenticated(false);
-      setUserRole(null);
-      setUserId(null);
-      setUser(null);
-      setSession(null);
-      toast({
-          title: "Authentication error",
-          description: "Failed to update auth state" ,
-          variant: "destructive"
-      });
+      handleAuthError();
     }
+  };
+
+  const handleAuthError = () => {
+    setIsAuthenticated(false);
+    setUserRole(null);
+    setUserId(null);
+    setUser(null);
+    setSession(null);
+    navigate('/auth', { replace: true });
+    toast({
+      title: "Authentication error",
+      description: "Please sign in again",
+      variant: "destructive"
+    });
   };
 
   useEffect(() => {
     let mounted = true;
 
     const initializeAuth = async () => {
-        console.log('Initializing auth state...');
+      console.log('Initializing auth state...');
       try {
         setLoading(true);
         const { data: { session }, error } = await supabase.auth.getSession();
-          if(error) {
-             console.error("Error getting session", error)
-              throw error;
-          }
+        
+        if (error) {
+          console.error("Error getting session", error);
+          throw error;
+        }
 
         if (mounted) {
-            console.log('Session data received:', session);
-          await updateAuthState(session);
+          if (session) {
+            console.log('Session found:', session.user.email);
+            await updateAuthState(session);
+          } else {
+            console.log('No session found');
+            handleAuthError();
+          }
         }
-      } catch (error:any) {
+      } catch (error) {
         console.error('Auth initialization error:', error);
         if (mounted) {
-          await updateAuthState(null);
+          handleAuthError();
         }
       } finally {
         if (mounted) {
           setLoading(false);
-            console.log('Auth initialization complete. Loading:', false);
+          console.log('Auth initialization complete');
         }
       }
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-          if (!mounted) return;
+        if (!mounted) return;
         console.log('Auth state changed:', event);
+        
         try {
           setLoading(true);
-           console.log('Auth state changed to:', event);
-          if (event === 'SIGNED_IN') {
-            await updateAuthState(currentSession, true);
-            navigate('/dashboard', { replace: true });
-          } else if (event === 'SIGNED_OUT') {
-            await updateAuthState(null);
-              console.log("User signed out, redirecting to auth")
-            navigate('/auth', { replace: true });
-          } else if (event === 'TOKEN_REFRESHED') {
-              console.log('Token refreshed, updating auth state');
-            await updateAuthState(currentSession);
+          
+          switch (event) {
+            case 'SIGNED_IN':
+              await updateAuthState(currentSession, true);
+              navigate('/dashboard', { replace: true });
+              break;
+            case 'SIGNED_OUT':
+              handleAuthError();
+              break;
+            case 'TOKEN_REFRESHED':
+              if (currentSession) {
+                console.log('Token refreshed, updating auth state');
+                await updateAuthState(currentSession);
+              } else {
+                console.log('Token refresh failed, no session');
+                handleAuthError();
+              }
+              break;
+            case 'USER_DELETED':
+            case 'USER_UPDATED':
+              if (currentSession) {
+                await updateAuthState(currentSession);
+              }
+              break;
           }
-        } catch (error: any) {
+        } catch (error) {
           console.error('Error handling auth state change:', error);
-          await updateAuthState(null);
-            toast({
-                title: "Authentication error",
-                description: "Failed to handle auth state change" ,
-                variant: "destructive"
-            });
+          handleAuthError();
         } finally {
           if (mounted) {
             setLoading(false);
-              console.log('Auth state change processing complete. Loading:', false);
           }
         }
       }
     );
 
-    // Initialize auth state
     initializeAuth();
 
-    // Cleanup function
     return () => {
       mounted = false;
       subscription.unsubscribe();
@@ -180,31 +195,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [navigate, toast]);
 
   const signOut = async () => {
-      console.log('Attempting sign out');
+    console.log('Attempting sign out');
     try {
       setLoading(true);
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error signing out:', error);
-          throw error
-        }
+      if (error) throw error;
 
       toast({
         title: "Success",
         description: "You have been signed out successfully."
       });
       
-      // Reset auth state
-      await updateAuthState(null);
-      navigate('/auth', { replace: true });
-        console.log('Sign out complete');
-    } catch (error:any) {
+      handleAuthError();
+      console.log('Sign out complete');
+    } catch (error) {
       console.error('Error signing out:', error);
-        toast({
-            title: "Error",
-            description: "Failed to sign out. Please try again.",
-            variant: "destructive"
-        });
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
