@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { ThesisCreationModal } from '@/components/thesis/ThesisCreationModal';
@@ -9,11 +9,10 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const Index = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
 
-  console.log('Rendering Index with auth state:', { isAuthenticated, authLoading });
+  console.log('Rendering Index with auth state:', { isAuthenticated });
 
   const { data: userProfile, error: profileError } = useQuery({
     queryKey: ['userProfile'],
@@ -53,33 +52,6 @@ export const Index = () => {
     enabled: isAuthenticated,
     retry: 1
   });
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        if (!authLoading) {
-          if (!isAuthenticated) {
-            console.log('User not authenticated, redirecting to auth');
-            navigate('/auth');
-          }
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error checking auth:', error);
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [isAuthenticated, authLoading, navigate]);
-
-  if (loading || authLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
-  }
 
   if (profileError) {
     const errorMessage = profileError instanceof Error 

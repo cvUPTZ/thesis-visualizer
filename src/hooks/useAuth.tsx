@@ -4,7 +4,6 @@ import { useToast } from './use-toast';
 
 export const useAuth = () => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string>('');
   const { toast } = useToast();
 
@@ -51,10 +50,6 @@ export const useAuth = () => {
         }
       } catch (error) {
         console.error('Error in initAuth:', error);
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
       }
     };
 
@@ -71,10 +66,6 @@ export const useAuth = () => {
         setUser(null);
         setUserRole('');
       }
-      
-      if (mounted) {
-        setLoading(false);
-      }
     });
 
     initAuth();
@@ -87,7 +78,6 @@ export const useAuth = () => {
 
   const logout = async () => {
     try {
-      setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       setUser(null);
@@ -99,15 +89,12 @@ export const useAuth = () => {
         description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   return {
     user,
     userRole,
-    loading,
     isAdmin: userRole === 'admin',
     isAuthenticated: !!user,
     logout

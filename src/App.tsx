@@ -69,15 +69,8 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated, loading, userRole } = useAuth();
-  const currentPath = window.location.pathname;
-  console.log('🔒 Protected Route Check:', { isAuthenticated, loading, userRole });
-
-  // Skip loading state for root route and thesis routes
-  if (loading && currentPath !== '/' && !currentPath.startsWith('/thesis/')) {
-    console.log('⌛ Loading protected route...');
-    return <LoadingFallback />;
-  }
+  const { isAuthenticated, userRole } = useAuth();
+  console.log('🔒 Protected Route Check:', { isAuthenticated, userRole });
 
   if (!isAuthenticated) {
     console.log('🚫 User not authenticated, redirecting to /auth');
@@ -89,13 +82,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 };
 
 const AdminRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated, loading, userRole } = useAuth();
-  console.log('👑 Admin Route Check:', { isAuthenticated, loading, userRole });
-
-  if (loading) {
-    console.log('⌛ Loading admin route...');
-    return <LoadingFallback />;
-  }
+  const { isAuthenticated, userRole } = useAuth();
+  console.log('👑 Admin Route Check:', { isAuthenticated, userRole });
 
   if (!isAuthenticated) {
     console.log('🚫 User not authenticated, redirecting to /auth');
