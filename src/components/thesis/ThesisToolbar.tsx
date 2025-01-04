@@ -67,7 +67,7 @@ export const ThesisToolbar = ({
     }
   };
 
-  const canManageCollaboratorsProp = currentUserRole === 'owner' || currentUserRole === 'admin' || userProfile?.role === 'admin';
+  const canManageCollaboratorsProp = currentUserRole === 'owner' || currentUserRole === 'admin' || userProfile?.roles?.name === 'admin';
 
   return (
     <div className="flex items-center justify-between">
@@ -83,7 +83,7 @@ export const ThesisToolbar = ({
           thesisId={thesisId}
           thesisTitle={thesisData.frontMatter[0]?.title || 'Untitled Thesis'}
           canManageCollaborators={canManageCollaboratorsProp}
-          isAdmin={userProfile?.role === 'admin'}
+          isAdmin={userProfile?.roles?.name === 'admin'}
         />
       </div>
       <div className="flex items-center gap-2">
