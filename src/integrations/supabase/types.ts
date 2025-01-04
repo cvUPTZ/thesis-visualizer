@@ -50,6 +50,39 @@ export type Database = {
           },
         ]
       }
+      features: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          health: string
+          id: string
+          last_updated: string | null
+          name: string
+          status: string
+          usage_data: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          health?: string
+          id?: string
+          last_updated?: string | null
+          name: string
+          status?: string
+          usage_data?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          health?: string
+          id?: string
+          last_updated?: string | null
+          name?: string
+          status?: string
+          usage_data?: Json | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

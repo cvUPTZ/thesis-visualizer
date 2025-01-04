@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import {
   Table,
@@ -21,48 +19,40 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Feature {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  health: string;
+  usage_data: any;
+  last_updated: string;
+}
 
 export const FeatureManagement = () => {
-  const [features, setFeatures] = useState([
-    { 
-      id: 1, 
-      name: 'Collaborative Editing', 
-      status: 'Active',
-      description: 'Real-time collaborative editing features',
-      health: 'healthy',
-      lastUpdated: '2024-01-04',
-      usage: '85%'
-    },
-    { 
-      id: 2, 
-      name: 'Real-time Comments', 
-      status: 'In Development',
-      description: 'Comment system with real-time updates',
-      health: 'warning',
-      lastUpdated: '2024-01-03',
-      usage: 'N/A'
-    },
-    { 
-      id: 3, 
-      name: 'Export to PDF', 
-      status: 'Active',
-      description: 'Export thesis to PDF format',
-      health: 'healthy',
-      lastUpdated: '2024-01-02',
-      usage: '92%'
-    },
-    { 
-      id: 4, 
-      name: 'AI Suggestions', 
-      status: 'Beta',
-      description: 'AI-powered writing suggestions',
-      health: 'warning',
-      lastUpdated: '2024-01-01',
-      usage: '45%'
-    },
-  ]);
-
   const { toast } = useToast();
+
+  const { data: features, isLoading, error, refetch } = useQuery({
+    queryKey: ['features'],
+    queryFn: async () => {
+      console.log('Fetching features from Supabase...');
+      const { data, error } = await supabase
+        .from('features')
+        .select('*')
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching features:', error);
+        throw error;
+      }
+
+      console.log('Features fetched:', data);
+      return data as Feature[];
+    }
+  });
 
   const getStatusBadge = (status: string) => {
     const variants: { [key: string]: string } = {
@@ -85,19 +75,61 @@ export const FeatureManagement = () => {
     return <AlertTriangle className="text-yellow-500 w-5 h-5" />;
   };
 
-  const toggleFeature = (featureId: number) => {
-    setFeatures(features.map(feature => {
-      if (feature.id === featureId) {
-        const newStatus = feature.status === 'Active' ? 'Inactive' : 'Active';
-        return { ...feature, status: newStatus };
-      }
-      return feature;
-    }));
+  const toggleFeature = async (featureId: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+      const { error } = await supabase
+        .from('features')
+        .update({ status: newStatus })
+        .eq('id', featureId);
 
-    toast({
-      title: 'Feature Updated',
-      description: 'Feature status has been updated successfully',
-    });
+      if (error) throw error;
+
+      await refetch();
+      
+      toast({
+        title: "Feature Updated",
+        description: "Feature status has been updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating feature:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update feature status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return <div>Loading features...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="text-red-500">
+        Error loading features. Please try again later.
+      </div>
+    );
+  }
+
+  const formatUsageData = (usageData: any) => {
+    if (!usageData) return 'N/A';
+    if (typeof usageData === 'string') {
+      try {
+        usageData = JSON.parse(usageData);
+      } catch (e) {
+        return 'N/A';
+      }
+    }
+    
+    // Return the first numeric value found in usage_data
+    const numericValue = Object.values(usageData).find(value => 
+      typeof value === 'number' || 
+      (typeof value === 'string' && value.includes('%'))
+    );
+    
+    return numericValue?.toString() || 'N/A';
   };
 
   return (
@@ -123,7 +155,7 @@ export const FeatureManagement = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {features.map((feature) => (
+            {features?.map((feature) => (
               <TableRow key={feature.id}>
                 <TableCell className="font-medium">
                   <Dialog>
@@ -152,8 +184,10 @@ export const FeatureManagement = () => {
                           </p>
                         </div>
                         <div>
-                          <h4 className="font-semibold">Usage</h4>
-                          <p>{feature.usage}</p>
+                          <h4 className="font-semibold">Usage Data</h4>
+                          <pre className="text-sm bg-gray-50 p-2 rounded">
+                            {JSON.stringify(feature.usage_data, null, 2)}
+                          </pre>
                         </div>
                       </div>
                     </DialogContent>
@@ -161,13 +195,13 @@ export const FeatureManagement = () => {
                 </TableCell>
                 <TableCell>{getStatusBadge(feature.status)}</TableCell>
                 <TableCell>{getHealthIcon(feature.health)}</TableCell>
-                <TableCell>{feature.usage}</TableCell>
-                <TableCell>{feature.lastUpdated}</TableCell>
+                <TableCell>{formatUsageData(feature.usage_data)}</TableCell>
+                <TableCell>{new Date(feature.last_updated).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => toggleFeature(feature.id)}
+                    onClick={() => toggleFeature(feature.id, feature.status)}
                   >
                     Toggle Status
                   </Button>
