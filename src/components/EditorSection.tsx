@@ -29,6 +29,7 @@ export const EditorSection = ({
 
   const handleSectionUpdate = (updatedSection: Section) => {
     console.log('Updating section:', updatedSection);
+    // Trigger content update to ensure changes are reflected immediately
     onContentChange(updatedSection.id, updatedSection.content);
   };
 
@@ -37,7 +38,8 @@ export const EditorSection = ({
     const figures = Array.isArray(section.figures) ? section.figures : [];
     const updatedSection = {
       ...section,
-      figures: [...figures, figure]
+      figures: [...figures, figure],
+      content: section.content // Preserve existing content
     };
     handleSectionUpdate(updatedSection);
     toast({
@@ -51,7 +53,8 @@ export const EditorSection = ({
     const tables = Array.isArray(section.tables) ? section.tables : [];
     const updatedSection = {
       ...section,
-      tables: [...tables, table]
+      tables: [...tables, table],
+      content: section.content // Preserve existing content
     };
     handleSectionUpdate(updatedSection);
     toast({
@@ -65,7 +68,8 @@ export const EditorSection = ({
     const citations = Array.isArray(section.citations) ? section.citations : [];
     const updatedSection = {
       ...section,
-      citations: [...citations, citation]
+      citations: [...citations, citation],
+      content: section.content // Preserve existing content
     };
     handleSectionUpdate(updatedSection);
     toast({
@@ -79,7 +83,8 @@ export const EditorSection = ({
     const references = Array.isArray(section.references) ? section.references : [];
     const updatedSection = {
       ...section,
-      references: [...references, reference]
+      references: [...references, reference],
+      content: section.content // Preserve existing content
     };
     handleSectionUpdate(updatedSection);
     toast({
