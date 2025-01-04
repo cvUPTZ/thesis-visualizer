@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, CheckCircle, ChevronRight, ChevronDown } from 'lucide-react';
+import { AlertTriangle, CheckCircle, ChevronRight, ChevronDown, Loader2 } from 'lucide-react';
 
 interface FeatureRowProps {
   feature: {
@@ -32,6 +32,8 @@ export const FeatureRow = ({
   expanded,
   onToggleExpand,
 }: FeatureRowProps) => {
+  const [isUpdating, setIsUpdating] = useState(false);
+
   const getStatusBadge = (status: string) => {
     const variants: { [key: string]: string } = {
       'Active': 'bg-green-500',
@@ -51,6 +53,15 @@ export const FeatureRow = ({
       return <CheckCircle className="text-green-500 w-5 h-5" />;
     }
     return <AlertTriangle className="text-yellow-500 w-5 h-5" />;
+  };
+
+  const handleToggleFeature = async (featureId: string, currentStatus: string) => {
+    try {
+      setIsUpdating(true);
+      await onToggleFeature(featureId, currentStatus);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const hasSubFeatures = subFeatures.length > 0;
@@ -87,8 +98,12 @@ export const FeatureRow = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onToggleFeature(feature.id, feature.status)}
+            onClick={() => handleToggleFeature(feature.id, feature.status)}
+            disabled={isUpdating}
           >
+            {isUpdating ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : null}
             Toggle Status
           </Button>
         </TableCell>
@@ -97,7 +112,7 @@ export const FeatureRow = ({
         <FeatureRow
           key={subFeature.id}
           feature={subFeature}
-          subFeatures={[]} // Sub-features can't have their own sub-features
+          subFeatures={[]}
           level={level + 1}
           onToggleFeature={onToggleFeature}
           onOpenDialog={onOpenDialog}

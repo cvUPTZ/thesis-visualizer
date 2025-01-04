@@ -8,11 +8,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Settings } from 'lucide-react';
+import { Settings, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { FeatureDialog } from './features/FeatureDialog';
 import { FeatureRow } from './features/FeatureRow';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const FeatureManagement = () => {
   const { toast } = useToast();
@@ -77,14 +78,35 @@ export const FeatureManagement = () => {
   };
 
   if (isLoading) {
-    return <div>Loading features...</div>;
+    return (
+      <Card className="w-full h-[400px] flex items-center justify-center">
+        <CardContent className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading features...</p>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (error) {
     return (
-      <div className="text-red-500">
-        Error loading features. Please try again later.
-      </div>
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-destructive">Error Loading Features</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            {error instanceof Error ? error.message : 'Failed to load features. Please try again.'}
+          </p>
+          <Button 
+            onClick={() => refetch()} 
+            variant="outline" 
+            className="mt-4"
+          >
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -99,6 +121,19 @@ export const FeatureManagement = () => {
     }
     return acc;
   }, { main: [], sub: {} });
+
+  if (!features?.length) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>No Features Found</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">No features have been added yet.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
