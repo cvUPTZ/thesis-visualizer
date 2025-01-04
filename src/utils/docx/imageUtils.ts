@@ -13,6 +13,7 @@ export const createImageRun = async (imageUrl: string, caption?: string): Promis
         height: 300,
       },
       altText: {
+        name: caption || 'Thesis figure',
         title: caption || 'Thesis figure',
         description: caption || 'Thesis figure',
       },

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
 import { FeatureCard } from "@/components/landing/FeatureCard";
-import { TestimonialCard } from "@/components/landing/TestimonialCard";
+import { TestimonialCarousel } from "@/components/landing/TestimonialCarousel";
 import { FeedbackForm } from "@/components/landing/FeedbackForm";
 import { DemoPreview } from "@/components/landing/DemoPreview";
 import { FeaturesComparison } from "@/components/landing/FeaturesComparison";
@@ -78,29 +78,8 @@ const LandingPage = () => {
       {/* Features Comparison Section */}
       <FeaturesComparison />
 
-      {/* Testimonials Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">What Our Users Say</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <TestimonialCard
-              quote="This platform made organizing my thesis so much easier. The visualization tools are incredible!"
-              author="Sarah Johnson"
-              role="PhD Candidate"
-            />
-            <TestimonialCard
-              quote="The collaboration features helped me work efficiently with my advisor. Highly recommended!"
-              author="Michael Chen"
-              role="Master's Student"
-            />
-            <TestimonialCard
-              quote="The AI assistance helped me improve my writing significantly. A game-changer for thesis writing!"
-              author="Emma Davis"
-              role="Research Scholar"
-            />
-          </div>
-        </div>
-      </section>
+      {/* Testimonials Carousel Section */}
+      <TestimonialCarousel />
 
       {/* Feedback Section */}
       <section className="py-20 bg-gray-50">
