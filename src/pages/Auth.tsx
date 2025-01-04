@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuthFlow } from "@/hooks/useAuthFlow";
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
 import { DemoLogin } from "@/components/auth/DemoLogin";
 import { AuthDivider } from "@/components/auth/AuthDivider";
 
@@ -79,16 +78,8 @@ const Auth = () => {
     };
   }, [navigate]);
 
-  if (isLoading && !sessionChecked) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-          <p className="text-gray-500">Checking authentication status...</p>
-        </div>
-      </div>
-    );
-  }
+  // Removed the loading state check that showed "Checking authentication status..."
+  // Now directly render the auth form
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
