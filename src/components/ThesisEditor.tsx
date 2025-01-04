@@ -1,56 +1,17 @@
-// import React from 'react';
-// import { useParams } from 'react-router-dom';
-// import { CollaboratorPresence } from './collaboration/CollaboratorPresence';
-// import { useAuth } from '@/contexts/AuthContext';
-// import { useToast } from '@/hooks/use-toast';
-// import { Button } from '@/components/ui/button';
-// import { Editor } from '@/components/ui/editor';
-
-// export const ThesisEditor = () => {
-//   const { thesisId } = useParams();
-//   const { userId } = useAuth();
-//   const { toast } = useToast();
-
-//   const handleSave = async () => {
-//     // Logic to save the thesis
-//     toast({
-//       title: "Thesis Saved",
-//       description: "Your thesis has been saved successfully.",
-//     });
-//   };
-
-//   return (
-//     <div className="relative min-h-screen">
-//       <header className="flex justify-between items-center p-4 bg-gray-100">
-//         <h1 className="text-2xl font-bold">Thesis Editor</h1>
-//         <Button onClick={handleSave}>Save</Button>
-//       </header>
-//       <Editor thesisId={thesisId} />
-//       {thesisId && <CollaboratorPresence thesisId={thesisId} />}
-//     </div>
-//   );
-// };
-
-
-
-
-
-// File: src/components/ThesisEditor.tsx
 import React, { useState, useRef, useCallback } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
 import { ThesisPreview } from './ThesisPreview';
 import { ThesisContent } from './thesis/ThesisContent';
 import { ThesisToolbar } from './thesis/ThesisToolbar';
-import { Chapter, Section, ThesisSectionType } from '@/types/thesis';
+import { Chapter, Section, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
-import { CollaboratorPresence } from './collaboration/CollaboratorPresence';
-
 import { useParams } from 'react-router-dom';
 import { ThesisCreationModal } from './thesis/ThesisCreationModal';
 import { ThesisList } from './thesis/ThesisList';
 import { useThesisData } from '@/hooks/useThesisData';
 import { Skeleton } from './ui/skeleton';
+import { CollaboratorPresence } from './collaboration/CollaboratorPresence';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -65,13 +26,11 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
   const [showPreview, setShowPreview] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // Initialize hooks
   useThesisAutosave(thesis);
   useThesisInitialization(thesis);
 
-
-  const handleThesisCreated = () => {
-    setThesis(null);
+  const handleThesisCreated = (newThesis: Thesis) => {
+    setThesis(newThesis);
   };
 
   const handleContentChange = (id: string, newContent: string) => {
@@ -173,7 +132,7 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <h2 className="text-2xl font-semibold text-destructive">Error Loading Thesis</h2>
-          <p className="text-muted-foreground">{error || "Thesis not found"}</p>
+          <p className="text-muted-foreground">{error?.message || "Thesis not found"}</p>
         </div>
       </div>
     );
@@ -229,8 +188,7 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
           </div>
         )}
       </main>
-      {thesisId && <CollaboratorPresence thesisId={thesisId} />}
-
+      {currentThesisId && <CollaboratorPresence thesisId={currentThesisId} />}
     </div>
   );
 };

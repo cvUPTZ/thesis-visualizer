@@ -27,7 +27,7 @@ export const ReviewerInterface = () => {
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, roles(name)')
         .eq('id', session.user.id)
         .single();
 
@@ -36,7 +36,13 @@ export const ReviewerInterface = () => {
         return;
       }
 
-      setReviewer(profile);
+      setReviewer({
+        id: profile.id,
+        email: profile.email,
+        role: profile.roles?.name || 'user',
+        created_at: profile.created_at,
+        role_id: profile.role_id
+      });
     };
 
     fetchReviewer();
@@ -178,7 +184,7 @@ export const ReviewerInterface = () => {
   }
 
   if (error || !thesis) {
-    return <ErrorState error={error} />;
+    return <ErrorState error={error?.message || 'Failed to load thesis'} />;
   }
 
   return (

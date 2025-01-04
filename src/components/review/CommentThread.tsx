@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ThesisComment } from '@/types/thesis';
 import { formatDistanceToNow } from 'date-fns';
+import { Profile } from '@/types/profile';
 
 interface CommentThreadProps {
   thesisId: string;

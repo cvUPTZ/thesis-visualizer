@@ -25,6 +25,7 @@ export interface ThesisMetadata {
 export interface Chapter {
   id: string;
   title: string;
+  order: number;  // Added missing order property
   sections: Section[];
 }
 
@@ -102,10 +103,18 @@ export interface Reference extends Omit<Citation, 'thesis_id'> {
 export interface ThesisComment {
   id: string;
   content: string;
-  user_id: string;
+  user_id: string;  // Explicitly required
   parent_id?: string;
   created_at: string;
   thesis_id: string;
+  reviewer_id: string;
+  section_id: string;
+  status: string;
+  updated_at: string;
+  profiles?: {
+    email: string;
+    role: string;
+  };
 }
 
 export interface CommentThread {
