@@ -10,6 +10,7 @@ import { FeedbackForm } from "@/components/landing/FeedbackForm";
 import { DemoPreview } from "@/components/landing/DemoPreview";
 import { FeaturesComparison } from "@/components/landing/FeaturesComparison";
 import { PricingSection } from "@/components/landing/PricingSection";
+import { ThesisVisualization } from "@/components/landing/ThesisVisualization";
 
 const LandingPage = () => {
   return (
@@ -49,7 +50,9 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Demo Preview Section */}
+      {/* Thesis Visualization Section */}
+      <ThesisVisualization />
+
       <DemoPreview />
 
       {/* Features Section */}
