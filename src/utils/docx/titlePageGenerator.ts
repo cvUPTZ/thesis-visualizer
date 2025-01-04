@@ -1,4 +1,4 @@
-import { Paragraph, AlignmentType, convertInchesToTwip } from 'docx';
+import { Paragraph, TextRun, AlignmentType, convertInchesToTwip, HeadingLevel } from 'docx';
 import { ThesisMetadata } from './types';
 
 export const generateTitlePage = (metadata?: ThesisMetadata) => {
@@ -11,14 +11,28 @@ export const generateTitlePage = (metadata?: ThesisMetadata) => {
         after: convertInchesToTwip(0.5),
       },
       style: "Heading1",
+      children: [
+        new TextRun({
+          text: metadata?.universityName || "University Name",
+          size: 36,
+          bold: true,
+          color: "2E5090",
+        }),
+      ],
     }),
     new Paragraph({
-      text: metadata?.departmentName || "Department Name",
       alignment: AlignmentType.CENTER,
       spacing: {
         after: convertInchesToTwip(2),
       },
-      style: "Normal",
+      children: [
+        new TextRun({
+          text: metadata?.departmentName || "Department Name",
+          size: 28,
+          italics: true,
+          color: "666666",
+        }),
+      ],
     }),
     new Paragraph({
       text: "A Thesis Submitted in Partial Fulfillment",
@@ -61,19 +75,30 @@ export const generateTitlePage = (metadata?: ThesisMetadata) => {
   if (metadata?.committeeMembers?.length) {
     children.push(
       new Paragraph({
-        text: "Thesis Committee:",
         alignment: AlignmentType.CENTER,
         spacing: {
           before: convertInchesToTwip(1),
         },
-        style: "Normal",
+        children: [
+          new TextRun({
+            text: "Thesis Committee:",
+            size: 24,
+            bold: true,
+            color: "2E5090",
+          }),
+        ],
       }),
       ...metadata.committeeMembers.map(
         (member) =>
           new Paragraph({
-            text: member,
             alignment: AlignmentType.CENTER,
-            style: "Normal",
+            children: [
+              new TextRun({
+                text: member,
+                size: 24,
+                color: "666666",
+              }),
+            ],
           })
       )
     );

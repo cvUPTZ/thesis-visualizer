@@ -19,14 +19,17 @@ export const generateFigures = async (figures: Figure[]) => {
               width: figure.dimensions?.width || 400,
               height: figure.dimensions?.height || 300,
             },
-            altText: {
-              name: figure.caption || 'Figure',
+            docProperties: {
+              title: figure.caption || 'Figure',
               description: figure.altText || figure.caption || 'Figure image',
+              name: `figure-${figure.number}`,
             }
           }),
           new TextRun({
             text: `\nFigure ${figure.number}: ${figure.caption}`,
             break: 1,
+            size: 20,
+            color: "666666",
           }),
         ],
         alignment: AlignmentType.CENTER,

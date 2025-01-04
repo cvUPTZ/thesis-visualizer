@@ -3,10 +3,10 @@ import {
   TableOfContents,
   convertInchesToTwip,
 } from 'docx';
-import { ThesisContent } from './docx/types';
-import { generateTitlePage } from './docx/titlePageGenerator';
-import { generateSectionContent, generateChapterContent } from './docx/contentGenerators';
-import { defaultStyles } from './docx/styleConfig';
+import { ThesisContent } from './types';
+import { generateTitlePage } from './titlePageGenerator';
+import { generateSectionContent, generateChapterContent } from './contentGenerators';
+import { defaultStyles } from './styleConfig';
 
 const PAGE_WIDTH = convertInchesToTwip(8.5);
 const PAGE_MARGINS = {
@@ -47,8 +47,8 @@ export const generateThesisDocx = async (thesis: ThesisContent) => {
         hyperlink: true,
         headingStyleRange: "1-5",
         stylesWithLevels: [
-          { level: 1, heading: "Heading1" },
-          { level: 2, heading: "Heading2" },
+          { level: 1, style: "Heading1" },
+          { level: 2, style: "Heading2" },
         ],
       }),
       ...await generateSectionContent(thesis.frontMatter),
