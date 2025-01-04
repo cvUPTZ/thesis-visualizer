@@ -16,13 +16,19 @@ const Auth = () => {
     e.preventDefault();
     try {
       setLoading(true);
+      console.log('🔄 Attempting to sign in with:', { email });
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Sign in error:', error);
+        throw error;
+      }
       
+      console.log('✅ Sign in successful');
       toast({
         title: "Success",
         description: "Successfully signed in!",
@@ -30,6 +36,7 @@ const Auth = () => {
       
       navigate('/');
     } catch (error: any) {
+      console.error('❌ Error during sign in:', error);
       toast({
         title: "Error",
         description: error.message,
