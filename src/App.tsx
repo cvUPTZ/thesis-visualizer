@@ -1,5 +1,3 @@
-// File: src/App.tsx
-
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -13,7 +11,6 @@ import { ThesisEditor } from '@/components/ThesisEditor';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AuthLoader } from '@/components/auth/AuthLoader';
 
-
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
     <div className="space-y-4 w-full max-w-md p-8">
@@ -25,6 +22,10 @@ const LoadingFallback = () => (
 );
 
 const App = () => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  console.log('🎯 App Render State:', { isAuthenticated, loading });
+
   return (
     <div className="min-h-screen bg-background">
       <Suspense fallback={<LoadingFallback />}>
@@ -32,8 +33,18 @@ const App = () => {
           <Toaster />
           <Routes>
             {/* Public routes */}
-            <Route path="/welcome" element={<LandingPage />} />
-            <Route path="/auth" element={<Auth />} />
+            <Route 
+              path="/welcome" 
+              element={
+                isAuthenticated ? <Navigate to="/" /> : <LandingPage />
+              } 
+            />
+            <Route 
+              path="/auth" 
+              element={
+                isAuthenticated ? <Navigate to="/" /> : <Auth />
+              } 
+            />
             
             {/* Protected routes */}
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
@@ -61,6 +72,9 @@ const App = () => {
                 </AdminRoute>
               }
             />
+
+            {/* Catch-all redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </Suspense>
@@ -73,44 +87,44 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-    const { isAuthenticated, userRole, loading } = useAuth();
-     console.log('🔒 Protected Route Check:', { isAuthenticated, userRole, loading });
-    if (loading) {
-      console.log("🔒 Auth loading...")
-      return <AuthLoader />;
-    }
-    
-    if (!isAuthenticated) {
-      console.log('🚫 User not authenticated, redirecting to /auth');
-      return <Navigate to="/auth" />;
-    }
+  const { isAuthenticated, userRole, loading } = useAuth();
+  console.log('🔒 Protected Route Check:', { isAuthenticated, userRole, loading });
 
-    console.log('✅ Access granted to protected route');
-    return <>{children}</>;
+  if (loading) {
+    console.log("🔒 Auth loading...");
+    return <AuthLoader />;
+  }
+  
+  if (!isAuthenticated) {
+    console.log('🚫 User not authenticated, redirecting to /welcome');
+    return <Navigate to="/welcome" />;
+  }
+
+  console.log('✅ Access granted to protected route');
+  return <>{children}</>;
 };
 
 const AdminRoute = ({ children }: ProtectedRouteProps) => {
-    const { isAuthenticated, userRole, loading } = useAuth();
-    console.log('👑 Admin Route Check:', { isAuthenticated, userRole, loading });
+  const { isAuthenticated, userRole, loading } = useAuth();
+  console.log('👑 Admin Route Check:', { isAuthenticated, userRole, loading });
 
-    if (loading) {
-      console.log('👑 Admin Auth loading...');
-      return <AuthLoader />;
-    }
+  if (loading) {
+    console.log('👑 Admin Auth loading...');
+    return <AuthLoader />;
+  }
 
-    if (!isAuthenticated) {
-      console.log('🚫 User not authenticated, redirecting to /auth');
-      return <Navigate to="/auth" />;
-    }
+  if (!isAuthenticated) {
+    console.log('🚫 User not authenticated, redirecting to /welcome');
+    return <Navigate to="/welcome" />;
+  }
 
-    if (userRole !== 'admin') {
-      console.log('🚫 User not authorized, redirecting to /');
-      return <Navigate to="/" />;
-    }
+  if (userRole !== 'admin') {
+    console.log('🚫 User not authorized, redirecting to /');
+    return <Navigate to="/" />;
+  }
 
-    console.log('✅ Access granted to admin route');
-    return <>{children}</>;
+  console.log('✅ Access granted to admin route');
+  return <>{children}</>;
 };
-
 
 export default App;
