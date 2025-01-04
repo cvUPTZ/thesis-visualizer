@@ -23,11 +23,11 @@ const App = () => (
             <Toaster />
             <Sonner />
             <Routes>
-              {/* Public routes without loading state */}
+              {/* Public routes */}
               <Route path="/welcome" element={<LandingPage />} />
               <Route path="/auth" element={<Auth />} />
               
-              {/* Protected routes with loading state */}
+              {/* Protected routes */}
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route
                 path="/thesis/:thesisId"
@@ -53,7 +53,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading, userRole } = useAuth();
   console.log('🔒 Protected Route Check:', { isAuthenticated, loading, userRole });
 
-  if (loading) {
+  // For root route ('/'), don't show loading state
+  const isRootRoute = window.location.pathname === '/';
+  
+  if (loading && !isRootRoute) {
     console.log('⌛ Loading protected route...');
     return <div>Loading...</div>;
   }
@@ -76,11 +79,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading, userRole } = useAuth();
   console.log('👑 Admin Route Check:', { isAuthenticated, loading, userRole });
-
-  if (loading) {
-    console.log('⌛ Loading admin route...');
-    return <div>Loading...</div>;
-  }
 
   if (!isAuthenticated) {
     console.log('🚫 User not authenticated, redirecting to /auth');
