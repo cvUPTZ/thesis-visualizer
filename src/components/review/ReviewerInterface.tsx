@@ -1,57 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useThesisData } from '@/hooks/useThesisData';
-import { CommentThread, ThesisComment } from '@/types/thesis';
-import { Profile } from '@/types/profile';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { CommentList } from './CommentList';
-import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
 import { ErrorState } from '@/components/error/ErrorState';
+import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
+import { useToast } from '@/hooks/use-toast';
+import type { ThesisComment, CommentThread, Profile } from '@/types/thesis';
 
-export const ReviewerInterface = () => {
-  const { thesisId } = useParams();
-  const { thesis, isLoading, error } = useThesisData(thesisId);
+export const ReviewerInterface = ({ 
+  thesisId, 
+  sectionId,
+  currentUser 
+}: { 
+  thesisId: string;
+  sectionId: string;
+  currentUser: Profile;
+}) => {
   const [comments, setComments] = useState<CommentThread[]>([]);
-  const [reviewer, setReviewer] = useState<Profile | null>(null);
-  const [activeSection, setActiveSection] = useState<string>('');
-  const [newComment, setNewComment] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchReviewer = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+    fetchComments();
+  }, [thesisId, sectionId]);
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*, roles(name)')
-        .eq('id', session.user.id)
-        .single();
-
-      if (profileError) {
-        console.error('Error fetching reviewer profile:', profileError);
-        return;
-      }
-
-      setReviewer({
-        id: profile.id,
-        email: profile.email,
-        role: profile.roles?.name || 'user',
-        created_at: profile.created_at,
-        role_id: profile.role_id
-      });
-    };
-
-    fetchReviewer();
-  }, []);
-
-  useEffect(() => {
-    const fetchComments = async () => {
-      if (!thesis || !activeSection) return;
-
+  const fetchComments = async () => {
+    try {
+      setLoading(true);
       const { data: commentsData, error: commentsError } = await supabase
         .from('thesis_reviews')
         .select(`
@@ -62,18 +37,49 @@ export const ReviewerInterface = () => {
             role
           )
         `)
-        .eq('thesis_id', thesis.id)
-        .eq('section_id', activeSection)
-        .is('parent_id', null)
+        .eq('thesis_id', thesisId)
+        .eq('section_id', sectionId)
         .order('created_at', { ascending: true });
 
-      if (commentsError) {
-        console.error('Error fetching comments:', commentsError);
-        return;
-      }
+      if (commentsError) throw commentsError;
 
-      const { data: repliesData, error: repliesError } = await supabase
+      // Group comments into threads
+      const threads = commentsData
+        .filter(comment => !comment.parent_id)
+        .map(comment => ({
+          comment: {
+            ...comment,
+            profiles: comment.profiles as Profile
+          } as ThesisComment,
+          replies: commentsData
+            .filter(reply => reply.parent_id === comment.id)
+            .map(reply => ({
+              ...reply,
+              profiles: reply.profiles as Profile
+            })) as ThesisComment[]
+        }));
+
+      setComments(threads);
+    } catch (err: any) {
+      console.error('Error fetching comments:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReply = async (commentId: string, replyContent: string) => {
+    try {
+      const { data: newComment, error: insertError } = await supabase
         .from('thesis_reviews')
+        .insert({
+          thesis_id: thesisId,
+          section_id: sectionId,
+          reviewer_id: currentUser.id,
+          parent_id: commentId,
+          content: { text: replyContent },
+          status: 'active'
+        })
         .select(`
           *,
           profiles (
@@ -82,60 +88,32 @@ export const ReviewerInterface = () => {
             role
           )
         `)
-        .eq('thesis_id', thesis.id)
-        .not('parent_id', 'is', null)
-        .order('created_at', { ascending: true });
-
-      if (repliesError) {
-        console.error('Error fetching replies:', repliesError);
-        return;
-      }
-
-      const commentThreads = commentsData.map((comment: ThesisComment) => ({
-        comment,
-        replies: repliesData.filter((reply: ThesisComment) => reply.parent_id === comment.id)
-      }));
-
-      setComments(commentThreads);
-    };
-
-    fetchComments();
-  }, [thesis, activeSection]);
-
-  const handleReply = async (commentId: string, replyContent: string) => {
-    if (!thesis || !reviewer) return;
-
-    try {
-      const { data: newReply, error: replyError } = await supabase
-        .from('thesis_reviews')
-        .insert({
-          thesis_id: thesis.id,
-          reviewer_id: reviewer.id,
-          content: { text: replyContent },
-          parent_id: commentId,
-          section_id: activeSection,
-          status: 'pending'
-        })
-        .select()
         .single();
 
-      if (replyError) throw replyError;
+      if (insertError) throw insertError;
 
-      setComments(prevComments => {
-        const updatedComments = [...prevComments];
-        const parentComment = updatedComments.find(c => c.comment.id === commentId);
-        if (parentComment) {
-          parentComment.replies = [...(parentComment.replies || []), newReply];
-        }
-        return updatedComments;
-      });
+      // Update the comments state
+      setComments(prevComments => 
+        prevComments.map(thread => {
+          if (thread.comment.id === commentId) {
+            return {
+              ...thread,
+              replies: [...thread.replies, {
+                ...newComment,
+                profiles: newComment.profiles as Profile
+              } as ThesisComment]
+            };
+          }
+          return thread;
+        })
+      );
 
       toast({
-        title: "Reply Added",
-        description: "Your reply has been added successfully.",
+        title: "Reply added",
+        description: "Your reply has been posted successfully.",
       });
-    } catch (error) {
-      console.error('Error adding reply:', error);
+    } catch (err: any) {
+      console.error('Error adding reply:', err);
       toast({
         title: "Error",
         description: "Failed to add reply. Please try again.",
@@ -144,68 +122,16 @@ export const ReviewerInterface = () => {
     }
   };
 
-  const handleAddComment = async () => {
-    if (!thesis || !reviewer || !newComment.trim()) return;
-
-    try {
-      const { data: comment, error: commentError } = await supabase
-        .from('thesis_reviews')
-        .insert({
-          thesis_id: thesis.id,
-          reviewer_id: reviewer.id,
-          content: { text: newComment },
-          section_id: activeSection,
-          status: 'pending'
-        })
-        .select()
-        .single();
-
-      if (commentError) throw commentError;
-
-      setComments(prevComments => [...prevComments, { comment, replies: [] }]);
-      setNewComment('');
-
-      toast({
-        title: "Comment Added",
-        description: "Your comment has been added successfully.",
-      });
-    } catch (error) {
-      console.error('Error adding comment:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add comment. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (isLoading) {
-    return <LoadingSkeleton />;
-  }
-
-  if (error || !thesis) {
-    return <ErrorState error={error?.message || 'Failed to load thesis'} />;
-  }
+  if (loading) return <LoadingSkeleton />;
+  if (error) return <ErrorState error={error} onRetry={fetchComments} />;
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="space-y-4">
-        <Textarea
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Add a comment..."
-          className="min-h-[100px]"
-        />
-        <Button onClick={handleAddComment} disabled={!newComment.trim()}>
-          Add Comment
-        </Button>
-      </div>
-
-      <CommentList
-        comments={comments}
-        onReply={handleReply}
-        currentUser={reviewer}
-      />
-    </div>
+    <CommentList
+      comments={comments}
+      thesisId={thesisId}
+      sectionId={sectionId}
+      onReply={handleReply}
+      currentUser={currentUser}
+    />
   );
 };
