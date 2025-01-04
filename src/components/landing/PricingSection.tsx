@@ -9,13 +9,15 @@ const PricingTier = ({
   price, 
   features, 
   popular = false,
-  buttonVariant = "outline"
+  buttonVariant = "outline",
+  duration = "per thesis"
 }: { 
   title: string;
   price: string;
   features: string[];
   popular?: boolean;
   buttonVariant?: "outline" | "default";
+  duration?: string;
 }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -26,11 +28,12 @@ const PricingTier = ({
   >
     {popular && (
       <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-        <span className="bg-primary text-white px-4 py-1 rounded-full text-sm">Popular</span>
+        <span className="bg-primary text-white px-4 py-1 rounded-full text-sm">Most Popular</span>
       </div>
     )}
     <h3 className="text-2xl font-bold mb-4">{title}</h3>
-    <p className="text-4xl font-bold mb-6">{price}<span className="text-lg text-gray-500">/month</span></p>
+    <p className="text-4xl font-bold mb-2">{price}</p>
+    <p className="text-sm text-gray-500 mb-6">{duration}</p>
     <ul className="space-y-4 mb-8">
       {features.map((feature, index) => (
         <li key={index} className="flex items-center">
@@ -50,35 +53,41 @@ const PricingTier = ({
 export const PricingSection = () => {
   const pricingTiers = [
     {
-      title: "Free",
+      title: "Basic",
       price: "$0",
+      duration: "one thesis",
       features: [
         "Basic Thesis Editor",
         "Export to PDF/DOCX",
-        "Basic Templates"
+        "Basic Templates",
+        "14-day access"
       ]
     },
     {
-      title: "Pro",
-      price: "$10",
+      title: "Standard",
+      price: "$29",
+      duration: "per thesis",
       features: [
-        "Everything in Free",
+        "Everything in Basic",
         "Real-time Collaboration",
         "Version Control",
         "Citation Management",
-        "AI Writing Assistant"
+        "AI Writing Assistant",
+        "6 months access"
       ],
       popular: true
     },
     {
-      title: "Enterprise",
-      price: "Custom",
+      title: "Research",
+      price: "$99",
+      duration: "yearly",
       features: [
-        "Everything in Pro",
+        "Everything in Standard",
         "Priority Support",
         "Custom Templates",
+        "Multiple Thesis Support",
         "Advanced Analytics",
-        "Custom Integrations"
+        "Unlimited access"
       ]
     }
   ];
@@ -94,8 +103,8 @@ export const PricingSection = () => {
           >
             Choose Your Plan
           </motion.h2>
-          <p className="text-gray-600">
-            Select the perfect plan for your thesis writing journey
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Select the perfect plan for your academic journey - from single thesis to ongoing research
           </p>
         </div>
         
