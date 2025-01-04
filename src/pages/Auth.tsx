@@ -7,6 +7,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuthFlow } from "@/hooks/useAuthFlow";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -14,6 +16,15 @@ const Auth = () => {
   const inviteRole = searchParams.get('role');
   const { error } = useAuthFlow({ inviteThesisId, inviteRole });
   const { toast } = useToast();
+  const { isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated && !loading) {
+      console.log('User is authenticated, redirecting to home');
+      navigate('/');
+    }
+  }, [isAuthenticated, loading, navigate]);
 
   useEffect(() => {
     const cleanupSession = async () => {
@@ -50,8 +61,24 @@ const Auth = () => {
       }
     };
     
-    cleanupSession();
-  }, [toast]);
+    if (!isAuthenticated) {
+      cleanupSession();
+    }
+  }, [toast, isAuthenticated]);
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">Loading...</div>
+      </div>
+    );
+  }
+
+  // Don't show auth form if already authenticated
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
