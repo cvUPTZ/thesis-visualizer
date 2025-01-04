@@ -30,7 +30,7 @@ const Auth = () => {
         if (error.message === 'Email logins are disabled') {
           toast({
             title: "Authentication Error",
-            description: "Email login is currently disabled. Please contact the administrator.",
+            description: "Email login is currently disabled. Please enable it in Supabase Authentication settings.",
             variant: "destructive",
           });
           return;
