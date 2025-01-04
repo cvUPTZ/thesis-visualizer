@@ -8,6 +8,21 @@
 }
 
 /* Page Layout */
+
+/* Page Break Controls */
+.page-break-inside-avoid {
+    page-break-inside: avoid;
+}
+
+.page-break-after-avoid {
+    page-break-after: avoid;
+}
+
+.page-break-before-avoid {
+    page-break-before: avoid;
+}
+
+/* Update existing thesis-page class */
 .thesis-page {
     @apply bg-white shadow-lg;
     width: 8.5in;
@@ -15,7 +30,7 @@
     padding: 1in;
     position: relative;
     break-after: page;
-    margin: 0 auto;
+    margin: 0 auto 2rem;
     display: flex;
     flex-direction: column;
 }

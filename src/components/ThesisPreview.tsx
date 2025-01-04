@@ -51,8 +51,9 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     };
 
     const renderFigures = (figures: Section['figures']) => {
-        return figures.map((figure, index) => (
-            <figure key={figure.id} className="my-8 text-center">
+        if (!figures || figures.length === 0) return null;
+        return figures.map((figure) => (
+            <figure key={figure.id} className="my-8 text-center page-break-inside-avoid">
                 <img 
                     src={figure.imageUrl} 
                     alt={figure.altText}
@@ -66,8 +67,9 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     };
 
     const renderTables = (tables: Section['tables']) => {
+        if (!tables || tables.length === 0) return null;
         return tables.map((table, index) => (
-            <div key={table.id} className="my-8">
+            <div key={table.id} className="my-8 page-break-inside-avoid">
                 <div className="overflow-x-auto">
                     <div dangerouslySetInnerHTML={{ __html: table.content }} />
                 </div>
@@ -81,16 +83,25 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     };
 
     const renderCitations = (citations: Section['citations']) => {
-        return citations.map((citation) => (
-            <div key={citation.id} className="citation-reference text-sm">
-                {citation.authors.join(', ')} ({citation.year}). {citation.text}.
-                {citation.journal && ` ${citation.journal}.`}
-                {citation.doi && ` DOI: ${citation.doi}`}
+        if (!citations || citations.length === 0) return null;
+        return (
+            <div className="citations-section mt-8 border-t pt-4 page-break-inside-avoid">
+                <h3 className="text-lg font-serif mb-2">Citations</h3>
+                <div className="space-y-2">
+                    {citations.map((citation) => (
+                        <div key={citation.id} className="citation-reference text-sm">
+                            {citation.authors.join(', ')} ({citation.year}). {citation.text}.
+                            {citation.journal && ` ${citation.journal}.`}
+                            {citation.doi && ` DOI: ${citation.doi}`}
+                        </div>
+                    ))}
+                </div>
             </div>
-        ));
+        );
     };
 
     const renderAbstract = () => {
+        if (!abstractSection) return null;
         return (
             <div className="thesis-page">
                 <div className="thesis-header">
@@ -111,6 +122,8 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     };
 
     const renderSection = (section: Section, chapterTitle?: string) => {
+        if (!section) return null;
+
         if (section.type === 'title') {
             return renderTitlePage();
         }
@@ -136,36 +149,18 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
                 )}>
                     {section.type !== 'table-of-contents' && (
                         <>
-                            {chapterTitle && <h2 className="text-2xl font-serif mb-4">{section.title}</h2>}
-                            <MDEditor.Markdown source={section.content} />
+                            {chapterTitle && <h2 className="text-2xl font-serif mb-4 page-break-after-avoid">{section.title}</h2>}
+                            <div className="page-break-inside-avoid">
+                                <MDEditor.Markdown source={section.content} />
+                            </div>
                             
-                            {/* Render Figures */}
-                            {section.figures && section.figures.length > 0 && (
-                                <div className="figures-section">
-                                    {renderFigures(section.figures)}
-                                </div>
-                            )}
-
-                            {/* Render Tables */}
-                            {section.tables && section.tables.length > 0 && (
-                                <div className="tables-section">
-                                    {renderTables(section.tables)}
-                                </div>
-                            )}
-
-                            {/* Render Citations */}
-                            {section.citations && section.citations.length > 0 && (
-                                <div className="citations-section mt-8 border-t pt-4">
-                                    <h3 className="text-lg font-serif mb-2">Citations</h3>
-                                    <div className="space-y-2">
-                                        {renderCitations(section.citations)}
-                                    </div>
-                                </div>
-                            )}
+                            {renderFigures(section.figures)}
+                            {renderTables(section.tables)}
+                            {renderCitations(section.citations)}
                         </>
                     )}
                     {section.type === 'table-of-contents' && (
-                        <div className="toc-content">
+                        <div className="toc-content page-break-inside-avoid">
                             <h2 className="text-2xl font-serif mb-4">Table of Contents</h2>
                             {/* TOC content will be generated automatically */}
                         </div>
