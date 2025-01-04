@@ -7,6 +7,7 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { FeatureManagement } from '@/components/admin/FeatureManagement';
 import { IssueManagement } from '@/components/admin/IssueManagement';
 import { ThesisManagement } from '@/components/admin/ThesisManagement';
+import { SystemStats } from '@/components/admin/SystemStats';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Settings, Users, Flag, BookOpen, LayoutDashboard } from 'lucide-react';
@@ -23,7 +24,7 @@ const AdminPanel = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-6 space-y-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <Button onClick={() => navigate('/')} variant="outline">
@@ -31,6 +32,8 @@ const AdminPanel = () => {
             Back to Main
           </Button>
         </div>
+
+        <SystemStats />
         
         <Tabs defaultValue="users" className="w-full space-y-6">
           <TabsList className="grid w-full grid-cols-4 gap-4">
