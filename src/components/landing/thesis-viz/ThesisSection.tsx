@@ -16,8 +16,10 @@ interface ThesisSectionProps {
 }
 
 export const ThesisSection = ({ section, angle, radius, hoveredSection, onHover }: ThesisSectionProps) => {
-  const x = Math.cos((angle * Math.PI) / 180) * radius;
-  const y = Math.sin((angle * Math.PI) / 180) * radius;
+  // Adjust radius to ensure elements stay within circle
+  const adjustedRadius = radius * 0.8; // Reduce radius by 20% to keep elements inside
+  const x = Math.cos((angle * Math.PI) / 180) * adjustedRadius;
+  const y = Math.sin((angle * Math.PI) / 180) * adjustedRadius;
 
   return (
     <motion.div
@@ -26,7 +28,7 @@ export const ThesisSection = ({ section, angle, radius, hoveredSection, onHover 
       transition={{ duration: 0.5 }}
       className="absolute left-1/2 top-1/2"
       style={{
-        transform: `translate(${x}px, ${y}px)`,
+        transform: `translate(calc(${x}px - 50%), calc(${y}px - 50%))`,
         zIndex: hoveredSection === section.id ? 10 : 1,
       }}
       onHoverStart={() => onHover(section.id)}
@@ -34,16 +36,16 @@ export const ThesisSection = ({ section, angle, radius, hoveredSection, onHover 
     >
       <motion.div
         whileHover={{ scale: 1.1 }}
-        className={`bg-white p-4 rounded-lg shadow-lg -translate-x-1/2 -translate-y-1/2 w-48 transition-colors ${
+        className={`bg-white p-4 rounded-lg shadow-lg w-40 transition-colors ${
           hoveredSection === section.id ? 'bg-primary/5' : ''
         }`}
       >
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             {section.complete ? (
-              <CheckSquare className="text-green-500" />
+              <CheckSquare className="text-green-500" size={16} />
             ) : (
-              <Square className="text-gray-400" />
+              <Square className="text-gray-400" size={16} />
             )}
             <span className="text-sm font-medium">{section.title}</span>
           </div>

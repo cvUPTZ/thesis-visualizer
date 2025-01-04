@@ -68,14 +68,14 @@ export default function ThesisVisualization() {
           </div>
 
           {/* Progress Circle */}
-          <div className="relative h-[800px]">
+          <div className="relative h-[600px] max-w-[600px] mx-auto">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.5 }}
               className="absolute inset-0 flex items-center justify-center"
             >
-              <div className="w-[600px] h-[600px] border-4 border-dashed border-gray-200 rounded-full" />
+              <div className="w-full h-full border-4 border-dashed border-gray-200 rounded-full" />
             </motion.div>
 
             {/* Sections */}
@@ -84,14 +84,14 @@ export default function ThesisVisualization() {
                 key={section.id}
                 section={section}
                 angle={(index * 360) / sections.length}
-                radius={300}
+                radius={250} // Adjusted radius to ensure elements stay within container
                 hoveredSection={hoveredSection}
                 onHover={setHoveredSection}
               />
             ))}
 
             {/* Stats */}
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-12 flex gap-6">
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-12 flex gap-4">
               {stats.map((stat, index) => (
                 <StatCard
                   key={stat.id}
