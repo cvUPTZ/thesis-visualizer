@@ -19,13 +19,16 @@ const Auth = () => {
   const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
 
+  // Handle redirection for authenticated users
   useEffect(() => {
+    console.log('Auth state:', { isAuthenticated, loading });
     if (isAuthenticated && !loading) {
       console.log('User is authenticated, redirecting to home');
       navigate('/');
     }
   }, [isAuthenticated, loading, navigate]);
 
+  // Clean up session when not authenticated
   useEffect(() => {
     const cleanupSession = async () => {
       try {
@@ -61,13 +64,15 @@ const Auth = () => {
       }
     };
     
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !loading) {
+      console.log('User not authenticated, cleaning up session');
       cleanupSession();
     }
-  }, [toast, isAuthenticated]);
+  }, [toast, isAuthenticated, loading]);
 
   // Show loading state while checking authentication
   if (loading) {
+    console.log('Loading auth state...');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">Loading...</div>
@@ -77,9 +82,11 @@ const Auth = () => {
 
   // Don't show auth form if already authenticated
   if (isAuthenticated) {
+    console.log('User is authenticated, returning null');
     return null;
   }
 
+  console.log('Rendering auth form');
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
