@@ -9,6 +9,7 @@ import { CollaboratorInviteForm } from '../collaboration/CollaboratorInviteForm'
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { UserInfo } from './UserInfo';
 import { CollaboratorsList } from './CollaboratorsList';
+import { Collaborator } from '@/types/collaborator';
 
 interface ThesisHeaderProps {
   showPreview: boolean;
@@ -17,15 +18,6 @@ interface ThesisHeaderProps {
   thesisTitle: string;
   isAdmin?: boolean;
   thesisData: any;
-}
-
-interface Collaborator {
-  user_id: string;
-  role: string;
-  profiles?: {
-    email: string;
-    role: string;
-  };
 }
 
 export const ThesisHeader = ({ 
@@ -46,12 +38,22 @@ export const ThesisHeader = ({
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          navigate('/auth');
+          return;
+        }
+
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('email, role')
-          .eq('id', user.id)
+          .select(`
+            email,
+            roles (
+              name
+            )
+          `)
+          .eq('id', session.user.id)
           .single();
 
         if (error) {
@@ -61,22 +63,24 @@ export const ThesisHeader = ({
 
         if (profile) {
           setUserEmail(profile.email);
-          setUserRole(profile.role);
+          setUserRole(profile.roles?.name || '');
         }
 
         const { data: collaboratorData } = await supabase
           .from('thesis_collaborators')
           .select('role')
           .eq('thesis_id', thesisId)
-          .eq('user_id', user.id)
+          .eq('user_id', session.user.id)
           .single();
 
         setCurrentUserRole(collaboratorData?.role || null);
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
       }
     };
 
     fetchUserProfile();
-  }, [thesisId]);
+  }, [thesisId, navigate]);
 
   useEffect(() => {
     const fetchCollaborators = async () => {
@@ -88,7 +92,9 @@ export const ThesisHeader = ({
             role,
             profiles (
               email,
-              role
+              roles (
+                name
+              )
             )
           `)
           .eq('thesis_id', thesisId);
@@ -98,7 +104,9 @@ export const ThesisHeader = ({
           return;
         }
 
-        setCollaborators(data || []);
+        if (data) {
+          setCollaborators(data as Collaborator[]);
+        }
       } catch (error) {
         console.error('Error fetching collaborators:', error);
       }
@@ -192,45 +200,45 @@ export const ThesisHeader = ({
                 onInviteError={handleInviteError}
                 isAdmin={isAdmin}
                 setIsInviting={setIsInviting}
-                />
-              </PopoverContent>
-            </Popover>
+              />
+            </PopoverContent>
+          </Popover>
+        )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onTogglePreview}
+          className="gap-2"
+        >
+          {showPreview ? (
+            <>
+              <EyeOff className="w-4 h-4" />
+              Hide Preview
+            </>
+          ) : (
+            <>
+              <Eye className="w-4 h-4" />
+              Show Preview
+            </>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onTogglePreview}
-            className="gap-2"
-          >
-            {showPreview ? (
-              <>
-                <EyeOff className="w-4 h-4" />
-                Hide Preview
-              </>
-            ) : (
-              <>
-                <Eye className="w-4 h-4" />
-                Show Preview
-              </>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSaveToJson}
-            className="gap-2"
-          >
-            <Save className="w-4 h-4" />
-            Save as JSON
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLogout}
-          >
-            Logout
-          </Button>
-        </div>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSaveToJson}
+          className="gap-2"
+        >
+          <Save className="w-4 h-4" />
+          Save as JSON
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleLogout}
+        >
+          Logout
+        </Button>
       </div>
-    );
-  };
+    </div>
+  );
+};

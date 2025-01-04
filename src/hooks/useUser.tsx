@@ -12,6 +12,7 @@ export const useUser = () => {
   useEffect(() => {
     const loadProfile = async () => {
       try {
+        console.log('Loading user profile...');
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
           console.log('No active session found, redirecting to auth...');
@@ -55,7 +56,7 @@ export const useUser = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
       
-      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      if (event === 'SIGNED_OUT') {
         setUserEmail('');
         setUserRole('');
         navigate('/auth');
@@ -75,18 +76,22 @@ export const useUser = () => {
       setUserEmail('');
       setUserRole('');
       
-      // Then attempt to sign out from Supabase
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error during sign out:', error);
-        toast({
-          title: "Error signing out",
-          description: error.message,
-          variant: "destructive",
-        });
+      try {
+        // Then attempt to sign out from Supabase
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error('Error during sign out:', error);
+          toast({
+            title: "Error signing out",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      } catch (error: any) {
+        console.error('Error during logout:', error);
       }
       
-      // Always navigate to auth page, even if there was an error
+      // Always navigate to auth page
       console.log('Navigating to auth page...');
       navigate('/auth');
       
