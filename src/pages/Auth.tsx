@@ -48,7 +48,10 @@ const Auth = () => {
             navigate('/');
           }
         } else {
-          console.log('ℹ️ Auth Page - No active session found');
+          console.log('ℹ️ Auth Page - No active session found, redirecting to welcome page');
+          if (mounted) {
+            navigate('/welcome');
+          }
         }
       } catch (err) {
         console.error('❌ Auth Page - Error checking session:', err);
@@ -57,6 +60,9 @@ const Auth = () => {
           description: "Failed to check authentication status",
           variant: "destructive",
         });
+        if (mounted) {
+          navigate('/welcome');
+        }
       } finally {
         if (mounted) {
           setIsLoading(false);
