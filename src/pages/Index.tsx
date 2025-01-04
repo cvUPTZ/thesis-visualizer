@@ -36,6 +36,11 @@ const Index = () => {
   const { userId } = useAuth();
   const { userProfile, thesesStats, isLoading, error } = useDashboardData(userId);
 
+  if (!userId) {
+    navigate('/auth');
+    return null;
+  }
+
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 p-8">
@@ -56,7 +61,7 @@ const Index = () => {
     );
   }
 
-  if (isLoading) {
+  if (isLoading || !userProfile) {
     return <LoadingSkeleton />;
   }
 

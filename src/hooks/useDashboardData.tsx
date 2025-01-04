@@ -14,9 +14,13 @@ export const useDashboardData = (userId: string | null) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchData = async () => {
       if (!userId) {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
         return;
       }
 
@@ -31,59 +35,85 @@ export const useDashboardData = (userId: string | null) => {
             )
           `)
           .eq("id", userId)
-          .single();
+          .maybeSingle();
 
         if (profileError) {
           console.error("Error fetching profile:", profileError);
-          setError("Failed to load user profile");
+          if (isMounted) {
+            setError("Failed to load user profile");
+            toast({
+              title: "Error",
+              description: "Failed to load user profile",
+              variant: "destructive",
+            });
+          }
+          return;
+        }
+
+        if (!profile && isMounted) {
+          setError("User profile not found");
           toast({
             title: "Error",
-            description: "Failed to load user profile",
+            description: "User profile not found",
             variant: "destructive",
           });
           return;
         }
 
         console.log("Fetched profile:", profile);
-        setUserProfile(profile);
+        if (isMounted) {
+          setUserProfile(profile);
+        }
 
         console.log("Fetching theses stats for:", userId);
         const { data: theses, error: thesesError } = await supabase
           .from("thesis_collaborators")
-          .select("thesis_id")
+          .select("thesis_id, role")
           .eq("user_id", userId);
 
         if (thesesError) {
           console.error("Error fetching theses:", thesesError);
-          setError("Failed to load theses statistics");
-          toast({
-            title: "Error",
-            description: "Failed to load theses statistics",
-            variant: "destructive",
-          });
+          if (isMounted) {
+            setError("Failed to load theses statistics");
+            toast({
+              title: "Error",
+              description: "Failed to load theses statistics",
+              variant: "destructive",
+            });
+          }
           return;
         }
 
         console.log("Fetched theses:", theses);
-        setThesesStats({
-          total: theses?.length || 0,
-          inProgress: theses?.length || 0,
-          completed: 0,
-        });
+        if (isMounted) {
+          setThesesStats({
+            total: theses?.length || 0,
+            inProgress: theses?.filter(t => t.role === 'editor').length || 0,
+            completed: theses?.filter(t => t.role === 'owner').length || 0,
+          });
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
-        setError("An unexpected error occurred");
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred while loading dashboard data",
-          variant: "destructive",
-        });
+        if (isMounted) {
+          setError("An unexpected error occurred");
+          toast({
+            title: "Error",
+            description: "An unexpected error occurred while loading dashboard data",
+            variant: "destructive",
+          });
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [userId, toast]);
 
   return { userProfile, thesesStats, isLoading, error };
