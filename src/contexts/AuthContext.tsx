@@ -148,9 +148,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(true);
       console.log('🔄 Starting logout process...');
       
-      // Clear any stored session data
-      await supabase.auth.clearSession();
-      
       const { error } = await supabase.auth.signOut({
         scope: 'local'
       });
