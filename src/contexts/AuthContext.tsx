@@ -54,6 +54,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const handleSessionChange = async (session: any) => {
+    console.log('🔄 Handling session change:', session?.user?.email);
+    try {
+      if (session?.user) {
+        setUserId(session.user.id);
+        const role = await fetchUserRole(session.user.id);
+        setUserRole(role);
+        console.log('✅ Session updated successfully');
+      } else {
+        setUserId(null);
+        setUserRole(null);
+        console.log('ℹ️ Session cleared');
+      }
+    } catch (error) {
+      console.error('❌ Error handling session change:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     console.log('🔄 Setting up auth state listener...');
     let mounted = true;
@@ -70,23 +90,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (session?.user && mounted) {
           console.log('✅ Session found for user:', session.user.email);
-          setUserId(session.user.id);
-          const role = await fetchUserRole(session.user.id);
-          setUserRole(role);
-          console.log('👤 User role set to:', role);
+          await handleSessionChange(session);
         } else {
           console.log('ℹ️ No active session');
-          setUserId(null);
-          setUserRole(null);
+          if (mounted) {
+            setUserId(null);
+            setUserRole(null);
+            setLoading(false);
+          }
         }
       } catch (error) {
         console.error('❌ Error checking session:', error);
-        setUserId(null);
-        setUserRole(null);
-      } finally {
         if (mounted) {
+          setUserId(null);
+          setUserRole(null);
           setLoading(false);
-          console.log('✅ Initial auth check complete');
         }
       }
     };
@@ -103,21 +121,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      if (event === 'SIGNED_IN' && session?.user) {
-        console.log('✅ User signed in:', session.user.email);
-        setUserId(session.user.id);
-        const role = await fetchUserRole(session.user.id);
-        setUserRole(role);
-        console.log('👤 User role updated to:', role);
-        setLoading(false);
-      } else if (event === 'SIGNED_OUT') {
-        console.log('👋 User signed out');
+      if (event === 'SIGNED_IN') {
+        console.log('✅ User signed in:', session?.user?.email);
+        await handleSessionChange(session);
+      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        console.log('👋 User signed out or deleted');
         setUserId(null);
         setUserRole(null);
         setLoading(false);
         navigate('/auth');
       } else if (event === 'TOKEN_REFRESHED') {
         console.log('🔄 Token refreshed for user:', session?.user?.email);
+        await handleSessionChange(session);
       }
     });
 
@@ -133,14 +148,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(true);
       console.log('🔄 Starting logout process...');
       
-      const { error } = await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut({
+        scope: 'local'
+      });
+      
       if (error) throw error;
 
-      localStorage.removeItem('supabase.auth.token');
+      console.log('✅ Logout successful');
       setUserId(null);
       setUserRole(null);
       
-      console.log('✅ Logout successful, navigating to auth page...');
       navigate('/auth');
       
       toast({
