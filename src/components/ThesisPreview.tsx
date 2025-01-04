@@ -4,6 +4,7 @@ import MDEditor from '@uiw/react-md-editor';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { ElementPositionManager } from './thesis/preview/ElementPositionManager';
+import { GraduationCap, BookOpen, Award } from 'lucide-react';
 
 interface ThesisPreviewProps {
   thesis: Thesis;
@@ -161,23 +162,37 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     return (
       <div className="thesis-page title-page">
         <div className="thesis-title-content">
+          <div className="university-decoration">
+            <GraduationCap className="title-icon text-primary" size={48} />
+          </div>
           <div className="university-name">{thesis.metadata?.universityName || "Your University Name"}</div>
           <div className="department-name">{thesis.metadata?.departmentName || "Department of Your Field"}</div>
+          
+          <div className="thesis-decoration">
+            <BookOpen className="title-icon text-primary-light" size={36} />
+          </div>
           <div className="thesis-main-title">
             {titleSection?.content || "Untitled Thesis"}
           </div>
+          
           <div className="thesis-subtitle">
             A thesis submitted in partial fulfillment<br />
             of the requirements for the degree of<br />
             Doctor of Philosophy
           </div>
+          
+          <div className="author-decoration">
+            <Award className="title-icon text-primary" size={32} />
+          </div>
           <div className="thesis-author">
             by<br />
             {thesis.metadata?.authorName || "Author Name"}
           </div>
+          
           <div className="thesis-date">
-               {thesis.metadata?.thesisDate || "Month Year"}
+            {thesis.metadata?.thesisDate || "Month Year"}
           </div>
+          
           <div className="thesis-committee">
             Thesis Committee:<br />
             {thesis.metadata?.committeeMembers?.map((member, index) => (

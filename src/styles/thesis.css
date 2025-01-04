@@ -49,22 +49,44 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+  background: linear-gradient(to bottom, #ffffff 0%, #fafafa 100%);
 }
 
 .thesis-title-content {
   max-width: 80%;
   margin: 0 auto;
+  position: relative;
+}
+
+.university-decoration,
+.thesis-decoration,
+.author-decoration {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.title-icon {
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.title-icon:hover {
+  opacity: 1;
+  transform: scale(1.05);
 }
 
 .university-name {
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 1rem;
+  color: var(--primary);
 }
 
 .department-name {
   font-size: 1.25rem;
   margin-bottom: 3rem;
+  color: var(--primary-light);
 }
 
 .thesis-main-title {
@@ -72,27 +94,10 @@
   font-weight: 700;
   margin-bottom: 2rem;
   line-height: 1.4;
-}
-
-.thesis-subtitle {
-  font-size: 1.1rem;
-  margin-bottom: 3rem;
-  line-height: 1.6;
-}
-
-.thesis-author {
-  font-size: 1.25rem;
-  margin-bottom: 2rem;
-}
-
-.thesis-date {
-  font-size: 1.1rem;
-  margin-bottom: 2rem;
-}
-
-.thesis-committee {
-  font-size: 1rem;
-  line-height: 1.6;
+  color: var(--primary);
+  padding: 1rem;
+  border-top: 2px solid var(--primary-light);
+  border-bottom: 2px solid var(--primary-light);
 }
 
 /* Header and Footer styles */

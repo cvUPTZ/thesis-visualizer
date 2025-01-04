@@ -71,6 +71,7 @@ module.exports = {
       backgroundImage: {
         'editor-gradient': 'linear-gradient(to right, #E2E8F0, #F8FAFC)',
         'section-gradient': 'linear-gradient(to bottom, #FFFFFF, #F8FAFC)',
+        'title-gradient': 'linear-gradient(to bottom, #FFFFFF, #F8FAFC)',
       },
     },
   },
