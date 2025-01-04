@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, LogOut } from "lucide-react";
@@ -11,19 +11,52 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { motion, AnimatePresence } from "framer-motion";
 import { LoadingSkeleton } from "@/components/loading/LoadingSkeleton";
 import { ErrorState } from "@/components/error/ErrorState";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+const fetchUserProfile = async (userId: string) => {
+  console.log('🔍 Fetching user profile for:', userId);
+  const { data, error } = await supabase
+    .from('profiles')
+    .select(`
+      *,
+      roles (
+        name
+      )
+    `)
+    .eq('id', userId)
+    .single();
+
+  if (error) {
+    console.error('❌ Error fetching profile:', error);
+    throw error;
+  }
+
+  console.log('✅ Profile fetched:', data);
+  return data;
+};
 
 const Index = () => {
   const navigate = useNavigate();
   const { userId, logout, loading: authLoading } = useAuth();
-  const { userProfile, thesesStats, isLoading, error } = useDashboardData(userId);
-  const [retryCount, setRetryCount] = useState(0);
+  const { thesesStats, isLoading: statsLoading, error: statsError } = useDashboardData(userId);
+  
+  const { 
+    data: userProfile, 
+    isLoading: profileLoading, 
+    error: profileError 
+  } = useQuery({
+    queryKey: ['profile', userId],
+    queryFn: () => fetchUserProfile(userId as string),
+    enabled: !!userId,
+  });
 
   console.log('📍 Index Page - Initial Render:', { 
     userId, 
-    authLoading, 
-    isLoading, 
-    error,
-    retryCount
+    authLoading,
+    profileLoading,
+    statsLoading,
+    userProfile
   });
 
   useEffect(() => {
@@ -33,25 +66,19 @@ const Index = () => {
     }
   }, [userId, authLoading, navigate]);
 
-  const handleRetry = () => {
-    console.log('🔄 Retrying dashboard load, attempt:', retryCount + 1);
-    setRetryCount(prev => prev + 1);
-    window.location.reload();
-  };
-
-  if (authLoading || !userId) {
-    console.log('⌛ Index Page - Loading or no user:', { loading: authLoading, userId });
+  if (authLoading || !userId || profileLoading || statsLoading) {
+    console.log('⌛ Index Page - Loading state:', {
+      authLoading,
+      profileLoading,
+      statsLoading,
+      userId
+    });
     return <LoadingSkeleton />;
   }
 
-  if (error) {
-    console.log('❌ Index Page - Error state:', error);
-    return <ErrorState error={error} onRetry={handleRetry} />;
-  }
-
-  if (isLoading || !userProfile) {
-    console.log('⌛ Index Page - Loading dashboard data');
-    return <LoadingSkeleton />;
+  if (profileError || statsError) {
+    console.log('❌ Index Page - Error state:', { profileError, statsError });
+    return <ErrorState error={profileError || statsError} onRetry={() => window.location.reload()} />;
   }
 
   console.log('✅ Index Page - Render complete:', { 
