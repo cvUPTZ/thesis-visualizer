@@ -7,6 +7,9 @@ export interface CollaboratorWithProfile {
   profiles: {
     email: string;
     role_id: string;
+    roles?: {
+      name: string;
+    };
   };
 }
 
@@ -16,5 +19,8 @@ export interface Collaborator {
   profiles: {
     email: string;
     role_id: string;
+    roles?: {
+      name: string;
+    };
   };
 }

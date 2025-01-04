@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { Profile } from '@/types/profile';
 
 export const useUser = () => {
   const [userEmail, setUserEmail] = useState<string>('');
@@ -42,19 +43,25 @@ export const useUser = () => {
     };
 
     loadProfile();
-  }, []);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setUserEmail('');
+        setUserRole('');
+        navigate('/auth');
+      } else if (event === 'SIGNED_IN' && session) {
+        await loadProfile();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   const handleLogout = async () => {
     try {
-      // First check if we have a session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.log('No active session found, redirecting to auth...');
-        navigate('/auth');
-        return;
-      }
-
-      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
       console.log('Logout successful, redirecting to auth...');

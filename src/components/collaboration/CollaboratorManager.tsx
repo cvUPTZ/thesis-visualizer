@@ -1,4 +1,3 @@
-// File: src/components/collaboration/CollaboratorManager.tsx
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
@@ -88,6 +87,10 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
         });
     };
 
+    const canManageCollaboratorsProp = currentUserRole === 'owner' || 
+                                       currentUserRole === 'admin' || 
+                                       userProfile?.roles?.name === 'admin';
+
     return (
         <div>
             <div onClick={handleClearNotification} className="relative ml-auto">
@@ -113,16 +116,16 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
                           thesisTitle={thesisTitle}
                           onInviteSuccess={handleInviteSuccess}
                           onInviteError={handleInviteError}
-                          isAdmin={userProfile?.role === 'admin'}
+                          isAdmin={userProfile?.roles?.name === 'admin'}
                           setIsInviting={setIsInviting}
                         />
                     )}
                     <CollaboratorList
                         collaborators={collaborators}
                         thesisId={thesisId}
-                        canManageCollaborators={canManageCollaborators}
+                        canManageCollaborators={canManageCollaboratorsProp}
                         currentUserRole={currentUserRole}
-                        isAdmin={userProfile?.role === 'admin'}
+                        isAdmin={userProfile?.roles?.name === 'admin'}
                         onCollaboratorRemoved={fetchCollaborators}
                     />
                 </CardContent>
