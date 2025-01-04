@@ -27,7 +27,7 @@ export interface ThesisMetadata {
 export interface Chapter {
   id: string;
   title: string;
-  order: number;  // Added missing order property
+  order: number;
   sections: Section[];
 }
 
@@ -105,7 +105,6 @@ export interface Reference extends Omit<Citation, 'thesis_id'> {
 export interface ThesisComment {
   id: string;
   content: string | Json;
-  user_id?: string;  // Optional since it comes from reviewer_id
   reviewer_id: string;
   parent_id?: string;
   created_at: string;
@@ -132,4 +131,10 @@ export interface ThesisVersion {
   created_by: string;
   version_number: number;
   description: string;
+}
+
+export interface ThesisEditorProps {
+  thesis?: Thesis;
+  onSave?: (thesis: Thesis) => void;
+  readOnly?: boolean;
 }
