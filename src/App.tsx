@@ -8,38 +8,56 @@ import Auth from "./pages/Auth";
 import CreateThesis from "./pages/CreateThesis";
 import { ThesisEditor } from "@/components/ThesisEditor";
 import LandingPage from "./pages/LandingPage";
+import AdminPanel from "./pages/AdminPanel";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-
 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
- const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
-    if (loading) {
-        return <div>Loading...</div>;
-    }
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return isAuthenticated ? children : <Navigate to="/auth" />;
+};
+
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, loading, userRole } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" />;
+  }
+
+  if (userRole !== 'admin') {
+    return <Navigate to="/" />;
+  }
+
+  return children;
 };
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-       <AuthProvider>
+      <AuthProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={
-              <ProtectedRoute>
-                 <Index />
-              </ProtectedRoute>
-             } />
-               <Route path="/welcome" element={
-                <LandingPage />
-                }
-             />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/welcome" element={<LandingPage />} />
             <Route
               path="/thesis/:thesisId"
               element={
@@ -57,9 +75,17 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminPanel />
+                </AdminRoute>
+              }
+            />
           </Routes>
         </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

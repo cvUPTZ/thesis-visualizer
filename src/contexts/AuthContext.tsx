@@ -6,18 +6,21 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   userId: string | null;
+  userRole: string | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   loading: true,
   userId: null,
+  userRole: null,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -40,9 +43,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           console.log('Session verified successfully');
           setIsAuthenticated(true);
           setUserId(session.user.id);
+
+          // Fetch user role
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select(`
+              *,
+              roles (
+                name
+              )
+            `)
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+          } else if (profileData) {
+            setUserRole(profileData.roles?.name || null);
+          }
         } else {
           setIsAuthenticated(false);
           setUserId(null);
+          setUserRole(null);
         }
       } catch (error) {
         console.error('Error in checkAuth:', error);
@@ -53,15 +75,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
       
       if (event === 'SIGNED_IN' && session) {
         setIsAuthenticated(true);
         setUserId(session.user.id);
+        
+        // Fetch user role on sign in
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select(`
+            *,
+            roles (
+              name
+            )
+          `)
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+        } else if (profileData) {
+          setUserRole(profileData.roles?.name || null);
+        }
       } else if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
         setUserId(null);
+        setUserRole(null);
       }
     });
 
@@ -71,7 +112,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [toast]);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, loading, userId }}>
+    <AuthContext.Provider value={{ isAuthenticated, loading, userId, userRole }}>
       {children}
     </AuthContext.Provider>
   );
