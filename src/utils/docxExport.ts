@@ -43,8 +43,7 @@ const generateFigures = async (figures: Figure[]) => {
               width: figure.dimensions?.width || 400,
               height: figure.dimensions?.height || 300,
             },
-            altText: {
-              name: figure.caption || 'Figure',
+            docProperties: {
               title: figure.caption || 'Figure',
               description: figure.altText || figure.caption || 'Figure image',
             },
@@ -112,8 +111,8 @@ export const generateThesisDocx = async (thesis: {
         hyperlink: true,
         headingStyleRange: "1-5",
         stylesWithLevels: [
-          { level: 1, heading: "Heading1" },
-          { level: 2, heading: "Heading2" },
+          { level: 1, style: "Heading1" },
+          { level: 2, style: "Heading2" },
         ],
       }),
       ...await generateSectionContent(thesis.frontMatter),
