@@ -15,6 +15,21 @@ interface FigureListProps {
 export const FigureList = ({ figures, onRemove, onUpdate, onPreview }: FigureListProps) => {
   console.log('Rendering FigureList:', { figuresCount: figures.length });
 
+  const handleInputChange = (
+    figureId: string,
+    field: 'caption' | 'altText',
+    value: string
+  ) => {
+    const figure = figures.find(f => f.id === figureId);
+    if (figure) {
+      console.log('Updating figure:', { figureId, field, value });
+      onUpdate({
+        ...figure,
+        [field]: value
+      });
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {figures.map((figure) => (
@@ -47,14 +62,14 @@ export const FigureList = ({ figures, onRemove, onUpdate, onPreview }: FigureLis
           <CardContent className="space-y-3">
             <Input
               placeholder="Caption"
-              value={figure.caption}
-              onChange={(e) => onUpdate({ ...figure, caption: e.target.value })}
+              value={figure.caption || ''}
+              onChange={(e) => handleInputChange(figure.id, 'caption', e.target.value)}
               className="mb-2"
             />
             <Input
               placeholder="Alt Text"
-              value={figure.altText}
-              onChange={(e) => onUpdate({ ...figure, altText: e.target.value })}
+              value={figure.altText || ''}
+              onChange={(e) => handleInputChange(figure.id, 'altText', e.target.value)}
             />
           </CardContent>
         </Card>

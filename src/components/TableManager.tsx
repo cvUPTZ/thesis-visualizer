@@ -3,7 +3,7 @@ import { Table } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Trash2 } from 'lucide-react';
+import { Trash2, PlusCircle } from 'lucide-react';
 
 interface TableManagerProps {
   tables: Table[];
@@ -28,22 +28,13 @@ export const TableManager: React.FC<TableManagerProps> = ({
     onAddTable(newTable);
   };
 
-  const handleCaptionChange = (tableId: string, newCaption: string) => {
+  const handleInputChange = (tableId: string, field: keyof Table, value: string) => {
+    console.log('Updating table:', { tableId, field, value });
     const table = tables.find(t => t.id === tableId);
     if (table) {
       onUpdateTable({
         ...table,
-        caption: newCaption
-      });
-    }
-  };
-
-  const handleContentChange = (tableId: string, newContent: string) => {
-    const table = tables.find(t => t.id === tableId);
-    if (table) {
-      onUpdateTable({
-        ...table,
-        content: newContent
+        [field]: value
       });
     }
   };
@@ -56,7 +47,9 @@ export const TableManager: React.FC<TableManagerProps> = ({
           variant="outline"
           size="sm"
           onClick={handleAddTable}
+          className="flex items-center gap-2"
         >
+          <PlusCircle className="w-4 h-4" />
           Add Table
         </Button>
       </div>
@@ -67,7 +60,7 @@ export const TableManager: React.FC<TableManagerProps> = ({
               <Input
                 type="text"
                 value={table.caption || ''}
-                onChange={(e) => handleCaptionChange(table.id, e.target.value)}
+                onChange={(e) => handleInputChange(table.id, 'caption', e.target.value)}
                 className="max-w-md"
                 placeholder="Table caption"
               />
@@ -76,13 +69,13 @@ export const TableManager: React.FC<TableManagerProps> = ({
                 size="sm"
                 onClick={() => onRemoveTable(table.id)}
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-4 h-4" />
               </Button>
             </div>
             <div className="mt-4">
               <textarea
                 value={table.content || ''}
-                onChange={(e) => handleContentChange(table.id, e.target.value)}
+                onChange={(e) => handleInputChange(table.id, 'content', e.target.value)}
                 className="w-full min-h-[200px] p-2 border rounded"
                 placeholder="Enter table content (CSV format or markdown table)"
               />
