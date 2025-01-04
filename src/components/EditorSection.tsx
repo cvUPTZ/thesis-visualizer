@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Section } from '@/types/thesis';
-import { SectionContent } from './editor/section/SectionContent';
+import { SectionContent } from './editor/SectionContent';
 import { SectionHeader } from './editor/SectionHeader';
 import { SectionManagers } from './editor/SectionManagers';
 import { useToast } from '@/hooks/use-toast';

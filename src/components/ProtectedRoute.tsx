@@ -11,20 +11,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   requireAuth = true 
 }) => {
-  const { session, isLoading } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   
-  // Skip session check for public routes
+  // Skip auth check for public routes
   if (!requireAuth) {
     return <>{children}</>;
   }
 
-  // Show loading state while checking auth
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
   // Redirect to welcome page if not authenticated
-  if (!session && requireAuth) {
+  if (!isAuthenticated && requireAuth) {
     return <Navigate to="/welcome" replace />;
   }
 
