@@ -9,11 +9,11 @@ export const generateTableOfContents = (): TableOfContents => {
     stylesWithLevels: [
       {
         level: 1,
-        style: "heading 1",
+        styleName: "heading 1",
       } as StyleLevel,
       {
         level: 2,
-        style: "heading 2",
+        styleName: "heading 2",
       } as StyleLevel,
     ],
   });

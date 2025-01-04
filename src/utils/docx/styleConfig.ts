@@ -1,4 +1,4 @@
-import { HeadingLevel, Paragraph, TextRun } from 'docx';
+import { HeadingLevel, Paragraph, TextRun, IStylesOptions } from 'docx';
 
 export const styles = {
   titlePage: {
@@ -28,6 +28,40 @@ export const styles = {
     },
     normal: {
       spacing: { before: 120, after: 120 },
+    },
+  },
+};
+
+export const defaultStyles: IStylesOptions = {
+  default: {
+    heading1: {
+      run: {
+        size: 28,
+        bold: true,
+        color: '000000',
+      },
+      paragraph: {
+        spacing: { before: 240, after: 120 },
+      },
+    },
+    heading2: {
+      run: {
+        size: 24,
+        bold: true,
+        color: '000000',
+      },
+      paragraph: {
+        spacing: { before: 240, after: 120 },
+      },
+    },
+    document: {
+      run: {
+        size: 24,
+        font: 'Calibri',
+      },
+      paragraph: {
+        spacing: { line: 276 },
+      },
     },
   },
 };
