@@ -1,15 +1,7 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-
-interface AuthContextType {
-  userId: string | null;
-  loading: boolean;
-  logout: () => Promise<void>;
-  isAuthenticated: boolean;
-  userRole: string | null;
-}
+import { AuthContextType } from './auth/types';
+import { useSession } from './auth/useSession';
 
 const AuthContext = createContext<AuthContextType>({
   userId: null,
@@ -22,66 +14,16 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [userId, setUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const fetchUserRole = async (userId: string) => {
-    try {
-      console.log('🔍 Fetching user role for:', userId);
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select(`
-          roles (
-            name
-          )
-        `)
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('❌ Error fetching user role:', error);
-        throw error;
-      }
-
-      const roleName = profile?.roles?.name || null;
-      console.log('✅ User role fetched:', roleName);
-      return roleName;
-    } catch (error) {
-      console.error('❌ Error in fetchUserRole:', error);
-      throw error;
-    }
-  };
-
-  const handleSessionChange = async (session: any) => {
-    console.log('🔄 Handling session change:', session?.user?.email);
-    setLoading(true);
-    try {
-      if (session?.user) {
-        setUserId(session.user.id);
-        const role = await fetchUserRole(session.user.id);
-        setUserRole(role);
-        console.log('✅ Session updated successfully with role:', role);
-      } else {
-        setUserId(null);
-        setUserRole(null);
-        navigate('/welcome');
-        console.log('ℹ️ Session cleared, redirecting to welcome page');
-      }
-    } catch (error) {
-      console.error('❌ Error handling session change:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load user profile",
-        variant: "destructive",
-      });
-      navigate('/welcome');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    userId,
+    userRole,
+    loading,
+    handleSessionChange,
+    logout,
+    setUserId,
+    setUserRole,
+    setLoading
+  } = useSession();
 
   useEffect(() => {
     console.log('🔄 Setting up auth state listener...');
@@ -154,38 +96,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate, toast]);
-
-  const logout = async () => {
-    try {
-      setLoading(true);
-      console.log('🔄 Starting logout process...');
-      
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) throw error;
-
-      console.log('✅ Logout successful');
-      setUserId(null);
-      setUserRole(null);
-      
-      navigate('/welcome');
-      
-      toast({
-        title: "Logged out successfully",
-        description: "You have been signed out of your account.",
-      });
-    } catch (error: any) {
-      console.error('❌ Error during logout:', error);
-      toast({
-        title: "Error signing out",
-        description: error.message || "An unexpected error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ 
