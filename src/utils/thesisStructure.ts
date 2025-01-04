@@ -26,6 +26,31 @@ export const frenchThesisSections = {
   ]
 };
 
+export const arabicThesisSections = {
+  frontMatter: [
+    { type: 'title', title: 'صفحة العنوان', required: true },
+    { type: 'abstract', title: 'ملخص', required: true },
+    { type: 'acknowledgments', title: 'شكر وتقدير', required: false },
+    { type: 'table-of-contents', title: 'جدول المحتويات', required: true },
+    { type: 'list-of-figures', title: 'قائمة الأشكال', required: true },
+    { type: 'list-of-tables', title: 'قائمة الجداول', required: true },
+    { type: 'abbreviations', title: 'قائمة الاختصارات', required: false }
+  ],
+  mainMatter: [
+    { type: 'introduction', title: 'المقدمة', required: true },
+    { type: 'theoretical-framework', title: 'الإطار النظري', required: true },
+    { type: 'methodology', title: 'منهجية البحث', required: true },
+    { type: 'results', title: 'النتائج', required: true },
+    { type: 'discussion', title: 'المناقشة', required: true },
+    { type: 'conclusion', title: 'الخاتمة', required: true },
+    { type: 'recommendations', title: 'التوصيات', required: false }
+  ],
+  backMatter: [
+    { type: 'references', title: 'المراجع', required: true },
+    { type: 'appendix', title: 'الملاحق', required: false }
+  ]
+};
+
 export type ThesisSectionType = 
   | 'title'
   | 'preface'
@@ -33,12 +58,15 @@ export type ThesisSectionType =
   | 'abstract'
   | 'table-of-contents'
   | 'list-of-figures'
+  | 'list-of-tables'
   | 'abbreviations'
   | 'glossary'
   | 'introduction'
   | 'theoretical-framework'
+  | 'methodology'
   | 'empirical-study'
   | 'results'
+  | 'discussion'
   | 'conclusion'
   | 'recommendations'
   | 'postface'

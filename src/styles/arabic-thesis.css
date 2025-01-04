@@ -1,0 +1,49 @@
+/* Arabic Thesis Styles */
+.thesis-page[dir="rtl"] {
+  font-family: "Traditional Arabic", "Arial", sans-serif;
+}
+
+.thesis-page[dir="rtl"] .thesis-title-content {
+  text-align: center;
+  padding: 2rem;
+}
+
+.thesis-page[dir="rtl"] .university-decoration,
+.thesis-page[dir="rtl"] .thesis-decoration,
+.thesis-page[dir="rtl"] .author-decoration {
+  margin: 2rem auto;
+  display: flex;
+  justify-content: center;
+}
+
+.thesis-page[dir="rtl"] .title-icon {
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.thesis-page[dir="rtl"] .title-icon:hover {
+  opacity: 1;
+}
+
+.thesis-page[dir="rtl"] .thesis-main-title {
+  line-height: 1.6;
+  padding: 1rem 0;
+  position: relative;
+}
+
+.thesis-page[dir="rtl"] .thesis-subtitle,
+.thesis-page[dir="rtl"] .thesis-author,
+.thesis-page[dir="rtl"] .thesis-date,
+.thesis-page[dir="rtl"] .thesis-committee {
+  line-height: 1.8;
+}
+
+/* RTL specific adjustments */
+.thesis-page[dir="rtl"] .page-number {
+  direction: ltr;
+}
+
+.thesis-page[dir="rtl"] .thesis-header,
+.thesis-page[dir="rtl"] .thesis-footer {
+  direction: rtl;
+}

@@ -9,7 +9,7 @@ export interface Thesis {
     authorName?: string;
     thesisDate?: string;
     committeeMembers?: string[];
-    language?: 'en' | 'fr';
+    language?: 'en' | 'fr' | 'ar';
   };
   frontMatter: Section[];
   chapters: Chapter[];
