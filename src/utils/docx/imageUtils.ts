@@ -12,10 +12,9 @@ export const createImageRun = async (imageUrl: string, caption?: string): Promis
         width: 400,
         height: 300,
       },
-      docProperties: {
-        name: caption || 'Thesis figure',
-        description: caption || 'Thesis figure',
+      altText: {
         title: caption || 'Thesis figure',
+        description: caption || 'Thesis figure',
       },
     };
 

@@ -8,6 +8,7 @@ import { FeatureCard } from "@/components/landing/FeatureCard";
 import { TestimonialCard } from "@/components/landing/TestimonialCard";
 import { FeedbackForm } from "@/components/landing/FeedbackForm";
 import { DemoPreview } from "@/components/landing/DemoPreview";
+import { FeaturesComparison } from "@/components/landing/FeaturesComparison";
 
 const LandingPage = () => {
   return (
@@ -73,6 +74,9 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Features Comparison Section */}
+      <FeaturesComparison />
 
       {/* Testimonials Section */}
       <section className="py-20">
