@@ -9,6 +9,7 @@ export interface Thesis {
     authorName?: string;
     thesisDate?: string;
     committeeMembers?: string[];
+    language?: 'en' | 'fr';
   };
   frontMatter: Section[];
   chapters: Chapter[];
@@ -102,4 +103,11 @@ export type ThesisSectionType =
   | 'recommendations'
   | 'references'
   | 'appendix'
-  | 'custom';
+  | 'custom'
+  | 'preface'
+  | 'abbreviations'
+  | 'glossary'
+  | 'theoretical-framework'
+  | 'empirical-study'
+  | 'postface'
+  | 'advice';
