@@ -36,11 +36,16 @@ const Auth = () => {
           console.log('✅ Auth Page - User already authenticated:', session.user.email);
           
           // Wait for role to be loaded
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('roles (name)')
             .eq('id', session.user.id)
             .single();
+
+          if (profileError) {
+            console.error('❌ Auth Page - Error loading profile:', profileError);
+            throw profileError;
+          }
 
           console.log('👤 Auth Page - User role loaded:', profile?.roles?.name);
           
@@ -50,20 +55,17 @@ const Auth = () => {
         } else {
           console.log('ℹ️ Auth Page - No active session found');
           if (mounted) {
-            navigate('/welcome');
+            setIsLoading(false);
+            setSessionChecked(true);
           }
         }
       } catch (err) {
         console.error('❌ Auth Page - Error checking session:', err);
         toast({
           title: "Error",
-          description: "Failed to check authentication status",
+          description: "Failed to check authentication status. Please try again.",
           variant: "destructive",
         });
-        if (mounted) {
-          navigate('/welcome');
-        }
-      } finally {
         if (mounted) {
           setIsLoading(false);
           setSessionChecked(true);
@@ -104,11 +106,11 @@ const Auth = () => {
             });
             navigate('/');
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('❌ Error loading user profile:', error);
           toast({
             title: "Error",
-            description: "Failed to load user profile",
+            description: "Failed to load user profile. Please try again.",
             variant: "destructive",
           });
         } finally {
