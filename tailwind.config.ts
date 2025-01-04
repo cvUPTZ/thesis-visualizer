@@ -43,6 +43,28 @@ module.exports = {
             bg: '#FFFFFF',
             border: '#E2E8F0',
             hover: '#F7FAFC'
+          },
+          manager: {
+            figure: {
+              bg: '#EEF2FF',
+              border: '#C7D2FE',
+              icon: '#6366F1'
+            },
+            table: {
+              bg: '#F0FDF4',
+              border: '#BBF7D0',
+              icon: '#22C55E'
+            },
+            citation: {
+              bg: '#FEF2F2',
+              border: '#FECACA',
+              icon: '#EF4444'
+            },
+            reference: {
+              bg: '#FFF7ED',
+              border: '#FDBA74',
+              icon: '#F97316'
+            }
           }
         },
       },

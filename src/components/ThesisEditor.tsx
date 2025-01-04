@@ -94,6 +94,7 @@ export const ThesisEditor = () => {
     const newChapter: Chapter = {
       id: crypto.randomUUID(),
       title: 'New Chapter',
+      order: thesis.chapters.length + 1,
       sections: []
     };
     
