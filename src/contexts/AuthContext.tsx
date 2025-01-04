@@ -1,139 +1,91 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { fetchUserRole } from './auth/userRole';
-
-interface AuthContextType {
-  userId: string | null;
-  loading: boolean;
-  logout: () => Promise<void>;
-  isAuthenticated: boolean;
-  userRole: string | null;
-  setLoading: (loading: boolean) => void;
-}
-
-interface AuthProviderProps {
-  children: React.ReactNode;
-}
+import { AuthContextType } from './auth/types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userId, setUserId] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('🔄 Initializing auth context...');
-    let mounted = true;
-
-    const initializeAuth = async () => {
+    
+    const checkUser = async () => {
       try {
         console.log('🔍 Checking initial session...');
-        const { data: { session }, error } = await supabase.auth.getSession();
-
-        if (error) throw error;
-
-        if (session?.user && mounted) {
-          console.log('✅ Valid session found:', session.user.email);
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
           setUserId(session.user.id);
-          const role = await fetchUserRole(session.user.id);
-          setUserRole(role);
-        } else {
-          console.log('ℹ️ No active session');
-          setUserId(null);
-          setUserRole(null);
+          setUserEmail(session.user.email);
+          // Fetch user role from profiles table
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('roles (name)')
+            .eq('id', session.user.id)
+            .single();
+          
+          setUserRole(profile?.roles?.name || null);
         }
       } catch (error) {
-        console.error('❌ Auth initialization error:', error);
-        setUserId(null);
-        setUserRole(null);
+        console.error('Error checking user session:', error);
       } finally {
-        if (mounted) {
-          console.log('✅ Auth initialization complete');
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
-    const subscription = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth state changed:', event, session?.user?.email);
-      
-      if (!mounted) return;
+    checkUser();
 
-      try {
-        if (event === 'SIGNED_IN' && session) {
-          console.log('✅ User signed in:', session.user.email);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('🔄 Auth state changed:', event, session?.user?.email);
+        
+        if (session) {
           setUserId(session.user.id);
-          const role = await fetchUserRole(session.user.id);
-          setUserRole(role);
-        } else if (event === 'SIGNED_OUT') {
-          console.log('👋 User signed out');
+          setUserEmail(session.user.email);
+          console.log('✅ User signed in:', session.user.email);
+          
+          // Fetch user role when auth state changes
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('roles (name)')
+            .eq('id', session.user.id)
+            .single();
+          
+          setUserRole(profile?.roles?.name || null);
+        } else {
           setUserId(null);
+          setUserEmail(null);
           setUserRole(null);
-          navigate('/welcome');
         }
-      } catch (error) {
-        console.error('❌ Error handling auth state change:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update authentication state",
-          variant: "destructive",
-        });
+        setLoading(false);
       }
-    });
-
-    initializeAuth();
+    );
 
     return () => {
       console.log('🧹 Cleaning up auth context...');
-      mounted = false;
-      subscription.data.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
-  }, [navigate, toast]);
+  }, []);
 
   const logout = async () => {
-    try {
-      setLoading(true);
-      console.log('🔄 Starting logout process...');
-      
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) throw error;
-
-      console.log('✅ Logout successful');
-      setUserId(null);
-      setUserRole(null);
-      
-      toast({
-        title: "Logged out successfully",
-        description: "You have been signed out of your account.",
-      });
-      
-      navigate('/welcome');
-    } catch (error: any) {
-      console.error('❌ Error during logout:', error);
-      toast({
-        title: "Error signing out",
-        description: error.message || "An unexpected error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error('Error logging out:', error);
   };
 
+  const isAuthenticated = !!userId;
+
   return (
-    <AuthContext.Provider value={{
-      userId,
-      loading,
-      logout,
-      isAuthenticated: !!userId,
-      userRole,
-      setLoading
+    <AuthContext.Provider value={{ 
+      userId, 
+      userEmail,
+      loading, 
+      logout, 
+      isAuthenticated,
+      userRole 
     }}>
       {children}
     </AuthContext.Provider>
