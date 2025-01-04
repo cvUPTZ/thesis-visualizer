@@ -1,62 +1,71 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import CreateThesis from "./pages/CreateThesis";
-import { ThesisEditor } from "@/components/ThesisEditor";
-import LandingPage from "./pages/LandingPage";
-import AdminPanel from "./pages/AdminPanel";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import ErrorBoundary from "@/components/ErrorBoundary";
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
+import { Sonner } from '@/components/ui/sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { Auth } from '@/pages/Auth';
+import { Index } from '@/pages/Index';
+import { LandingPage } from '@/pages/LandingPage';
+import { AdminPanel } from '@/pages/AdminPanel';
+import { CreateThesis } from '@/pages/CreateThesis';
+import { ThesisEditor } from '@/components/ThesisEditor';
 
-const queryClient = new QueryClient();
+const App = () => {
+  return (
+    <>
+      <div className="min-h-screen bg-background">
+        <main>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            {/* Public routes - No loading state */}
+            <Route path="/welcome" element={<LandingPage />} />
+            <Route path="/auth" element={<Auth />} />
+            
+            {/* Protected routes - Loading state except for root and thesis routes */}
+            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route
+              path="/thesis/:thesisId"
+              element={
+                <ProtectedRoute>
+                  <ThesisEditor />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/create-thesis"
+              element={
+                <ProtectedRoute>
+                  <CreateThesis />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/*"
+              element={
+                <AdminRoute>
+                  <AdminPanel />
+                </AdminRoute>
+              }
+            />
+          </Routes>
+        </main>
+      </div>
+    </>
+  );
+};
 
-const App = () => (
-  <ErrorBoundary>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <AuthProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              {/* Public routes - No loading state */}
-              <Route path="/welcome" element={<LandingPage />} />
-              <Route path="/auth" element={<Auth />} />
-              
-              {/* Protected routes - Loading state except for root route */}
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route
-                path="/thesis/:thesisId"
-                element={<ProtectedRoute><ThesisEditor /></ProtectedRoute>}
-              />
-              <Route
-                path="/create-thesis"
-                element={<ProtectedRoute><CreateThesis /></ProtectedRoute>}
-              />
-              <Route
-                path="/admin/*"
-                element={<AdminRoute><AdminPanel /></AdminRoute>}
-              />
-            </Routes>
-          </AuthProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
-  </ErrorBoundary>
-);
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { isAuthenticated, loading, userRole } = useAuth();
+  const currentPath = window.location.pathname;
   console.log('🔒 Protected Route Check:', { isAuthenticated, loading, userRole });
 
-  // For root route ('/'), don't show loading state
-  const isRootRoute = window.location.pathname === '/';
-  
-  if (loading && !isRootRoute) {
+  // Skip loading state for root route and thesis routes
+  if (loading && currentPath !== '/' && !currentPath.startsWith('/thesis/')) {
     console.log('⌛ Loading protected route...');
     return <div>Loading...</div>;
   }
@@ -66,17 +75,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/auth" />;
   }
 
-  // Redirect admin users to admin panel
-  if (userRole === 'admin') {
-    console.log('👑 Admin user detected, redirecting to admin panel');
-    return <Navigate to="/admin" />;
-  }
-
   console.log('✅ Access granted to protected route');
-  return children;
+  return <>{children}</>;
 };
 
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+const AdminRoute = ({ children }: ProtectedRouteProps) => {
   const { isAuthenticated, loading, userRole } = useAuth();
   console.log('👑 Admin Route Check:', { isAuthenticated, loading, userRole });
 
@@ -91,12 +94,12 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (userRole !== 'admin') {
-    console.log('⛔ Non-admin user, redirecting to home');
+    console.log('🚫 User not authorized, redirecting to /');
     return <Navigate to="/" />;
   }
 
   console.log('✅ Access granted to admin route');
-  return children;
+  return <>{children}</>;
 };
 
 export default App;
