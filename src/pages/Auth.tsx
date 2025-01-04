@@ -20,6 +20,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [emailAuthEnabled, setEmailAuthEnabled] = useState(true);
 
   const handleDemoLogin = async () => {
     try {
@@ -45,6 +46,9 @@ const Auth = () => {
             title: "Demo Account Created",
             description: "You can now use the demo account to explore the app.",
           });
+        } else if (error.message === 'Email logins are disabled') {
+          setEmailAuthEnabled(false);
+          throw new Error('Email authentication is currently disabled. Please try again later.');
         } else {
           throw error;
         }
@@ -152,29 +156,37 @@ const Auth = () => {
               <AlertDescription>{error || authError}</AlertDescription>
             </Alert>
           )}
-          <SupabaseAuth
-            supabaseClient={supabase}
-            appearance={{
-              theme: ThemeSupa,
-              variables: {
-                default: {
-                  colors: {
-                    brand: '#2563eb',
-                    brandAccent: '#1d4ed8',
+          {!emailAuthEnabled ? (
+            <Alert className="mb-4">
+              <AlertDescription>
+                Email authentication is currently disabled. Please use the demo account below.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <SupabaseAuth
+              supabaseClient={supabase}
+              appearance={{
+                theme: ThemeSupa,
+                variables: {
+                  default: {
+                    colors: {
+                      brand: '#2563eb',
+                      brandAccent: '#1d4ed8',
+                    },
                   },
                 },
-              },
-            }}
-            providers={[]}
-            redirectTo={window.location.origin + '/auth'}
-          />
+              }}
+              providers={[]}
+              redirectTo={window.location.origin + '/auth'}
+            />
+          )}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                Or try the demo
+                {emailAuthEnabled ? 'Or try the demo' : 'Use demo account'}
               </span>
             </div>
           </div>
