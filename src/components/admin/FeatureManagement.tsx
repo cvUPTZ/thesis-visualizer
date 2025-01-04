@@ -1,39 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Settings, AlertTriangle, CheckCircle } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Settings } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-interface Feature {
-  id: string;
-  name: string;
-  description: string | null;
-  status: string;
-  health: string;
-  usage_data: any;
-  last_updated: string;
-}
+import { FeatureDialog } from './features/FeatureDialog';
+import { FeatureRow } from './features/FeatureRow';
 
 export const FeatureManagement = () => {
   const { toast } = useToast();
+  const [selectedFeature, setSelectedFeature] = useState<any>(null);
+  const [expandedFeatures, setExpandedFeatures] = useState<Set<string>>(new Set());
 
   const { data: features, isLoading, error, refetch } = useQuery({
     queryKey: ['features'],
@@ -50,30 +34,9 @@ export const FeatureManagement = () => {
       }
 
       console.log('Features fetched:', data);
-      return data as Feature[];
+      return data;
     }
   });
-
-  const getStatusBadge = (status: string) => {
-    const variants: { [key: string]: string } = {
-      'Active': 'bg-green-500',
-      'In Development': 'bg-blue-500',
-      'Beta': 'bg-yellow-500',
-      'Inactive': 'bg-gray-500'
-    };
-    return (
-      <Badge className={`${variants[status] || 'bg-gray-500'} text-white`}>
-        {status}
-      </Badge>
-    );
-  };
-
-  const getHealthIcon = (health: string) => {
-    if (health === 'healthy') {
-      return <CheckCircle className="text-green-500 w-5 h-5" />;
-    }
-    return <AlertTriangle className="text-yellow-500 w-5 h-5" />;
-  };
 
   const toggleFeature = async (featureId: string, currentStatus: string) => {
     try {
@@ -101,6 +64,18 @@ export const FeatureManagement = () => {
     }
   };
 
+  const toggleExpand = (featureId: string) => {
+    setExpandedFeatures(prev => {
+      const next = new Set(prev);
+      if (next.has(featureId)) {
+        next.delete(featureId);
+      } else {
+        next.add(featureId);
+      }
+      return next;
+    });
+  };
+
   if (isLoading) {
     return <div>Loading features...</div>;
   }
@@ -113,24 +88,17 @@ export const FeatureManagement = () => {
     );
   }
 
-  const formatUsageData = (usageData: any) => {
-    if (!usageData) return 'N/A';
-    if (typeof usageData === 'string') {
-      try {
-        usageData = JSON.parse(usageData);
-      } catch (e) {
-        return 'N/A';
-      }
+  const organizedFeatures = features?.reduce((acc: any, feature: any) => {
+    if (!feature.parent_id) {
+      if (!acc.main) acc.main = [];
+      acc.main.push(feature);
+    } else {
+      if (!acc.sub) acc.sub = {};
+      if (!acc.sub[feature.parent_id]) acc.sub[feature.parent_id] = [];
+      acc.sub[feature.parent_id].push(feature);
     }
-    
-    // Return the first numeric value found in usage_data
-    const numericValue = Object.values(usageData).find(value => 
-      typeof value === 'number' || 
-      (typeof value === 'string' && value.includes('%'))
-    );
-    
-    return numericValue?.toString() || 'N/A';
-  };
+    return acc;
+  }, { main: [], sub: {} });
 
   return (
     <div className="space-y-6">
@@ -155,62 +123,28 @@ export const FeatureManagement = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {features?.map((feature) => (
-              <TableRow key={feature.id}>
-                <TableCell className="font-medium">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="link" className="p-0">
-                        {feature.name}
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>{feature.name}</DialogTitle>
-                        <DialogDescription>
-                          {feature.description}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <h4 className="font-semibold">Status</h4>
-                          <p>{feature.status}</p>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold">Health</h4>
-                          <p className="flex items-center gap-2">
-                            {getHealthIcon(feature.health)}
-                            {feature.health}
-                          </p>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold">Usage Data</h4>
-                          <pre className="text-sm bg-gray-50 p-2 rounded">
-                            {JSON.stringify(feature.usage_data, null, 2)}
-                          </pre>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </TableCell>
-                <TableCell>{getStatusBadge(feature.status)}</TableCell>
-                <TableCell>{getHealthIcon(feature.health)}</TableCell>
-                <TableCell>{formatUsageData(feature.usage_data)}</TableCell>
-                <TableCell>{new Date(feature.last_updated).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toggleFeature(feature.id, feature.status)}
-                  >
-                    Toggle Status
-                  </Button>
-                </TableCell>
-              </TableRow>
+            {organizedFeatures?.main.map((feature: any) => (
+              <FeatureRow
+                key={feature.id}
+                feature={feature}
+                subFeatures={organizedFeatures.sub[feature.id] || []}
+                onToggleFeature={toggleFeature}
+                onOpenDialog={setSelectedFeature}
+                expanded={expandedFeatures.has(feature.id)}
+                onToggleExpand={() => toggleExpand(feature.id)}
+              />
             ))}
           </TableBody>
         </Table>
       </div>
+
+      {selectedFeature && (
+        <FeatureDialog
+          feature={selectedFeature}
+          open={!!selectedFeature}
+          onOpenChange={(open) => !open && setSelectedFeature(null)}
+        />
+      )}
     </div>
   );
 };

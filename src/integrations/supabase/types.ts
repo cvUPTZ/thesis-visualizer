@@ -56,8 +56,10 @@ export type Database = {
           description: string | null
           health: string
           id: string
+          is_sub_feature: boolean | null
           last_updated: string | null
           name: string
+          parent_id: string | null
           status: string
           usage_data: Json | null
         }
@@ -66,8 +68,10 @@ export type Database = {
           description?: string | null
           health?: string
           id?: string
+          is_sub_feature?: boolean | null
           last_updated?: string | null
           name: string
+          parent_id?: string | null
           status?: string
           usage_data?: Json | null
         }
@@ -76,12 +80,22 @@ export type Database = {
           description?: string | null
           health?: string
           id?: string
+          is_sub_feature?: boolean | null
           last_updated?: string | null
           name?: string
+          parent_id?: string | null
           status?: string
           usage_data?: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "features_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "features"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
