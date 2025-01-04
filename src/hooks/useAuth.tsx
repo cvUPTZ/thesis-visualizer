@@ -1,14 +1,14 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 
 export const useAuth = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>('');
   const { toast } = useToast();
 
-  const fetchUserProfile = useCallback(async (userId: string) => {
+  const fetchUserProfile = async (userId: string) => {
     try {
       console.log('Fetching user profile for:', userId);
       const { data: profile, error } = await supabase
@@ -32,7 +32,7 @@ export const useAuth = () => {
       console.error('Error in fetchUserProfile:', error);
       return null;
     }
-  }, []);
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -46,7 +46,7 @@ export const useAuth = () => {
           setUser(session.user);
           const role = await fetchUserProfile(session.user.id);
           if (mounted) {
-            setUserRole(role);
+            setUserRole(role || '');
           }
         }
       } catch (error) {
@@ -65,11 +65,11 @@ export const useAuth = () => {
         setUser(session.user);
         const role = await fetchUserProfile(session.user.id);
         if (mounted) {
-          setUserRole(role);
+          setUserRole(role || '');
         }
       } else {
         setUser(null);
-        setUserRole(null);
+        setUserRole('');
       }
       
       if (mounted) {
@@ -83,13 +83,33 @@ export const useAuth = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [fetchUserProfile]);
+  }, []);
+
+  const logout = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUser(null);
+      setUserRole('');
+    } catch (error: any) {
+      console.error('Error during logout:', error);
+      toast({
+        title: "Error signing out",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return {
     user,
     userRole,
     loading,
     isAdmin: userRole === 'admin',
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    logout
   };
 };
