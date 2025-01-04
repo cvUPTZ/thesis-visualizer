@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, ZoomIn } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 
 interface FigureListProps {
   figures: Figure[];
@@ -59,18 +60,32 @@ export const FigureList = ({ figures, onRemove, onUpdate, onPreview }: FigureLis
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Input
-              placeholder="Caption"
-              value={figure.caption || ''}
-              onChange={(e) => handleInputChange(figure.id, 'caption', e.target.value)}
-              className="mb-2"
-            />
-            <Input
-              placeholder="Alt Text"
-              value={figure.altText || ''}
-              onChange={(e) => handleInputChange(figure.id, 'altText', e.target.value)}
-            />
+          <CardContent className="space-y-4">
+            {figure.imageUrl && (
+              <img
+                src={figure.imageUrl}
+                alt={figure.altText || 'Figure preview'}
+                className="w-full h-32 object-contain bg-accent/10 rounded-lg"
+              />
+            )}
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label>Caption</Label>
+                <Input
+                  placeholder="Enter caption"
+                  value={figure.caption || ''}
+                  onChange={(e) => handleInputChange(figure.id, 'caption', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Alt Text</Label>
+                <Input
+                  placeholder="Enter alt text"
+                  value={figure.altText || ''}
+                  onChange={(e) => handleInputChange(figure.id, 'altText', e.target.value)}
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
       ))}
