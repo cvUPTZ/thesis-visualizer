@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           )
         `)
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('❌ Error fetching user role:', error);
@@ -67,7 +67,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         setUserId(null);
         setUserRole(null);
-        console.log('ℹ️ Session cleared');
+        navigate('/welcome');
+        console.log('ℹ️ Session cleared, redirecting to welcome page');
       }
     } catch (error) {
       console.error('❌ Error handling session change:', error);
@@ -76,6 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: "Failed to load user profile",
         variant: "destructive",
       });
+      navigate('/welcome');
     } finally {
       setLoading(false);
     }
@@ -99,11 +101,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           console.log('✅ Session found for user:', session.user.email);
           await handleSessionChange(session);
         } else {
-          console.log('ℹ️ No active session');
+          console.log('ℹ️ No active session found');
           if (mounted) {
             setUserId(null);
             setUserRole(null);
-            setLoading(false);
+            navigate('/welcome');
           }
         }
       } catch (error) {
@@ -112,6 +114,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUserId(null);
           setUserRole(null);
           setLoading(false);
+          navigate('/welcome');
           toast({
             title: "Error",
             description: "Failed to check authentication status",
@@ -139,7 +142,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUserId(null);
         setUserRole(null);
         setLoading(false);
-        navigate('/auth');
+        navigate('/welcome');
       } else if (event === 'TOKEN_REFRESHED') {
         console.log('🔄 Token refreshed for user:', session?.user?.email);
         await handleSessionChange(session);
@@ -166,7 +169,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUserId(null);
       setUserRole(null);
       
-      navigate('/auth');
+      navigate('/welcome');
       
       toast({
         title: "Logged out successfully",
