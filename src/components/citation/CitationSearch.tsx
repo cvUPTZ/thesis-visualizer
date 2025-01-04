@@ -39,10 +39,10 @@ export const CitationSearch = ({ onSelect }: CitationSearchProps) => {
     }
   };
 
-  const formatCitation = (result: any): Citation => {
-    // Format the API response into a Citation object
+  const formatCitation = (result: any): Omit<Citation, 'thesis_id'> => {
+    // Format the API response into a Citation object without thesis_id
     return {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       text: result.title[0],
       source: result.publisher,
       authors: result.author?.map((a: any) => `${a.given} ${a.family}`) || [''],
