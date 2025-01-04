@@ -71,8 +71,8 @@ export const generateThesisDocx = (thesis: {
         hyperlink: true,
         headingStyleRange: "1-5",
         stylesWithLevels: [
-          { level: 1, heading: "Heading1" },
-          { level: 2, heading: "Heading2" },
+          { level: 1, style: "Heading1" },
+          { level: 2, style: "Heading2" },
         ],
       }),
       ...generateSectionContent(thesis.frontMatter),
@@ -277,16 +277,20 @@ const generateSectionContent = (sections: Section[]) => {
               before: 240,
               after: 0,
             },
-          }),
-          new Paragraph({
-            text: `Table ${table.id}: ${table.caption || ''}`,
-            alignment: AlignmentType.CENTER,
-            spacing: {
-              before: 240,
-              after: 240,
-            },
           })
         );
+        if (table.caption) {
+          content.push(
+            new Paragraph({
+              text: `Table ${table.id}: ${table.caption}`,
+              alignment: AlignmentType.CENTER,
+              spacing: {
+                before: 240,
+                after: 240,
+              },
+            })
+          );
+        }
       });
     }
 
@@ -367,6 +371,11 @@ const generateFigures = (figures: Figure[]) => {
             width: figure.dimensions?.width || 400,
             height: figure.dimensions?.height || 300,
           },
+          type: 'png',
+          fallback: {
+            width: figure.dimensions?.width || 400,
+            height: figure.dimensions?.height || 300,
+          }
         }),
         new TextRun({
           text: `\nFigure ${figure.number}: ${figure.caption}`,
