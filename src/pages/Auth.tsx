@@ -18,7 +18,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [emailAuthEnabled, setEmailAuthEnabled] = useState(true);
+  const [emailAuthEnabled] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -34,7 +34,7 @@ const Auth = () => {
         }
         
         if (session?.user && mounted) {
-          console.log('✅ Active session found, redirecting to home');
+          console.log('✅ Active session found, redirecting to dashboard');
           navigate('/');
         } else {
           console.log('ℹ️ No active session found');
@@ -77,9 +77,6 @@ const Auth = () => {
       subscription.unsubscribe();
     };
   }, [navigate]);
-
-  // Removed the loading state check that showed "Checking authentication status..."
-  // Now directly render the auth form
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

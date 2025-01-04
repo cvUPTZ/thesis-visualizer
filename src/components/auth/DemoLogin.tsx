@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 export const DemoLogin = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const handleDemoLogin = async () => {
     try {
@@ -40,6 +42,7 @@ export const DemoLogin = () => {
           title: "Demo Login Successful",
           description: "You're now logged in as a demo user.",
         });
+        navigate('/');
       }
     } catch (error: any) {
       console.error('❌ Error in demo login:', error);
