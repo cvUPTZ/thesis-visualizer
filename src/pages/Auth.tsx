@@ -8,6 +8,7 @@ import { useAuthFlow } from "@/hooks/useAuthFlow";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -19,6 +20,49 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  const handleDemoLogin = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: 'demo@thesisvisualizer.com',
+        password: 'demo123456'
+      });
+
+      if (error) {
+        console.error('Demo login error:', error);
+        if (error.message === 'Invalid login credentials') {
+          // If demo user doesn't exist, create it
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: 'demo@thesisvisualizer.com',
+            password: 'demo123456'
+          });
+
+          if (signUpError) {
+            throw signUpError;
+          }
+
+          toast({
+            title: "Demo Account Created",
+            description: "You can now use the demo account to explore the app.",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Demo Login Successful",
+          description: "You're now logged in as a demo user.",
+        });
+      }
+    } catch (error: any) {
+      console.error('Error in demo login:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to login with demo account",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -102,7 +146,7 @@ const Auth = () => {
             {inviteThesisId ? 'Accept Collaboration Invitation' : 'Welcome to Thesis Visualizer'}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           {(error || authError) && (
             <Alert variant="destructive" className="mb-4">
               <AlertDescription>{error || authError}</AlertDescription>
@@ -124,6 +168,23 @@ const Auth = () => {
             providers={[]}
             redirectTo={window.location.origin + '/auth'}
           />
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or try the demo
+              </span>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleDemoLogin}
+          >
+            Try Demo Account
+          </Button>
         </CardContent>
       </Card>
     </div>
