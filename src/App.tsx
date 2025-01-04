@@ -35,6 +35,11 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (userRole !== 'admin') {
+    toast({
+      title: "Access Denied",
+      description: "You need admin privileges to access this page",
+      variant: "destructive"
+    });
     return <Navigate to="/" />;
   }
 
@@ -49,39 +54,20 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/welcome" element={<LandingPage />} />
             <Route
               path="/thesis/:thesisId"
-              element={
-                <ProtectedRoute>
-                  <ThesisEditor />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><ThesisEditor /></ProtectedRoute>}
             />
             <Route path="/auth" element={<Auth />} />
             <Route
               path="/create-thesis"
-              element={
-                <ProtectedRoute>
-                  <CreateThesis />
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><CreateThesis /></ProtectedRoute>}
             />
             <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <AdminPanel />
-                </AdminRoute>
-              }
+              path="/admin/*"
+              element={<AdminRoute><AdminPanel /></AdminRoute>}
             />
           </Routes>
         </BrowserRouter>
