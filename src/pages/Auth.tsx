@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuthFlow } from "@/hooks/useAuthFlow";
 import { useEffect, useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { DemoLogin } from "@/components/auth/DemoLogin";
+import { AuthDivider } from "@/components/auth/AuthDivider";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -16,57 +16,10 @@ const Auth = () => {
   const inviteThesisId = searchParams.get('thesisId');
   const inviteRole = searchParams.get('role');
   const { error } = useAuthFlow({ inviteThesisId, inviteRole });
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [emailAuthEnabled, setEmailAuthEnabled] = useState(true);
-
-  const handleDemoLogin = async () => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: 'demo@thesisvisualizer.com',
-        password: 'demo123456'
-      });
-
-      if (error) {
-        console.error('Demo login error:', error);
-        if (error.message === 'Invalid login credentials') {
-          // If demo user doesn't exist, create it
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: 'demo@thesisvisualizer.com',
-            password: 'demo123456'
-          });
-
-          if (signUpError) {
-            throw signUpError;
-          }
-
-          toast({
-            title: "Demo Account Created",
-            description: "You can now use the demo account to explore the app.",
-          });
-        } else if (error.message === 'Email logins are disabled') {
-          setEmailAuthEnabled(false);
-          throw new Error('Email authentication is currently disabled. Please try again later.');
-        } else {
-          throw error;
-        }
-      } else {
-        toast({
-          title: "Demo Login Successful",
-          description: "You're now logged in as a demo user.",
-        });
-      }
-    } catch (error: any) {
-      console.error('Error in demo login:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to login with demo account",
-        variant: "destructive",
-      });
-    }
-  };
 
   useEffect(() => {
     let mounted = true;
@@ -97,11 +50,6 @@ const Auth = () => {
           setIsLoading(false);
           setSessionChecked(true);
           setAuthError(err.message);
-          toast({
-            title: "Error",
-            description: "Failed to check authentication status",
-            variant: "destructive",
-          });
         }
       }
     };
@@ -129,7 +77,7 @@ const Auth = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate, toast]);
+  }, [navigate]);
 
   if (isLoading && !sessionChecked) {
     return (
@@ -180,23 +128,8 @@ const Auth = () => {
               redirectTo={window.location.origin + '/auth'}
             />
           )}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                {emailAuthEnabled ? 'Or try the demo' : 'Use demo account'}
-              </span>
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleDemoLogin}
-          >
-            Try Demo Account
-          </Button>
+          <AuthDivider />
+          <DemoLogin />
         </CardContent>
       </Card>
     </div>
