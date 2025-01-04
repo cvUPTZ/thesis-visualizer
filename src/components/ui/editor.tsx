@@ -1,109 +1,224 @@
-import React from 'react';
-import { useThesisData } from '@/hooks/useThesisData';
+import React, { useState, useRef, useCallback } from 'react';
+import { ThesisSidebar } from '../ThesisSidebar';
+import { ThesisPreview } from '../ThesisPreview';
+import { ThesisContent } from '../thesis/ThesisContent';
+import { ThesisToolbar } from '../thesis/ThesisToolbar';
+import { Chapter, Section, ThesisSectionType } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
-import { ThesisSidebar } from '@/components/ThesisSidebar';
-import { EditorSection } from '@/components/EditorSection';
-import { EditorLayout } from '@/components/editor/layout/EditorLayout';
-import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
-import { ErrorState } from '@/components/error/ErrorState';
-import { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { ThesisCreationModal } from '../thesis/ThesisCreationModal';
+import { ThesisList } from '../thesis/ThesisList';
+import { useThesisData } from '@/hooks/useThesisData';
+import { Skeleton } from './skeleton';
+import { ResizablePanel, ResizablePanelGroup, ResizableHandle } from './resizable';
+import { ScrollArea } from './scroll-area';
+import { useToast } from '@/hooks/use-toast';
 
 interface EditorProps {
   thesisId?: string;
 }
 
 export const Editor = ({ thesisId }: EditorProps) => {
+  const { toast } = useToast();
+  const [showPreview, setShowPreview] = useState(true);
   const [activeSection, setActiveSection] = useState<string>('');
   const { thesis, setThesis, isLoading, error } = useThesisData(thesisId);
 
-  // Initialize thesis if needed
+  // Initialize thesis and setup autosave
   useThesisInitialization(thesis);
-
-  // Set up autosave
   useThesisAutosave(thesis);
 
+  const handleContentChange = useCallback((sectionId: string, content: string) => {
+    if (!thesis) return;
+
+    setThesis((prevThesis) => {
+      if (!prevThesis) return prevThesis;
+
+      const updatedThesis = { ...prevThesis };
+      
+      // Update front matter
+      const frontMatterIndex = updatedThesis.frontMatter.findIndex(s => s.id === sectionId);
+      if (frontMatterIndex !== -1) {
+        updatedThesis.frontMatter[frontMatterIndex] = {
+          ...updatedThesis.frontMatter[frontMatterIndex],
+          content
+        };
+        return updatedThesis;
+      }
+
+      // Update chapters
+      const updatedChapters = updatedThesis.chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.map(section =>
+          section.id === sectionId ? { ...section, content } : section
+        )
+      }));
+      updatedThesis.chapters = updatedChapters;
+
+      // Update back matter
+      const backMatterIndex = updatedThesis.backMatter.findIndex(s => s.id === sectionId);
+      if (backMatterIndex !== -1) {
+        updatedThesis.backMatter[backMatterIndex] = {
+          ...updatedThesis.backMatter[backMatterIndex],
+          content
+        };
+      }
+
+      return updatedThesis;
+    });
+  }, [setThesis]);
+
+  const handleTitleChange = useCallback((sectionId: string, title: string) => {
+    if (!thesis) return;
+
+    setThesis((prevThesis) => {
+      if (!prevThesis) return prevThesis;
+
+      const updatedThesis = { ...prevThesis };
+      
+      // Update front matter
+      const frontMatterIndex = updatedThesis.frontMatter.findIndex(s => s.id === sectionId);
+      if (frontMatterIndex !== -1) {
+        updatedThesis.frontMatter[frontMatterIndex] = {
+          ...updatedThesis.frontMatter[frontMatterIndex],
+          title
+        };
+        return updatedThesis;
+      }
+
+      // Update chapters
+      const updatedChapters = updatedThesis.chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.map(section =>
+          section.id === sectionId ? { ...section, title } : section
+        )
+      }));
+      updatedThesis.chapters = updatedChapters;
+
+      // Update back matter
+      const backMatterIndex = updatedThesis.backMatter.findIndex(s => s.id === sectionId);
+      if (backMatterIndex !== -1) {
+        updatedThesis.backMatter[backMatterIndex] = {
+          ...updatedThesis.backMatter[backMatterIndex],
+          title
+        };
+      }
+
+      return updatedThesis;
+    });
+  }, [setThesis]);
+
+  const getAllSections = useCallback(() => {
+    if (!thesis) return [];
+    return [
+      ...thesis.frontMatter,
+      ...thesis.chapters.flatMap(chapter => chapter.sections),
+      ...thesis.backMatter
+    ];
+  }, [thesis]);
+
   if (isLoading) {
-    return <LoadingSkeleton />;
+    return (
+      <div className="p-8">
+        <Skeleton className="h-[200px] w-full" />
+      </div>
+    );
   }
 
-  if (error || !thesis) {
-    return <ErrorState error={error} />;
+  if (error) {
+    console.error('Error loading thesis:', error);
+    return (
+      <div className="p-8 text-red-500">
+        Error loading thesis: {error.message}
+      </div>
+    );
   }
 
-  const handleContentChange = (id: string, content: string) => {
-    if (!thesis) return;
-
-    const updatedThesis = {
-      ...thesis,
-      frontMatter: thesis.frontMatter.map(section =>
-        section.id === id ? { ...section, content } : section
-      ),
-      chapters: thesis.chapters.map(chapter => ({
-        ...chapter,
-        sections: chapter.sections.map(section =>
-          section.id === id ? { ...section, content } : section
-        ),
-      })),
-      backMatter: thesis.backMatter.map(section =>
-        section.id === id ? { ...section, content } : section
-      ),
-    };
-
-    setThesis(updatedThesis);
-  };
-
-  const handleTitleChange = (id: string, title: string) => {
-    if (!thesis) return;
-
-    const updatedThesis = {
-      ...thesis,
-      frontMatter: thesis.frontMatter.map(section =>
-        section.id === id ? { ...section, title } : section
-      ),
-      chapters: thesis.chapters.map(chapter => ({
-        ...chapter,
-        sections: chapter.sections.map(section =>
-          section.id === id ? { ...section, title } : section
-        ),
-      })),
-      backMatter: thesis.backMatter.map(section =>
-        section.id === id ? { ...section, title } : section
-      ),
-    };
-
-    setThesis(updatedThesis);
-  };
-
-  // Combine all sections for the sidebar
-  const allSections = [
-    ...thesis.frontMatter,
-    ...thesis.chapters.flatMap(chapter => chapter.sections),
-    ...thesis.backMatter,
-  ];
-
-  // Find the active section
-  const currentSection = allSections.find(section => section.id === activeSection);
+  if (!thesis) {
+    return (
+      <div className="p-8">
+        <ThesisCreationModal />
+        <ThesisList />
+      </div>
+    );
+  }
 
   return (
-    <EditorLayout
-      sidebar={
-        <ThesisSidebar
-          sections={allSections}
-          activeSection={activeSection}
-          onSectionSelect={setActiveSection}
+    <div className="h-screen flex flex-col">
+      <div className="border-b p-4">
+        <ThesisToolbar
+          thesisId={thesis.id}
+          thesisData={thesis}
+          showPreview={showPreview}
+          onTogglePreview={() => setShowPreview(!showPreview)}
         />
-      }
-      content={
-        currentSection && (
-          <EditorSection
-            section={currentSection}
-            isActive={true}
-            onContentChange={handleContentChange}
-            onTitleChange={handleTitleChange}
+      </div>
+
+      <ResizablePanelGroup direction="horizontal" className="flex-grow">
+        <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+          <ThesisSidebar
+            sections={getAllSections()}
+            activeSection={activeSection}
+            onSectionSelect={setActiveSection}
           />
-        )
-      }
-    />
+        </ResizablePanel>
+
+        <ResizableHandle withHandle />
+
+        <ResizablePanel defaultSize={showPreview ? 40 : 80}>
+          <ScrollArea className="h-full">
+            <div className="p-6">
+              <ThesisContent
+                frontMatter={thesis.frontMatter}
+                chapters={thesis.chapters}
+                backMatter={thesis.backMatter}
+                activeSection={activeSection}
+                onContentChange={handleContentChange}
+                onTitleChange={handleTitleChange}
+                onUpdateChapter={(chapter) => {
+                  setThesis(prev => {
+                    if (!prev) return prev;
+                    return {
+                      ...prev,
+                      chapters: prev.chapters.map(c =>
+                        c.id === chapter.id ? chapter : c
+                      )
+                    };
+                  });
+                }}
+                onAddChapter={() => {
+                  setThesis(prev => {
+                    if (!prev) return prev;
+                    const newChapter: Chapter = {
+                      id: Date.now().toString(),
+                      title: 'New Chapter',
+                      sections: []
+                    };
+                    return {
+                      ...prev,
+                      chapters: [...prev.chapters, newChapter]
+                    };
+                  });
+                }}
+              />
+            </div>
+          </ScrollArea>
+        </ResizablePanel>
+
+        {showPreview && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={40}>
+              <ScrollArea className="h-full">
+                <div className="p-6">
+                  <ThesisPreview thesis={thesis} />
+                </div>
+              </ScrollArea>
+            </ResizablePanel>
+          </>
+        )}
+      </ResizablePanelGroup>
+    </div>
   );
 };
