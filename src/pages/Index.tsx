@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, LogOut } from "lucide-react";
@@ -11,45 +11,51 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { motion, AnimatePresence } from "framer-motion";
 import { LoadingSkeleton } from "@/components/loading/LoadingSkeleton";
 import { ErrorState } from "@/components/error/ErrorState";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-const fetchUserProfile = async (userId: string) => {
-  console.log('🔍 Fetching user profile for:', userId);
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(`
-      *,
-      roles (
-        name
-      )
-    `)
-    .eq('id', userId)
-    .single();
-
-  if (error) {
-    console.error('❌ Error fetching profile:', error);
-    throw error;
-  }
-
-  console.log('✅ Profile fetched:', data);
-  return data;
-};
 
 const Index = () => {
   const navigate = useNavigate();
   const { userId, logout, loading: authLoading } = useAuth();
   const { thesesStats, isLoading: statsLoading, error: statsError } = useDashboardData(userId);
-  
-  const { 
-    data: userProfile, 
-    isLoading: profileLoading, 
-    error: profileError 
-  } = useQuery({
-    queryKey: ['profile', userId],
-    queryFn: () => fetchUserProfile(userId as string),
-    enabled: !!userId,
-  });
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!userId) return;
+
+      try {
+        console.log('🔍 Fetching user profile for:', userId);
+        const { data, error } = await supabase
+          .from('profiles')
+          .select(`
+            *,
+            roles (
+              name
+            )
+          `)
+          .eq('id', userId)
+          .single();
+
+        if (error) {
+          console.error('❌ Error fetching profile:', error);
+          setProfileError(error.message);
+          return;
+        }
+
+        console.log('✅ Profile fetched:', data);
+        setUserProfile(data);
+      } catch (error) {
+        console.error('❌ Unexpected error:', error);
+        setProfileError('An unexpected error occurred');
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [userId]);
 
   console.log('📍 Index Page - Initial Render:', { 
     userId, 
@@ -78,7 +84,7 @@ const Index = () => {
 
   if (profileError || statsError) {
     console.log('❌ Index Page - Error state:', { profileError, statsError });
-    return <ErrorState error={profileError || statsError} onRetry={() => window.location.reload()} />;
+    return <ErrorState error={profileError || statsError || 'Unknown error'} onRetry={() => window.location.reload()} />;
   }
 
   console.log('✅ Index Page - Render complete:', { 
