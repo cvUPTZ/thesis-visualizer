@@ -23,7 +23,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <Routes>
-              {/* Public routes */}
+              {/* Public routes - no auth check needed */}
               <Route path="/welcome" element={<LandingPage />} />
               <Route path="/auth" element={<Auth />} />
               
@@ -41,6 +41,9 @@ const App = () => (
                 path="/admin/*"
                 element={<AdminRoute><AdminPanel /></AdminRoute>}
               />
+
+              {/* Fallback route */}
+              <Route path="*" element={<Navigate to="/welcome" replace />} />
             </Routes>
           </AuthProvider>
         </TooltipProvider>
@@ -79,6 +82,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading, userRole } = useAuth();
   console.log('👑 Admin Route Check:', { isAuthenticated, loading, userRole });
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   if (!isAuthenticated) {
     console.log('🚫 User not authenticated, redirecting to /auth');
