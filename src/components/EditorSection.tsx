@@ -24,87 +24,94 @@ export const EditorSection = ({
   if (!isActive) return null;
 
   return (
-    <div className="editor-section">
-      <div className="flex items-center gap-3 mb-4">
-        <Input
-          value={section.title}
-          onChange={(e) => onTitleChange(section.id, e.target.value)}
-          className="text-xl font-serif border-none bg-transparent px-0 focus-visible:ring-0"
-        />
-        {section.required && (
-          <Badge variant="secondary">Required</Badge>
-        )}
-      </div>
-      <div className="mb-6">
-        <MarkdownEditor
-          value={section.content}
-          onChange={(value) => onContentChange(section.id, value || '')}
-          placeholder="Start writing..."
-        />
-      </div>
-      <div className="space-y-8">
-        <FigureManager
-          figures={section.figures}
-          onAddFigure={(figure) => {
-            section.figures.push(figure);
-            onContentChange(section.id, section.content);
-          }}
-          onRemoveFigure={(id) => {
-            section.figures = section.figures.filter(f => f.id !== id);
-            onContentChange(section.id, section.content);
-          }}
-          onUpdateFigure={(figure) => {
-            section.figures = section.figures.map(f => f.id === figure.id ? figure : f);
-            onContentChange(section.id, section.content);
-          }}
-        />
-        <TableManager
-          tables={section.tables}
-          onAddTable={(table) => {
-            section.tables.push(table);
-            onContentChange(section.id, section.content);
-          }}
-          onRemoveTable={(id) => {
-            section.tables = section.tables.filter(t => t.id !== id);
-            onContentChange(section.id, section.content);
-          }}
-          onUpdateTable={(table) => {
-            section.tables = section.tables.map(t => t.id === table.id ? table : t);
-            onContentChange(section.id, section.content);
-          }}
-        />
-        <CitationManager
-          citations={section.citations}
-          onAddCitation={(citation) => {
-            section.citations.push(citation);
-            onContentChange(section.id, section.content);
-          }}
-          onRemoveCitation={(id) => {
-            section.citations = section.citations.filter(c => c.id !== id);
-            onContentChange(section.id, section.content);
-          }}
-          onUpdateCitation={(citation) => {
-            section.citations = section.citations.map(c => c.id === citation.id ? citation : c);
-            onContentChange(section.id, section.content);
-          }}
-        />
-        {section.type === 'references' && section.references && (
-          <ReferenceManager
-            references={section.references}
-            onAddReference={(reference) => {
-              section.references = [...(section.references || []), reference];
+    <div className="editor-section animate-fade-in bg-editor-bg border border-editor-border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+      <div className="p-6 space-y-6">
+        <div className="flex items-center gap-3">
+          <Input
+            value={section.title}
+            onChange={(e) => onTitleChange(section.id, e.target.value)}
+            className="text-xl font-serif border-none bg-transparent px-0 focus-visible:ring-0 text-editor-text placeholder:text-editor-placeholder"
+            placeholder="Section Title"
+          />
+          {section.required && (
+            <Badge variant="secondary" className="bg-editor-accent/10 text-editor-accent">
+              Required
+            </Badge>
+          )}
+        </div>
+        
+        <div className="relative">
+          <MarkdownEditor
+            value={section.content}
+            onChange={(value) => onContentChange(section.id, value || '')}
+            placeholder="Start writing..."
+          />
+        </div>
+
+        <div className="space-y-8 pt-4 border-t border-editor-border">
+          <FigureManager
+            figures={section.figures}
+            onAddFigure={(figure) => {
+              section.figures.push(figure);
               onContentChange(section.id, section.content);
             }}
-            onRemoveReference={(id) => {
-              section.references = section.references?.filter(r => r.id !== id);
+            onRemoveFigure={(id) => {
+              section.figures = section.figures.filter(f => f.id !== id);
               onContentChange(section.id, section.content);
             }}
-            onUpdateReference={(reference) => {
-              section.references = section.references?.map(r => r.id === reference.id ? reference : r);
+            onUpdateFigure={(figure) => {
+              section.figures = section.figures.map(f => f.id === figure.id ? figure : f);
               onContentChange(section.id, section.content);
             }}
           />
-        )}
+          <TableManager
+            tables={section.tables}
+            onAddTable={(table) => {
+              section.tables.push(table);
+              onContentChange(section.id, section.content);
+            }}
+            onRemoveTable={(id) => {
+              section.tables = section.tables.filter(t => t.id !== id);
+              onContentChange(section.id, section.content);
+            }}
+            onUpdateTable={(table) => {
+              section.tables = section.tables.map(t => t.id === table.id ? table : t);
+              onContentChange(section.id, section.content);
+            }}
+          />
+          <CitationManager
+            citations={section.citations}
+            onAddCitation={(citation) => {
+              section.citations.push(citation);
+              onContentChange(section.id, section.content);
+            }}
+            onRemoveCitation={(id) => {
+              section.citations = section.citations.filter(c => c.id !== id);
+              onContentChange(section.id, section.content);
+            }}
+            onUpdateCitation={(citation) => {
+              section.citations = section.citations.map(c => c.id === citation.id ? citation : c);
+              onContentChange(section.id, section.content);
+            }}
+          />
+          {section.type === 'references' && section.references && (
+            <ReferenceManager
+              references={section.references}
+              onAddReference={(reference) => {
+                section.references = [...(section.references || []), reference];
+                onContentChange(section.id, section.content);
+              }}
+              onRemoveReference={(id) => {
+                section.references = section.references?.filter(r => r.id !== id);
+                onContentChange(section.id, section.content);
+              }}
+              onUpdateReference={(reference) => {
+                section.references = section.references?.map(r => r.id === reference.id ? reference : r);
+                onContentChange(section.id, section.content);
+              }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
