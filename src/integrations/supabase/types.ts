@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      app_issues: {
+        Row: {
+          browser_info: string | null
+          component_name: string | null
+          created_at: string
+          error_message: string
+          error_stack: string | null
+          id: string
+          route_path: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser_info?: string | null
+          component_name?: string | null
+          created_at?: string
+          error_message: string
+          error_stack?: string | null
+          id?: string
+          route_path?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser_info?: string | null
+          component_name?: string | null
+          created_at?: string
+          error_message?: string
+          error_stack?: string | null
+          id?: string
+          route_path?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_issues_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
