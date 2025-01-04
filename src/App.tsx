@@ -1,4 +1,3 @@
-// File: src/App.tsx
 import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -22,14 +21,19 @@ const LoadingFallback = () => (
   </div>
 );
 
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requiredRole?: string;
+}
+
 const App = () => {
     const { loading } = useAuth();
     if (loading) {
         return <LoadingFallback />
     }
 
-    const ProtectedRoute = withAuthorization(({ children }) => <>{children}</>);
-    const AdminRoute = withAuthorization(({ children }) => <>{children}</>);
+    const ProtectedRoute = withAuthorization(({ children }: ProtectedRouteProps) => <>{children}</>);
+    const AdminRoute = withAuthorization(({ children }: ProtectedRouteProps) => <>{children}</>);
 
   return (
     <div className="min-h-screen bg-background">

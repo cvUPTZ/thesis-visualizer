@@ -92,7 +92,7 @@ export const EditorSection = ({
 
         <SectionManagers
           section={section}
-          onUpdate={handleContentChange}
+          handleContentChange={handleContentChange}
         />
       </div>
     </div>

@@ -4,28 +4,29 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface WithAuthorizationProps {
   children: React.ReactNode;
-  requiredRole?: string | null;
+  requiredRole?: string;
 }
 
-const withAuthorization = (WrappedComponent: React.ComponentType) => {
+const withAuthorization = (WrappedComponent: React.ComponentType<WithAuthorizationProps>) => {
   const WithAuthorization: React.FC<WithAuthorizationProps> = ({ children, requiredRole }) => {
     const { isAuthenticated, userRole, loading } = useAuth();
 
-      if(loading) {
-          return <></>
-      }
+    if(loading) {
+      return <></>;
+    }
 
     if (!isAuthenticated) {
-        console.log('🚫 User not authenticated, redirecting to /auth');
+      console.log('🚫 User not authenticated, redirecting to /auth');
       return <Navigate to="/auth" />;
     }
 
-      if (requiredRole && userRole !== requiredRole) {
-          console.log('🚫 User not authorized, redirecting to /');
-        return <Navigate to="/" />;
+    if (requiredRole && userRole !== requiredRole) {
+      console.log('🚫 User not authorized, redirecting to /');
+      return <Navigate to="/" />;
     }
-      console.log('✅ Access granted to route with role:', userRole);
-    return <WrappedComponent>{children}</WrappedComponent>;
+    
+    console.log('✅ Access granted to route with role:', userRole);
+    return <WrappedComponent children={children} requiredRole={requiredRole} />;
   };
 
   return WithAuthorization;
