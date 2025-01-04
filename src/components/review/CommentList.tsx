@@ -1,24 +1,35 @@
 import React from 'react';
-import { CommentThread } from '@/types/thesis';
+import { CommentThread as CommentThreadType } from '@/types/thesis';
 import { Profile } from '@/types/profile';
-import { CommentThread as CommentThreadComponent } from './CommentThread';
+import { CommentThread } from './CommentThread';
 
 interface CommentListProps {
-  comments: CommentThread[];
+  comments: CommentThreadType[];
   onReply: (commentId: string, content: string) => void;
   currentUser: Profile | null;
+  thesisId: string;
+  sectionId: string;
 }
 
-export const CommentList = ({ comments, onReply, currentUser }: CommentListProps) => {
+export const CommentList = ({ 
+  comments, 
+  onReply, 
+  currentUser,
+  thesisId,
+  sectionId 
+}: CommentListProps) => {
   return (
     <div className="space-y-6">
       {comments.map((thread) => (
-        <CommentThreadComponent
+        <CommentThread
           key={thread.comment.id}
           comment={thread.comment}
           replies={thread.replies}
           onReply={onReply}
           currentUser={currentUser}
+          thesisId={thesisId}
+          sectionId={sectionId}
+          onReplyAdded={() => {}}
         />
       ))}
     </div>

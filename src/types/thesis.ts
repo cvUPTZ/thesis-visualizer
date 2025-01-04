@@ -1,3 +1,5 @@
+import { Json } from '@/integrations/supabase/types';
+
 export interface Thesis {
   id: string;
   title: string;
@@ -103,7 +105,7 @@ export interface Reference extends Omit<Citation, 'thesis_id'> {
 export interface ThesisComment {
   id: string;
   content: string | Json;
-  user_id?: string;  // Made optional since it comes from reviewer_id
+  user_id?: string;  // Optional since it comes from reviewer_id
   reviewer_id: string;
   parent_id?: string;
   created_at: string;

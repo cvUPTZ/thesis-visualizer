@@ -1,224 +1,194 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { ThesisSidebar } from '../ThesisSidebar';
-import { ThesisPreview } from '../ThesisPreview';
-import { ThesisContent } from '../thesis/ThesisContent';
-import { ThesisToolbar } from '../thesis/ThesisToolbar';
-import { Chapter, Section, ThesisSectionType } from '@/types/thesis';
-import { useThesisAutosave } from '@/hooks/useThesisAutosave';
-import { useThesisInitialization } from '@/hooks/useThesisInitialization';
-import { useParams } from 'react-router-dom';
-import { ThesisCreationModal } from '../thesis/ThesisCreationModal';
-import { ThesisList } from '../thesis/ThesisList';
-import { useThesisData } from '@/hooks/useThesisData';
-import { Skeleton } from './skeleton';
-import { ResizablePanel, ResizablePanelGroup, ResizableHandle } from './resizable';
-import { ScrollArea } from './scroll-area';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from 'react';
+import { Chapter, Section } from '@/types/thesis';
+import { MarkdownEditor } from '../MarkdownEditor';
+import { FigureManager } from '../FigureManager';
+import { TableManager } from '../TableManager';
+import { CitationManager } from '../CitationManager';
+import { ReferenceManager } from '../ReferenceManager';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { PlusCircle } from 'lucide-react';
 
-interface EditorProps {
-  thesisId?: string;
+interface ThesisContentProps {
+  frontMatter: Section[];
+  chapters: Chapter[];
+  backMatter: Section[];
+  activeSection: string;
+  onContentChange: (id: string, content: string) => void;
+  onTitleChange: (id: string, title: string) => void;
+  onUpdateChapter: (chapter: Chapter) => void;
+  onAddChapter: () => void;
 }
 
-export const Editor = ({ thesisId }: EditorProps) => {
-  const { toast } = useToast();
-  const [showPreview, setShowPreview] = useState(true);
-  const [activeSection, setActiveSection] = useState<string>('');
-  const { thesis, setThesis, isLoading, error } = useThesisData(thesisId);
+export const ThesisContent = ({
+    frontMatter,
+    chapters,
+    backMatter,
+    activeSection,
+    onContentChange,
+    onTitleChange,
+    onUpdateChapter,
+    onAddChapter
+}: ThesisContentProps) => {
 
-  // Initialize thesis and setup autosave
-  useThesisInitialization(thesis);
-  useThesisAutosave(thesis);
+    const handleAddSection = (chapterId: string) => {
+        const chapter = chapters.find((c) => c.id === chapterId);
+        if (!chapter) return;
 
-  const handleContentChange = useCallback((sectionId: string, content: string) => {
-    if (!thesis) return;
-
-    setThesis((prevThesis) => {
-      if (!prevThesis) return prevThesis;
-
-      const updatedThesis = { ...prevThesis };
-      
-      // Update front matter
-      const frontMatterIndex = updatedThesis.frontMatter.findIndex(s => s.id === sectionId);
-      if (frontMatterIndex !== -1) {
-        updatedThesis.frontMatter[frontMatterIndex] = {
-          ...updatedThesis.frontMatter[frontMatterIndex],
-          content
+        const newSection: Section = {
+            id: Date.now().toString(),
+            title: 'New Section',
+            content: '',
+            type: 'custom',
+            order: chapter.sections.length + 1,
+            figures: [],
+            tables: [],
+            citations: [],
+            references: []
         };
-        return updatedThesis;
-      }
-
-      // Update chapters
-      const updatedChapters = updatedThesis.chapters.map(chapter => ({
-        ...chapter,
-        sections: chapter.sections.map(section =>
-          section.id === sectionId ? { ...section, content } : section
-        )
-      }));
-      updatedThesis.chapters = updatedChapters;
-
-      // Update back matter
-      const backMatterIndex = updatedThesis.backMatter.findIndex(s => s.id === sectionId);
-      if (backMatterIndex !== -1) {
-        updatedThesis.backMatter[backMatterIndex] = {
-          ...updatedThesis.backMatter[backMatterIndex],
-          content
+        
+        const introductionSection: Section = {
+            id: Date.now().toString() + "-intro",
+            title: 'Introduction',
+            content: 'Introduction',
+             type: 'custom',
+             order: 1,
+             figures: [],
+             tables: [],
+             citations: [],
+             references: []
         };
-      }
+        
 
-      return updatedThesis;
-    });
-  }, [setThesis]);
+        onUpdateChapter({
+            ...chapter,
+            sections: [introductionSection, ...chapter.sections, newSection]
+        });
+    };
+  const renderSectionContent = (section: Section) => {
+    const isActive = activeSection === section.id;
 
-  const handleTitleChange = useCallback((sectionId: string, title: string) => {
-    if (!thesis) return;
-
-    setThesis((prevThesis) => {
-      if (!prevThesis) return prevThesis;
-
-      const updatedThesis = { ...prevThesis };
-      
-      // Update front matter
-      const frontMatterIndex = updatedThesis.frontMatter.findIndex(s => s.id === sectionId);
-      if (frontMatterIndex !== -1) {
-        updatedThesis.frontMatter[frontMatterIndex] = {
-          ...updatedThesis.frontMatter[frontMatterIndex],
-          title
-        };
-        return updatedThesis;
-      }
-
-      // Update chapters
-      const updatedChapters = updatedThesis.chapters.map(chapter => ({
-        ...chapter,
-        sections: chapter.sections.map(section =>
-          section.id === sectionId ? { ...section, title } : section
-        )
-      }));
-      updatedThesis.chapters = updatedChapters;
-
-      // Update back matter
-      const backMatterIndex = updatedThesis.backMatter.findIndex(s => s.id === sectionId);
-      if (backMatterIndex !== -1) {
-        updatedThesis.backMatter[backMatterIndex] = {
-          ...updatedThesis.backMatter[backMatterIndex],
-          title
-        };
-      }
-
-      return updatedThesis;
-    });
-  }, [setThesis]);
-
-  const getAllSections = useCallback(() => {
-    if (!thesis) return [];
-    return [
-      ...thesis.frontMatter,
-      ...thesis.chapters.flatMap(chapter => chapter.sections),
-      ...thesis.backMatter
-    ];
-  }, [thesis]);
-
-  if (isLoading) {
-    return (
-      <div className="p-8">
-        <Skeleton className="h-[200px] w-full" />
-      </div>
-    );
-  }
-
-  if (error) {
-    console.error('Error loading thesis:', error);
-    return (
-      <div className="p-8 text-red-500">
-        Error loading thesis: {error.message}
-      </div>
-    );
-  }
-
-  if (!thesis) {
-    return (
-      <div className="p-8">
-        <ThesisCreationModal onThesisCreated={(newThesis) => setThesis(newThesis)} />
-        <ThesisList />
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-screen flex flex-col">
-      <div className="border-b p-4">
-        <ThesisToolbar
-          thesisId={thesis.id}
-          thesisData={thesis}
-          showPreview={showPreview}
-          onTogglePreview={() => setShowPreview(!showPreview)}
-        />
-      </div>
-
-      <ResizablePanelGroup direction="horizontal" className="flex-grow">
-        <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-          <ThesisSidebar
-            sections={getAllSections()}
-            activeSection={activeSection}
-            onSectionSelect={setActiveSection}
-          />
-        </ResizablePanel>
-
-        <ResizableHandle withHandle />
-
-        <ResizablePanel defaultSize={showPreview ? 40 : 80}>
-          <ScrollArea className="h-full">
-            <div className="p-6">
-              <ThesisContent
-                frontMatter={thesis.frontMatter}
-                chapters={thesis.chapters}
-                backMatter={thesis.backMatter}
-                activeSection={activeSection}
-                onContentChange={handleContentChange}
-                onTitleChange={handleTitleChange}
-                onUpdateChapter={(chapter) => {
-                  setThesis(prev => {
-                    if (!prev) return prev;
-                    return {
-                      ...prev,
-                      chapters: prev.chapters.map(c =>
-                        c.id === chapter.id ? chapter : c
-                      )
-                    };
-                  });
-                }}
-                onAddChapter={() => {
-                  setThesis(prev => {
-                    if (!prev) return prev;
-                    const newChapter: Chapter = {
-                      id: Date.now().toString(),
-                      title: 'New Chapter',
-                      sections: []
-                    };
-                    return {
-                      ...prev,
-                      chapters: [...prev.chapters, newChapter]
-                    };
-                  });
-                }}
+    if (!isActive) return null;
+      return (
+          <div key={section.id} className="editor-section space-y-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Input
+                value={section.title}
+                onChange={(e) => onTitleChange(section.id, e.target.value)}
+                className="text-xl font-serif border-none bg-transparent px-0 focus-visible:ring-0"
               />
             </div>
-          </ScrollArea>
-        </ResizablePanel>
+            <div className="mb-6">
+              <MarkdownEditor
+                  value={section.content}
+                  onChange={(value) => onContentChange(section.id, value || '')}
+                  placeholder="Start writing..."
+              />
+            </div>
+            <div className="space-y-8">
+              <FigureManager
+                figures={section.figures}
+                onAddFigure={(figure) => {
+                    section.figures.push(figure);
+                    onContentChange(section.id, section.content);
+                }}
+                onRemoveFigure={(id) => {
+                    section.figures = section.figures.filter(f => f.id !== id);
+                  onContentChange(section.id, section.content);
+                }}
+                onUpdateFigure={(figure) => {
+                  section.figures = section.figures.map(f => f.id === figure.id ? figure : f);
+                  onContentChange(section.id, section.content);
+                }}
+              />
+              <TableManager
+                tables={section.tables}
+                onAddTable={(table) => {
+                    section.tables.push(table);
+                  onContentChange(section.id, section.content);
+                }}
+                onRemoveTable={(id) => {
+                    section.tables = section.tables.filter(t => t.id !== id);
+                  onContentChange(section.id, section.content);
+                }}
+                onUpdateTable={(table) => {
+                  section.tables = section.tables.map(t => t.id === table.id ? table : t);
+                  onContentChange(section.id, section.content);
+                }}
+              />
+              <CitationManager
+                  citations={section.citations}
+                  onAddCitation={(citation) => {
+                      section.citations.push(citation);
+                      onContentChange(section.id, section.content);
+                  }}
+                  onRemoveCitation={(id) => {
+                      section.citations = section.citations.filter(c => c.id !== id);
+                    onContentChange(section.id, section.content);
+                  }}
+                  onUpdateCitation={(citation) => {
+                      section.citations = section.citations.map(c => c.id === citation.id ? citation : c);
+                    onContentChange(section.id, section.content);
+                  }}
+              />
+              {section.type === 'references' && section.references && (
+                  <ReferenceManager
+                      references={section.references}
+                    onAddReference={(reference) => {
+                      section.references = [...(section.references || []), reference];
+                        onContentChange(section.id, section.content);
+                    }}
+                    onRemoveReference={(id) => {
+                      section.references = section.references?.filter(r => r.id !== id);
+                        onContentChange(section.id, section.content);
+                    }}
+                    onUpdateReference={(reference) => {
+                      section.references = section.references?.map(r => r.id === reference.id ? reference : r);
+                        onContentChange(section.id, section.content);
+                    }}
+                  />
+              )}
+            </div>
+          </div>
+      )
+  };
 
-        {showPreview && (
-          <>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={40}>
-              <ScrollArea className="h-full">
-                <div className="p-6">
-                  <ThesisPreview thesis={thesis} />
+
+  return (
+    <div className="space-y-6">
+          {frontMatter.map(section => renderSectionContent(section))}
+          <div className="space-y-6">
+          <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-serif font-semibold">Chapters</h2>
+              <Button onClick={onAddChapter} className="flex items-center gap-2">
+                  <PlusCircle className="w-4 h-4" />
+                  Add Chapter
+              </Button>
+          </div>
+            {chapters.map((chapter) => (
+              <div key={chapter.id} className="border rounded-lg p-6 space-y-6">
+                <Input
+                  value={chapter.title}
+                  onChange={(e) =>
+                    onUpdateChapter({ ...chapter, title: e.target.value })
+                  }
+                  className="text-xl font-serif"
+                  placeholder="Chapter Title"
+                />
+                <div className="space-y-6">
+                    {chapter.sections.map((section) => renderSectionContent(section))}
+                  <Button
+                    onClick={() => handleAddSection(chapter.id)}
+                    variant="outline"
+                    className="mt-4"
+                  >
+                    Add Section
+                  </Button>
                 </div>
-              </ScrollArea>
-            </ResizablePanel>
-          </>
-        )}
-      </ResizablePanelGroup>
+              </div>
+            ))}
+          </div>
+          {backMatter.map(section => renderSectionContent(section))}
     </div>
   );
 };

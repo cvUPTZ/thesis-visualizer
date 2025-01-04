@@ -13,10 +13,6 @@ import { useThesisData } from '@/hooks/useThesisData';
 import { Skeleton } from './ui/skeleton';
 import { CollaboratorPresence } from './collaboration/CollaboratorPresence';
 
-interface ThesisEditorProps {
-  thesisId?: string;
-}
-
 export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => {
   const { thesisId: routeThesisId } = useParams();
   const currentThesisId = propsThesisId || routeThesisId;
@@ -163,27 +159,27 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
         <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
           <div className="max-w-4xl mx-auto space-y-6">
             <ThesisToolbar
-              thesisId={thesis!.id}
+              thesisId={thesis?.id || ''}
               thesisData={thesis!}
               showPreview={showPreview}
               onTogglePreview={() => setShowPreview(!showPreview)}
             />
             <ThesisContent
-                frontMatter={thesis!.frontMatter}
-                chapters={thesis!.chapters}
-                backMatter={thesis!.backMatter}
-                activeSection={activeSection}
-                onContentChange={handleContentChange}
-                onTitleChange={handleTitleChange}
-                onUpdateChapter={handleUpdateChapter}
-                onAddChapter={handleAddChapter}
+              frontMatter={thesis?.frontMatter || []}
+              chapters={thesis?.chapters || []}
+              backMatter={thesis?.backMatter || []}
+              activeSection={activeSection}
+              onContentChange={handleContentChange}
+              onTitleChange={handleTitleChange}
+              onUpdateChapter={handleUpdateChapter}
+              onAddChapter={handleAddChapter}
             />
           </div>
         </div>
-        {showPreview && (
+        {showPreview && thesis && (
           <div className="w-1/2 pl-8 border-l">
             <div ref={previewRef}>
-              <ThesisPreview thesis={thesis!} />
+              <ThesisPreview thesis={thesis} />
             </div>
           </div>
         )}
