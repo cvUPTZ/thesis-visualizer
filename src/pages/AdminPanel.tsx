@@ -10,12 +10,12 @@ import { ThesisManagement } from '@/components/admin/ThesisManagement';
 import { SystemStats } from '@/components/admin/SystemStats';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Users, Flag, BookOpen, LayoutDashboard } from 'lucide-react';
+import { Settings, Users, Flag, BookOpen, LayoutDashboard, LogOut } from 'lucide-react';
 
 const AdminPanel = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { isAuthenticated, userRole } = useAuth();
+  const { isAuthenticated, userRole, logout } = useAuth();
 
   if (!isAuthenticated || userRole !== 'admin') {
     navigate('/auth');
@@ -27,10 +27,20 @@ const AdminPanel = () => {
       <div className="container mx-auto p-6 space-y-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <Button onClick={() => navigate('/')} variant="outline">
-            <LayoutDashboard className="w-4 h-4 mr-2" />
-            Back to Main
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => navigate('/')} variant="outline">
+              <LayoutDashboard className="w-4 h-4 mr-2" />
+              Back to Main
+            </Button>
+            <Button 
+              onClick={logout} 
+              variant="outline"
+              className="gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </Button>
+          </div>
         </div>
 
         <SystemStats />
