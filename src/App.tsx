@@ -9,15 +9,45 @@ import CreateThesis from "./pages/CreateThesis";
 import { ThesisEditor } from "@/components/ThesisEditor";
 import LandingPage from "./pages/LandingPage";
 import AdminPanel from "./pages/AdminPanel";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
+const App = () => (
+  <ErrorBoundary>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <AuthProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/welcome" element={<LandingPage />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route
+                path="/thesis/:thesisId"
+                element={<ProtectedRoute><ThesisEditor /></ProtectedRoute>}
+              />
+              <Route
+                path="/create-thesis"
+                element={<ProtectedRoute><CreateThesis /></ProtectedRoute>}
+              />
+              <Route
+                path="/admin/*"
+                element={<AdminRoute><AdminPanel /></AdminRoute>}
+              />
+            </Routes>
+          </AuthProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
+  </ErrorBoundary>
+);
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading, userRole } = useAuth();
-  const { toast } = useToast();
 
   if (loading) {
     return <div>Loading...</div>;
@@ -37,7 +67,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading, userRole } = useAuth();
-  const { toast } = useToast();
 
   if (loading) {
     return <div>Loading...</div>;
@@ -48,47 +77,10 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (userRole !== 'admin') {
-    toast({
-      title: "Access Denied",
-      description: "You need admin privileges to access this page",
-      variant: "destructive"
-    });
     return <Navigate to="/" />;
   }
 
   return children;
 };
-
-const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/welcome" element={<LandingPage />} />
-              <Route
-                path="/thesis/:thesisId"
-                element={<ProtectedRoute><ThesisEditor /></ProtectedRoute>}
-              />
-              <Route path="/auth" element={<Auth />} />
-              <Route
-                path="/create-thesis"
-                element={<ProtectedRoute><CreateThesis /></ProtectedRoute>}
-              />
-              <Route
-                path="/admin/*"
-                element={<AdminRoute><AdminPanel /></AdminRoute>}
-              />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
-);
 
 export default App;
