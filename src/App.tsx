@@ -4,10 +4,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Route, Routes } from 'react-router-dom';
 import { ThesisEditor } from './components/ThesisEditor';
 import { ThesisList } from './components/thesis/ThesisList';
-import { Auth } from './pages/Auth';
-import { AdminPanel } from './pages/AdminPanel';
-import { Index } from './pages/Index';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import Auth from './pages/Auth';
+import AdminPanel from './pages/AdminPanel';
+import Index from './pages/Index';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
   const { toast } = useToast();
