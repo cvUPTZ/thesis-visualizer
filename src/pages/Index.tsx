@@ -1,148 +1,134 @@
-import { Button } from "@/components/ui/button";
-import { PlusCircle, LogOut } from "lucide-react";
-import { ThesisList } from "@/components/thesis/ThesisList";
-import { useAuth } from "@/hooks/useAuth";
-import { Skeleton } from "@/components/ui/skeleton";
-import { UserProfile } from "@/components/dashboard/UserProfile";
-import { StatsGrid } from "@/components/dashboard/StatsGrid";
-import { QuickTips } from "@/components/dashboard/QuickTips";
-import { useNavigate } from "react-router-dom";
-import { useDashboardData } from "@/hooks/useDashboardData";
-import { ThesisCreationModal } from "@/components/thesis/ThesisCreationModal";
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { ThesisCreationModal } from '@/components/thesis/ThesisCreationModal';
+import { ThesisList } from '@/components/thesis/ThesisList';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
-const LoadingSkeleton = () => (
-  <div className="min-h-screen bg-gray-50 p-8">
-    <div className="container mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <Skeleton className="h-12 w-48" />
-        <Skeleton className="h-10 w-24" />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-32" />
-        ))}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <Skeleton className="h-96" />
-        </div>
-        <div>
-          <Skeleton className="h-96" />
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-const Index = () => {
+export const Index = () => {
   const navigate = useNavigate();
-  const { user, logout, loading: authLoading } = useAuth();
-  const { userProfile, thesesStats, isLoading: dataLoading, error } = useDashboardData(user?.id);
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
 
-  console.log('📍 Index Page - Initial Render:', { 
-    userId: user?.id, 
-    authLoading, 
-    dataLoading, 
-    error,
-    userProfile 
+  console.log('Rendering Index with auth state:', { isAuthenticated, authLoading });
+
+  const { data: userProfile, error: profileError } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: async () => {
+      try {
+        console.log('Fetching user profile...');
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.user) {
+          console.log('No session found');
+          throw new Error('No authenticated session');
+        }
+
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select(`
+            *,
+            roles (
+              name
+            )
+          `)
+          .eq('id', session.user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          throw error;
+        }
+
+        console.log('Profile fetched:', profile);
+        return profile;
+      } catch (error) {
+        console.error('Error in profile query:', error);
+        throw error;
+      }
+    },
+    enabled: isAuthenticated,
+    retry: 1
   });
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      console.log('🚫 Index Page - No active session, redirecting to welcome page');
-      navigate('/welcome');
-    }
-  }, [user, authLoading, navigate]);
+    const checkAuth = async () => {
+      try {
+        if (!authLoading) {
+          if (!isAuthenticated) {
+            console.log('User not authenticated, redirecting to auth');
+            navigate('/auth');
+          }
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error);
+        setLoading(false);
+      }
+    };
 
-  // Show loading skeleton while either auth or data is loading
-  if (authLoading || dataLoading) {
-    console.log('⌛ Index Page - Loading state:', { authLoading, dataLoading });
-    return <LoadingSkeleton />;
-  }
+    checkAuth();
+  }, [isAuthenticated, authLoading, navigate]);
 
-  // Handle error state
-  if (error) {
-    console.log('❌ Index Page - Error:', error);
+  if (loading || authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="container mx-auto text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">
-            Error Loading Dashboard
-          </h2>
-          <p className="text-gray-600">{error instanceof Error ? error.message : 'An unexpected error occurred'}</p>
-          <Button
-            onClick={() => window.location.reload()}
-            className="mt-4"
-            variant="outline"
-          >
-            Retry
-          </Button>
-        </div>
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-lg">Loading...</div>
       </div>
     );
   }
 
-  // Handle case where we have no user profile
-  if (!userProfile) {
-    console.log('⚠️ Index Page - No user profile found');
+  if (profileError) {
+    const errorMessage = profileError instanceof Error 
+      ? profileError.message 
+      : 'An error occurred while loading your profile';
+
+    toast({
+      title: "Error",
+      description: errorMessage,
+      variant: "destructive",
+    });
+
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="container mx-auto text-center">
-          <h2 className="text-2xl font-bold text-yellow-600 mb-4">
-            Profile Not Found
-          </h2>
-          <p className="text-gray-600">Unable to load your profile. Please try logging in again.</p>
-          <Button
-            onClick={() => navigate('/auth')}
-            className="mt-4"
-            variant="outline"
-          >
-            Go to Login
-          </Button>
-        </div>
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-lg text-red-500">Error loading profile</div>
       </div>
     );
   }
 
-  const handleLogout = async () => {
-    console.log('🔄 Index Page - Initiating logout...');
-    await logout();
-    navigate('/auth');
+  const handleThesisCreated = (thesisId: string) => {
+    console.log('Thesis created, navigating to:', thesisId);
+    navigate(`/thesis/${thesisId}`);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <UserProfile
-            email={userProfile.email}
-            role={userProfile.roles?.name || "User"}
-          />
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Welcome to Thesis Editor</h1>
+        <p className="text-gray-600">
+          Create, manage, and collaborate on your thesis documents
+        </p>
+      </div>
 
-        <StatsGrid stats={thesesStats} />
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Your Theses</h2>
-              <ThesisCreationModal />
-            </div>
-            <ThesisList />
-          </div>
-          <div>
-            <QuickTips />
-          </div>
+      <div className="flex justify-between items-center mb-6">
+        <ThesisCreationModal onThesisCreated={handleThesisCreated} />
+        <div className="flex items-center space-x-4">
+          {userProfile?.roles?.name === 'admin' && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+            >
+              Admin Panel
+            </button>
+          )}
         </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow p-6">
+        <ThesisList />
       </div>
     </div>
   );
