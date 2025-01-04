@@ -56,7 +56,7 @@ export const useUser = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
       
-      if (event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
         setUserEmail('');
         setUserRole('');
         navigate('/auth');
@@ -72,26 +72,19 @@ export const useUser = () => {
 
   const handleLogout = async () => {
     try {
-      // First clear local session
       setUserEmail('');
       setUserRole('');
       
-      try {
-        // Then attempt to sign out from Supabase
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-          console.error('Error during sign out:', error);
-          toast({
-            title: "Error signing out",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
-      } catch (error: any) {
-        console.error('Error during logout:', error);
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error during sign out:', error);
+        toast({
+          title: "Error signing out",
+          description: error.message,
+          variant: "destructive",
+        });
       }
       
-      // Always navigate to auth page
       console.log('Navigating to auth page...');
       navigate('/auth');
       
@@ -102,7 +95,6 @@ export const useUser = () => {
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-      // Still navigate to auth page
       navigate('/auth');
     }
   };

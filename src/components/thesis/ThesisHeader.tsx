@@ -1,14 +1,10 @@
-// File: src/components/thesis/ThesisHeader.tsx
 import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, UserPlus, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { CollaboratorInviteForm } from '../collaboration/CollaboratorInviteForm';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { UserInfo } from './UserInfo';
 import { CollaboratorsList } from './CollaboratorsList';
+import { UserSection } from './header/UserSection';
+import { HeaderActions } from './header/HeaderActions';
 import { Collaborator } from '@/types/collaborator';
 
 interface ThesisHeaderProps {
@@ -34,7 +30,6 @@ export const ThesisHeader = ({
   const [userRole, setUserRole] = useState<string>('');
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
-  const [isInviting, setIsInviting] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -118,31 +113,26 @@ export const ThesisHeader = ({
   }, [thesisId]);
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        toast({
+          title: "Error signing out",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      navigate('/auth');
+    } catch (error: any) {
+      console.error('Error during logout:', error);
       toast({
         title: "Error signing out",
-        description: error.message,
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-      return;
+      navigate('/auth');
     }
-    navigate('/auth');
-  };
-
-  const handleInviteSuccess = () => {
-    toast({
-      title: "Success",
-      description: "Collaborator has been invited successfully.",
-    });
-  };
-
-  const handleInviteError = (error: Error) => {
-    toast({
-      title: "Error",
-      description: error.message || "Failed to invite collaborator. Please try again.",
-      variant: "destructive",
-    });
   };
 
   const handleSaveToJson = () => {
@@ -172,72 +162,18 @@ export const ThesisHeader = ({
     }
   };
 
-  const canManageCollaborators = isAdmin || currentUserRole === 'owner' || currentUserRole === 'admin';
-
   return (
     <div className="flex justify-between items-center">
       <h1 className="text-2xl font-serif">Thesis Editor</h1>
       <div className="flex items-center gap-4">
-        {userEmail && <UserInfo email={userEmail} role={userRole} />}
+        {userEmail && <UserSection userEmail={userEmail} userRole={userRole} />}
         <CollaboratorsList collaborators={collaborators} thesisId={thesisId} />
-        {canManageCollaborators && (
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-              >
-                <UserPlus className="w-4 h-4" />
-                Add Collaborator
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <CollaboratorInviteForm
-                thesisId={thesisId}
-                thesisTitle={thesisTitle}
-                onInviteSuccess={handleInviteSuccess}
-                onInviteError={handleInviteError}
-                isAdmin={isAdmin}
-                setIsInviting={setIsInviting}
-              />
-            </PopoverContent>
-          </Popover>
-        )}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onTogglePreview}
-          className="gap-2"
-        >
-          {showPreview ? (
-            <>
-              <EyeOff className="w-4 h-4" />
-              Hide Preview
-            </>
-          ) : (
-            <>
-              <Eye className="w-4 h-4" />
-              Show Preview
-            </>
-          )}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleSaveToJson}
-          className="gap-2"
-        >
-          <Save className="w-4 h-4" />
-          Save as JSON
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleLogout}
-        >
-          Logout
-        </Button>
+        <HeaderActions
+          showPreview={showPreview}
+          onTogglePreview={onTogglePreview}
+          onSaveToJson={handleSaveToJson}
+          onLogout={handleLogout}
+        />
       </div>
     </div>
   );
