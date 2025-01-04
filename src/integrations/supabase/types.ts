@@ -274,6 +274,7 @@ export type Database = {
           content: Json
           created_at: string
           id: string
+          parent_id: string | null
           reviewer_id: string
           section_id: string
           status: string
@@ -284,6 +285,7 @@ export type Database = {
           content?: Json
           created_at?: string
           id?: string
+          parent_id?: string | null
           reviewer_id: string
           section_id: string
           status?: string
@@ -294,6 +296,7 @@ export type Database = {
           content?: Json
           created_at?: string
           id?: string
+          parent_id?: string | null
           reviewer_id?: string
           section_id?: string
           status?: string
@@ -301,6 +304,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "thesis_reviews_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "thesis_reviews"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "thesis_reviews_reviewer_id_fkey"
             columns: ["reviewer_id"]
