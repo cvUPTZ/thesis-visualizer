@@ -71,8 +71,8 @@ export const generateThesisDocx = (thesis: {
         hyperlink: true,
         headingStyleRange: "1-5",
         stylesWithLevels: [
-          { level: 1, style: "Heading1" },
-          { level: 2, style: "Heading2" },
+          { level: 1, heading: "Heading1" },
+          { level: 2, heading: "Heading2" },
         ],
       }),
       ...generateSectionContent(thesis.frontMatter),
@@ -270,26 +270,28 @@ const generateSectionContent = (sections: Section[]) => {
     if (section.tables?.length) {
       section.tables.forEach(table => {
         const tableContent = generateTable(table);
-        content.push(
-          new Paragraph({
-            children: [tableContent],
-            spacing: {
-              before: 240,
-              after: 0,
-            },
-          })
-        );
-        if (table.caption) {
+        if (tableContent) {
           content.push(
             new Paragraph({
-              text: `Table ${table.id}: ${table.caption}`,
-              alignment: AlignmentType.CENTER,
+              children: [tableContent],
               spacing: {
                 before: 240,
-                after: 240,
+                after: 0,
               },
             })
           );
+          if (table.caption) {
+            content.push(
+              new Paragraph({
+                text: `Table ${table.id}: ${table.caption}`,
+                alignment: AlignmentType.CENTER,
+                spacing: {
+                  before: 240,
+                  after: 240,
+                },
+              })
+            );
+          }
         }
       });
     }
@@ -371,11 +373,7 @@ const generateFigures = (figures: Figure[]) => {
             width: figure.dimensions?.width || 400,
             height: figure.dimensions?.height || 300,
           },
-          type: 'png',
-          fallback: {
-            width: figure.dimensions?.width || 400,
-            height: figure.dimensions?.height || 300,
-          }
+          altText: figure.altText || figure.caption,
         }),
         new TextRun({
           text: `\nFigure ${figure.number}: ${figure.caption}`,
@@ -391,42 +389,38 @@ const generateFigures = (figures: Figure[]) => {
   });
 };
 
-const generateTable = (table: ThesisTable): Table => {
-  // Parse the HTML content to create docx table
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(table.content, 'text/html');
-  const htmlTable = doc.querySelector('table');
-  
-  if (!htmlTable) {
+const generateTable = (table: ThesisTable): Table | null => {
+  try {
+    // Parse the HTML content to create docx table
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(table.content, 'text/html');
+    const htmlTable = doc.querySelector('table');
+    
+    if (!htmlTable) {
+      console.warn('Invalid table content:', table);
+      return null;
+    }
+
+    const rows = Array.from(htmlTable.querySelectorAll('tr')).map((tr) => {
+      const cells = Array.from(tr.querySelectorAll('td, th')).map((cell) => {
+        return new TableCell({
+          children: [new Paragraph({ text: cell.textContent || '' })],
+        });
+      });
+      return new TableRow({ children: cells });
+    });
+
     return new Table({
-      rows: [new TableRow({
-        children: [new TableCell({
-          children: [new Paragraph({ text: 'Invalid table content' })]
-        })]
-      })],
+      rows,
       width: {
         size: 100,
         type: WidthType.PERCENTAGE,
       },
     });
+  } catch (error) {
+    console.error('Error generating table:', error);
+    return null;
   }
-
-  const rows = Array.from(htmlTable.querySelectorAll('tr')).map((tr) => {
-    const cells = Array.from(tr.querySelectorAll('td, th')).map((cell) => {
-      return new TableCell({
-        children: [new Paragraph({ text: cell.textContent || '' })],
-      });
-    });
-    return new TableRow({ children: cells });
-  });
-
-  return new Table({
-    rows,
-    width: {
-      size: 100,
-      type: WidthType.PERCENTAGE,
-    },
-  });
 };
 
 const generateCitations = (citations: Citation[]) => {
