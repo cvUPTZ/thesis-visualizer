@@ -1,104 +1,70 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import CreateThesis from "./pages/CreateThesis";
-import { ThesisEditor } from "@/components/ThesisEditor";
-import LandingPage from "./pages/LandingPage";
-import AdminPanel from "./pages/AdminPanel";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import ErrorBoundary from "@/components/ErrorBoundary";
+// File: src/App.tsx
+import React, { Suspense } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
+import { useAuth } from '@/contexts/AuthContext';
+import Auth from '@/pages/Auth';
+import Index from '@/pages/Index';
+import LandingPage from '@/pages/LandingPage';
+import AdminPanel from '@/pages/AdminPanel';
+import CreateThesis from '@/pages/CreateThesis';
+import { ThesisEditor } from '@/components/ThesisEditor';
+import { Skeleton } from '@/components/ui/skeleton';
+import withAuthorization from '@/components/ProtectedRoute';
+import { AuthLoader } from '@/components/auth/AuthLoader';
 
-const queryClient = new QueryClient();
+const App = () => {
+    const { loading, isAuthenticated } = useAuth();
 
-const App = () => (
-  <ErrorBoundary>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <AuthProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              {/* Public routes - no auth check needed */}
-              <Route path="/welcome" element={<LandingPage />} />
-              <Route path="/auth" element={<Auth />} />
-              
-              {/* Protected routes */}
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route
-                path="/thesis/:thesisId"
-                element={<ProtectedRoute><ThesisEditor /></ProtectedRoute>}
-              />
-              <Route
-                path="/create-thesis"
-                element={<ProtectedRoute><CreateThesis /></ProtectedRoute>}
-              />
-              <Route
-                path="/admin/*"
-                element={<AdminRoute><AdminPanel /></AdminRoute>}
-              />
+    // Show loading state only during initial auth check
+    if (loading) {
+        return <AuthLoader />;
+    }
 
-              {/* Fallback route */}
-              <Route path="*" element={<Navigate to="/welcome" replace />} />
-            </Routes>
-          </AuthProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
-  </ErrorBoundary>
-);
+    const ProtectedRoute = withAuthorization(({ children }) => <>{children}</>);
+    const AdminRoute = withAuthorization(({ children }) => <>{children}</>);
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading, userRole } = useAuth();
-  console.log('🔒 Protected Route Check:', { isAuthenticated, loading, userRole });
-
-  // For root route ('/'), don't show loading state
-  const isRootRoute = window.location.pathname === '/';
-  
-  if (loading && !isRootRoute) {
-    console.log('⌛ Loading protected route...');
-    return <div>Loading...</div>;
-  }
-
-  if (!isAuthenticated) {
-    console.log('🚫 User not authenticated, redirecting to /auth');
-    return <Navigate to="/auth" />;
-  }
-
-  // Redirect admin users to admin panel
-  if (userRole === 'admin') {
-    console.log('👑 Admin user detected, redirecting to admin panel');
-    return <Navigate to="/admin" />;
-  }
-
-  console.log('✅ Access granted to protected route');
-  return children;
-};
-
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading, userRole } = useAuth();
-  console.log('👑 Admin Route Check:', { isAuthenticated, loading, userRole });
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!isAuthenticated) {
-    console.log('🚫 User not authenticated, redirecting to /auth');
-    return <Navigate to="/auth" />;
-  }
-
-  if (userRole !== 'admin') {
-    console.log('⛔ Non-admin user, redirecting to home');
-    return <Navigate to="/" />;
-  }
-
-  console.log('✅ Access granted to admin route');
-  return children;
+    return (
+        <div className="min-h-screen bg-background">
+            <Suspense fallback={<AuthLoader />}>
+                <main>
+                    <Toaster />
+                    <Routes>
+                        {/* Public routes */}
+                        <Route path="/welcome" element={<LandingPage />} />
+                        <Route path="/auth" element={<Auth />} />
+                        
+                        {/* Protected routes */}
+                        <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                        <Route
+                            path="/thesis/:thesisId"
+                            element={
+                                <ProtectedRoute>
+                                    <ThesisEditor />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/create-thesis"
+                            element={
+                                <ProtectedRoute>
+                                    <CreateThesis />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/admin/*"
+                            element={
+                                <AdminRoute requiredRole="admin">
+                                    <AdminPanel />
+                                </AdminRoute>
+                            }
+                        />
+                    </Routes>
+                </main>
+            </Suspense>
+        </div>
+    );
 };
 
 export default App;
