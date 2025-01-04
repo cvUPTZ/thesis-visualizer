@@ -57,6 +57,7 @@ export const ElementPositionManager = ({
         <div className="space-y-2">
           <Label>Select Element</Label>
           <Select onValueChange={(value) => {
+            if (value === 'placeholder') return;
             const [type, id] = value.split('-');
             setSelectedElement({
               id,
@@ -68,7 +69,7 @@ export const ElementPositionManager = ({
               <SelectValue placeholder="Choose an element to position" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Choose an element</SelectItem>
+              <SelectItem value="placeholder">Choose an element</SelectItem>
               {figures.map((figure) => (
                 <SelectItem key={figure.id} value={`figure-${figure.id}`}>
                   Figure {figure.number}
