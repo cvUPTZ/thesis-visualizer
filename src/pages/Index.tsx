@@ -1,158 +1,75 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, BookOpen, Users, Clock, FileText, Star } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { ThesisList } from "@/components/thesis/ThesisList";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { UserProfile } from "@/components/dashboard/UserProfile";
+import { StatsGrid } from "@/components/dashboard/StatsGrid";
+import { QuickTips } from "@/components/dashboard/QuickTips";
+import { useDashboardData } from "@/hooks/useDashboardData";
+
+const LoadingSkeleton = () => (
+  <div className="min-h-screen bg-gray-50 p-8">
+    <div className="container mx-auto">
+      <div className="mb-8">
+        <Skeleton className="h-12 w-64 mb-2" />
+        <Skeleton className="h-6 w-32" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-white rounded-lg p-6 shadow">
+            <Skeleton className="h-4 w-24 mb-4" />
+            <Skeleton className="h-8 w-16" />
+          </div>
+        ))}
+      </div>
+      <div className="bg-white rounded-lg shadow p-6">
+        <Skeleton className="h-64 w-full" />
+      </div>
+    </div>
+  </div>
+);
 
 const Index = () => {
   const navigate = useNavigate();
   const { userId } = useAuth();
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [thesesStats, setThesesStats] = useState({
-    total: 0,
-    inProgress: 0,
-    completed: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  const { userProfile, thesesStats, isLoading, error } = useDashboardData(userId);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!userId) {
-        setIsLoading(false);
-        return;
-      }
-      
-      try {
-        console.log("Fetching user profile for:", userId);
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select(`
-            *,
-            roles (
-              name
-            )
-          `)
-          .eq("id", userId)
-          .single();
-
-        if (error) {
-          console.error("Error fetching profile:", error);
-          return;
-        }
-
-        console.log("Fetched profile:", profile);
-        setUserProfile(profile);
-
-        console.log("Fetching theses stats for:", userId);
-        const { data: theses, error: thesesError } = await supabase
-          .from("thesis_collaborators")
-          .select("thesis_id")
-          .eq("user_id", userId);
-
-        if (thesesError) {
-          console.error("Error fetching theses:", thesesError);
-          return;
-        }
-
-        console.log("Fetched theses:", theses);
-        setThesesStats({
-          total: theses?.length || 0,
-          inProgress: theses?.length || 0,
-          completed: 0,
-        });
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [userId]);
-
-  if (isLoading) {
+  if (error) {
     return (
       <div className="min-h-screen bg-gray-50 p-8">
-        <div className="container mx-auto">
-          <div className="mb-8">
-            <Skeleton className="h-12 w-64 mb-2" />
-            <Skeleton className="h-6 w-32" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {[1, 2, 3].map((i) => (
-              <Card key={i}>
-                <CardHeader className="space-y-0 pb-2">
-                  <Skeleton className="h-4 w-24" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-8 w-16" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <Skeleton className="h-64 w-full" />
-          </div>
+        <div className="container mx-auto text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">
+            Error Loading Dashboard
+          </h2>
+          <p className="text-gray-600">{error}</p>
+          <Button
+            onClick={() => window.location.reload()}
+            className="mt-4"
+            variant="outline"
+          >
+            Retry
+          </Button>
         </div>
       </div>
     );
   }
 
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
-        {/* User Profile Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-serif font-bold text-primary mb-2">
-            Welcome, {userProfile?.email}
-          </h1>
-          <p className="text-gray-600">
-            Role: {userProfile?.roles?.name || "User"}
-          </p>
-        </div>
+        <UserProfile
+          email={userProfile?.email}
+          role={userProfile?.roles?.name || "User"}
+        />
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Theses</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{thesesStats.total}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{thesesStats.inProgress}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <Star className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{thesesStats.completed}</div>
-            </CardContent>
-          </Card>
-        </div>
+        <StatsGrid stats={thesesStats} />
 
-        {/* Actions Section */}
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-serif font-semibold text-primary">
             Your Theses
@@ -166,35 +83,11 @@ const Index = () => {
           </Button>
         </div>
 
-        {/* Thesis List */}
         <div className="bg-white rounded-lg shadow">
           <ThesisList />
         </div>
 
-        {/* Quick Tips Section */}
-        <div className="mt-8 bg-editor-bg rounded-lg p-8">
-          <h2 className="text-xl font-serif font-semibold text-primary mb-4">
-            Quick Tips
-          </h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold mb-2">Getting Started</h4>
-              <ul className="list-disc list-inside text-gray-600 space-y-2">
-                <li>Click "Start New Thesis" to create your document</li>
-                <li>Use the editor toolbar for formatting options</li>
-                <li>Add collaborators through the sharing menu</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-2">Best Practices</h4>
-              <ul className="list-disc list-inside text-gray-600 space-y-2">
-                <li>Regularly save your work (though we auto-save too!)</li>
-                <li>Use headings to organize your content</li>
-                <li>Preview your work in different formats</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        <QuickTips />
       </div>
     </div>
   );
