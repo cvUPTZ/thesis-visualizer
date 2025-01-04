@@ -33,14 +33,8 @@ export const CitationSearch = ({ onSelect }: CitationSearchProps) => {
     enabled: false
   });
 
-  const handleSearch = () => {
-    if (searchTerm) {
-      refetch();
-    }
-  };
-
-  const formatCitation = (result: any): Omit<Citation, 'thesis_id'> => {
-    // Format the API response into a Citation object without thesis_id
+  const formatCitation = (result: any): Citation => {
+    // Format the API response into a Citation object
     return {
       id: crypto.randomUUID(),
       text: result.title[0],
@@ -53,8 +47,15 @@ export const CitationSearch = ({ onSelect }: CitationSearchProps) => {
       volume: result.volume,
       issue: result.issue,
       pages: result.page,
-      publisher: result.publisher
+      publisher: result.publisher,
+      thesis_id: '' // This will be set by the parent component
     };
+  };
+
+  const handleSearch = () => {
+    if (searchTerm) {
+      refetch();
+    }
   };
 
   return (

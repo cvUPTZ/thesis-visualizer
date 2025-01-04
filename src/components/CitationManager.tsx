@@ -84,13 +84,13 @@ export const CitationManager = ({
     }
   };
 
-  const handleSearchResult = async (citation: Citation) => {
+  const handleSearchResult = async (citation: Omit<Citation, 'thesis_id'>) => {
     try {
       if (!thesisId) {
         throw new Error('No thesis ID provided');
       }
 
-      const citationWithThesisId = {
+      const citationWithThesisId: Citation = {
         ...citation,
         thesis_id: thesisId
       };
