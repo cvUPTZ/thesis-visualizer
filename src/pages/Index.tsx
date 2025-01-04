@@ -34,20 +34,30 @@ const LoadingSkeleton = () => (
 
 const Index = () => {
   const navigate = useNavigate();
-  const { userId, logout } = useAuth();
+  const { userId, logout, loading: authLoading } = useAuth();
   const { userProfile, thesesStats, isLoading, error } = useDashboardData(userId);
 
+  console.log('📍 Index Page - Initial Render:', { 
+    userId, 
+    authLoading, 
+    isLoading, 
+    error 
+  });
+
   useEffect(() => {
-    if (!userId) {
+    if (!authLoading && !userId) {
+      console.log('🚫 Index Page - No active session, redirecting to welcome page');
       navigate('/welcome');
     }
-  }, [userId, navigate]);
+  }, [userId, authLoading, navigate]);
 
-  if (!userId) {
+  if (authLoading || !userId) {
+    console.log('⌛ Index Page - Loading or no user:', { authLoading, userId });
     return <LoadingSkeleton />;
   }
 
   if (error) {
+    console.log('❌ Index Page - Error:', error);
     return (
       <div className="min-h-screen bg-gray-50 p-8">
         <div className="container mx-auto text-center">
@@ -68,11 +78,20 @@ const Index = () => {
   }
 
   if (isLoading || !userProfile) {
+    console.log('⌛ Index Page - Loading state:', { isLoading, userProfile });
     return <LoadingSkeleton />;
   }
 
+  console.log('✅ Index Page - Render complete:', { 
+    userProfile, 
+    thesesStats,
+    isAuthenticated: !!userId 
+  });
+
   const handleLogout = async () => {
+    console.log('🔄 Index Page - Initiating logout...');
     await logout();
+    console.log('✅ Index Page - Logout complete');
   };
 
   return (
