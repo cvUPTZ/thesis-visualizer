@@ -1,12 +1,12 @@
 import React from 'react';
+import { Section } from '@/types/thesis';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MarkdownEditor } from './MarkdownEditor';
 import { FigureManager } from './FigureManager';
 import { TableManager } from './TableManager';
 import { CitationManager } from './CitationManager';
 import { ReferenceManager } from './ReferenceManager';
-import { Section } from '@/types/thesis';
+import { MarkdownEditor } from './MarkdownEditor';
 
 interface EditorSectionProps {
   section: Section;
@@ -19,36 +19,30 @@ export const EditorSection = ({
   section,
   isActive,
   onContentChange,
-  onTitleChange,
+  onTitleChange
 }: EditorSectionProps) => {
   if (!isActive) return null;
 
   return (
-    <div className="bg-editor-bg border border-editor-border rounded-lg p-6 mb-6 transition-all duration-200 hover:shadow-editor">
-      <div className="flex items-center gap-3 mb-6">
+    <div className="editor-section">
+      <div className="flex items-center gap-3 mb-4">
         <Input
           value={section.title}
           onChange={(e) => onTitleChange(section.id, e.target.value)}
-          className="text-2xl font-serif border-none bg-transparent px-0 focus-visible:ring-1 focus-visible:ring-editor-accent/30 transition-colors duration-200"
-          placeholder="Enter section title..."
+          className="text-xl font-serif border-none bg-transparent px-0 focus-visible:ring-0"
         />
         {section.required && (
-          <Badge 
-            variant="secondary" 
-            className="bg-editor-accent/90 text-white hover:bg-editor-accent transition-colors duration-200"
-          >
-            Required
-          </Badge>
+          <Badge variant="secondary">Required</Badge>
         )}
       </div>
-      <div className="mb-8">
+      <div className="mb-6">
         <MarkdownEditor
           value={section.content}
           onChange={(value) => onContentChange(section.id, value || '')}
           placeholder="Start writing..."
         />
       </div>
-      <div className="space-y-6 divide-y divide-editor-border/30">
+      <div className="space-y-8">
         <FigureManager
           figures={section.figures}
           onAddFigure={(figure) => {
@@ -94,21 +88,23 @@ export const EditorSection = ({
             onContentChange(section.id, section.content);
           }}
         />
-        <ReferenceManager
-          references={section.references}
-          onAddReference={(reference) => {
+        {section.type === 'references' && section.references && (
+          <ReferenceManager
+            references={section.references}
+            onAddReference={(reference) => {
               section.references = [...(section.references || []), reference];
               onContentChange(section.id, section.content);
-          }}
-          onRemoveReference={(id) => {
+            }}
+            onRemoveReference={(id) => {
               section.references = section.references?.filter(r => r.id !== id);
               onContentChange(section.id, section.content);
-          }}
-          onUpdateReference={(reference) => {
+            }}
+            onUpdateReference={(reference) => {
               section.references = section.references?.map(r => r.id === reference.id ? reference : r);
               onContentChange(section.id, section.content);
-          }}
-        />
+            }}
+          />
+        )}
       </div>
     </div>
   );

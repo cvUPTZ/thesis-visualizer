@@ -9,53 +9,26 @@ import { IssueManagement } from '@/components/admin/IssueManagement';
 import { ThesisManagement } from '@/components/admin/ThesisManagement';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Users, Flag, BookOpen, LayoutDashboard, LogOut } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Settings, Users, Flag, BookOpen, LayoutDashboard } from 'lucide-react';
 
 const AdminPanel = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { isAuthenticated, userRole, loading } = useAuth();
+  const { isAuthenticated, userRole } = useAuth();
 
-  React.useEffect(() => {
-    if (!loading && (!isAuthenticated || userRole !== 'admin')) {
-      navigate('/auth');
-    }
-  }, [isAuthenticated, userRole, loading, navigate]);
-
-  // Don't render anything while checking auth status
-  if (loading || !isAuthenticated || userRole !== 'admin') {
+  if (!isAuthenticated || userRole !== 'admin') {
+    navigate('/auth');
     return null;
   }
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      navigate('/auth');
-    } catch (error: any) {
-      console.error('Error signing out:', error);
-      toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <Button onClick={() => navigate('/')} variant="outline">
-              <LayoutDashboard className="w-4 h-4 mr-2" />
-              Back to Main
-            </Button>
-          </div>
-          <Button onClick={handleLogout} variant="ghost" className="text-red-500 hover:text-red-700">
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <Button onClick={() => navigate('/')} variant="outline">
+            <LayoutDashboard className="w-4 h-4 mr-2" />
+            Back to Main
           </Button>
         </div>
         
