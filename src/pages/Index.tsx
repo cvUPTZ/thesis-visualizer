@@ -12,18 +12,19 @@ export const Index = () => {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
 
-  console.log('Rendering Index with auth state:', { isAuthenticated });
+  console.log('🔄 Rendering Index with auth state:', { isAuthenticated });
 
   const { data: userProfile, error: profileError } = useQuery({
     queryKey: ['userProfile'],
     queryFn: async () => {
       try {
-        console.log('Fetching user profile...');
+        console.log('🔍 Fetching user profile...');
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session?.user) {
-          console.log('No session found');
-          throw new Error('No authenticated session');
+          console.log('⚠️ No session found');
+          navigate('/auth');
+          return null;
         }
 
         const { data: profile, error } = await supabase
@@ -38,32 +39,36 @@ export const Index = () => {
           .single();
 
         if (error) {
-          console.error('Error fetching profile:', error);
+          console.error('❌ Error fetching profile:', error);
           throw error;
         }
 
-        console.log('Profile fetched:', profile);
+        console.log('✅ Profile fetched:', profile);
         return profile;
       } catch (error) {
-        console.error('Error in profile query:', error);
+        console.error('❌ Error in profile query:', error);
         throw error;
       }
     },
     enabled: isAuthenticated,
-    retry: 1
+    retry: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 15, // 15 minutes
   });
 
-  if (profileError) {
-    const errorMessage = profileError instanceof Error 
-      ? profileError.message 
-      : 'An error occurred while loading your profile';
+  if (!isAuthenticated) {
+    console.log('🚫 User not authenticated, redirecting...');
+    navigate('/auth');
+    return null;
+  }
 
+  if (profileError) {
+    console.error('❌ Profile error:', profileError);
     toast({
       title: "Error",
-      description: errorMessage,
+      description: "Failed to load user profile. Please try again.",
       variant: "destructive",
     });
-
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-lg text-red-500">Error loading profile</div>
@@ -72,7 +77,7 @@ export const Index = () => {
   }
 
   const handleThesisCreated = (thesisId: string) => {
-    console.log('Thesis created, navigating to:', thesisId);
+    console.log('✨ Thesis created, navigating to:', thesisId);
     navigate(`/thesis/${thesisId}`);
   };
 
