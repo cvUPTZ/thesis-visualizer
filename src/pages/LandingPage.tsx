@@ -1,107 +1,123 @@
 import React from "react";
-import { motion } from "framer-motion";
-import { ArrowRight, BookOpen, Brain, Share2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/landing/Navbar";
-import { Footer } from "@/components/landing/Footer";
 import { FeatureCard } from "@/components/landing/FeatureCard";
 import { TestimonialCard } from "@/components/landing/TestimonialCard";
+import { Footer } from "@/components/landing/Footer";
 import { FeedbackForm } from "@/components/landing/FeedbackForm";
 
 const LandingPage = () => {
+  const features = [
+    {
+      title: "Visual Organization",
+      description: "Structure your thesis with intuitive visual tools and real-time collaboration features.",
+      icon: () => (
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      ),
+    },
+    {
+      title: "Smart Citations",
+      description: "Manage references effortlessly with our intelligent citation system.",
+      icon: () => (
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      ),
+    },
+    {
+      title: "Real-time Collaboration",
+      description: "Work seamlessly with supervisors and team members in real-time.",
+      icon: () => (
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      ),
+    },
+  ];
+
+  const testimonials = [
+    {
+      quote: "The visual organization tools have completely transformed how I structure my research.",
+      author: "Dr. Sarah Chen",
+      role: "Research Professor"
+    },
+    {
+      quote: "Citation management has never been easier. This tool is a game-changer.",
+      author: "Michael Roberts",
+      role: "PhD Candidate"
+    },
+    {
+      quote: "Real-time collaboration with my supervisor has significantly improved my writing process.",
+      author: "Emma Thompson",
+      role: "Graduate Student"
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#1A1F2C] to-[#2A2F3C]">
       <Navbar />
-      
+
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
+      <section className="pt-32 pb-24 px-4">
         <div className="max-w-7xl mx-auto text-center">
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-6xl font-bold text-[#1A1F2C] mb-6"
-          >
-            Write Your Thesis with Confidence
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto"
-          >
-            A powerful platform designed to help you organize, write, and collaborate on your thesis with ease.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Button 
-              size="lg"
-              className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white px-8 py-6 text-lg rounded-lg"
-            >
-              Get Started <ArrowRight className="ml-2" />
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 leading-tight">
+            Transform Your <span className="text-[#9b87f5]">Thesis Writing</span> Experience
+          </h1>
+          <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+            Streamline your academic writing process with our powerful visualization
+            and organization tools. Perfect for researchers and students.
+          </p>
+          <Link to="/auth" className="inline-block">
+            <Button className="bg-[#9b87f5] text-white text-lg px-8 py-6 rounded-lg hover:bg-[#7E69AB] transition-colors">
+              Start Writing Now
             </Button>
-          </motion.div>
+          </Link>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Choose Thesis Visualizer?</h2>
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl font-bold text-center mb-16 text-[#1A1F2C]">
+            Powerful Features for Academic Success
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <FeatureCard
-              title="Smart Organization"
-              description="Organize your thesis chapters, citations, and research materials in one place."
-              icon={BookOpen}
-            />
-            <FeatureCard
-              title="AI-Powered Assistance"
-              description="Get intelligent suggestions and writing assistance powered by advanced AI."
-              icon={Brain}
-            />
-            <FeatureCard
-              title="Real-time Collaboration"
-              description="Work seamlessly with advisors and collaborators in real-time."
-              icon={Share2}
-            />
+            {features.map((feature, index) => (
+              <FeatureCard key={index} {...feature} />
+            ))}
           </div>
         </div>
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">What Our Users Say</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <TestimonialCard
-              quote="This platform made organizing my thesis so much easier. The visualization tools are incredible!"
-              author="Sarah Johnson"
-              role="PhD Candidate"
-            />
-            <TestimonialCard
-              quote="The collaboration features helped me work efficiently with my advisor. Highly recommended!"
-              author="Michael Chen"
-              role="Master's Student"
-            />
-            <TestimonialCard
-              quote="The AI assistance helped me improve my writing significantly. A game-changer for thesis writing!"
-              author="Emma Davis"
-              role="Research Scholar"
-            />
+      <section className="py-24 bg-[#F1F0FB]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl font-bold text-center mb-16 text-[#1A1F2C]">
+            Trusted by Academics Worldwide
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <TestimonialCard key={index} {...testimonial} />
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Feedback Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Share Your Feedback</h2>
-          <p className="text-gray-600 text-center mb-8">
-            We're constantly improving. Let us know how we can make Thesis Visualizer better for you.
+      {/* CTA Section */}
+      <section className="py-24 bg-[#1A1F2C] text-white">
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <h2 className="text-4xl font-bold mb-8">Ready to Start Your Journey?</h2>
+          <p className="text-xl text-gray-300 mb-12">
+            Join thousands of researchers who have already transformed their thesis writing experience.
           </p>
-          <FeedbackForm />
+          <Link to="/auth" className="inline-block">
+            <Button className="bg-[#9b87f5] text-white text-lg px-8 py-6 rounded-lg hover:bg-[#7E69AB] transition-colors">
+              Get Started Now
+            </Button>
+          </Link>
         </div>
       </section>
 
