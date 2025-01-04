@@ -18,7 +18,6 @@ import {
   Header,
   PageBreak,
   NumberFormat,
-  IImageOptions
 } from 'docx';
 import { Chapter, Section, Figure, Citation, Table as ThesisTable } from '@/types/thesis';
 
@@ -72,8 +71,8 @@ export const generateThesisDocx = (thesis: {
         hyperlink: true,
         headingStyleRange: "1-5",
         stylesWithLevels: [
-          { level: 1, styleId: "Heading1" },
-          { level: 2, styleId: "Heading2" },
+          { level: 1, style: "Heading1" },
+          { level: 2, style: "Heading2" },
         ],
       }),
       ...generateSectionContent(thesis.frontMatter),
@@ -81,16 +80,18 @@ export const generateThesisDocx = (thesis: {
   });
 
   // Main Content
+  const mainContent = [
+    ...generateChapterContent(thesis.chapters),
+    ...generateSectionContent(thesis.backMatter),
+  ];
+
   sections.push({
     properties: {
       page: {
         margin: PAGE_MARGINS,
       },
     },
-    children: [
-      ...generateChapterContent(thesis.chapters),
-      ...generateSectionContent(thesis.backMatter),
-    ],
+    children: mainContent,
   });
 
   const doc = new Document({
@@ -104,14 +105,14 @@ export const generateThesisDocx = (thesis: {
           next: "Normal",
           quickFormat: true,
           run: {
-            size: 24, // 12pt
+            size: 24,
             font: "Times New Roman",
           },
           paragraph: {
             spacing: {
-              line: 360, // 1.5 line spacing
-              before: 240, // 12pt before
-              after: 240, // 12pt after
+              line: 360,
+              before: 240,
+              after: 240,
             },
           },
         },
@@ -122,14 +123,14 @@ export const generateThesisDocx = (thesis: {
           next: "Normal",
           quickFormat: true,
           run: {
-            size: 32, // 16pt
+            size: 32,
             bold: true,
             font: "Times New Roman",
           },
           paragraph: {
             spacing: {
-              before: 480, // 24pt before
-              after: 240, // 12pt after
+              before: 480,
+              after: 240,
             },
           },
         },
@@ -140,14 +141,14 @@ export const generateThesisDocx = (thesis: {
           next: "Normal",
           quickFormat: true,
           run: {
-            size: 28, // 14pt
+            size: 28,
             bold: true,
             font: "Times New Roman",
           },
           paragraph: {
             spacing: {
-              before: 360, // 18pt before
-              after: 240, // 12pt after
+              before: 360,
+              after: 240,
             },
           },
         },
@@ -246,8 +247,10 @@ const generateTitlePage = (metadata?: {
 };
 
 const generateSectionContent = (sections: Section[]) => {
-  return sections.flatMap((section) => {
-    const content = [
+  const content: Paragraph[] = [];
+  
+  sections.forEach((section) => {
+    content.push(
       new Paragraph({
         text: section.title,
         heading: HeadingLevel.HEADING_1,
@@ -255,8 +258,8 @@ const generateSectionContent = (sections: Section[]) => {
       }),
       new Paragraph({
         children: [new TextRun(section.content)],
-      }),
-    ];
+      })
+    );
 
     // Add figures
     if (section.figures?.length) {
@@ -265,35 +268,53 @@ const generateSectionContent = (sections: Section[]) => {
 
     // Add tables
     if (section.tables?.length) {
-      content.push(...generateTables(section.tables));
+      section.tables.forEach(table => {
+        const tableContent = generateTable(table);
+        content.push(
+          ...tableContent,
+          new Paragraph({
+            text: `Table ${table.id}: ${table.caption || ''}`,
+            alignment: AlignmentType.CENTER,
+            spacing: {
+              before: 240,
+              after: 240,
+            },
+          })
+        );
+      });
     }
 
     // Add citations
     if (section.citations?.length) {
       content.push(...generateCitations(section.citations));
     }
-
-    return content;
   });
+
+  return content;
 };
 
 const generateChapterContent = (chapters: Chapter[]) => {
-  return chapters.flatMap((chapter) => [
-    new Paragraph({
-      text: chapter.title,
-      heading: HeadingLevel.HEADING_1,
-      pageBreakBefore: true,
-    }),
-    ...chapter.sections.flatMap((section) => {
-      const content = [
+  const content: Paragraph[] = [];
+
+  chapters.forEach((chapter) => {
+    content.push(
+      new Paragraph({
+        text: chapter.title,
+        heading: HeadingLevel.HEADING_1,
+        pageBreakBefore: true,
+      })
+    );
+
+    chapter.sections.forEach((section) => {
+      content.push(
         new Paragraph({
           text: section.title,
           heading: HeadingLevel.HEADING_2,
         }),
         new Paragraph({
           children: [new TextRun(section.content)],
-        }),
-      ];
+        })
+      );
 
       // Add figures
       if (section.figures?.length) {
@@ -302,17 +323,30 @@ const generateChapterContent = (chapters: Chapter[]) => {
 
       // Add tables
       if (section.tables?.length) {
-        content.push(...generateTables(section.tables));
+        section.tables.forEach(table => {
+          const tableContent = generateTable(table);
+          content.push(
+            ...tableContent,
+            new Paragraph({
+              text: `Table ${table.id}: ${table.caption || ''}`,
+              alignment: AlignmentType.CENTER,
+              spacing: {
+                before: 240,
+                after: 240,
+              },
+            })
+          );
+        });
       }
 
       // Add citations
       if (section.citations?.length) {
         content.push(...generateCitations(section.citations));
       }
+    });
+  });
 
-      return content;
-    }),
-  ]);
+  return content;
 };
 
 const generateFigures = (figures: Figure[]) => {
@@ -327,6 +361,7 @@ const generateFigures = (figures: Figure[]) => {
             width: figure.dimensions?.width || 400,
             height: figure.dimensions?.height || 300,
           },
+          type: 'png',
         }),
         new TextRun({
           text: `\nFigure ${figure.number}: ${figure.caption}`,
@@ -342,42 +377,32 @@ const generateFigures = (figures: Figure[]) => {
   });
 };
 
-const generateTables = (tables: ThesisTable[]) => {
-  return tables.map((table) => {
-    // Parse the HTML content to create docx table
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(table.content, 'text/html');
-    const htmlTable = doc.querySelector('table');
-    
-    if (!htmlTable) return new Paragraph({ text: '' });
+const generateTable = (table: ThesisTable) => {
+  // Parse the HTML content to create docx table
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(table.content, 'text/html');
+  const htmlTable = doc.querySelector('table');
+  
+  if (!htmlTable) return [new Paragraph({ text: '' })];
 
-    const rows = Array.from(htmlTable.querySelectorAll('tr')).map((tr) => {
-      const cells = Array.from(tr.querySelectorAll('td, th')).map((cell) => {
-        return new TableCell({
-          children: [new Paragraph({ text: cell.textContent || '' })],
-        });
+  const rows = Array.from(htmlTable.querySelectorAll('tr')).map((tr) => {
+    const cells = Array.from(tr.querySelectorAll('td, th')).map((cell) => {
+      return new TableCell({
+        children: [new Paragraph({ text: cell.textContent || '' })],
       });
-      return new TableRow({ children: cells });
     });
+    return new TableRow({ children: cells });
+  });
 
-    return [
-      new Table({
-        rows,
-        width: {
-          size: 100,
-          type: WidthType.PERCENTAGE,
-        },
-      }),
-      new Paragraph({
-        text: `Table ${table.id}: ${table.caption || ''}`,
-        alignment: AlignmentType.CENTER,
-        spacing: {
-          before: 240,
-          after: 240,
-        },
-      }),
-    ];
-  }).flat();
+  return [
+    new Table({
+      rows,
+      width: {
+        size: 100,
+        type: WidthType.PERCENTAGE,
+      },
+    })
+  ];
 };
 
 const generateCitations = (citations: Citation[]) => {

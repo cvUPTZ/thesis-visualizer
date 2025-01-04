@@ -99,19 +99,21 @@ export const ElementPositionManager = ({
         />
       )}
 
-      <style jsx global>{`
-        .interactive-element {
-          cursor: ${isDragging ? 'grabbing' : 'grab'};
-          transition: outline 0.2s ease;
-          user-select: none;
-        }
-        .interactive-element:hover {
-          outline: 2px solid #3b82f6;
-        }
-        .interactive-element.selected {
-          outline: 2px solid #2563eb;
-        }
-      `}</style>
+      <style>
+        {`
+          .interactive-element {
+            cursor: ${isDragging ? 'grabbing' : 'grab'};
+            transition: outline 0.2s ease;
+            user-select: none;
+          }
+          .interactive-element:hover {
+            outline: 2px solid #3b82f6;
+          }
+          .interactive-element.selected {
+            outline: 2px solid #2563eb;
+          }
+        `}
+      </style>
     </div>
   );
 };
