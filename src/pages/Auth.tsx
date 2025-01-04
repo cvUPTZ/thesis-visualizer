@@ -18,15 +18,16 @@ const Auth = () => {
   useEffect(() => {
     const cleanupSession = async () => {
       try {
-        console.log('Cleaning up session state...');
+        console.log('🧹 Auth Page - Starting session cleanup...');
         
         // Clear any existing auth data from localStorage
         localStorage.removeItem('supabase.auth.token');
+        console.log('🗑️ Auth Page - Cleared local storage auth token');
         
         // Sign out to ensure clean state
         const { error: signOutError } = await supabase.auth.signOut();
         if (signOutError) {
-          console.error('Error during sign out:', signOutError);
+          console.error('❌ Auth Page - Error during sign out:', signOutError);
           toast({
             title: "Error",
             description: "Failed to clean up session. Please try again.",
@@ -34,14 +35,17 @@ const Auth = () => {
           });
           return;
         }
+        console.log('✅ Auth Page - Successfully signed out');
 
         // Get current session to verify cleanup
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          console.log('Session successfully cleaned up');
+          console.log('✅ Auth Page - Session successfully cleaned up');
+        } else {
+          console.warn('⚠️ Auth Page - Session still exists after cleanup');
         }
       } catch (err) {
-        console.error('Error cleaning up session:', err);
+        console.error('❌ Auth Page - Error cleaning up session:', err);
         toast({
           title: "Error",
           description: "An unexpected error occurred. Please try again.",
@@ -50,8 +54,11 @@ const Auth = () => {
       }
     };
     
+    console.log('🔄 Auth Page - Initial render with params:', { inviteThesisId, inviteRole });
     cleanupSession();
   }, [toast]);
+
+  console.log('📝 Auth Page - Rendering auth component with error:', error);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
