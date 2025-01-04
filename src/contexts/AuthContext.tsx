@@ -50,6 +50,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const clearAuthState = () => {
+    setIsAuthenticated(false);
+    setUserId(null);
+    setUserRole(null);
+    setLoading(false);
+  };
+
+  const handleAuthError = async (error: any) => {
+    console.error('Auth error:', error);
+    // Clear local storage and session storage
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Sign out to clear any invalid tokens
+    await supabase.auth.signOut();
+    clearAuthState();
+    
+    toast({
+      title: "Authentication Error",
+      description: "Please sign in again.",
+      variant: "destructive",
+    });
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -61,8 +85,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (error) {
           console.error('Error checking session:', error);
           if (mounted) {
-            setLoading(false);
-            setIsAuthenticated(false);
+            await handleAuthError(error);
           }
           return;
         }
@@ -70,8 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (!session) {
           console.log('No active session');
           if (mounted) {
-            setLoading(false);
-            setIsAuthenticated(false);
+            clearAuthState();
           }
           return;
         }
@@ -90,7 +112,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
         console.error('Error in checkAuth:', error);
         if (mounted) {
-          setLoading(false);
+          await handleAuthError(error);
         }
       }
     };
@@ -99,28 +121,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
         
+        if (!mounted) return;
+
         if (event === 'SIGNED_IN' && session) {
-          if (mounted) {
-            setIsAuthenticated(true);
-            setUserId(session.user.id);
-            
-            const profileData = await fetchUserProfile(session.user.id);
-            if (profileData) {
-              setUserRole(profileData.roles?.name || null);
-            }
-            setLoading(false);
+          console.log('User signed in:', session.user.email);
+          setIsAuthenticated(true);
+          setUserId(session.user.id);
+          
+          const profileData = await fetchUserProfile(session.user.id);
+          if (profileData) {
+            setUserRole(profileData.roles?.name || null);
           }
-        } else if (event === 'SIGNED_OUT') {
-          if (mounted) {
-            setIsAuthenticated(false);
-            setUserId(null);
-            setUserRole(null);
-            setLoading(false);
-          }
+          setLoading(false);
+        } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+          console.log('User signed out or token refreshed');
+          clearAuthState();
         }
       }
     );
 
+    // Initial auth check
     checkAuth();
 
     return () => {
