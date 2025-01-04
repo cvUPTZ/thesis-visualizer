@@ -32,7 +32,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     console.log('🔄 Setting up auth state listener...');
     let mounted = true;
-    let authListener: { subscription?: { unsubscribe: () => void } } = {};
 
     const checkSession = async () => {
       if (!mounted) return;
@@ -77,53 +76,49 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    const setupAuthListener = () => {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('🔄 Auth state changed:', event, session?.user?.email);
-        
-        if (!mounted) {
-          console.log('⚠️ Component unmounted, skipping state update');
-          return;
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔄 Auth state changed:', event, session?.user?.email);
+      
+      if (!mounted) {
+        console.log('⚠️ Component unmounted, skipping state update');
+        return;
+      }
+
+      try {
+        if (event === 'SIGNED_IN') {
+          console.log('✅ User signed in:', session?.user?.email);
+          await handleSessionChange(session);
+        } else if (event === 'SIGNED_OUT') {
+          console.log('👋 User signed out');
+          setUserId(null);
+          setUserRole(null);
+          setLoading(false);
+          navigate('/welcome');
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('🔄 Token refreshed for user:', session?.user?.email);
+          await handleSessionChange(session);
         }
+      } catch (error) {
+        console.error('❌ Error handling auth state change:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update authentication state",
+          variant: "destructive",
+        });
+      }
+    });
 
-        try {
-          if (event === 'SIGNED_IN') {
-            console.log('✅ User signed in:', session?.user?.email);
-            await handleSessionChange(session);
-          } else if (event === 'SIGNED_OUT') {
-            console.log('👋 User signed out');
-            setUserId(null);
-            setUserRole(null);
-            setLoading(false);
-            navigate('/welcome');
-          } else if (event === 'TOKEN_REFRESHED') {
-            console.log('🔄 Token refreshed for user:', session?.user?.email);
-            await handleSessionChange(session);
-          }
-        } catch (error) {
-          console.error('❌ Error handling auth state change:', error);
-          toast({
-            title: "Error",
-            description: "Failed to update authentication state",
-            variant: "destructive",
-          });
-        }
-      });
-
-      authListener.subscription = subscription;
-    };
-
+    // Initial session check
     checkSession();
-    setupAuthListener();
 
+    // Cleanup function
     return () => {
       console.log('🧹 Cleaning up auth state listener...');
       mounted = false;
-      if (authListener.subscription) {
-        authListener.subscription.unsubscribe();
-      }
+      subscription.unsubscribe();
     };
-  }, [navigate, toast, handleSessionChange, setUserId, setUserRole, setLoading]);
+  }, []); // Empty dependency array since we only want to set up the listener once
 
   return (
     <AuthContext.Provider value={{ 
