@@ -25,6 +25,17 @@ const Auth = () => {
 
       if (error) {
         console.error('❌ Sign in error:', error);
+        
+        // Handle specific error for disabled email provider
+        if (error.message === 'Email logins are disabled') {
+          toast({
+            title: "Authentication Error",
+            description: "Email login is currently disabled. Please contact the administrator.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
         throw error;
       }
       
@@ -39,7 +50,7 @@ const Auth = () => {
       console.error('❌ Error during sign in:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
