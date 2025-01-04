@@ -1,4 +1,3 @@
-// File: src/components/citation/CitationCard.tsx
 import React, { useState } from 'react';
 import { Citation } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
@@ -22,12 +21,13 @@ interface CitationCardProps {
 }
 
 export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: CitationCardProps) => {
-  const [authors, setAuthors] = useState(citation.authors)
+  const [authors, setAuthors] = useState(citation.authors);
 
   const handleAuthorChange = (tags: string[]) => {
     setAuthors(tags);
-    onUpdate({...citation, authors: tags})
-  }
+    onUpdate({...citation, authors: tags});
+  };
+
   return (
     <Card className="border-2 border-editor-border">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -35,19 +35,31 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
           <Quote className="w-4 h-4 inline mr-2" />
           {citation.type.charAt(0).toUpperCase() + citation.type.slice(1)} Citation
         </CardTitle>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onRemove(citation.id)}
-          className="h-8 w-8 p-0"
-        >
-          <X className="w-4 h-4" />
-        </Button>
+        <div className="flex gap-2">
+          {onPreview && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onPreview}
+              className="h-8 w-8 p-0"
+            >
+              <Quote className="w-4 h-4" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onRemove(citation.id)}
+            className="h-8 w-8 p-0"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         <Select
           value={citation.type}
-          onValueChange={(value: CitationType) =>
+          onValueChange={(value: 'book' | 'article' | 'conference' | 'website' | 'other') =>
             onUpdate({ ...citation, type: value })
           }
         >
@@ -79,9 +91,9 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
           className="mb-2"
         />
         <TagInput
-           placeholder="Authors (comma-separated)"
-           tags={authors}
-           onChange={handleAuthorChange}
+          placeholder="Authors (comma-separated)"
+          tags={authors}
+          onChange={handleAuthorChange}
         />
         <Input
           placeholder="Year"

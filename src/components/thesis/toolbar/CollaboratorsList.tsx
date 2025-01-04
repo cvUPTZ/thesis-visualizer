@@ -1,4 +1,3 @@
-// File: src/components/thesis/toolbar/CollaboratorsList.tsx
 import React from 'react';
 import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,15 +37,10 @@ export const CollaboratorsList = ({ collaborators, thesisId }: CollaboratorsList
                 className="flex items-center justify-between p-2 bg-muted rounded-lg"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-sm">{collaborator.profile?.email || collaborator.user_id}</span>
+                  <span className="text-sm">{collaborator.profiles?.email || collaborator.user_id}</span>
                   <Badge variant="secondary" className="text-xs">
                     {collaborator.role}
                   </Badge>
-                  {collaborator.profile?.role === 'admin' && (
-                    <Badge variant="default" className="text-xs">
-                      Site Admin
-                    </Badge>
-                  )}
                 </div>
               </div>
             ))}
