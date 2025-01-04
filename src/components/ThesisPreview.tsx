@@ -50,6 +50,46 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
         );
     };
 
+    const renderFigures = (figures: Section['figures']) => {
+        return figures.map((figure, index) => (
+            <figure key={figure.id} className="my-8 text-center">
+                <img 
+                    src={figure.imageUrl} 
+                    alt={figure.altText}
+                    className="mx-auto max-w-full h-auto"
+                />
+                <figcaption className="mt-2 text-sm text-gray-600">
+                    Figure {figure.number}: {figure.caption}
+                </figcaption>
+            </figure>
+        ));
+    };
+
+    const renderTables = (tables: Section['tables']) => {
+        return tables.map((table, index) => (
+            <div key={table.id} className="my-8">
+                <div className="overflow-x-auto">
+                    <div dangerouslySetInnerHTML={{ __html: table.content }} />
+                </div>
+                {table.caption && (
+                    <p className="mt-2 text-sm text-gray-600 text-center">
+                        Table {index + 1}: {table.caption}
+                    </p>
+                )}
+            </div>
+        ));
+    };
+
+    const renderCitations = (citations: Section['citations']) => {
+        return citations.map((citation) => (
+            <div key={citation.id} className="citation-reference text-sm">
+                {citation.authors.join(', ')} ({citation.year}). {citation.text}.
+                {citation.journal && ` ${citation.journal}.`}
+                {citation.doi && ` DOI: ${citation.doi}`}
+            </div>
+        ));
+    };
+
     const renderAbstract = () => {
         return (
             <div className="thesis-page">
@@ -98,6 +138,30 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
                         <>
                             {chapterTitle && <h2 className="text-2xl font-serif mb-4">{section.title}</h2>}
                             <MDEditor.Markdown source={section.content} />
+                            
+                            {/* Render Figures */}
+                            {section.figures && section.figures.length > 0 && (
+                                <div className="figures-section">
+                                    {renderFigures(section.figures)}
+                                </div>
+                            )}
+
+                            {/* Render Tables */}
+                            {section.tables && section.tables.length > 0 && (
+                                <div className="tables-section">
+                                    {renderTables(section.tables)}
+                                </div>
+                            )}
+
+                            {/* Render Citations */}
+                            {section.citations && section.citations.length > 0 && (
+                                <div className="citations-section mt-8 border-t pt-4">
+                                    <h3 className="text-lg font-serif mb-2">Citations</h3>
+                                    <div className="space-y-2">
+                                        {renderCitations(section.citations)}
+                                    </div>
+                                </div>
+                            )}
                         </>
                     )}
                     {section.type === 'table-of-contents' && (
