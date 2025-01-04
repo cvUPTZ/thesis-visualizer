@@ -1,77 +1,147 @@
-import { ThesisEditor } from "@/components/ThesisEditor";
-import { useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { PlusCircle, BookOpen, Users, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { PlusCircle, BookOpen, Users, Clock, FileText, Star } from "lucide-react";
 import { ThesisList } from "@/components/thesis/ThesisList";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const Index = () => {
-  const { thesisId } = useParams();
   const navigate = useNavigate();
+  const { userId } = useAuth();
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [thesesStats, setThesesStats] = useState({
+    total: 0,
+    inProgress: 0,
+    completed: 0,
+  });
 
-  if (thesisId) {
-    return (
-      <div className="flex flex-col h-full">
-        <div className="flex-1">
-          <ThesisEditor thesisId={thesisId} />
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!userId) return;
+      
+      console.log("Fetching user profile for:", userId);
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select(`
+          *,
+          roles (
+            name
+          )
+        `)
+        .eq("id", userId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching profile:", error);
+        return;
+      }
+
+      console.log("Fetched profile:", profile);
+      setUserProfile(profile);
+    };
+
+    const fetchThesesStats = async () => {
+      if (!userId) return;
+      
+      console.log("Fetching theses stats for:", userId);
+      const { data: theses, error } = await supabase
+        .from("thesis_collaborators")
+        .select("thesis_id")
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("Error fetching theses:", error);
+        return;
+      }
+
+      console.log("Fetched theses:", theses);
+      setThesesStats({
+        total: theses?.length || 0,
+        inProgress: theses?.length || 0,
+        completed: 0,
+      });
+    };
+
+    fetchUserProfile();
+    fetchThesesStats();
+  }, [userId]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-primary mb-6">
-            Welcome to Your Thesis Dashboard
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* User Profile Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-serif font-bold text-primary mb-2">
+            Welcome, {userProfile?.email}
           </h1>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Create, manage, and collaborate on your academic work in one place.
+          <p className="text-gray-600">
+            Role: {userProfile?.roles?.name || "User"}
           </p>
-          <div className="flex items-center justify-center gap-4">
-            <Button
-              onClick={() => navigate("/create-thesis")}
-              className="bg-primary hover:bg-primary-light text-white"
-            >
-              <PlusCircle className="mr-2 h-5 w-5" />
-              Start New Thesis
-            </Button>
-            <ThesisList />
-          </div>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-            <BookOpen className="h-12 w-12 text-primary mb-4" />
-            <h3 className="text-xl font-semibold mb-3">Smart Editor</h3>
-            <p className="text-gray-600">
-              Advanced formatting tools and real-time preview to help you write your thesis efficiently.
-            </p>
-          </div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Theses</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{thesesStats.total}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{thesesStats.inProgress}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Completed</CardTitle>
+              <Star className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{thesesStats.completed}</div>
+            </CardContent>
+          </Card>
+        </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-            <Users className="h-12 w-12 text-primary mb-4" />
-            <h3 className="text-xl font-semibold mb-3">Collaboration</h3>
-            <p className="text-gray-600">
-              Work seamlessly with advisors and peers with our real-time collaboration features.
-            </p>
-          </div>
+        {/* Actions Section */}
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-serif font-semibold text-primary">
+            Your Theses
+          </h2>
+          <Button
+            onClick={() => navigate("/create-thesis")}
+            className="bg-primary hover:bg-primary-light text-white"
+          >
+            <PlusCircle className="mr-2 h-5 w-5" />
+            Start New Thesis
+          </Button>
+        </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-            <Clock className="h-12 w-12 text-primary mb-4" />
-            <h3 className="text-xl font-semibold mb-3">Auto-saving</h3>
-            <p className="text-gray-600">
-              Never lose your work with automatic saving and version history.
-            </p>
-          </div>
+        {/* Thesis List */}
+        <div className="bg-white rounded-lg shadow">
+          <ThesisList />
         </div>
 
         {/* Quick Tips Section */}
-        <div className="bg-editor-bg rounded-lg p-8 mb-16">
-          <h2 className="text-2xl font-serif font-bold mb-6 text-primary">Quick Tips</h2>
+        <div className="mt-8 bg-editor-bg rounded-lg p-8">
+          <h2 className="text-xl font-serif font-semibold text-primary mb-4">
+            Quick Tips
+          </h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h4 className="font-semibold mb-2">Getting Started</h4>
