@@ -275,6 +275,7 @@ export type Database = {
           created_at: string
           id: string
           reviewer_id: string
+          section_id: string
           status: string
           thesis_id: string
           updated_at: string
@@ -284,6 +285,7 @@ export type Database = {
           created_at?: string
           id?: string
           reviewer_id: string
+          section_id: string
           status?: string
           thesis_id: string
           updated_at?: string
@@ -293,6 +295,7 @@ export type Database = {
           created_at?: string
           id?: string
           reviewer_id?: string
+          section_id?: string
           status?: string
           thesis_id?: string
           updated_at?: string

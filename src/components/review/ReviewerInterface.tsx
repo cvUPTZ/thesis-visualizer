@@ -8,24 +8,29 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageSquare, Send } from 'lucide-react';
 
-interface Comment {
+interface ThesisReview {
   id: string;
-  content: string;
-  section_id: string;
+  content: {
+    text: string;
+    type: 'comment' | 'suggestion' | 'correction';
+  };
   reviewer_id: string;
   created_at: string;
-  reviewer_email?: string;
+  status: string;
+  profiles?: {
+    email: string;
+  };
 }
 
 export const ReviewerInterface = () => {
   const { thesisId } = useParams<{ thesisId: string }>();
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [reviews, setReviews] = useState<ThesisReview[]>([]);
   const [newComment, setNewComment] = useState('');
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchComments = async () => {
+    const fetchReviews = async () => {
       const { data, error } = await supabase
         .from('thesis_reviews')
         .select(`
@@ -33,19 +38,28 @@ export const ReviewerInterface = () => {
           content,
           reviewer_id,
           created_at,
-          profiles (email)
+          status,
+          profiles (
+            email
+          )
         `)
         .eq('thesis_id', thesisId);
 
       if (error) {
-        console.error('Error fetching comments:', error);
+        console.error('Error fetching reviews:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch reviews',
+          variant: 'destructive',
+        });
         return;
       }
 
-      setComments(data || []);
+      console.log('Fetched reviews:', data);
+      setReviews(data || []);
     };
 
-    fetchComments();
+    fetchReviews();
 
     // Set up real-time subscription
     const channel = supabase
@@ -60,7 +74,7 @@ export const ReviewerInterface = () => {
         },
         (payload) => {
           console.log('Real-time update:', payload);
-          fetchComments();
+          fetchReviews();
         }
       )
       .subscribe();
@@ -68,24 +82,39 @@ export const ReviewerInterface = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [thesisId]);
+  }, [thesisId, toast]);
 
-  const addComment = async () => {
+  const addReview = async () => {
     if (!newComment.trim() || !activeSection) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: 'Error',
+        description: 'You must be logged in to add reviews',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     const { error } = await supabase.from('thesis_reviews').insert([
       {
         thesis_id: thesisId,
-        content: newComment,
+        content: {
+          text: newComment,
+          type: 'comment'
+        },
+        reviewer_id: user.id,
         section_id: activeSection,
-      },
+        status: 'pending'
+      }
     ]);
 
     if (error) {
-      console.error('Error adding comment:', error);
+      console.error('Error adding review:', error);
       toast({
         title: 'Error',
-        description: 'Failed to add comment',
+        description: 'Failed to add review',
         variant: 'destructive',
       });
       return;
@@ -94,7 +123,7 @@ export const ReviewerInterface = () => {
     setNewComment('');
     toast({
       title: 'Success',
-      description: 'Comment added successfully',
+      description: 'Review added successfully',
     });
   };
 
@@ -109,17 +138,25 @@ export const ReviewerInterface = () => {
       <CardContent>
         <ScrollArea className="h-[400px] pr-4">
           <div className="space-y-4">
-            {comments.map((comment) => (
-              <Card key={comment.id} className="p-4">
+            {reviews.map((review) => (
+              <Card key={review.id} className="p-4">
                 <div className="flex justify-between items-start mb-2">
                   <span className="text-sm font-medium">
-                    {comment.reviewer_email}
+                    {review.profiles?.email}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {new Date(comment.created_at).toLocaleString()}
+                    {new Date(review.created_at).toLocaleString()}
                   </span>
                 </div>
-                <p className="text-sm">{comment.content}</p>
+                <p className="text-sm">{review.content.text}</p>
+                <div className="mt-2 flex justify-between items-center">
+                  <span className="text-xs px-2 py-1 rounded-full bg-muted">
+                    {review.content.type}
+                  </span>
+                  <span className="text-xs px-2 py-1 rounded-full bg-primary/10">
+                    {review.status}
+                  </span>
+                </div>
               </Card>
             ))}
           </div>
@@ -132,12 +169,12 @@ export const ReviewerInterface = () => {
             className="min-h-[100px]"
           />
           <Button
-            onClick={addComment}
+            onClick={addReview}
             className="mt-2 w-full"
             disabled={!newComment.trim()}
           >
             <Send className="w-4 h-4 mr-2" />
-            Add Comment
+            Add Review
           </Button>
         </div>
       </CardContent>
