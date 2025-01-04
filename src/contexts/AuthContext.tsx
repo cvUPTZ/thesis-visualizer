@@ -7,6 +7,7 @@ interface AuthContextType {
   loading: boolean;
   userId: string | null;
   userRole: string | null;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -14,6 +15,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   userId: null,
   userRole: null,
+  logout: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -51,21 +53,57 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const clearAuthState = () => {
+    console.log('Clearing auth state...');
     setIsAuthenticated(false);
     setUserId(null);
     setUserRole(null);
     setLoading(false);
+    
+    // Clear any auth-related items from storage
+    localStorage.removeItem('supabase.auth.token');
+    sessionStorage.removeItem('supabase.auth.token');
+    
+    // Clear any other auth-related cookies
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+  };
+
+  const logout = async () => {
+    try {
+      setLoading(true);
+      console.log('Logging out...');
+      
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error during sign out:', error);
+        throw error;
+      }
+      
+      clearAuthState();
+      
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account.",
+      });
+      
+    } catch (error) {
+      console.error('Error during logout:', error);
+      toast({
+        title: "Error logging out",
+        description: "There was a problem logging out. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAuthError = async (error: any) => {
     console.error('Auth error:', error);
-    // Clear local storage and session storage
-    localStorage.clear();
-    sessionStorage.clear();
-    
-    // Sign out to clear any invalid tokens
-    await supabase.auth.signOut();
-    clearAuthState();
+    await logout();
     
     toast({
       title: "Authentication Error",
@@ -117,6 +155,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
+    // Initial auth check
+    checkAuth();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
@@ -133,15 +174,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setUserRole(profileData.roles?.name || null);
           }
           setLoading(false);
-        } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-          console.log('User signed out or token refreshed');
+        } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
           clearAuthState();
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed');
+          // Re-check auth status when token is refreshed
+          checkAuth();
         }
       }
     );
-
-    // Initial auth check
-    checkAuth();
 
     return () => {
       mounted = false;
@@ -150,7 +192,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [toast]);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, loading, userId, userRole }}>
+    <AuthContext.Provider value={{ isAuthenticated, loading, userId, userRole, logout }}>
       {children}
     </AuthContext.Provider>
   );
