@@ -48,38 +48,48 @@ const App = () => (
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading, userRole } = useAuth();
+  console.log('🔒 Protected Route Check:', { isAuthenticated, loading, userRole });
 
   if (loading) {
+    console.log('⌛ Loading protected route...');
     return <div>Loading...</div>;
   }
 
   if (!isAuthenticated) {
+    console.log('🚫 User not authenticated, redirecting to /auth');
     return <Navigate to="/auth" />;
   }
 
   // Redirect admin users to admin panel
   if (userRole === 'admin') {
+    console.log('👑 Admin user detected, redirecting to admin panel');
     return <Navigate to="/admin" />;
   }
 
+  console.log('✅ Access granted to protected route');
   return children;
 };
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading, userRole } = useAuth();
+  console.log('👑 Admin Route Check:', { isAuthenticated, loading, userRole });
 
   if (loading) {
+    console.log('⌛ Loading admin route...');
     return <div>Loading...</div>;
   }
 
   if (!isAuthenticated) {
+    console.log('🚫 User not authenticated, redirecting to /auth');
     return <Navigate to="/auth" />;
   }
 
   if (userRole !== 'admin') {
+    console.log('⛔ Non-admin user, redirecting to home');
     return <Navigate to="/" />;
   }
 
+  console.log('✅ Access granted to admin route');
   return children;
 };
 
