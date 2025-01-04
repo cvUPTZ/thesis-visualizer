@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthContextType } from './auth/types';
 import { useSession } from './auth/useSession';
+import { useToast } from '@/hooks/use-toast';
 
 const AuthContext = createContext<AuthContextType>({
   userId: null,
@@ -14,6 +16,8 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const {
     userId,
     userRole,
@@ -96,7 +100,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate, toast, handleSessionChange, setUserId, setUserRole, setLoading]);
 
   return (
     <AuthContext.Provider value={{ 
