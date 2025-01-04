@@ -31,9 +31,10 @@ export const ThesisEditor = () => {
   const handleContentChange = useCallback((id: string, newContent: string) => {
     if (!thesis) return;
     
-    setThesis(prevThesis => {
+    setThesis((prevThesis: Thesis | null) => {
       if (!prevThesis) return thesis;
-      return {
+      
+      const updatedThesis = {
         ...prevThesis,
         frontMatter: prevThesis.frontMatter.map(section =>
           section.id === id ? { ...section, content: newContent } : section
@@ -48,8 +49,9 @@ export const ThesisEditor = () => {
           section.id === id ? { ...section, content: newContent } : section
         )
       };
+      return updatedThesis;
     });
-  }, [thesis]);
+  }, [thesis, setThesis]);
 
   const getAllThesisSections = () => {
     if (!thesis) return [];
@@ -63,7 +65,7 @@ export const ThesisEditor = () => {
   const handleTitleChange = (chapterId: string, newTitle: string) => {
     if (!thesis) return;
     
-    setThesis(prevThesis => {
+    setThesis((prevThesis: Thesis | null) => {
       if (!prevThesis) return thesis;
       return {
         ...prevThesis,
@@ -77,7 +79,7 @@ export const ThesisEditor = () => {
   const handleUpdateChapter = (updatedChapter: Chapter) => {
     if (!thesis) return;
     
-    setThesis(prevThesis => {
+    setThesis((prevThesis: Thesis | null) => {
       if (!prevThesis) return thesis;
       return {
         ...prevThesis,
@@ -98,7 +100,7 @@ export const ThesisEditor = () => {
       sections: []
     };
     
-    setThesis(prevThesis => {
+    setThesis((prevThesis: Thesis | null) => {
       if (!prevThesis) return thesis;
       return {
         ...prevThesis,
@@ -121,12 +123,12 @@ export const ThesisEditor = () => {
     );
   }
 
-  if (error || (!thesis && thesisId)) {
+  if (error) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center animate-fade-in">
         <div className="text-center space-y-4">
           <h2 className="text-2xl font-semibold text-destructive">Error Loading Thesis</h2>
-          <p className="text-muted-foreground">{error || "Thesis not found"}</p>
+          <p className="text-muted-foreground">{error instanceof Error ? error.message : 'Unknown error'}</p>
         </div>
       </div>
     );
@@ -145,6 +147,8 @@ export const ThesisEditor = () => {
       </div>
     );
   }
+
+  if (!thesis) return null;
 
   return (
     <EditorLayout

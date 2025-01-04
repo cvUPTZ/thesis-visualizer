@@ -90,5 +90,6 @@ export const useAuth = () => {
     userRole,
     loading,
     isAdmin: userRole === 'admin',
+    isAuthenticated: !!user
   };
 };

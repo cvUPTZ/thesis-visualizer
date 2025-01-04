@@ -29,7 +29,7 @@ export const useThesisData = (thesisId: string | undefined) => {
       try {
         console.log('Fetching thesis with ID:', thesisId);
 
-        const { data: thesisData, error: fetchError } = await supabase
+        const { data: fetchedThesis, error: fetchError } = await supabase
           .from('theses')
           .select(`
             *,
@@ -46,19 +46,19 @@ export const useThesisData = (thesisId: string | undefined) => {
           throw new Error(fetchError.message);
         }
 
-        if (!thesisData) {
+        if (!fetchedThesis) {
           console.log('No thesis found with ID:', thesisId);
           throw new Error('Thesis not found');
         }
 
-        console.log('Thesis data loaded:', thesisData);
+        console.log('Thesis data loaded:', fetchedThesis);
 
-        const parsedContent = typeof thesisData.content === 'string'
-          ? JSON.parse(thesisData.content)
-          : thesisData.content;
+        const parsedContent = typeof fetchedThesis.content === 'string'
+          ? JSON.parse(fetchedThesis.content)
+          : fetchedThesis.content;
 
-        const thesisData: Thesis = {
-          id: thesisData.id,
+        const formattedThesis: Thesis = {
+          id: fetchedThesis.id,
           metadata: {
             description: parsedContent?.metadata?.description || '',
             keywords: parsedContent?.metadata?.keywords || [],
@@ -74,7 +74,7 @@ export const useThesisData = (thesisId: string | undefined) => {
           backMatter: parsedContent?.backMatter || []
         };
 
-        return thesisData;
+        return formattedThesis;
       } catch (err: any) {
         console.error("Error in thesis data hook:", err);
         toast({
@@ -86,7 +86,7 @@ export const useThesisData = (thesisId: string | undefined) => {
       }
     },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    cacheTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
