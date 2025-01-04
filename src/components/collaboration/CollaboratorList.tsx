@@ -1,22 +1,14 @@
-// File: src/components/collaboration/CollaboratorList.tsx
 import React from 'react';
+import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-
-interface Collaborator {
-  user_id: string;
-  role: string;
-  profiles?: {
-    email: string;
-    role: string;
-  };
-}
+import { CollaboratorWithProfile } from '@/types/collaborator';
 
 interface CollaboratorListProps {
-  collaborators: Collaborator[];
+  collaborators: CollaboratorWithProfile[];
   thesisId: string;
   canManageCollaborators: boolean;
   currentUserRole: string | null;
@@ -35,7 +27,7 @@ const getBadgeVariant = (role: string) => {
   }
 };
 
-const canRemoveCollaborator = (isAdmin: boolean, currentUserRole: string | null, collaborator: Collaborator) => {
+const canRemoveCollaborator = (isAdmin: boolean, currentUserRole: string | null, collaborator: CollaboratorWithProfile) => {
   if (isAdmin) return true;
   if (currentUserRole === 'owner') return true;
   if (currentUserRole === 'admin' && collaborator.role !== 'owner') return true;
@@ -94,7 +86,7 @@ export const CollaboratorList = ({
             <Badge variant={getBadgeVariant(collaborator.role)}>
               {collaborator.role}
             </Badge>
-            {collaborator.profiles?.role === 'admin' && (
+            {collaborator.profiles?.roles?.name === 'admin' && (
               <Badge variant="default">Site Admin</Badge>
             )}
           </div>
