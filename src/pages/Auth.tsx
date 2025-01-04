@@ -5,9 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuthFlow } from "@/hooks/useAuthFlow";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+
+const LOADING_TIMEOUT = 10000; // 10 seconds timeout
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -18,13 +20,28 @@ const Auth = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [sessionChecked, setSessionChecked] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     let mounted = true;
+    console.log('🔍 Auth Page - Starting session check...');
 
     const checkSession = async () => {
       try {
-        console.log('🔍 Auth Page - Checking current session...');
+        // Set loading timeout
+        timeoutRef.current = setTimeout(() => {
+          if (mounted) {
+            console.log('⚠️ Auth Page - Loading timeout reached');
+            setIsLoading(false);
+            setSessionChecked(true);
+            toast({
+              title: "Loading timeout",
+              description: "Session check took too long. Please refresh the page.",
+              variant: "destructive",
+            });
+          }
+        }, LOADING_TIMEOUT);
+
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -33,48 +50,55 @@ const Auth = () => {
         }
         
         if (session?.user && mounted) {
-          console.log('✅ Auth Page - User already authenticated:', session.user.email);
+          console.log('✅ Auth Page - User authenticated:', session.user.email);
           
-          // Wait for role to be loaded
+          // Single query for profile and role
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('roles (name)')
+            .select(`
+              email,
+              roles (
+                name
+              )
+            `)
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
 
           if (profileError) {
             console.error('❌ Auth Page - Error loading profile:', profileError);
             throw profileError;
           }
 
-          console.log('👤 Auth Page - User role loaded:', profile?.roles?.name);
+          console.log('👤 Auth Page - Profile loaded:', profile);
           
           if (mounted) {
+            clearTimeout(timeoutRef.current);
             navigate('/');
           }
         } else {
-          console.log('ℹ️ Auth Page - No active session found');
+          console.log('ℹ️ Auth Page - No active session');
           if (mounted) {
+            clearTimeout(timeoutRef.current);
             setIsLoading(false);
             setSessionChecked(true);
           }
         }
       } catch (err) {
-        console.error('❌ Auth Page - Error checking session:', err);
-        toast({
-          title: "Error",
-          description: "Failed to check authentication status. Please try again.",
-          variant: "destructive",
-        });
+        console.error('❌ Auth Page - Error:', err);
         if (mounted) {
+          clearTimeout(timeoutRef.current);
           setIsLoading(false);
           setSessionChecked(true);
+          toast({
+            title: "Error",
+            description: "Failed to check authentication status. Please try again.",
+            variant: "destructive",
+          });
         }
       }
     };
 
-    checkSession();
-
+    // Single auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 Auth state changed:', event, session?.user?.email);
       
@@ -88,18 +112,23 @@ const Auth = () => {
         setIsLoading(true);
         
         try {
-          // Wait for role to be loaded
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('roles (name)')
+            .select(`
+              email,
+              roles (
+                name
+              )
+            `)
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
 
           if (profileError) throw profileError;
 
-          console.log('👤 User role loaded:', profile?.roles?.name);
+          console.log('👤 Profile loaded:', profile);
           
           if (mounted) {
+            clearTimeout(timeoutRef.current);
             toast({
               title: "Welcome!",
               description: "You have successfully signed in.",
@@ -107,23 +136,29 @@ const Auth = () => {
             navigate('/');
           }
         } catch (error: any) {
-          console.error('❌ Error loading user profile:', error);
-          toast({
-            title: "Error",
-            description: "Failed to load user profile. Please try again.",
-            variant: "destructive",
-          });
+          console.error('❌ Error loading profile:', error);
+          if (mounted) {
+            toast({
+              title: "Error",
+              description: "Failed to load user profile. Please try again.",
+              variant: "destructive",
+            });
+          }
         } finally {
           if (mounted) {
+            clearTimeout(timeoutRef.current);
             setIsLoading(false);
           }
         }
       }
     });
 
+    checkSession();
+
     return () => {
       console.log('🧹 Auth Page - Cleaning up...');
       mounted = false;
+      clearTimeout(timeoutRef.current);
       subscription.unsubscribe();
     };
   }, [navigate, toast]);
