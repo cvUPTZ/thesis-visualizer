@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,19 +8,30 @@ import LandingPage from '@/pages/LandingPage';
 import AdminPanel from '@/pages/AdminPanel';
 import CreateThesis from '@/pages/CreateThesis';
 import { ThesisEditor } from '@/components/ThesisEditor';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const LoadingFallback = () => (
+  <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="space-y-4 w-full max-w-md p-8">
+      <Skeleton className="h-12 w-3/4" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-2/3" />
+    </div>
+  </div>
+);
 
 const App = () => {
   return (
-    <>
-      <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
+      <Suspense fallback={<LoadingFallback />}>
         <main>
           <Toaster />
           <Routes>
-            {/* Public routes - No loading state */}
+            {/* Public routes */}
             <Route path="/welcome" element={<LandingPage />} />
             <Route path="/auth" element={<Auth />} />
             
-            {/* Protected routes - Loading state except for root and thesis routes */}
+            {/* Protected routes */}
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route
               path="/thesis/:thesisId"
@@ -48,8 +59,8 @@ const App = () => {
             />
           </Routes>
         </main>
-      </div>
-    </>
+      </Suspense>
+    </div>
   );
 };
 
@@ -65,7 +76,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   // Skip loading state for root route and thesis routes
   if (loading && currentPath !== '/' && !currentPath.startsWith('/thesis/')) {
     console.log('⌛ Loading protected route...');
-    return <div>Loading...</div>;
+    return <LoadingFallback />;
   }
 
   if (!isAuthenticated) {
@@ -83,7 +94,7 @@ const AdminRoute = ({ children }: ProtectedRouteProps) => {
 
   if (loading) {
     console.log('⌛ Loading admin route...');
-    return <div>Loading...</div>;
+    return <LoadingFallback />;
   }
 
   if (!isAuthenticated) {
