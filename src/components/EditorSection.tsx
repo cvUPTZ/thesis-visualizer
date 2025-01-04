@@ -39,7 +39,6 @@ interface EditorSectionProps {
         onContentChange(section.id, JSON.stringify({...section, references: newReferences}))
       }
 
-
     return (
     <div className="editor-section">
       <div className="flex items-center gap-3 mb-4">

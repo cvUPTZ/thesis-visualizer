@@ -27,7 +27,7 @@ module.exports = {
           DEFAULT: '#9b87f5',
           hover: '#7E69AB',
           light: '#D6BCFA',
-          dark: '#6E59A5',
+          dark: '#6E59A5', 
           foreground: '#FFFFFF',
         },
         editor: {

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlusCircle, X, Image } from 'lucide-react';
-import { useId } from 'react'; // Use react hook to generate IDs
+import { useId } from 'react';
 
 interface FigureManagerProps {
   figures: Figure[];
@@ -20,7 +20,7 @@ export const FigureManager = ({
   onRemoveFigure,
   onUpdateFigure
 }: FigureManagerProps) => {
-     const generateId = useId(); // Generate unique ID prefix
+     const generateId = useId();
     
   const handleAddFigure = () => {
     const newFigure: Figure = {

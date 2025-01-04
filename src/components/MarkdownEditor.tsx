@@ -5,14 +5,14 @@ interface MarkdownEditorProps {
     value: string;
     onChange: (value: string | undefined) => void;
     placeholder?: string;
-    height?: number; // Added height prop
+    height?: number;
 }
 
 export const MarkdownEditor = ({
     value,
     onChange,
     placeholder,
-    height = 400, // Default height
+    height = 400,
 }: MarkdownEditorProps) => {
     return (
         <div className="w-full" data-color-mode="light">
@@ -20,7 +20,7 @@ export const MarkdownEditor = ({
                 value={value}
                 onChange={(val) => onChange(val || '')}
                 preview="edit"
-                height={height} // Use passed height
+                height={height}
                 className="border-none bg-transparent"
                 hideToolbar={false}
                 textareaProps={{
