@@ -29,7 +29,28 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
   useThesisAutosave(thesis);
   useThesisInitialization(thesis);
 
-  const handleThesisCreated = (newThesis: Thesis) => {
+  const handleThesisCreated = (thesisId: string, title: string) => {
+    const newThesis: Thesis = {
+      id: thesisId,
+      title: title,
+      content: {},
+      metadata: {
+        description: '',
+        keywords: [],
+        createdAt: new Date().toISOString(),
+        universityName: '',
+        departmentName: '',
+        authorName: '',
+        thesisDate: '',
+        committeeMembers: []
+      },
+      frontMatter: [],
+      chapters: [],
+      backMatter: [],
+      user_id: '',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
     setThesis(newThesis);
   };
 

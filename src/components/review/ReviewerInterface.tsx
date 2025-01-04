@@ -20,6 +20,24 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
   const [profile, setProfile] = useState<Profile | null>(null);
   const { toast } = useToast();
 
+  const transformComment = (rawComment: any): ThesisComment => {
+    return {
+      id: rawComment.id,
+      thesis_id: rawComment.thesis_id,
+      section_id: rawComment.section_id,
+      reviewer_id: rawComment.reviewer_id,
+      content: { 
+        text: typeof rawComment.content === 'string' 
+          ? rawComment.content 
+          : rawComment.content.text || '' 
+      },
+      parent_id: rawComment.parent_id,
+      status: rawComment.status as 'pending' | 'resolved',
+      created_at: rawComment.created_at,
+      updated_at: rawComment.updated_at
+    };
+  };
+
   useEffect(() => {
     const fetchComments = async () => {
       try {
@@ -46,13 +64,10 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
 
         console.log('Fetched comments:', commentsData);
         
-        // Transform the flat comments into a thread structure
+        // Transform the flat comments into a thread structure using the transformed comments
         const threadMap = new Map<string | null, ThesisComment[]>();
         commentsData.forEach((comment: any) => {
-          const transformedComment: ThesisComment = {
-            ...comment,
-            content: { text: comment.content.text || '' }
-          };
+          const transformedComment = transformComment(comment);
           const parentId = comment.parent_id || null;
           if (!threadMap.has(parentId)) {
             threadMap.set(parentId, []);
