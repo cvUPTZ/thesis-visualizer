@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Section } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
 import { SectionHeader } from './editor/SectionHeader';
@@ -25,17 +25,51 @@ export const EditorSection = ({
     isActive 
   });
 
+  const handleContentChange = useCallback((content: string) => {
+    try {
+      console.log('Updating section content:', { 
+        sectionId: section.id, 
+        contentLength: content.length 
+      });
+      onContentChange(section.id, content);
+    } catch (error) {
+      console.error('Error updating section content:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update section content. Please try again.",
+        variant: "destructive"
+      });
+    }
+  }, [section.id, onContentChange, toast]);
+
+  const handleTitleChange = useCallback((title: string) => {
+    try {
+      console.log('Updating section title:', { 
+        sectionId: section.id, 
+        newTitle: title 
+      });
+      onTitleChange(section.id, title);
+    } catch (error) {
+      console.error('Error updating section title:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update section title. Please try again.",
+        variant: "destructive"
+      });
+    }
+  }, [section.id, onTitleChange, toast]);
+
   if (!isActive) return null;
 
-  const handleSectionUpdate = (updatedSection: Section) => {
+  const handleSectionUpdate = useCallback((updatedSection: Section) => {
     console.log('Updating section:', updatedSection);
-    onContentChange(updatedSection.id, updatedSection.content);
+    handleContentChange(updatedSection.content);
     
     toast({
       title: "Success",
       description: "Section updated successfully",
     });
-  };
+  }, [handleContentChange, toast]);
 
   return (
     <div className="editor-section animate-fade-in bg-editor-gradient">
@@ -43,12 +77,12 @@ export const EditorSection = ({
         <SectionHeader
           title={section.title}
           required={section.required}
-          onTitleChange={(title) => onTitleChange(section.id, title)}
+          onTitleChange={handleTitleChange}
         />
         
         <SectionContent
           content={section.content}
-          onContentChange={(content) => onContentChange(section.id, content)}
+          onContentChange={handleContentChange}
         />
 
         <SectionManagers

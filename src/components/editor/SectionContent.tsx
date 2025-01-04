@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { MarkdownEditor } from '../MarkdownEditor';
 
 interface SectionContentProps {
@@ -9,11 +9,18 @@ interface SectionContentProps {
 export const SectionContent = ({ content, onContentChange }: SectionContentProps) => {
   console.log('Rendering SectionContent:', { contentLength: content?.length });
   
+  const handleChange = useCallback((value: string | undefined) => {
+    console.log('Content change detected:', { 
+      newContentLength: value?.length 
+    });
+    onContentChange(value || '');
+  }, [onContentChange]);
+  
   return (
     <div className="relative">
       <MarkdownEditor
         value={content}
-        onChange={onContentChange}
+        onChange={handleChange}
         placeholder="Start writing..."
       />
     </div>
