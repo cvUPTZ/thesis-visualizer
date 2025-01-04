@@ -24,25 +24,28 @@ export const EditorSection = ({
   if (!isActive) return null;
 
   return (
-    <div className="editor-section">
-      <div className="flex items-center gap-3 mb-4">
+    <div className="bg-editor-bg border border-editor-border rounded-xl shadow-editor p-6 mb-6 transition-all duration-300 hover:shadow-lg">
+      <div className="flex items-center gap-3 mb-6 animate-fade-in">
         <Input
           value={section.title}
           onChange={(e) => onTitleChange(section.id, e.target.value)}
-          className="text-xl font-serif border-none bg-transparent px-0 focus-visible:ring-0"
+          className="text-2xl font-serif border-none bg-transparent px-0 focus-visible:ring-0 focus-visible:ring-editor-accent/20 transition-all duration-300"
+          placeholder="Enter section title..."
         />
         {section.required && (
-          <Badge variant="secondary">Required</Badge>
+          <Badge variant="secondary" className="bg-editor-accent text-white">
+            Required
+          </Badge>
         )}
       </div>
-      <div className="mb-6">
+      <div className="mb-8">
         <MarkdownEditor
           value={section.content}
           onChange={(value) => onContentChange(section.id, value || '')}
           placeholder="Start writing..."
         />
       </div>
-      <div className="space-y-8">
+      <div className="space-y-8 divide-y divide-editor-border/50">
         <FigureManager
           figures={section.figures}
           onAddFigure={(figure) => {
