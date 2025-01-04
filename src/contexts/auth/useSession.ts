@@ -14,17 +14,19 @@ export const useSession = () => {
   const handleSessionChange = async (session: any) => {
     console.log('🔄 Handling session change:', session?.user?.email);
     setLoading(true);
+    
     try {
       if (session?.user) {
+        console.log('✅ Valid session found, updating user data');
         setUserId(session.user.id);
         const role = await fetchUserRole(session.user.id);
         setUserRole(role);
         console.log('✅ Session updated successfully with role:', role);
       } else {
+        console.log('ℹ️ No valid session, clearing user data');
         setUserId(null);
         setUserRole(null);
         navigate('/welcome');
-        console.log('ℹ️ Session cleared, redirecting to welcome page');
       }
     } catch (error) {
       console.error('❌ Error handling session change:', error);
@@ -41,12 +43,15 @@ export const useSession = () => {
 
   const logout = async () => {
     try {
-      setLoading(true);
       console.log('🔄 Starting logout process...');
+      setLoading(true);
       
       const { error } = await supabase.auth.signOut();
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error during logout:', error);
+        throw error;
+      }
 
       console.log('✅ Logout successful');
       setUserId(null);
