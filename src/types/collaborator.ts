@@ -15,7 +15,7 @@ export interface Collaborator {
   };
 }
 
-export interface CollaboratorWithProfile extends Collaborator {
+export interface CollaboratorWithProfile extends Omit<Collaborator, 'profiles'> {
   profiles: Profile & {
     roles?: {
       name: string;

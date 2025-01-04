@@ -10,6 +10,7 @@ import { ThesisEditor } from "@/components/ThesisEditor";
 import LandingPage from "./pages/LandingPage";
 import AdminPanel from "./pages/AdminPanel";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading, userRole } = useAuth();
+  const { toast } = useToast();
 
   if (loading) {
     return <div>Loading...</div>;
