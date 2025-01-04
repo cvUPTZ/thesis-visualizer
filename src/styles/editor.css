@@ -1,0 +1,33 @@
+@layer components {
+  .editor-section {
+    @apply bg-editor-section-bg border border-editor-section-border rounded-lg p-6 mb-6 
+           shadow-lg transition-all duration-200 hover:shadow-xl
+           backdrop-blur-sm backdrop-filter;
+  }
+
+  .editor-header {
+    @apply flex items-center justify-between mb-6 pb-4 border-b border-editor-border;
+  }
+
+  .editor-title {
+    @apply text-2xl font-serif font-medium text-editor-text;
+  }
+
+  .editor-content {
+    @apply bg-white rounded-lg p-6 shadow-sm;
+  }
+
+  .editor-toolbar {
+    @apply flex items-center gap-2 mb-4;
+  }
+
+  .editor-input {
+    @apply bg-editor-bg border-editor-border text-editor-text placeholder-editor-placeholder
+           focus:ring-editor-accent focus:border-editor-accent;
+  }
+
+  .editor-button {
+    @apply bg-editor-accent text-white hover:bg-editor-accent-hover
+           transition-colors duration-200;
+  }
+}
