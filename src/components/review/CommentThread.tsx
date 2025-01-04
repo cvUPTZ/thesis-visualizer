@@ -1,132 +1,123 @@
-import React, { useState } from 'react';
-import { ThesisComment } from '@/types/thesis';
+import React from 'react';
+import { Profile } from '@/types/profile';
+import { CommentThread } from '@/types/thesis';
+import { Card } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Card } from '@/components/ui/card';
 
 interface CommentThreadProps {
-  comment: ThesisComment;
-  replies: ThesisComment[];
-  onReplyAdded: (reply: ThesisComment) => void;
+  thread: CommentThread;
+  currentUser: Profile | null;
+  thesisId: string;
+  sectionId: string;
 }
 
-export const CommentThread = ({ comment, replies, onReplyAdded }: CommentThreadProps) => {
-  const [isReplying, setIsReplying] = useState(false);
+export const CommentThread = ({
+  thread,
+  currentUser,
+  thesisId,
+  sectionId
+}: CommentThreadProps) => {
   const [replyContent, setReplyContent] = useState('');
+  const [showReplyForm, setShowReplyForm] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmitReply = async () => {
-    if (!replyContent.trim()) return;
+  const handleReply = async () => {
+    if (!currentUser || !replyContent.trim()) return;
 
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
-
-      if (!userId) {
-        throw new Error('User not authenticated');
-      }
-
       const { data, error } = await supabase
         .from('thesis_reviews')
-        .insert([
-          {
-            thesis_id: comment.thesis_id,
-            section_id: comment.section_id,
-            reviewer_id: userId,
-            content: replyContent,
-            parent_id: comment.id,
-            status: 'pending'
-          }
-        ])
-        .select(`
-          *,
-          profiles (
-            email,
-            roles (
-              name
-            )
-          )
-        `)
+        .insert({
+          thesis_id: thesisId,
+          section_id: sectionId,
+          reviewer_id: currentUser.id,
+          content: { text: replyContent },
+          parent_id: thread.comment.id,
+          status: 'pending'
+        })
+        .select()
         .single();
 
       if (error) throw error;
 
-      onReplyAdded(data);
-      setReplyContent('');
-      setIsReplying(false);
-      
       toast({
-        title: "Success",
-        description: "Reply added successfully",
+        title: "Reply added",
+        description: "Your reply has been posted successfully.",
       });
-    } catch (error) {
-      console.error('Error submitting reply:', error);
+
+      setReplyContent('');
+      setShowReplyForm(false);
+    } catch (error: any) {
+      console.error('Error adding reply:', error);
       toast({
         title: "Error",
-        description: "Failed to submit reply",
+        description: "Failed to post reply. Please try again.",
         variant: "destructive",
       });
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   return (
     <div className="space-y-4">
       <Card className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <div className="font-medium">{comment.profiles?.email}</div>
-          <div className="text-sm text-gray-500">{formatDate(comment.created_at)}</div>
+        <div className="flex items-start space-x-4">
+          <Avatar>
+            <AvatarFallback>
+              {thread.comment.reviewer_id.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <div className="prose prose-sm">
+              <p>{thread.comment.content.text}</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowReplyForm(!showReplyForm)}
+            >
+              Reply
+            </Button>
+          </div>
         </div>
-        <div className="text-gray-700 mb-2">{comment.content?.toString()}</div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsReplying(!isReplying)}
-        >
-          Reply
-        </Button>
       </Card>
 
-      {replies.map((reply) => (
-        <Card key={reply.id} className="ml-8 p-4">
-          <div className="flex justify-between items-start mb-2">
-            <div className="font-medium">{reply.profiles?.email}</div>
-            <div className="text-sm text-gray-500">{formatDate(reply.created_at)}</div>
+      {thread.replies.map((reply) => (
+        <Card key={reply.id} className="p-4 ml-8">
+          <div className="flex items-start space-x-4">
+            <Avatar>
+              <AvatarFallback>
+                {reply.reviewer_id.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 prose prose-sm">
+              <p>{reply.content.text}</p>
+            </div>
           </div>
-          <div className="text-gray-700">{reply.content?.toString()}</div>
         </Card>
       ))}
 
-      {isReplying && (
+      {showReplyForm && (
         <div className="ml-8 space-y-2">
           <Textarea
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}
             placeholder="Write your reply..."
+            className="min-h-[100px]"
           />
-          <div className="flex space-x-2">
-            <Button onClick={handleSubmitReply}>
-              Submit Reply
-            </Button>
+          <div className="flex justify-end space-x-2">
             <Button
               variant="outline"
-              onClick={() => {
-                setIsReplying(false);
-                setReplyContent('');
-              }}
+              onClick={() => setShowReplyForm(false)}
             >
               Cancel
+            </Button>
+            <Button onClick={handleReply}>
+              Post Reply
             </Button>
           </div>
         </div>

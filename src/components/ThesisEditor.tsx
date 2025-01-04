@@ -102,11 +102,11 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
   const getAllThesisSections = useCallback(() => {
     if (!thesis) return [];
     const allSections = [
-        ...thesis.frontMatter,
+      ...thesis.frontMatter,
       ...thesis.chapters.flatMap(chapter =>
         chapter.sections.map(section => ({
           ...section,
-            title: `${chapter.title} - ${section.title}`
+          title: `${chapter.title} - ${section.title}`
         }))
       ),
       ...thesis.backMatter
