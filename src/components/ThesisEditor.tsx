@@ -51,6 +51,61 @@ export const ThesisEditor = () => {
     });
   }, [thesis]);
 
+  const getAllThesisSections = () => {
+    if (!thesis) return [];
+    return [
+      ...thesis.frontMatter,
+      ...thesis.chapters.flatMap(chapter => chapter.sections),
+      ...thesis.backMatter
+    ];
+  };
+
+  const handleTitleChange = (chapterId: string, newTitle: string) => {
+    if (!thesis) return;
+    
+    setThesis(prevThesis => {
+      if (!prevThesis) return thesis;
+      return {
+        ...prevThesis,
+        chapters: prevThesis.chapters.map(chapter =>
+          chapter.id === chapterId ? { ...chapter, title: newTitle } : chapter
+        )
+      };
+    });
+  };
+
+  const handleUpdateChapter = (updatedChapter: Chapter) => {
+    if (!thesis) return;
+    
+    setThesis(prevThesis => {
+      if (!prevThesis) return thesis;
+      return {
+        ...prevThesis,
+        chapters: prevThesis.chapters.map(chapter =>
+          chapter.id === updatedChapter.id ? updatedChapter : chapter
+        )
+      };
+    });
+  };
+
+  const handleAddChapter = () => {
+    if (!thesis) return;
+    
+    const newChapter: Chapter = {
+      id: crypto.randomUUID(),
+      title: 'New Chapter',
+      sections: []
+    };
+    
+    setThesis(prevThesis => {
+      if (!prevThesis) return thesis;
+      return {
+        ...prevThesis,
+        chapters: [...prevThesis.chapters, newChapter]
+      };
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background animate-fade-in">

@@ -23,8 +23,11 @@ const App = () => (
             <Toaster />
             <Sonner />
             <Routes>
+              {/* Public routes without loading state */}
               <Route path="/welcome" element={<LandingPage />} />
               <Route path="/auth" element={<Auth />} />
+              
+              {/* Protected routes with loading state */}
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route
                 path="/thesis/:thesisId"
