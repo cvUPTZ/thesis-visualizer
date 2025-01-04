@@ -29,19 +29,23 @@ export const EditorSection = ({
 
   const handleSectionUpdate = (updatedSection: Section) => {
     console.log('Updating section:', updatedSection);
-    // Trigger content update to ensure changes are reflected immediately
-    onContentChange(updatedSection.id, updatedSection.content);
+    // Create a new section object with all updates
+    const newSection = {
+      ...section,
+      ...updatedSection,
+      content: updatedSection.content || section.content
+    };
+    console.log('New section state:', newSection);
+    onContentChange(newSection.id, newSection.content);
   };
 
   const handleAddFigure = (figure: any) => {
     console.log('Adding figure:', figure);
     const figures = Array.isArray(section.figures) ? section.figures : [];
-    const updatedSection = {
+    handleSectionUpdate({
       ...section,
-      figures: [...figures, figure],
-      content: section.content // Preserve existing content
-    };
-    handleSectionUpdate(updatedSection);
+      figures: [...figures, figure]
+    });
     toast({
       title: "Success",
       description: "Figure added successfully",
@@ -51,12 +55,10 @@ export const EditorSection = ({
   const handleAddTable = (table: any) => {
     console.log('Adding table:', table);
     const tables = Array.isArray(section.tables) ? section.tables : [];
-    const updatedSection = {
+    handleSectionUpdate({
       ...section,
-      tables: [...tables, table],
-      content: section.content // Preserve existing content
-    };
-    handleSectionUpdate(updatedSection);
+      tables: [...tables, table]
+    });
     toast({
       title: "Success",
       description: "Table added successfully",
@@ -66,12 +68,10 @@ export const EditorSection = ({
   const handleAddCitation = (citation: any) => {
     console.log('Adding citation:', citation);
     const citations = Array.isArray(section.citations) ? section.citations : [];
-    const updatedSection = {
+    handleSectionUpdate({
       ...section,
-      citations: [...citations, citation],
-      content: section.content // Preserve existing content
-    };
-    handleSectionUpdate(updatedSection);
+      citations: [...citations, citation]
+    });
     toast({
       title: "Success",
       description: "Citation added successfully",
@@ -81,12 +81,10 @@ export const EditorSection = ({
   const handleAddReference = (reference: any) => {
     console.log('Adding reference:', reference);
     const references = Array.isArray(section.references) ? section.references : [];
-    const updatedSection = {
+    handleSectionUpdate({
       ...section,
-      references: [...references, reference],
-      content: section.content // Preserve existing content
-    };
-    handleSectionUpdate(updatedSection);
+      references: [...references, reference]
+    });
     toast({
       title: "Success",
       description: "Reference added successfully",
@@ -123,54 +121,48 @@ export const EditorSection = ({
             figures={section.figures || []}
             onAddFigure={handleAddFigure}
             onRemoveFigure={(id) => {
-              const updatedSection = {
+              handleSectionUpdate({
                 ...section,
                 figures: (section.figures || []).filter(f => f.id !== id)
-              };
-              handleSectionUpdate(updatedSection);
+              });
             }}
             onUpdateFigure={(figure) => {
-              const updatedSection = {
+              handleSectionUpdate({
                 ...section,
                 figures: (section.figures || []).map(f => f.id === figure.id ? figure : f)
-              };
-              handleSectionUpdate(updatedSection);
+              });
             }}
           />
           <TableManager
             tables={section.tables || []}
             onAddTable={handleAddTable}
             onRemoveTable={(id) => {
-              const updatedSection = {
+              handleSectionUpdate({
                 ...section,
                 tables: (section.tables || []).filter(t => t.id !== id)
-              };
-              handleSectionUpdate(updatedSection);
+              });
             }}
             onUpdateTable={(table) => {
-              const updatedSection = {
+              handleSectionUpdate({
                 ...section,
                 tables: (section.tables || []).map(t => t.id === table.id ? table : t)
-              };
-              handleSectionUpdate(updatedSection);
+              });
             }}
           />
           <CitationManager
             citations={section.citations || []}
             onAddCitation={handleAddCitation}
             onRemoveCitation={(id) => {
-              const updatedSection = {
+              handleSectionUpdate({
                 ...section,
                 citations: (section.citations || []).filter(c => c.id !== id)
-              };
-              handleSectionUpdate(updatedSection);
+              });
             }}
             onUpdateCitation={(citation) => {
-              const updatedSection = {
+              handleSectionUpdate({
                 ...section,
                 citations: (section.citations || []).map(c => c.id === citation.id ? citation : c)
-              };
-              handleSectionUpdate(updatedSection);
+              });
             }}
           />
           {section.type === 'references' && (
@@ -178,18 +170,16 @@ export const EditorSection = ({
               references={section.references || []}
               onAddReference={handleAddReference}
               onRemoveReference={(id) => {
-                const updatedSection = {
+                handleSectionUpdate({
                   ...section,
                   references: (section.references || []).filter(r => r.id !== id)
-                };
-                handleSectionUpdate(updatedSection);
+                });
               }}
               onUpdateReference={(reference) => {
-                const updatedSection = {
+                handleSectionUpdate({
                   ...section,
                   references: (section.references || []).map(r => r.id === reference.id ? reference : r)
-                };
-                handleSectionUpdate(updatedSection);
+                });
               }}
             />
           )}
