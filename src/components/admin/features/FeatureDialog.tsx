@@ -15,7 +15,7 @@ interface FeatureDialogProps {
     description: string | null;
     status: string;
     health: string;
-    usage_data: any;
+    usage_data: Record<string, string | number>;
     is_sub_feature: boolean;
   };
   open: boolean;
@@ -23,7 +23,7 @@ interface FeatureDialogProps {
 }
 
 export const FeatureDialog = ({ feature, open, onOpenChange }: FeatureDialogProps) => {
-  const formatUsageData = (data: any) => {
+  const formatUsageData = (data: Record<string, string | number> | null) => {
     if (!data) return null;
     return Object.entries(data).map(([key, value]) => (
       <div key={key} className="flex justify-between items-center py-1">

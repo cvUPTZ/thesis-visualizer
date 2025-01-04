@@ -7,7 +7,7 @@ interface SectionContentProps {
 }
 
 export const SectionContent = ({ content, onContentChange }: SectionContentProps) => {
-  console.log('Rendering SectionContent with:', { content });
+  console.log('Rendering SectionContent:', { contentLength: content?.length });
   
   return (
     <div className="relative">

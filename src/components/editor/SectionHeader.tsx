@@ -9,6 +9,8 @@ interface SectionHeaderProps {
 }
 
 export const SectionHeader = ({ title, required, onTitleChange }: SectionHeaderProps) => {
+  console.log('Rendering SectionHeader:', { title, required });
+  
   return (
     <div className="flex items-center gap-3">
       <Input

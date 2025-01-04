@@ -19,7 +19,11 @@ export const EditorSection = ({
   onTitleChange
 }: EditorSectionProps) => {
   const { toast } = useToast();
-  console.log('EditorSection rendering with section:', section);
+  console.log('EditorSection rendering with section:', { 
+    id: section.id, 
+    title: section.title,
+    isActive 
+  });
 
   if (!isActive) return null;
 

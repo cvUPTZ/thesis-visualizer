@@ -1,9 +1,9 @@
 import React from 'react';
+import { Section } from '@/types/thesis';
 import { FigureManager } from '../FigureManager';
 import { TableManager } from '../TableManager';
 import { CitationManager } from '../CitationManager';
 import { ReferenceManager } from '../ReferenceManager';
-import { Section, Figure, Table, Citation, Reference } from '@/types/thesis';
 
 interface SectionManagersProps {
   section: Section;
@@ -11,9 +11,14 @@ interface SectionManagersProps {
 }
 
 export const SectionManagers = ({ section, onSectionUpdate }: SectionManagersProps) => {
-  console.log('Rendering SectionManagers with section:', section);
+  console.log('Rendering SectionManagers:', { 
+    sectionId: section.id,
+    figuresCount: section.figures?.length,
+    tablesCount: section.tables?.length,
+    citationsCount: section.citations?.length
+  });
 
-  const handleFigureUpdate = (figures: Figure[]) => {
+  const handleFigureUpdate = (figures: Section['figures']) => {
     console.log('Updating figures:', figures);
     onSectionUpdate({
       ...section,
@@ -21,7 +26,7 @@ export const SectionManagers = ({ section, onSectionUpdate }: SectionManagersPro
     });
   };
 
-  const handleTableUpdate = (tables: Table[]) => {
+  const handleTableUpdate = (tables: Section['tables']) => {
     console.log('Updating tables:', tables);
     onSectionUpdate({
       ...section,
@@ -29,7 +34,7 @@ export const SectionManagers = ({ section, onSectionUpdate }: SectionManagersPro
     });
   };
 
-  const handleCitationUpdate = (citations: Citation[]) => {
+  const handleCitationUpdate = (citations: Section['citations']) => {
     console.log('Updating citations:', citations);
     onSectionUpdate({
       ...section,
@@ -37,7 +42,7 @@ export const SectionManagers = ({ section, onSectionUpdate }: SectionManagersPro
     });
   };
 
-  const handleReferenceUpdate = (references: Reference[]) => {
+  const handleReferenceUpdate = (references: Section['references']) => {
     console.log('Updating references:', references);
     onSectionUpdate({
       ...section,
