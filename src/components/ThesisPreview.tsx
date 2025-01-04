@@ -1,8 +1,8 @@
-// File: src/components/ThesisPreview.tsx
-
 import React from 'react';
 import { Thesis, Section, ThesisSectionType } from '@/types/thesis';
 import MDEditor from '@uiw/react-md-editor';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 interface ThesisPreviewProps {
     thesis: Thesis;
@@ -17,7 +17,7 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     const renderTitlePage = () => {
         console.log('Rendering Title Page with data:', thesis.metadata);
         return (
-            <div className="thesis-page no-header no-footer">
+            <div className="thesis-page title-page">
                 <div className="thesis-title-content">
                     <div className="university-name">{thesis.metadata?.universityName || "Your University Name"}</div>
                     <div className="department-name">{thesis.metadata?.departmentName || "Department of Your Field"}</div>
@@ -43,8 +43,7 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
                             {member}
                             <br />
                           </React.Fragment>
-                        ))
-                        }
+                        ))}
                     </div>
                 </div>
             </div>
@@ -53,13 +52,19 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
 
     const renderAbstract = () => {
         return (
-            <div className="thesis-page no-footer">
+            <div className="thesis-page">
                 <div className="thesis-header">
                     Abstract
                 </div>
                 <div className="thesis-content thesis-abstract">
                     <h2 className="text-2xl font-serif mb-4">Abstract</h2>
-                    <MDEditor.Markdown source={thesis.metadata.description || "No Description Provided"}/>
+                    <MDEditor.Markdown 
+                        source={abstractSection?.content || "No Abstract Provided"}
+                        className="prose prose-sm max-w-none"
+                    />
+                </div>
+                <div className="thesis-footer">
+                    <span>Page <span className="page-number"></span></span>
                 </div>
             </div>
         );
@@ -76,11 +81,19 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
         const isSpecialSection = section.type === 'references' || section.type === 'table-of-contents';
         
         return (
-            <div key={section.id} className={`thesis-page ${isSpecialSection ? 'no-footer' : ''} ${section.type === 'table-of-contents' ? 'no-header': ''}`}>
+            <div key={section.id} className={cn(
+                "thesis-page",
+                isSpecialSection && "special-section",
+                section.type === 'table-of-contents' && "toc-section"
+            )}>
                 <div className="thesis-header">
                     {chapterTitle ? `Chapter ${chapterTitle} - ${section.title}` : section.title}
                 </div>
-                <div className={`thesis-content ${section.type === 'references' ? 'thesis-references': ''}`}>
+                <div className={cn(
+                    "thesis-content",
+                    section.type === 'references' && "thesis-references",
+                    "prose prose-sm max-w-none"
+                )}>
                     {section.type !== 'table-of-contents' && (
                         <>
                             {chapterTitle && <h2 className="text-2xl font-serif mb-4">{section.title}</h2>}
@@ -88,8 +101,10 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
                         </>
                     )}
                     {section.type === 'table-of-contents' && (
-                        <>
-                        </>
+                        <div className="toc-content">
+                            <h2 className="text-2xl font-serif mb-4">Table of Contents</h2>
+                            {/* TOC content will be generated automatically */}
+                        </div>
                     )}
                 </div>
                 <div className="thesis-footer">
@@ -100,18 +115,20 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     };
 
     return (
-        <div className="thesis-preview-scroll-container">
-            <div className="thesis-preview">
-                {thesis.frontMatter.map((section) => renderSection(section))}
-                {thesis.chapters.map((chapter) => (
-                    <div key={chapter.id}>
-                        {chapter.sections.map((section) => (
-                            renderSection(section, chapter.title)
-                        ))}
-                    </div>
-                ))}
-                {thesis.backMatter.map((section) => renderSection(section))}
+        <ScrollArea className="h-full">
+            <div className="thesis-preview-container">
+                <div className="thesis-preview">
+                    {thesis.frontMatter.map((section) => renderSection(section))}
+                    {thesis.chapters.map((chapter) => (
+                        <div key={chapter.id} className="chapter-content">
+                            {chapter.sections.map((section) => (
+                                renderSection(section, chapter.title)
+                            ))}
+                        </div>
+                    ))}
+                    {thesis.backMatter.map((section) => renderSection(section))}
+                </div>
             </div>
-        </div>
+        </ScrollArea>
     );
 };
