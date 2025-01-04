@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import ThesisEditor from './pages/ThesisEditor';
@@ -9,7 +9,7 @@ import { Toaster } from './components/ui/toaster';
 
 function App() {
   return (
-    <Router>
+    <>
       <Routes>
         <Route 
           path="/welcome" 
@@ -46,7 +46,7 @@ function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <Toaster />
-    </Router>
+    </>
   );
 }
 
