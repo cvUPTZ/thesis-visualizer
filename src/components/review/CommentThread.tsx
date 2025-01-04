@@ -1,16 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Profile } from '@/types/profile';
-import { CommentThread } from '@/types/thesis';
+import type { CommentThread as CommentThreadType } from '@/types/thesis';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface CommentThreadProps {
-  thread: CommentThread;
+  thread: CommentThreadType;
   currentUser: Profile | null;
   thesisId: string;
   sectionId: string;

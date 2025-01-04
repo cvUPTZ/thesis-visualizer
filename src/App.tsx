@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { ThesisEditor } from './components/ThesisEditor';
 import { ThesisList } from './components/thesis/ThesisList';
 
@@ -29,12 +29,10 @@ const App = () => {
   }, [toast]);
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<ThesisList />} />
-        <Route path="/thesis/:thesisId" element={<ThesisEditor />} />
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/" element={<ThesisList />} />
+      <Route path="/thesis/:thesisId" element={<ThesisEditor />} />
+    </Routes>
   );
 };
 
