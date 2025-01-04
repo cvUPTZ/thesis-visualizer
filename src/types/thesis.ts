@@ -92,7 +92,7 @@ export interface Citation {
   thesis_id: string;
 }
 
-export type ReferenceType = 'book' | 'article' | 'conference' | 'website' | 'other';
+export type ReferenceType = 'book' | 'article' | 'conference' | 'website' | 'thesis' | 'other';
 
 export interface Reference extends Omit<Citation, 'thesis_id'> {
   title: string;

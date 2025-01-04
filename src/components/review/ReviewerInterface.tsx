@@ -1,204 +1,205 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useThesisData } from '@/hooks/useThesisData';
+import { CommentThread, ThesisComment } from '@/types/thesis';
+import { Profile } from '@/types/profile';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, Send } from 'lucide-react';
-import { CommentThread } from './CommentThread';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { CommentList } from './CommentList';
+import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
+import { ErrorState } from '@/components/error/ErrorState';
 
 export const ReviewerInterface = () => {
   const { thesisId } = useParams();
-  const [reviews, setReviews] = useState<any[]>([]);
+  const { thesis, isLoading, error } = useThesisData(thesisId);
+  const [comments, setComments] = useState<CommentThread[]>([]);
+  const [reviewer, setReviewer] = useState<Profile | null>(null);
+  const [activeSection, setActiveSection] = useState<string>('');
   const [newComment, setNewComment] = useState('');
-  const [commentType, setCommentType] = useState<'comment' | 'suggestion' | 'correction'>('comment');
-  const [activeSection, setActiveSection] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchReviews = async () => {
-      const { data, error } = await supabase
+    const fetchReviewer = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching reviewer profile:', profileError);
+        return;
+      }
+
+      setReviewer(profile);
+    };
+
+    fetchReviewer();
+  }, []);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      if (!thesis || !activeSection) return;
+
+      const { data: commentsData, error: commentsError } = await supabase
         .from('thesis_reviews')
         .select(`
           *,
           profiles (
-            email
+            id,
+            email,
+            role
           )
         `)
-        .eq('thesis_id', thesisId)
-        .order('created_at', { ascending: false });
+        .eq('thesis_id', thesis.id)
+        .eq('section_id', activeSection)
+        .is('parent_id', null)
+        .order('created_at', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching reviews:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch reviews',
-          variant: 'destructive',
-        });
+      if (commentsError) {
+        console.error('Error fetching comments:', commentsError);
         return;
       }
 
-      setReviews(data);
+      const { data: repliesData, error: repliesError } = await supabase
+        .from('thesis_reviews')
+        .select(`
+          *,
+          profiles (
+            id,
+            email,
+            role
+          )
+        `)
+        .eq('thesis_id', thesis.id)
+        .not('parent_id', 'is', null)
+        .order('created_at', { ascending: true });
+
+      if (repliesError) {
+        console.error('Error fetching replies:', repliesError);
+        return;
+      }
+
+      const commentThreads = commentsData.map((comment: ThesisComment) => ({
+        comment,
+        replies: repliesData.filter((reply: ThesisComment) => reply.parent_id === comment.id)
+      }));
+
+      setComments(commentThreads);
     };
 
-    fetchReviews();
+    fetchComments();
+  }, [thesis, activeSection]);
 
-    // Set up real-time subscription
-    const channel = supabase
-      .channel('thesis_reviews')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'thesis_reviews',
-          filter: `thesis_id=eq.${thesisId}`,
-        },
-        (payload) => {
-          console.log('Real-time update:', payload);
-          fetchReviews();
+  const handleReply = async (commentId: string, replyContent: string) => {
+    if (!thesis || !reviewer) return;
+
+    try {
+      const { data: newReply, error: replyError } = await supabase
+        .from('thesis_reviews')
+        .insert({
+          thesis_id: thesis.id,
+          reviewer_id: reviewer.id,
+          content: { text: replyContent },
+          parent_id: commentId,
+          section_id: activeSection,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (replyError) throw replyError;
+
+      setComments(prevComments => {
+        const updatedComments = [...prevComments];
+        const parentComment = updatedComments.find(c => c.comment.id === commentId);
+        if (parentComment) {
+          parentComment.replies = [...(parentComment.replies || []), newReply];
         }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [thesisId, toast]);
-
-  const addReview = async () => {
-    if (!newComment.trim() || !activeSection) return;
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast({
-        title: 'Error',
-        description: 'You must be logged in to add reviews',
-        variant: 'destructive',
+        return updatedComments;
       });
-      return;
-    }
 
-    const { error } = await supabase.from('thesis_reviews').insert([
-      {
-        thesis_id: thesisId,
-        reviewer_id: user.id,
-        section_id: activeSection,
-        content: {
-          text: newComment,
-          type: commentType
-        },
-        status: 'pending'
-      }
-    ]);
-
-    if (error) {
-      console.error('Error adding review:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to add review',
-        variant: 'destructive',
+        title: "Reply Added",
+        description: "Your reply has been added successfully.",
       });
-      return;
-    }
-
-    setNewComment('');
-    toast({
-      title: 'Success',
-      description: 'Review added successfully',
-    });
-  };
-
-  const handleReplyAdded = async (commentId: string, replyContent: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { error } = await supabase.from('thesis_reviews').insert([
-      {
-        thesis_id: thesisId,
-        reviewer_id: user.id,
-        section_id: activeSection!,
-        parent_id: commentId,
-        content: {
-          text: replyContent,
-          type: 'reply'
-        },
-        status: 'pending'
-      }
-    ]);
-
-    if (error) {
+    } catch (error) {
       console.error('Error adding reply:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to add reply',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to add reply. Please try again.",
+        variant: "destructive",
       });
     }
   };
 
+  const handleAddComment = async () => {
+    if (!thesis || !reviewer || !newComment.trim()) return;
+
+    try {
+      const { data: comment, error: commentError } = await supabase
+        .from('thesis_reviews')
+        .insert({
+          thesis_id: thesis.id,
+          reviewer_id: reviewer.id,
+          content: { text: newComment },
+          section_id: activeSection,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (commentError) throw commentError;
+
+      setComments(prevComments => [...prevComments, { comment, replies: [] }]);
+      setNewComment('');
+
+      toast({
+        title: "Comment Added",
+        description: "Your comment has been added successfully.",
+      });
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add comment. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
+
+  if (error || !thesis) {
+    return <ErrorState error={error} />;
+  }
+
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="w-5 h-5" />
-          Review Comments
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[400px] pr-4">
-          <div className="space-y-4">
-            {reviews.map((review) => (
-              <CommentThread
-                key={review.id}
-                thesisId={thesisId!}
-                sectionId={review.section_id}
-                comment={review}
-                replies={reviews.filter(r => r.parent_id === review.id)}
-                onReplyAdded={handleReplyAdded}
-              />
-            ))}
-          </div>
-        </ScrollArea>
-        <div className="mt-4 space-y-4">
-          <Select
-            value={commentType}
-            onValueChange={(value: 'comment' | 'suggestion' | 'correction') => setCommentType(value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Comment type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="comment">Comment</SelectItem>
-              <SelectItem value="suggestion">Suggestion</SelectItem>
-              <SelectItem value="correction">Correction</SelectItem>
-            </SelectContent>
-          </Select>
-          <Textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Add your review comment..."
-            className="min-h-[100px]"
-          />
-          <Button
-            onClick={addReview}
-            className="w-full"
-            disabled={!newComment.trim()}
-          >
-            <Send className="w-4 h-4 mr-2" />
-            Add Review
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="p-6 space-y-6">
+      <div className="space-y-4">
+        <Textarea
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          placeholder="Add a comment..."
+          className="min-h-[100px]"
+        />
+        <Button onClick={handleAddComment} disabled={!newComment.trim()}>
+          Add Comment
+        </Button>
+      </div>
+
+      <CommentList
+        comments={comments}
+        onReply={handleReply}
+        currentUser={reviewer}
+      />
+    </div>
   );
 };
