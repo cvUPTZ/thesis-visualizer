@@ -8,6 +8,7 @@ import { UserProfile } from "@/components/dashboard/UserProfile";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { QuickTips } from "@/components/dashboard/QuickTips";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { useEffect } from "react";
 
 const LoadingSkeleton = () => (
   <div className="min-h-screen bg-gray-50 p-8">
@@ -33,15 +34,22 @@ const LoadingSkeleton = () => (
 
 const Index = () => {
   const navigate = useNavigate();
-  const { userId, logout } = useAuth();
+  const { userId, logout, loading } = useAuth();
   const { userProfile, thesesStats, isLoading, error } = useDashboardData(userId);
 
-  console.log('📍 Index Page - Initial Render:', { userId, isLoading, error });
+  console.log('📍 Index Page - Initial Render:', { userId, loading, isLoading, error });
 
-  if (!userId) {
-    console.log('🚫 Index Page - No userId, redirecting to auth');
-    navigate('/auth');
-    return null;
+  useEffect(() => {
+    if (!loading && !userId) {
+      console.log('🚫 Index Page - No active session, redirecting to welcome page');
+      navigate('/welcome');
+      return;
+    }
+  }, [userId, loading, navigate]);
+
+  if (loading || !userId) {
+    console.log('⌛ Index Page - Loading or no user:', { loading, userId });
+    return <LoadingSkeleton />;
   }
 
   if (error) {
