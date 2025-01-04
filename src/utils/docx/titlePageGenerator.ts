@@ -6,10 +6,14 @@ export const generateTitlePage = ({ thesis, language = 'en' }: TitlePageOptions)
   const { metadata } = thesis;
   const paragraphs: Paragraph[] = [];
 
+  // Find title from frontMatter
+  const titleSection = thesis.frontMatter.find(section => section.type === 'title');
+  const titleText = titleSection?.content || 'Untitled Thesis';
+
   // Title
   paragraphs.push(
     new Paragraph({
-      text: thesis.title,
+      text: titleText,
       heading: HeadingLevel.TITLE,
       alignment: AlignmentType.CENTER,
       spacing: { before: 240, after: 240 },

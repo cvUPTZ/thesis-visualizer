@@ -1,4 +1,4 @@
-import { Thesis, Chapter, Section } from '@/types/thesis';
+import { Thesis } from '@/types/thesis';
 
 export interface DocxGenerationOptions {
   thesis: Thesis;

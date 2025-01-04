@@ -2,11 +2,12 @@ import {
   Document, 
   TableOfContents,
   convertInchesToTwip,
+  StyleLevel,
 } from 'docx';
-import { ThesisContent } from './types';
-import { generateTitlePage } from './titlePageGenerator';
-import { generateSectionContent, generateChapterContent } from './contentGenerators';
-import { defaultStyles } from './styleConfig';
+import { Thesis } from '@/types/thesis';
+import { generateTitlePage } from './docx/titlePageGenerator';
+import { generateContent, generateTableOfContents } from './docx/contentGenerators';
+import { defaultStyles } from './docx/styleConfig';
 
 const PAGE_WIDTH = convertInchesToTwip(8.5);
 const PAGE_MARGINS = {
@@ -16,7 +17,7 @@ const PAGE_MARGINS = {
   left: convertInchesToTwip(1),
 };
 
-export const generateThesisDocx = async (thesis: ThesisContent) => {
+export const generateThesisDocx = async (thesis: Thesis) => {
   console.log('Generating DOCX with thesis data:', thesis);
 
   const sections = [];
@@ -32,7 +33,7 @@ export const generateThesisDocx = async (thesis: ThesisContent) => {
         },
       },
     },
-    children: generateTitlePage(thesis.metadata),
+    children: generateTitlePage({ thesis }),
   });
 
   // Front Matter
@@ -47,27 +48,18 @@ export const generateThesisDocx = async (thesis: ThesisContent) => {
         hyperlink: true,
         headingStyleRange: "1-5",
         stylesWithLevels: [
-          { level: 1, style: "Heading1" },
-          { level: 2, style: "Heading2" },
+          {
+            level: 1,
+            style: "heading 1",
+          } as StyleLevel,
+          {
+            level: 2,
+            style: "heading 2",
+          } as StyleLevel,
         ],
       }),
-      ...await generateSectionContent(thesis.frontMatter),
+      ...generateContent({ thesis, includeTableOfContents: true }),
     ],
-  });
-
-  // Main Content
-  const mainContent = [
-    ...await generateChapterContent(thesis.chapters),
-    ...await generateSectionContent(thesis.backMatter),
-  ];
-
-  sections.push({
-    properties: {
-      page: {
-        margin: PAGE_MARGINS,
-      },
-    },
-    children: mainContent,
   });
 
   const doc = new Document({
