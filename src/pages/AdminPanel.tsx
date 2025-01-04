@@ -15,10 +15,16 @@ import { supabase } from '@/integrations/supabase/client';
 const AdminPanel = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { isAuthenticated, userRole } = useAuth();
+  const { isAuthenticated, userRole, loading } = useAuth();
 
-  if (!isAuthenticated || userRole !== 'admin') {
-    navigate('/auth');
+  React.useEffect(() => {
+    if (!loading && (!isAuthenticated || userRole !== 'admin')) {
+      navigate('/auth');
+    }
+  }, [isAuthenticated, userRole, loading, navigate]);
+
+  // Don't render anything while checking auth status
+  if (loading || !isAuthenticated || userRole !== 'admin') {
     return null;
   }
 
