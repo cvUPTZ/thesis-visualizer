@@ -9,34 +9,26 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-interface UsageData {
-  [key: string]: string | number | string[];
-}
-
-interface Feature {
-  name: string;
-  description: string | null;
-  status: string;
-  health: string;
-  usage_data: UsageData;
-  is_sub_feature: boolean;
-}
-
 interface FeatureDialogProps {
-  feature: Feature;
+  feature: {
+    name: string;
+    description: string | null;
+    status: string;
+    health: string;
+    usage_data: any;
+    is_sub_feature: boolean;
+  };
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export const FeatureDialog = ({ feature, open, onOpenChange }: FeatureDialogProps) => {
-  const formatUsageData = (data: UsageData) => {
+  const formatUsageData = (data: any) => {
     if (!data) return null;
     return Object.entries(data).map(([key, value]) => (
       <div key={key} className="flex justify-between items-center py-1">
         <span className="text-sm font-medium capitalize">{key.replace(/_/g, ' ')}</span>
-        <Badge variant="secondary">
-          {Array.isArray(value) ? value.join(', ') : value}
-        </Badge>
+        <Badge variant="secondary">{value}</Badge>
       </div>
     ));
   };
