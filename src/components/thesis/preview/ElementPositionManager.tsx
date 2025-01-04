@@ -30,8 +30,10 @@ export const ElementPositionManager = ({
   onUpdatePosition
 }: ElementPositionManagerProps) => {
   const [selectedElement, setSelectedElement] = useState<ElementPosition | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleElementClick = (element: { id: string, type: ElementPosition['type'] }) => {
+    console.log('Element clicked:', element);
     setSelectedElement({
       id: element.id,
       type: element.type,
@@ -42,6 +44,7 @@ export const ElementPositionManager = ({
 
   const handlePositionChange = (position: ElementPosition['position']) => {
     if (!selectedElement) return;
+    console.log('Position changed:', position);
     
     onUpdatePosition(selectedElement.id, {
       ...selectedElement,
@@ -51,6 +54,7 @@ export const ElementPositionManager = ({
 
   const handleCoordinatesChange = (x: number, y: number) => {
     if (!selectedElement) return;
+    console.log('Coordinates changed:', { x, y });
     
     onUpdatePosition(selectedElement.id, {
       ...selectedElement,
@@ -61,11 +65,20 @@ export const ElementPositionManager = ({
 
   const handleSizeChange = (width: number, height: number) => {
     if (!selectedElement) return;
+    console.log('Size changed:', { width, height });
     
     onUpdatePosition(selectedElement.id, {
       ...selectedElement,
       size: { width, height }
     });
+  };
+
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
   };
 
   return (
@@ -88,11 +101,15 @@ export const ElementPositionManager = ({
 
       <style jsx global>{`
         .interactive-element {
-          cursor: pointer;
+          cursor: ${isDragging ? 'grabbing' : 'grab'};
           transition: outline 0.2s ease;
+          user-select: none;
         }
         .interactive-element:hover {
           outline: 2px solid #3b82f6;
+        }
+        .interactive-element.selected {
+          outline: 2px solid #2563eb;
         }
       `}</style>
     </div>
