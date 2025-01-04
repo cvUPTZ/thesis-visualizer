@@ -7,6 +7,7 @@ import { Footer } from "@/components/landing/Footer";
 import { FeatureCard } from "@/components/landing/FeatureCard";
 import { TestimonialCard } from "@/components/landing/TestimonialCard";
 import { FeedbackForm } from "@/components/landing/FeedbackForm";
+import { DemoPreview } from "@/components/landing/DemoPreview";
 
 const LandingPage = () => {
   return (
@@ -45,6 +46,9 @@ const LandingPage = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* Demo Preview Section */}
+      <DemoPreview />
 
       {/* Features Section */}
       <section className="py-20 bg-gray-50">
