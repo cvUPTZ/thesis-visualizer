@@ -1,108 +1,66 @@
-import { Paragraph, TextRun, AlignmentType, convertInchesToTwip, HeadingLevel } from 'docx';
-import { ThesisMetadata } from './types';
+import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
+import { TitlePageOptions } from './types';
+import { styles } from './styleConfig';
 
-export const generateTitlePage = (metadata?: ThesisMetadata) => {
-  const children = [
-    new Paragraph({
-      text: metadata?.universityName || "University Name",
-      alignment: AlignmentType.CENTER,
-      spacing: {
-        before: convertInchesToTwip(2),
-        after: convertInchesToTwip(0.5),
-      },
-      style: "Heading1",
-      children: [
-        new TextRun({
-          text: metadata?.universityName || "University Name",
-          size: 36,
-          bold: true,
-          color: "2E5090",
-        }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: {
-        after: convertInchesToTwip(2),
-      },
-      children: [
-        new TextRun({
-          text: metadata?.departmentName || "Department Name",
-          size: 28,
-          italics: true,
-          color: "666666",
-        }),
-      ],
-    }),
-    new Paragraph({
-      text: "A Thesis Submitted in Partial Fulfillment",
-      alignment: AlignmentType.CENTER,
-      style: "Normal",
-    }),
-    new Paragraph({
-      text: "of the Requirements for the Degree of",
-      alignment: AlignmentType.CENTER,
-      style: "Normal",
-    }),
-    new Paragraph({
-      text: "Doctor of Philosophy",
-      alignment: AlignmentType.CENTER,
-      spacing: {
-        after: convertInchesToTwip(2),
-      },
-      style: "Normal",
-    }),
-    new Paragraph({
-      text: "by",
-      alignment: AlignmentType.CENTER,
-      style: "Normal",
-    }),
-    new Paragraph({
-      text: metadata?.authorName || "Author Name",
-      alignment: AlignmentType.CENTER,
-      spacing: {
-        after: convertInchesToTwip(2),
-      },
-      style: "Normal",
-    }),
-    new Paragraph({
-      text: metadata?.thesisDate || "Month Year",
-      alignment: AlignmentType.CENTER,
-      style: "Normal",
-    }),
-  ];
+export const generateTitlePage = ({ thesis, language = 'en' }: TitlePageOptions): Paragraph[] => {
+  const { metadata } = thesis;
+  const paragraphs: Paragraph[] = [];
 
-  if (metadata?.committeeMembers?.length) {
-    children.push(
+  // Title
+  paragraphs.push(
+    new Paragraph({
+      text: thesis.title,
+      heading: HeadingLevel.TITLE,
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 240, after: 240 },
+    })
+  );
+
+  // Author
+  if (metadata.authorName) {
+    paragraphs.push(
       new Paragraph({
+        text: `By ${metadata.authorName}`,
         alignment: AlignmentType.CENTER,
-        spacing: {
-          before: convertInchesToTwip(1),
-        },
-        children: [
-          new TextRun({
-            text: "Thesis Committee:",
-            size: 24,
-            bold: true,
-            color: "2E5090",
-          }),
-        ],
-      }),
-      ...metadata.committeeMembers.map(
-        (member) =>
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [
-              new TextRun({
-                text: member,
-                size: 24,
-                color: "666666",
-              }),
-            ],
-          })
-      )
+        spacing: { before: 240, after: 240 },
+      })
     );
   }
 
-  return children;
+  // University and Department
+  if (metadata.universityName) {
+    paragraphs.push(
+      new Paragraph({
+        text: metadata.universityName,
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 240, after: 120 },
+      })
+    );
+  }
+
+  if (metadata.departmentName) {
+    paragraphs.push(
+      new Paragraph({
+        text: metadata.departmentName,
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 120, after: 240 },
+      })
+    );
+  }
+
+  // Date
+  if (metadata.thesisDate) {
+    paragraphs.push(
+      new Paragraph({
+        text: new Date(metadata.thesisDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
+          year: 'numeric',
+          month: 'long',
+        }),
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 240, after: 240 },
+      })
+    );
+  }
+
+  return paragraphs;
 };

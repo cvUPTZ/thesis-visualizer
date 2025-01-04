@@ -1,48 +1,17 @@
-import { StyleLevel } from 'docx';
+import { Thesis, Chapter, Section } from '@/types/thesis';
 
-export interface ThesisMetadata {
-  universityName?: string;
-  departmentName?: string;
-  authorName?: string;
-  thesisDate?: string;
-  committeeMembers?: string[];
+export interface DocxGenerationOptions {
+  thesis: Thesis;
+  includeTableOfContents?: boolean;
+  includeTitlePage?: boolean;
 }
 
-export interface ThesisContent {
-  frontMatter: any[];
-  chapters: any[];
-  backMatter: any[];
-  metadata?: ThesisMetadata;
+export interface TitlePageOptions {
+  thesis: Thesis;
+  language?: 'en' | 'fr' | 'ar';
 }
 
-export interface DocxImageOptions {
-  data: Uint8Array;
-  width?: number;
-  height?: number;
-  altText?: {
-    name: string;
-    description: string;
-  };
-}
-
-export interface StyleConfig {
-  paragraphStyles: {
-    id: string;
-    name: string;
-    basedOn: string;
-    next: string;
-    quickFormat: boolean;
-    run: {
-      size: number;
-      bold?: boolean;
-      font: string;
-    };
-    paragraph: {
-      spacing: {
-        line?: number;
-        before: number;
-        after: number;
-      };
-    };
-  }[];
+export interface ContentGenerationOptions {
+  thesis: Thesis;
+  includeTableOfContents?: boolean;
 }

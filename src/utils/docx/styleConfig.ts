@@ -1,60 +1,40 @@
-import { StyleConfig } from './types';
+import { HeadingLevel, Paragraph, TextRun } from 'docx';
 
-export const defaultStyles: StyleConfig = {
-  paragraphStyles: [
-    {
-      id: "Normal",
-      name: "Normal",
-      basedOn: "Normal",
-      next: "Normal",
-      quickFormat: true,
-      run: {
-        size: 24,
-        font: "Times New Roman",
-      },
-      paragraph: {
-        spacing: {
-          line: 360,
-          before: 240,
-          after: 240,
-        },
-      },
+export const styles = {
+  titlePage: {
+    title: {
+      heading: HeadingLevel.TITLE,
+      alignment: 'center',
+      spacing: { before: 240, after: 240 },
     },
-    {
-      id: "Heading1",
-      name: "Heading 1",
-      basedOn: "Normal",
-      next: "Normal",
-      quickFormat: true,
-      run: {
-        size: 32,
-        bold: true,
-        font: "Times New Roman",
-      },
-      paragraph: {
-        spacing: {
-          before: 480,
-          after: 240,
-        },
-      },
+    subtitle: {
+      heading: HeadingLevel.HEADING_1,
+      alignment: 'center',
+      spacing: { before: 240, after: 240 },
     },
-    {
-      id: "Heading2",
-      name: "Heading 2",
-      basedOn: "Normal",
-      next: "Normal",
-      quickFormat: true,
-      run: {
-        size: 28,
-        bold: true,
-        font: "Times New Roman",
-      },
-      paragraph: {
-        spacing: {
-          before: 360,
-          after: 240,
-        },
-      },
+    author: {
+      alignment: 'center',
+      spacing: { before: 240, after: 240 },
     },
-  ],
+  },
+  content: {
+    heading1: {
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 240, after: 120 },
+    },
+    heading2: {
+      heading: HeadingLevel.HEADING_2,
+      spacing: { before: 240, after: 120 },
+    },
+    normal: {
+      spacing: { before: 120, after: 120 },
+    },
+  },
+};
+
+export const createStyledParagraph = (text: string, style: any): Paragraph => {
+  return new Paragraph({
+    ...style,
+    children: [new TextRun(text)],
+  });
 };

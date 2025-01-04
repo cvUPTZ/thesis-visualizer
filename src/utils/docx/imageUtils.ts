@@ -1,49 +1,23 @@
-import { Paragraph, TextRun, ImageRun, AlignmentType } from 'docx';
-import { Figure } from '@/types/thesis';
+import { ImageRun, IImageOptions } from 'docx';
 
-export const generateFigures = async (figures: Figure[]) => {
-  return Promise.all(figures.map(async (figure) => {
-    try {
-      const base64Data = figure.imageUrl.split(',')[1];
-      const binaryString = window.atob(base64Data);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      
-      return new Paragraph({
-        children: [
-          new ImageRun({
-            data: bytes,
-            transformation: {
-              width: figure.dimensions?.width || 400,
-              height: figure.dimensions?.height || 300,
-            },
-            docProperties: {
-              title: figure.caption || 'Figure',
-              description: figure.altText || figure.caption || 'Figure image',
-              name: `figure-${figure.number}`,
-            }
-          }),
-          new TextRun({
-            text: `\nFigure ${figure.number}: ${figure.caption}`,
-            break: 1,
-            size: 20,
-            color: "666666",
-          }),
-        ],
-        alignment: AlignmentType.CENTER,
-        spacing: {
-          before: 240,
-          after: 240,
-        },
-      });
-    } catch (error) {
-      console.error('Error generating figure:', error);
-      return new Paragraph({
-        text: `[Error loading figure: ${figure.caption || 'Untitled'}]`,
-        alignment: AlignmentType.CENTER,
-      });
-    }
-  }));
+export const createImageRun = async (imageUrl: string, caption?: string): Promise<ImageRun> => {
+  try {
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    const arrayBuffer = await blob.arrayBuffer();
+
+    const options: IImageOptions = {
+      data: arrayBuffer,
+      transformation: {
+        width: 400,
+        height: 300,
+      },
+      altText: caption || 'Thesis figure',
+    };
+
+    return new ImageRun(options);
+  } catch (error) {
+    console.error('Error creating image run:', error);
+    throw error;
+  }
 };

@@ -56,7 +56,12 @@ export const ReviewerInterface = () => {
       }
 
       console.log('Fetched reviews:', data);
-      setReviews(data || []);
+      setReviews(data?.map(review => ({
+        ...review,
+        content: typeof review.content === 'string' 
+          ? JSON.parse(review.content) 
+          : review.content
+      })) || []);
     };
 
     fetchReviews();
