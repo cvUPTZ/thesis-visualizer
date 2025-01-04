@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log('Fetching user profile for:', userId);
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select(`
@@ -41,6 +42,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return null;
       }
 
+      console.log('Profile data fetched:', profileData);
       return profileData;
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
@@ -83,10 +85,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (profileData) {
             setUserRole(profileData.roles?.name || null);
           }
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error in checkAuth:', error);
-      } finally {
         if (mounted) {
           setLoading(false);
         }
@@ -106,12 +108,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (profileData) {
               setUserRole(profileData.roles?.name || null);
             }
+            setLoading(false);
           }
-        } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        } else if (event === 'SIGNED_OUT') {
           if (mounted) {
             setIsAuthenticated(false);
             setUserId(null);
             setUserRole(null);
+            setLoading(false);
           }
         }
       }
