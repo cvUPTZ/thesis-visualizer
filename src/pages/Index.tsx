@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, LogOut } from "lucide-react";
@@ -19,7 +19,7 @@ const Index = () => {
   const { thesesStats, isLoading: statsLoading, error: statsError } = useDashboardData(userId);
   const [userProfile, setUserProfile] = React.useState<any>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!userId) return;
 
     console.log('🔍 Fetching user profile for:', userId);
@@ -32,7 +32,7 @@ const Index = () => {
         )
       `)
       .eq('id', userId)
-      .single()
+      .maybeSingle()
       .then(({ data, error }) => {
         if (error) {
           console.error('❌ Error fetching profile:', error);
@@ -50,32 +50,18 @@ const Index = () => {
     userProfile
   });
 
-  useEffect(() => {
+  // Redirect if not authenticated
+  React.useEffect(() => {
     if (!authLoading && !userId) {
       console.log('🚫 Index Page - No active session, redirecting to welcome page');
       navigate('/welcome');
     }
   }, [userId, authLoading, navigate]);
 
-  if (authLoading || !userId || !userProfile || statsLoading) {
-    console.log('⌛ Index Page - Loading state:', {
-      authLoading,
-      statsLoading,
-      userId
-    });
+  // Show loading skeleton only for initial auth check
+  if (authLoading || !userId) {
     return <LoadingSkeleton />;
   }
-
-  if (statsError) {
-    console.log('❌ Index Page - Error state:', { statsError });
-    return <ErrorState error={statsError || 'Unknown error'} onRetry={() => window.location.reload()} />;
-  }
-
-  console.log('✅ Index Page - Render complete:', { 
-    userProfile, 
-    thesesStats,
-    isAuthenticated: !!userId 
-  });
 
   const handleLogout = async () => {
     console.log('🔄 Index Page - Initiating logout...');
@@ -97,10 +83,14 @@ const Index = () => {
             animate={{ y: 0, opacity: 1 }}
             className="flex justify-between items-center mb-8"
           >
-            <UserProfile
-              email={userProfile?.email}
-              role={userProfile?.roles?.name || "User"}
-            />
+            {userProfile ? (
+              <UserProfile
+                email={userProfile?.email}
+                role={userProfile?.roles?.name || "User"}
+              />
+            ) : (
+              <div className="h-12 w-48 bg-gray-200 animate-pulse rounded" />
+            )}
             <Button
               onClick={handleLogout}
               variant="outline"
@@ -116,7 +106,17 @@ const Index = () => {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <StatsGrid stats={thesesStats} />
+            {statsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-32 bg-gray-200 animate-pulse rounded-lg" />
+                ))}
+              </div>
+            ) : statsError ? (
+              <ErrorState error={statsError} onRetry={() => window.location.reload()} />
+            ) : (
+              <StatsGrid stats={thesesStats} />
+            )}
           </motion.div>
 
           <motion.div
