@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, LogOut } from "lucide-react";
 import { ThesisList } from "@/components/thesis/ThesisList";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserProfile } from "@/components/dashboard/UserProfile";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
@@ -34,24 +34,31 @@ const LoadingSkeleton = () => (
 
 const Index = () => {
   const navigate = useNavigate();
-  const { userId, logout, loading } = useAuth();
-  const { userProfile, thesesStats, isLoading, error } = useDashboardData(userId);
+  const { user, logout, loading: authLoading } = useAuth();
+  const { userProfile, thesesStats, isLoading: dataLoading, error } = useDashboardData(user?.id);
 
-  console.log('📍 Index Page - Initial Render:', { userId, loading, isLoading, error });
+  console.log('📍 Index Page - Initial Render:', { 
+    userId: user?.id, 
+    authLoading, 
+    dataLoading, 
+    error,
+    userProfile 
+  });
 
   useEffect(() => {
-    if (!loading && !userId) {
+    if (!authLoading && !user) {
       console.log('🚫 Index Page - No active session, redirecting to welcome page');
       navigate('/welcome');
-      return;
     }
-  }, [userId, loading, navigate]);
+  }, [user, authLoading, navigate]);
 
-  if (loading || !userId) {
-    console.log('⌛ Index Page - Loading or no user:', { loading, userId });
+  // Show loading skeleton while either auth or data is loading
+  if (authLoading || dataLoading) {
+    console.log('⌛ Index Page - Loading state:', { authLoading, dataLoading });
     return <LoadingSkeleton />;
   }
 
+  // Handle error state
   if (error) {
     console.log('❌ Index Page - Error:', error);
     return (
@@ -73,16 +80,27 @@ const Index = () => {
     );
   }
 
-  if (isLoading || !userProfile) {
-    console.log('⌛ Index Page - Loading state:', { isLoading, userProfile });
-    return <LoadingSkeleton />;
+  // Handle case where we have no user profile
+  if (!userProfile) {
+    console.log('⚠️ Index Page - No user profile found');
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="container mx-auto text-center">
+          <h2 className="text-2xl font-bold text-yellow-600 mb-4">
+            Profile Not Found
+          </h2>
+          <p className="text-gray-600">Unable to load your profile. Please try logging in again.</p>
+          <Button
+            onClick={() => navigate('/auth')}
+            className="mt-4"
+            variant="outline"
+          >
+            Go to Login
+          </Button>
+        </div>
+      </div>
+    );
   }
-
-  console.log('✅ Index Page - Render complete:', { 
-    userProfile, 
-    thesesStats,
-    isAuthenticated: !!userId 
-  });
 
   const handleLogout = async () => {
     console.log('🔄 Index Page - Initiating logout...');
@@ -95,8 +113,8 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <UserProfile
-            email={userProfile?.email}
-            role={userProfile?.roles?.name || "User"}
+            email={userProfile.email}
+            role={userProfile.roles?.name || "User"}
           />
           <Button
             onClick={handleLogout}
