@@ -2,7 +2,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 @import './styles/thesis.css';
 
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -40,19 +39,12 @@
         --radius: 0.5rem;
 
         --sidebar-background: 0 0% 98%;
-
         --sidebar-foreground: 240 5.3% 26.1%;
-
         --sidebar-primary: 240 5.9% 10%;
-
         --sidebar-primary-foreground: 0 0% 98%;
-
         --sidebar-accent: 240 4.8% 95.9%;
-
         --sidebar-accent-foreground: 240 5.9% 10%;
-
         --sidebar-border: 220 13% 91%;
-
         --sidebar-ring: 217.2 91.2% 59.8%;
     }
 
@@ -105,8 +97,42 @@
     }
     .dark{
         --tw-prose-headings: theme(colors.primary.DEFAULT);
-          --tw-prose-bold: theme(colors.foreground);
+        --tw-prose-bold: theme(colors.foreground);
     }
+}
+
+@layer components {
+  .editor-section {
+    @apply bg-editor-section-bg border border-editor-section-border rounded-lg p-6 mb-6 
+           shadow-lg transition-all duration-200 hover:shadow-xl
+           backdrop-blur-sm backdrop-filter;
+  }
+
+  .editor-header {
+    @apply flex items-center justify-between mb-6 pb-4 border-b border-editor-border;
+  }
+
+  .editor-title {
+    @apply text-2xl font-serif font-medium text-editor-text;
+  }
+
+  .editor-content {
+    @apply bg-white rounded-lg p-6 shadow-sm;
+  }
+
+  .editor-toolbar {
+    @apply flex items-center gap-2 mb-4;
+  }
+
+  .editor-input {
+    @apply bg-editor-bg border-editor-border text-editor-text placeholder-editor-placeholder
+           focus:ring-editor-accent focus:border-editor-accent;
+  }
+
+  .editor-button {
+    @apply bg-editor-accent text-white hover:bg-editor-accent-hover
+           transition-colors duration-200;
+  }
 }
 
 .thesis-content {
@@ -118,19 +144,18 @@
     margin: 1in;
 }
 
-/* Added a specific style for abstract */
 .thesis-abstract {
-    margin-top: 2in; /* Add more spacing */
+    margin-top: 2in;
     text-align: center;
 }
-/* Add spacing to references */
+
 .thesis-references {
     line-height: 1.5;
 }
 
 .thesis-page {
     position: relative;
-    min-height: 11in; /* Ensure a minimum height */
+    min-height: 11in;
     width: 8.5in;
     background: white;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -146,7 +171,7 @@
     bottom: 0.5in;
     right: 0.5in;
     font-size: 12pt;
-    font-family: 'Times New Roman', serif; /* Ensure consistent font for page number */
+    font-family: 'Times New Roman', serif;
 }
 
 .thesis-header {
@@ -158,10 +183,10 @@
     font-size: 10pt;
     border-bottom: 1px solid #eee;
     padding-bottom: 0.1in;
-    font-family: 'Times New Roman', serif; /* Consistent font for header */
-    white-space: nowrap; /* Prevent wrapping */
-    overflow: hidden;    /* Ensure no overflow */
-    text-overflow: ellipsis; /* Indicate overflow */
+    font-family: 'Times New Roman', serif;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .thesis-footer {
@@ -169,23 +194,23 @@
     bottom: 0.5in;
     left: 0.5in;
     right: 0.5in;
-    text-align: right; /* Aligned page number to the right */
+    text-align: right;
     font-size: 10pt;
-    font-family: 'Times New Roman', serif; /* Consistent font for footer */
+    font-family: 'Times New Roman', serif;
 }
+
 .thesis-footer .page-number {
     content: counter(page);
 }
+
 .thesis-preview-scroll-container {
   overflow-y: auto;
   max-height: 100vh;
 }
 
-
 .page-break-before {
     page-break-before: always;
 }
-
 
 .no-header {
     .thesis-header {
@@ -199,7 +224,6 @@
     }
 }
 
-
 @media print {
     .thesis-content {
         margin: 0;
@@ -209,9 +233,9 @@
     .thesis-page {
         box-shadow: none;
         margin: 0;
-        height: auto; /* Allow content to define height in print */
+        height: auto;
         min-height: 100vh;
-        width: 100%; /* Take full width in print */
+        width: 100%;
         padding: 1in;
         box-sizing: border-box;
     }

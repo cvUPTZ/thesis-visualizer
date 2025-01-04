@@ -9,7 +9,7 @@ interface MarkdownEditorProps {
 
 export const MarkdownEditor = ({ value, onChange, placeholder }: MarkdownEditorProps) => {
   return (
-    <div className="w-full rounded-lg overflow-hidden" data-color-mode="light">
+    <div className="w-full rounded-lg overflow-hidden bg-white shadow-lg" data-color-mode="light">
       <MDEditor
         value={value}
         onChange={(val) => onChange(val || '')}
@@ -19,10 +19,10 @@ export const MarkdownEditor = ({ value, onChange, placeholder }: MarkdownEditorP
         hideToolbar={false}
         textareaProps={{
           placeholder,
-          className: "focus:outline-none focus:ring-2 focus:ring-editor-accent/20 rounded-md",
+          className: "focus:outline-none focus:ring-2 focus:ring-editor-accent/20 rounded-md p-4 bg-editor-bg",
         }}
         previewOptions={{
-          className: "prose prose-sm max-w-none prose-headings:font-serif prose-headings:text-editor-text prose-p:text-editor-text",
+          className: "prose prose-sm max-w-none prose-headings:font-serif prose-headings:text-editor-text prose-p:text-editor-text p-4",
           skipHtml: false,
           rehypeRewrite: (node: any) => {
             if (node.type === 'element' && node.tagName === 'a') {
@@ -30,7 +30,7 @@ export const MarkdownEditor = ({ value, onChange, placeholder }: MarkdownEditorP
                 ...node.properties,
                 target: '_blank',
                 rel: 'noopener noreferrer',
-                className: 'text-editor-accent hover:text-editor-accent/80 transition-colors duration-200'
+                className: 'text-editor-accent hover:text-editor-accent-hover transition-colors duration-200'
               };
             }
           }
