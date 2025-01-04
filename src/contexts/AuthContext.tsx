@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) {
         console.error('❌ Error fetching user role:', error);
-        return null;
+        throw error;
       }
 
       const roleName = profile?.roles?.name || null;
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return roleName;
     } catch (error) {
       console.error('❌ Error in fetchUserRole:', error);
-      return null;
+      throw error;
     }
   };
 
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUserId(session.user.id);
         const role = await fetchUserRole(session.user.id);
         setUserRole(role);
-        console.log('✅ Session updated successfully');
+        console.log('✅ Session updated successfully with role:', role);
       } else {
         setUserId(null);
         setUserRole(null);
@@ -71,6 +71,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     } catch (error) {
       console.error('❌ Error handling session change:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load user profile",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -107,6 +112,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUserId(null);
           setUserRole(null);
           setLoading(false);
+          toast({
+            title: "Error",
+            description: "Failed to check authentication status",
+            variant: "destructive",
+          });
         }
       }
     };
@@ -141,7 +151,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const logout = async () => {
     try {
