@@ -1,4 +1,3 @@
-// File: src/App.tsx
 import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -15,9 +14,11 @@ import { AuthLoader } from '@/components/auth/AuthLoader';
 
 const App = () => {
     const { loading, isAuthenticated } = useAuth();
+    console.log('🔄 App render - Loading:', loading, 'Authenticated:', isAuthenticated);
 
     // Show loading state only during initial auth check
     if (loading) {
+        console.log('⌛ Showing auth loader...');
         return <AuthLoader />;
     }
 
