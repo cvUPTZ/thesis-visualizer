@@ -1,19 +1,18 @@
-"use client"
-
 import * as React from "react"
-import {
-  ToastActionElement,
-  ToastProps,
-} from "@/components/ui/toast"
+import { toast as sonnerToast } from "sonner"
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 
-type ToasterToast = ToastProps & {
+type ToasterToast = {
   id: string
-  title?: React.ReactNode
-  description?: React.ReactNode
-  action?: ToastActionElement
+  title?: string
+  description?: string
+  action?: {
+    label: string
+    onClick: () => void
+  }
+  variant?: "default" | "destructive"
 }
 
 const actionTypes = {
@@ -26,7 +25,7 @@ const actionTypes = {
 let count = 0
 
 function genId() {
-  count = (count + 1) % Number.MAX_SAFE_INTEGER
+  count = (count + 1) % Number.MAX_VALUE
   return count.toString()
 }
 
@@ -72,7 +71,7 @@ const addToRemoveQueue = (toastId: string) => {
   toastTimeouts.set(toastId, timeout)
 }
 
-const reducer = (state: State, action: Action): State => {
+export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "ADD_TOAST":
       return {
@@ -105,12 +104,12 @@ const reducer = (state: State, action: Action): State => {
           t.id === toastId || toastId === undefined
             ? {
                 ...t,
-                open: false,
               }
             : t
         ),
       }
     }
+
     case "REMOVE_TOAST":
       if (action.toastId === undefined) {
         return {
@@ -138,7 +137,7 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
-export function toast({ ...props }: Toast) {
+function toast({ ...props }: Toast) {
   const id = genId()
 
   const update = (props: ToasterToast) =>
@@ -153,10 +152,9 @@ export function toast({ ...props }: Toast) {
     toast: {
       ...props,
       id,
-      open: true,
-      onOpenChange: (open) => {
-        if (!open) dismiss()
-      },
+      title: props.title,
+      description: props.description,
+      action: props.action,
     },
   })
 
@@ -167,7 +165,7 @@ export function toast({ ...props }: Toast) {
   }
 }
 
-export function useToast() {
+function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 
   React.useEffect(() => {
@@ -186,3 +184,5 @@ export function useToast() {
     dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
   }
 }
+
+export { useToast, toast }
