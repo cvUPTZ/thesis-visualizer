@@ -64,6 +64,24 @@ export const FeatureRow = ({
     }
   };
 
+  const formatUsageData = (usageData: any) => {
+    if (!usageData) return 'N/A';
+    
+    // Try to find a numeric value or percentage to display
+    const entries = Object.entries(usageData);
+    for (const [key, value] of entries) {
+      if (typeof value === 'number') {
+        return value.toString();
+      }
+      if (typeof value === 'string' && value.includes('%')) {
+        return value;
+      }
+    }
+    
+    // If no suitable numeric value is found, return the first value
+    return entries[0]?.[1]?.toString() || 'N/A';
+  };
+
   const hasSubFeatures = subFeatures.length > 0;
 
   return (
@@ -122,22 +140,4 @@ export const FeatureRow = ({
       ))}
     </>
   );
-};
-
-const formatUsageData = (usageData: any) => {
-  if (!usageData) return 'N/A';
-  if (typeof usageData === 'string') {
-    try {
-      usageData = JSON.parse(usageData);
-    } catch (e) {
-      return 'N/A';
-    }
-  }
-  
-  const numericValue = Object.values(usageData).find(value => 
-    typeof value === 'number' || 
-    (typeof value === 'string' && value.includes('%'))
-  );
-  
-  return numericValue?.toString() || 'N/A';
 };

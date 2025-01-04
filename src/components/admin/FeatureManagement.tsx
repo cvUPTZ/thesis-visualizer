@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Settings, Loader2 } from 'lucide-react';
+import { Settings, Loader2, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { FeatureDialog } from './features/FeatureDialog';
@@ -44,7 +44,10 @@ export const FeatureManagement = () => {
       const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
       const { error } = await supabase
         .from('features')
-        .update({ status: newStatus })
+        .update({ 
+          status: newStatus,
+          last_updated: new Date().toISOString()
+        })
         .eq('id', featureId);
 
       if (error) throw error;
@@ -53,7 +56,7 @@ export const FeatureManagement = () => {
       
       toast({
         title: "Feature Updated",
-        description: "Feature status has been updated successfully",
+        description: `Feature status has been updated to ${newStatus}`,
       });
     } catch (error) {
       console.error('Error updating feature:', error);
@@ -74,6 +77,14 @@ export const FeatureManagement = () => {
         next.add(featureId);
       }
       return next;
+    });
+  };
+
+  const addNewFeature = () => {
+    // This would open a dialog to add a new feature
+    toast({
+      title: "Coming Soon",
+      description: "Feature creation will be available soon",
     });
   };
 
@@ -130,6 +141,14 @@ export const FeatureManagement = () => {
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">No features have been added yet.</p>
+          <Button 
+            onClick={addNewFeature}
+            variant="outline" 
+            className="mt-4 gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Feature
+          </Button>
         </CardContent>
       </Card>
     );
@@ -139,10 +158,20 @@ export const FeatureManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Feature Management</h2>
-        <Button variant="outline" className="gap-2">
-          <Settings className="w-4 h-4" />
-          Settings
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={addNewFeature}
+          >
+            <Plus className="w-4 h-4" />
+            Add Feature
+          </Button>
+          <Button variant="outline" className="gap-2">
+            <Settings className="w-4 h-4" />
+            Settings
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-lg border">
