@@ -14,15 +14,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Quote } from 'lucide-react';
 import { TagInput } from '@/components/ui/tag-input';
 
-type CitationType = 'book' | 'article' | 'conference' | 'website' | 'other';
-
 interface CitationCardProps {
   citation: Citation;
   onRemove: (id: string) => void;
   onUpdate: (citation: Citation) => void;
+  onPreview?: () => void;
 }
 
-export const CitationCard = ({ citation, onRemove, onUpdate }: CitationCardProps) => {
+export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: CitationCardProps) => {
   const [authors, setAuthors] = useState(citation.authors)
 
   const handleAuthorChange = (tags: string[]) => {

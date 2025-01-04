@@ -1,12 +1,11 @@
-// File: src/types/collaborator.ts
 export type CollaboratorRole = 'owner' | 'admin' | 'editor';
 
 export interface CollaboratorWithProfile {
   user_id: string;
   role: CollaboratorRole;
-  profile?: {
+  profiles?: {
     email: string;
-    role: string;
+    role_id: string;
   };
 }
 
@@ -15,6 +14,6 @@ export interface Collaborator {
   role: CollaboratorRole;
   profiles?: {
     email: string;
-    role: string;
+    role_id: string;
   };
 }

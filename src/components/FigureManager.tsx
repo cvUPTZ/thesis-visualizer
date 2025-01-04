@@ -69,7 +69,12 @@ export const FigureManager = ({
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif']
     },
-    multiple: false
+    multiple: false,
+    onDrop: (acceptedFiles) => {
+      if (acceptedFiles && acceptedFiles.length > 0) {
+        onDrop(acceptedFiles, figures[0]?.id);
+      }
+    }
   });
 
   return (
@@ -115,7 +120,7 @@ export const FigureManager = ({
                 {...getRootProps()}
                 className="relative aspect-video mb-4 bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 border-dashed border-gray-300 hover:border-primary transition-colors"
               >
-                <input {...getInputProps({ onChange: (e) => onDrop(e.target.files || [], figure.id) })} />
+                <input {...getInputProps()} />
                 {figure.imageUrl ? (
                   <img
                     src={figure.imageUrl}

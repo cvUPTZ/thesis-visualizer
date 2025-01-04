@@ -23,6 +23,13 @@ export interface Citation {
   authors: string[];
   year: string;
   type: 'book' | 'article' | 'conference' | 'website' | 'other';
+  doi?: string;
+  url?: string;
+  journal?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  publisher?: string;
 }
 
 export interface Figure {
@@ -31,6 +38,10 @@ export interface Figure {
   imageUrl: string;
   altText: string;
   number: number;
+  dimensions?: {
+    width: number;
+    height: number;
+  };
 }
 
 export interface Table {

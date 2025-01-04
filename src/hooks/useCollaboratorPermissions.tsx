@@ -1,19 +1,10 @@
-// File: src/hooks/useCollaboratorPermissions.tsx
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types/profile';
-
-interface Collaborator {
-    user_id: string;
-    role: string;
-    profiles?: {
-        email: string;
-        role: string;
-    };
-}
+import { CollaboratorWithProfile } from '@/types/collaborator';
 
 export const useCollaboratorPermissions = (thesisId: string) => {
-    const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+    const [collaborators, setCollaborators] = useState<CollaboratorWithProfile[]>([]);
     const [canManageCollaborators, setCanManageCollaborators] = useState(false);
     const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
     const [userProfile, setUserProfile] = useState<Profile | null>(null);
@@ -30,7 +21,7 @@ export const useCollaboratorPermissions = (thesisId: string) => {
                 return;
             }
 
-            // Get user profile to check admin status
+            // Get user profile
             const { data: profileData, error: profileError } = await supabase
                 .from('profiles')
                 .select('*')
@@ -67,7 +58,7 @@ export const useCollaboratorPermissions = (thesisId: string) => {
             setCanManageCollaborators(
                 role === 'owner' ||
                 role === 'admin' ||
-                profileData?.role === 'admin'
+                profileData?.role_id === 'admin'
             );
             console.log('Current user role:', role);
         } catch (error: any) {
@@ -79,7 +70,7 @@ export const useCollaboratorPermissions = (thesisId: string) => {
     };
 
     const fetchCollaborators = async () => {
-       try {
+        try {
             setLoading(true);
             console.log('Fetching collaborators for thesis:', thesisId);
 
@@ -90,32 +81,29 @@ export const useCollaboratorPermissions = (thesisId: string) => {
                     role,
                     created_at,
                     profiles (
-                      email,
-                      role
+                        email,
+                        role_id
                     )
                 `)
                 .eq('thesis_id', thesisId);
 
-           if (error) {
-            console.error('Error fetching collaborators:', error);
-                setError(new Error(error.message || 'Failed to fetch collaborators.')); // Wrap error
-               return;
-           }
+            if (error) {
+                console.error('Error fetching collaborators:', error);
+                setError(new Error(error.message));
+                return;
+            }
 
-         if (data) {
-               console.log('Fetched collaborators data:', data);
-              setCollaborators(data as Collaborator[]);
-         }
-
-
+            if (data) {
+                console.log('Fetched collaborators data:', data);
+                setCollaborators(data as CollaboratorWithProfile[]);
+            }
         } catch (error: any) {
             console.error('Error fetching collaborators:', error);
-            setError(new Error(error.message || 'An unexpected error occurred while fetching collaborators.')); // Wrap error
+            setError(new Error(error.message));
         } finally {
             setLoading(false);
         }
     };
-  
 
     useEffect(() => {
         if (thesisId) {
