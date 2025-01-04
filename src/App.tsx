@@ -9,7 +9,7 @@ import CreateThesis from "./pages/CreateThesis";
 import { ThesisEditor } from "@/components/ThesisEditor";
 import LandingPage from "./pages/LandingPage";
 import AdminPanel from "./pages/AdminPanel";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
