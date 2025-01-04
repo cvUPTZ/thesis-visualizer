@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, LogOut } from "lucide-react";
@@ -7,130 +8,9 @@ import { UserProfile } from "@/components/dashboard/UserProfile";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { QuickTips } from "@/components/dashboard/QuickTips";
 import { useDashboardData } from "@/hooks/useDashboardData";
-import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Progress } from "@/components/ui/progress";
-
-const LoadingProgress = () => {
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress((oldProgress) => {
-        const newProgress = Math.min(oldProgress + Math.random() * 20, 90);
-        return newProgress;
-      });
-    }, 500);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="w-full max-w-xl mx-auto space-y-4">
-      <Progress value={progress} className="w-full h-2" />
-      <p className="text-sm text-muted-foreground text-center animate-pulse">
-        Loading your personalized dashboard...
-      </p>
-    </div>
-  );
-};
-
-const LoadingSkeleton = () => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    className="min-h-screen bg-gray-50 p-8"
-  >
-    <div className="container mx-auto space-y-8">
-      <LoadingProgress />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[1, 2, 3].map((i) => (
-          <motion.div
-            key={i}
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: i * 0.1 }}
-            className="bg-white rounded-lg p-6 shadow-lg"
-          >
-            <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-4" />
-            <div className="h-8 w-16 bg-gray-300 rounded animate-pulse" />
-          </motion.div>
-        ))}
-      </div>
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className="bg-white rounded-lg shadow-lg p-6"
-      >
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-12 bg-gray-100 rounded animate-pulse"
-              style={{
-                animationDelay: `${i * 0.1}s`,
-              }}
-            />
-          ))}
-        </div>
-      </motion.div>
-    </div>
-  </motion.div>
-);
-
-const ErrorState = ({ error, onRetry }: { error: string; onRetry: () => void }) => (
-  <motion.div
-    initial={{ scale: 0.9, opacity: 0 }}
-    animate={{ scale: 1, opacity: 1 }}
-    className="min-h-screen bg-gray-50 p-8"
-  >
-    <div className="container mx-auto text-center max-w-md">
-      <motion.div
-        initial={{ y: -20 }}
-        animate={{ y: 0 }}
-        className="bg-white rounded-lg shadow-lg p-8 space-y-4"
-      >
-        <h2 className="text-2xl font-bold text-red-600">Error Loading Dashboard</h2>
-        <p className="text-gray-600">{error}</p>
-        <Button
-          onClick={onRetry}
-          className="mt-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
-          variant="default"
-        >
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2"
-          >
-            <svg
-              className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-            Retry Loading
-          </motion.div>
-        </Button>
-      </motion.div>
-    </div>
-  </motion.div>
-);
+import { LoadingSkeleton } from "@/components/loading/LoadingSkeleton";
+import { ErrorState } from "@/components/error/ErrorState";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -160,7 +40,7 @@ const Index = () => {
   };
 
   if (authLoading || !userId) {
-    console.log('⌛ Index Page - Initial loading state');
+    console.log('⌛ Index Page - Loading or no user:', { loading: authLoading, userId });
     return <LoadingSkeleton />;
   }
 
