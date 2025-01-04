@@ -11,6 +11,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const UserManagement = () => {
   const [users, setUsers] = useState<any[]>([]);
@@ -90,13 +97,20 @@ export const UserManagement = () => {
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.roles?.name || 'No role'}</TableCell>
               <TableCell>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => updateUserRole(user.id, 'admin')}
+                <Select
+                  value={user.role_id || ''}
+                  onValueChange={(value) => updateUserRole(user.id, value)}
                 >
-                  Make Admin
-                </Button>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="editor">Editor</SelectItem>
+                    <SelectItem value="reviewer">Reviewer</SelectItem>
+                    <SelectItem value="user">User</SelectItem>
+                  </SelectContent>
+                </Select>
               </TableCell>
             </TableRow>
           ))}
