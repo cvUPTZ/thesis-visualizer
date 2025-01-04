@@ -23,7 +23,6 @@ export const Index = () => {
         
         if (!session?.user) {
           console.log('⚠️ No session found');
-          navigate('/auth');
           return null;
         }
 
@@ -36,11 +35,16 @@ export const Index = () => {
             )
           `)
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('❌ Error fetching profile:', error);
           throw error;
+        }
+
+        if (!profile) {
+          console.log('⚠️ No profile found for user');
+          return null;
         }
 
         console.log('✅ Profile fetched:', profile);
@@ -56,9 +60,15 @@ export const Index = () => {
     gcTime: 1000 * 60 * 15, // 15 minutes
   });
 
+  // Handle authentication check after query is ready
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      console.log('🚫 User not authenticated, redirecting...');
+      navigate('/auth');
+    }
+  }, [isAuthenticated, navigate]);
+
   if (!isAuthenticated) {
-    console.log('🚫 User not authenticated, redirecting...');
-    navigate('/auth');
     return null;
   }
 
