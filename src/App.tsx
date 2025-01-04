@@ -1,7 +1,8 @@
+// File: src/App.tsx
 import React, { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import Auth from '@/pages/Auth';
 import Index from '@/pages/Index';
 import LandingPage from '@/pages/LandingPage';
@@ -9,6 +10,7 @@ import AdminPanel from '@/pages/AdminPanel';
 import CreateThesis from '@/pages/CreateThesis';
 import { ThesisEditor } from '@/components/ThesisEditor';
 import { Skeleton } from '@/components/ui/skeleton';
+import withAuthorization from '@/components/ProtectedRoute';
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -21,6 +23,14 @@ const LoadingFallback = () => (
 );
 
 const App = () => {
+    const { loading } = useAuth();
+    if (loading) {
+        return <LoadingFallback />
+    }
+
+    const ProtectedRoute = withAuthorization(({ children }) => <>{children}</>);
+    const AdminRoute = withAuthorization(({ children }) => <>{children}</>);
+
   return (
     <div className="min-h-screen bg-background">
       <Suspense fallback={<LoadingFallback />}>
@@ -52,7 +62,7 @@ const App = () => {
             <Route
               path="/admin/*"
               element={
-                <AdminRoute>
+                <AdminRoute requiredRole="admin">
                   <AdminPanel />
                 </AdminRoute>
               }
@@ -62,41 +72,6 @@ const App = () => {
       </Suspense>
     </div>
   );
-};
-
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-}
-
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated, userRole } = useAuth();
-  console.log('🔒 Protected Route Check:', { isAuthenticated, userRole });
-
-  if (!isAuthenticated) {
-    console.log('🚫 User not authenticated, redirecting to /auth');
-    return <Navigate to="/auth" />;
-  }
-
-  console.log('✅ Access granted to protected route');
-  return <>{children}</>;
-};
-
-const AdminRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated, userRole } = useAuth();
-  console.log('👑 Admin Route Check:', { isAuthenticated, userRole });
-
-  if (!isAuthenticated) {
-    console.log('🚫 User not authenticated, redirecting to /auth');
-    return <Navigate to="/auth" />;
-  }
-
-  if (userRole !== 'admin') {
-    console.log('🚫 User not authorized, redirecting to /');
-    return <Navigate to="/" />;
-  }
-
-  console.log('✅ Access granted to admin route');
-  return <>{children}</>;
 };
 
 export default App;
