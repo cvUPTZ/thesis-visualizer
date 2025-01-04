@@ -10,7 +10,7 @@ import {
   Calendar
 } from 'lucide-react';
 
-const ThesisVisualization = () => {
+export const ThesisVisualization = () => {
   const sections = [
     { id: 1, title: 'Introduction', complete: true },
     { id: 2, title: 'Literature Review', complete: true },

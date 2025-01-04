@@ -9,15 +9,25 @@ import { ThesisComment } from '@/types/thesis';
 import { formatDistanceToNow } from 'date-fns';
 import { Profile } from '@/types/profile';
 
-interface CommentThreadProps {
+export interface CommentThreadProps {
   thesisId: string;
   sectionId: string;
   comment: ThesisComment;
   replies: ThesisComment[];
   onReplyAdded: () => void;
+  onReply: (commentId: string, content: string) => void;
+  currentUser: Profile | null;
 }
 
-export const CommentThread = ({ thesisId, sectionId, comment, replies, onReplyAdded }: CommentThreadProps) => {
+export const CommentThread = ({ 
+  thesisId, 
+  sectionId, 
+  comment, 
+  replies, 
+  onReplyAdded,
+  onReply,
+  currentUser 
+}: CommentThreadProps) => {
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const { userId, userEmail } = useAuth();

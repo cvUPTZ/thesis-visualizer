@@ -102,18 +102,18 @@ export interface Reference extends Omit<Citation, 'thesis_id'> {
 
 export interface ThesisComment {
   id: string;
-  content: string;
-  user_id: string;  // Explicitly required
+  content: string | Json;
+  user_id?: string;  // Made optional since it comes from reviewer_id
+  reviewer_id: string;
   parent_id?: string;
   created_at: string;
   thesis_id: string;
-  reviewer_id: string;
   section_id: string;
   status: string;
   updated_at: string;
   profiles?: {
     email: string;
-    role: string;
+    role?: string;
   };
 }
 
