@@ -36,12 +36,16 @@ const Index = () => {
   const { userId } = useAuth();
   const { userProfile, thesesStats, isLoading, error } = useDashboardData(userId);
 
+  console.log('📍 Index Page - Initial Render:', { userId, isLoading, error });
+
   if (!userId) {
+    console.log('🚫 Index Page - No userId, redirecting to auth');
     navigate('/auth');
     return null;
   }
 
   if (error) {
+    console.log('❌ Index Page - Error:', error);
     return (
       <div className="min-h-screen bg-gray-50 p-8">
         <div className="container mx-auto text-center">
@@ -62,8 +66,15 @@ const Index = () => {
   }
 
   if (isLoading || !userProfile) {
+    console.log('⌛ Index Page - Loading state:', { isLoading, userProfile });
     return <LoadingSkeleton />;
   }
+
+  console.log('✅ Index Page - Render complete:', { 
+    userProfile, 
+    thesesStats,
+    isAuthenticated: !!userId 
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
