@@ -124,8 +124,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (event === 'SIGNED_IN') {
         console.log('✅ User signed in:', session?.user?.email);
         await handleSessionChange(session);
-      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-        console.log('👋 User signed out or deleted');
+      } else if (event === 'SIGNED_OUT') {
+        console.log('👋 User signed out');
         setUserId(null);
         setUserRole(null);
         setLoading(false);
@@ -147,6 +147,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setLoading(true);
       console.log('🔄 Starting logout process...');
+      
+      // Clear any stored session data
+      await supabase.auth.clearSession();
       
       const { error } = await supabase.auth.signOut({
         scope: 'local'
