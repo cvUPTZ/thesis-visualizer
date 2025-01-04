@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, LogOut } from "lucide-react";
@@ -17,50 +17,35 @@ const Index = () => {
   const navigate = useNavigate();
   const { userId, logout, loading: authLoading } = useAuth();
   const { thesesStats, isLoading: statsLoading, error: statsError } = useDashboardData(userId);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [profileError, setProfileError] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = React.useState<any>(null);
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!userId) return;
+    if (!userId) return;
 
-      try {
-        console.log('🔍 Fetching user profile for:', userId);
-        const { data, error } = await supabase
-          .from('profiles')
-          .select(`
-            *,
-            roles (
-              name
-            )
-          `)
-          .eq('id', userId)
-          .single();
-
+    console.log('🔍 Fetching user profile for:', userId);
+    supabase
+      .from('profiles')
+      .select(`
+        *,
+        roles (
+          name
+        )
+      `)
+      .eq('id', userId)
+      .single()
+      .then(({ data, error }) => {
         if (error) {
           console.error('❌ Error fetching profile:', error);
-          setProfileError(error.message);
           return;
         }
-
         console.log('✅ Profile fetched:', data);
         setUserProfile(data);
-      } catch (error) {
-        console.error('❌ Unexpected error:', error);
-        setProfileError('An unexpected error occurred');
-      } finally {
-        setProfileLoading(false);
-      }
-    };
-
-    fetchUserProfile();
+      });
   }, [userId]);
 
   console.log('📍 Index Page - Initial Render:', { 
     userId, 
     authLoading,
-    profileLoading,
     statsLoading,
     userProfile
   });
@@ -72,19 +57,18 @@ const Index = () => {
     }
   }, [userId, authLoading, navigate]);
 
-  if (authLoading || !userId || profileLoading || statsLoading) {
+  if (authLoading || !userId || !userProfile || statsLoading) {
     console.log('⌛ Index Page - Loading state:', {
       authLoading,
-      profileLoading,
       statsLoading,
       userId
     });
     return <LoadingSkeleton />;
   }
 
-  if (profileError || statsError) {
-    console.log('❌ Index Page - Error state:', { profileError, statsError });
-    return <ErrorState error={profileError || statsError || 'Unknown error'} onRetry={() => window.location.reload()} />;
+  if (statsError) {
+    console.log('❌ Index Page - Error state:', { statsError });
+    return <ErrorState error={statsError || 'Unknown error'} onRetry={() => window.location.reload()} />;
   }
 
   console.log('✅ Index Page - Render complete:', { 
