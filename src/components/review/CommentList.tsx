@@ -5,7 +5,6 @@ import { CommentThread } from './CommentThread';
 
 interface CommentListProps {
   comments: CommentThreadType[];
-  onReply: (commentId: string, content: string) => void;
   currentUser: Profile | null;
   thesisId: string;
   sectionId: string;
@@ -13,7 +12,6 @@ interface CommentListProps {
 
 export const CommentList = ({ 
   comments, 
-  onReply, 
   currentUser,
   thesisId,
   sectionId 
@@ -23,13 +21,10 @@ export const CommentList = ({
       {comments.map((thread) => (
         <CommentThread
           key={thread.comment.id}
-          comment={thread.comment}
-          replies={thread.replies}
-          onReply={onReply}
+          thread={thread}
           currentUser={currentUser}
           thesisId={thesisId}
           sectionId={sectionId}
-          onReplyAdded={() => {}}
         />
       ))}
     </div>

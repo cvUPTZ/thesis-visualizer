@@ -13,6 +13,10 @@ import { useThesisData } from '@/hooks/useThesisData';
 import { Skeleton } from './ui/skeleton';
 import { CollaboratorPresence } from './collaboration/CollaboratorPresence';
 
+interface ThesisEditorProps {
+  thesisId?: string;
+}
+
 export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => {
   const { thesisId: routeThesisId } = useParams();
   const currentThesisId = propsThesisId || routeThesisId;

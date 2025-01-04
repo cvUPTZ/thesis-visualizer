@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Profile } from '@/types/profile';
-import { ThesisComment } from '@/types/thesis';
+import { ThesisComment, CommentThread } from '@/types/thesis';
 import { CommentList } from './CommentList';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,7 +14,7 @@ interface ReviewerInterfaceProps {
 }
 
 export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProps) => {
-  const [comments, setComments] = useState<ThesisComment[]>([]);
+  const [comments, setComments] = useState<CommentThread[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -45,7 +45,24 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
         }
 
         console.log('Fetched comments:', commentsData);
-        setComments(commentsData);
+        
+        // Transform the flat comments into a thread structure
+        const threadMap = new Map<string | null, ThesisComment[]>();
+        commentsData.forEach((comment: ThesisComment) => {
+          const parentId = comment.parent_id || null;
+          if (!threadMap.has(parentId)) {
+            threadMap.set(parentId, []);
+          }
+          threadMap.get(parentId)?.push(comment);
+        });
+
+        // Create thread objects
+        const threads: CommentThread[] = (threadMap.get(null) || []).map(comment => ({
+          comment,
+          replies: threadMap.get(comment.id) || []
+        }));
+
+        setComments(threads);
 
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
@@ -110,7 +127,14 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
       if (error) throw error;
 
       console.log('New comment submitted:', data);
-      setComments([...comments, data]);
+      
+      // Add the new comment as a new thread
+      const newThread: CommentThread = {
+        comment: data,
+        replies: []
+      };
+      
+      setComments([...comments, newThread]);
       setNewComment('');
       
       toast({
@@ -133,7 +157,12 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
 
   return (
     <div className="space-y-4">
-      <CommentList comments={comments} />
+      <CommentList 
+        comments={comments}
+        currentUser={profile}
+        thesisId={thesisId}
+        sectionId={sectionId}
+      />
       <Card className="p-4">
         <Textarea
           value={newComment}
