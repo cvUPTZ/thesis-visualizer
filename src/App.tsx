@@ -11,6 +11,7 @@ import LandingPage from "./pages/LandingPage";
 import AdminPanel from "./pages/AdminPanel";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -59,33 +60,35 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="/welcome" element={<LandingPage />} />
-            <Route
-              path="/thesis/:thesisId"
-              element={<ProtectedRoute><ThesisEditor /></ProtectedRoute>}
-            />
-            <Route path="/auth" element={<Auth />} />
-            <Route
-              path="/create-thesis"
-              element={<ProtectedRoute><CreateThesis /></ProtectedRoute>}
-            />
-            <Route
-              path="/admin/*"
-              element={<AdminRoute><AdminPanel /></AdminRoute>}
-            />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/welcome" element={<LandingPage />} />
+              <Route
+                path="/thesis/:thesisId"
+                element={<ProtectedRoute><ThesisEditor /></ProtectedRoute>}
+              />
+              <Route path="/auth" element={<Auth />} />
+              <Route
+                path="/create-thesis"
+                element={<ProtectedRoute><CreateThesis /></ProtectedRoute>}
+              />
+              <Route
+                path="/admin/*"
+                element={<AdminRoute><AdminPanel /></AdminRoute>}
+              />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
