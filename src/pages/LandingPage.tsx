@@ -70,7 +70,7 @@ const LandingPage = () => {
             Streamline your academic writing process with our powerful visualization
             and organization tools. Perfect for researchers and students.
           </p>
-          <Link to="/auth">
+          <Link to="/auth" className="inline-block">
             <Button className="bg-[#9b87f5] text-white text-lg px-8 py-6 rounded-lg hover:bg-[#7E69AB] transition-colors">
               Start Writing Now
             </Button>
@@ -113,7 +113,7 @@ const LandingPage = () => {
           <p className="text-xl text-gray-300 mb-12">
             Join thousands of researchers who have already transformed their thesis writing experience.
           </p>
-          <Link to="/auth">
+          <Link to="/auth" className="inline-block">
             <Button className="bg-[#9b87f5] text-white text-lg px-8 py-6 rounded-lg hover:bg-[#7E69AB] transition-colors">
               Get Started Now
             </Button>
