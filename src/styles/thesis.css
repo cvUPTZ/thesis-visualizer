@@ -1,191 +1,208 @@
-/* Thesis Preview Container */
+/* Base styles */
+.thesis-page {
+  position: relative;
+  margin: 2rem auto;
+  padding: 2.5rem;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 210mm;
+  min-height: 297mm;
+  box-sizing: border-box;
+  page-break-after: always;
+}
+
+.thesis-content {
+  position: relative;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
 .thesis-preview-container {
-    @apply bg-gray-100 min-h-screen p-8;
+  background: #f5f5f5;
+  padding: 2rem;
+  min-height: 100vh;
 }
 
 .thesis-preview {
-    @apply flex flex-col gap-8 items-center;
+  max-width: 210mm;
+  margin: 0 auto;
 }
 
-/* Page Layout */
-
-/* Page Break Controls */
-.page-break-inside-avoid {
-    page-break-inside: avoid;
+/* Position-specific styles */
+.element-top {
+  margin-bottom: 2rem;
 }
 
-.page-break-after-avoid {
-    page-break-after: avoid;
+.element-bottom {
+  margin-top: 2rem;
 }
 
-.page-break-before-avoid {
-    page-break-before: avoid;
+.element-custom {
+  position: absolute;
+  z-index: 10;
 }
 
-/* Update existing thesis-page class */
-.thesis-page {
-    @apply bg-white shadow-lg;
-    width: 8.5in;
-    min-height: 11in;
-    padding: 1in;
-    position: relative;
-    break-after: page;
-    margin: 0 auto 2rem;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Title Page */
+/* Title page styles */
 .title-page {
-    @apply flex items-center justify-center;
-    padding: 2in 1in;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .thesis-title-content {
-    @apply flex flex-col items-center text-center space-y-8;
+  max-width: 80%;
+  margin: 0 auto;
 }
 
 .university-name {
-    @apply text-2xl font-bold;
-    font-family: "Times New Roman", Times, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
 }
 
 .department-name {
-    @apply text-xl;
-    font-family: "Times New Roman", Times, serif;
+  font-size: 1.25rem;
+  margin-bottom: 3rem;
 }
 
 .thesis-main-title {
-    @apply text-2xl font-bold mt-16 mb-12 max-w-2xl;
-    font-family: "Times New Roman", Times, serif;
-    line-height: 1.5;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  line-height: 1.4;
 }
 
 .thesis-subtitle {
-    @apply text-base mb-16;
-    font-family: "Times New Roman", Times, serif;
-    line-height: 1.6;
+  font-size: 1.1rem;
+  margin-bottom: 3rem;
+  line-height: 1.6;
 }
 
 .thesis-author {
-    @apply text-lg mb-8;
-    font-family: "Times New Roman", Times, serif;
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
 }
 
 .thesis-date {
-    @apply text-base mb-16;
-    font-family: "Times New Roman", Times, serif;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
 }
 
 .thesis-committee {
-    @apply text-base text-left;
-    font-family: "Times New Roman", Times, serif;
-    line-height: 1.6;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
-/* Headers and Footers */
+/* Header and Footer styles */
 .thesis-header {
-    @apply text-sm text-gray-600 border-b pb-2 mb-6;
-    font-family: "Times New Roman", Times, serif;
+  position: relative;
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eaeaea;
 }
 
 .thesis-footer {
-    @apply text-sm text-gray-600 absolute bottom-8 w-[calc(100%-2in)] text-center;
-    font-family: "Times New Roman", Times, serif;
+  position: absolute;
+  bottom: 2rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
 }
 
-/* Content Sections */
-.thesis-content {
-    @apply flex-grow;
-    font-family: "Times New Roman", Times, serif;
-    line-height: 1.6;
-    text-align: justify;
-}
-
+/* Content specific styles */
 .thesis-abstract {
-    @apply prose-headings:font-serif prose-headings:text-gray-900;
+  line-height: 1.8;
+  text-align: justify;
 }
 
 .thesis-references {
-    @apply prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline;
+  padding-left: 2rem;
+  text-indent: -2rem;
 }
 
-/* Table of Contents */
 .toc-section {
-    @apply prose-headings:font-serif prose-headings:text-gray-900;
+  counter-reset: page 1;
 }
 
-.toc-content {
-    @apply space-y-2;
+.page-number::before {
+  content: counter(page);
+  counter-increment: page;
 }
 
-/* Chapter Content */
-.chapter-content {
-    @apply w-full;
+/* Element positioning */
+.page-break-inside-avoid {
+  page-break-inside: avoid;
 }
 
-/* Special Sections */
-.special-section {
-    @apply prose-headings:font-serif prose-headings:text-gray-900;
+.page-break-after-avoid {
+  page-break-after: avoid;
 }
 
-/* Page Numbers */
-.page-number {
-    @apply font-serif;
+/* Figure and Table styles */
+figure {
+  break-inside: avoid;
 }
 
-/* Typography Overrides */
-.thesis-content h1 {
-    @apply text-2xl font-serif mb-6;
+figure img {
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
 }
 
-.thesis-content h2 {
-    @apply text-xl font-serif mb-4;
+figcaption {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
 }
 
-.thesis-content h3 {
-    @apply text-lg font-serif mb-3;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  break-inside: avoid;
 }
 
-.thesis-content p {
-    @apply mb-4;
+th, td {
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  text-align: left;
 }
 
-/* Lists */
-.thesis-content ul,
-.thesis-content ol {
-    @apply pl-6 mb-4;
+/* Citation styles */
+.citations-section {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eaeaea;
 }
 
-.thesis-content li {
-    @apply mb-2;
+.citation-reference {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
 }
 
-/* Tables */
-.thesis-content table {
-    @apply w-full border-collapse mb-4;
-}
+/* Print-specific styles */
+@media print {
+  .thesis-page {
+    margin: 0;
+    padding: 2.5cm;
+    box-shadow: none;
+    break-after: page;
+  }
 
-.thesis-content th,
-.thesis-content td {
-    @apply border p-2 text-sm;
-}
+  .thesis-preview-container {
+    padding: 0;
+    background: none;
+  }
 
-/* Figures */
-.thesis-content figure {
-    @apply my-6 text-center;
-}
-
-.thesis-content figcaption {
-    @apply text-sm text-gray-600 mt-2;
-}
-
-/* Citations */
-.thesis-content cite {
-    @apply text-sm text-gray-600;
-}
-
-/* Quotes */
-.thesis-content blockquote {
-    @apply pl-4 border-l-4 border-gray-300 italic my-4;
+  .element-custom {
+    position: absolute !important;
+    print-color-adjust: exact;
+  }
 }
