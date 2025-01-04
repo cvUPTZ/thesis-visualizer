@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, LogOut } from "lucide-react";
 import { ThesisList } from "@/components/thesis/ThesisList";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,7 +33,7 @@ const LoadingSkeleton = () => (
 
 const Index = () => {
   const navigate = useNavigate();
-  const { userId } = useAuth();
+  const { userId, logout } = useAuth();
   const { userProfile, thesesStats, isLoading, error } = useDashboardData(userId);
 
   console.log('📍 Index Page - Initial Render:', { userId, isLoading, error });
@@ -76,13 +76,29 @@ const Index = () => {
     isAuthenticated: !!userId 
   });
 
+  const handleLogout = async () => {
+    console.log('🔄 Index Page - Initiating logout...');
+    await logout();
+    console.log('✅ Index Page - Logout complete');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
-        <UserProfile
-          email={userProfile?.email}
-          role={userProfile?.roles?.name || "User"}
-        />
+        <div className="flex justify-between items-center mb-8">
+          <UserProfile
+            email={userProfile?.email}
+            role={userProfile?.roles?.name || "User"}
+          />
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            className="gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
+        </div>
 
         <StatsGrid stats={thesesStats} />
 
