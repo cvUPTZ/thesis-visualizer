@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 export const useUser = () => {
   const [userEmail, setUserEmail] = useState<string>('');
   const [userRole, setUserRole] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -14,8 +15,10 @@ export const useUser = () => {
       try {
         console.log('Loading user profile...');
         const { data: { session } } = await supabase.auth.getSession();
+        
         if (!session) {
           console.log('No active session found, redirecting to auth...');
+          setIsLoading(false);
           navigate('/auth');
           return;
         }
@@ -37,6 +40,7 @@ export const useUser = () => {
             console.log('Profile not found, redirecting to auth...');
             await handleLogout();
           }
+          setIsLoading(false);
           return;
         }
 
@@ -45,8 +49,10 @@ export const useUser = () => {
           setUserEmail(profile.email);
           setUserRole(profile.roles?.name || '');
         }
+        setIsLoading(false);
       } catch (error) {
         console.error('Error in loadProfile:', error);
+        setIsLoading(false);
         navigate('/auth');
       }
     };
@@ -56,9 +62,10 @@ export const useUser = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
       
-      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      if (event === 'SIGNED_OUT') {
         setUserEmail('');
         setUserRole('');
+        setIsLoading(false);
         navigate('/auth');
       } else if (event === 'SIGNED_IN' && session) {
         await loadProfile();
@@ -72,6 +79,7 @@ export const useUser = () => {
 
   const handleLogout = async () => {
     try {
+      setIsLoading(true);
       setUserEmail('');
       setUserRole('');
       
@@ -96,8 +104,10 @@ export const useUser = () => {
         variant: "destructive",
       });
       navigate('/auth');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return { userEmail, userRole, handleLogout };
+  return { userEmail, userRole, isLoading, handleLogout };
 };

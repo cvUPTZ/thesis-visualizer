@@ -5,6 +5,7 @@ import { ThesisList } from "@/components/thesis/ThesisList";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
   CardContent,
@@ -22,57 +23,90 @@ const Index = () => {
     inProgress: 0,
     completed: 0,
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!userId) return;
-      
-      console.log("Fetching user profile for:", userId);
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select(`
-          *,
-          roles (
-            name
-          )
-        `)
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        console.error("Error fetching profile:", error);
+    const fetchData = async () => {
+      if (!userId) {
+        setIsLoading(false);
         return;
       }
-
-      console.log("Fetched profile:", profile);
-      setUserProfile(profile);
-    };
-
-    const fetchThesesStats = async () => {
-      if (!userId) return;
       
-      console.log("Fetching theses stats for:", userId);
-      const { data: theses, error } = await supabase
-        .from("thesis_collaborators")
-        .select("thesis_id")
-        .eq("user_id", userId);
+      try {
+        console.log("Fetching user profile for:", userId);
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select(`
+            *,
+            roles (
+              name
+            )
+          `)
+          .eq("id", userId)
+          .single();
 
-      if (error) {
-        console.error("Error fetching theses:", error);
-        return;
+        if (error) {
+          console.error("Error fetching profile:", error);
+          return;
+        }
+
+        console.log("Fetched profile:", profile);
+        setUserProfile(profile);
+
+        console.log("Fetching theses stats for:", userId);
+        const { data: theses, error: thesesError } = await supabase
+          .from("thesis_collaborators")
+          .select("thesis_id")
+          .eq("user_id", userId);
+
+        if (thesesError) {
+          console.error("Error fetching theses:", thesesError);
+          return;
+        }
+
+        console.log("Fetched theses:", theses);
+        setThesesStats({
+          total: theses?.length || 0,
+          inProgress: theses?.length || 0,
+          completed: 0,
+        });
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
       }
-
-      console.log("Fetched theses:", theses);
-      setThesesStats({
-        total: theses?.length || 0,
-        inProgress: theses?.length || 0,
-        completed: 0,
-      });
     };
 
-    fetchUserProfile();
-    fetchThesesStats();
+    fetchData();
   }, [userId]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="container mx-auto">
+          <div className="mb-8">
+            <Skeleton className="h-12 w-64 mb-2" />
+            <Skeleton className="h-6 w-32" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {[1, 2, 3].map((i) => (
+              <Card key={i}>
+                <CardHeader className="space-y-0 pb-2">
+                  <Skeleton className="h-4 w-24" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-16" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
