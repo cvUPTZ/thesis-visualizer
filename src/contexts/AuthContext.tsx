@@ -7,12 +7,16 @@ interface AuthContextType {
   userId: string | null;
   loading: boolean;
   logout: () => Promise<void>;
+  isAuthenticated: boolean;
+  userRole: string | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
   userId: null,
   loading: true,
   logout: async () => {},
+  isAuthenticated: false,
+  userRole: null,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -20,8 +24,33 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const fetchUserRole = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select(`
+          roles (
+            name
+          )
+        `)
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return null;
+      }
+
+      return profile?.roles?.name || null;
+    } catch (error) {
+      console.error('Error in fetchUserRole:', error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     console.log('Setting up auth state listener...');
@@ -30,10 +59,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         console.log('Initial session check:', session?.user?.id || 'No session');
-        setUserId(session?.user?.id || null);
+        
+        if (session?.user) {
+          setUserId(session.user.id);
+          const role = await fetchUserRole(session.user.id);
+          setUserRole(role);
+        } else {
+          setUserId(null);
+          setUserRole(null);
+        }
       } catch (error) {
         console.error('Error checking session:', error);
         setUserId(null);
+        setUserRole(null);
       } finally {
         setLoading(false);
       }
@@ -45,10 +83,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('Auth state changed:', event, session?.user?.email);
       
       if (event === 'SIGNED_IN') {
-        setUserId(session?.user?.id || null);
+        if (session?.user) {
+          setUserId(session.user.id);
+          const role = await fetchUserRole(session.user.id);
+          setUserRole(role);
+        }
         setLoading(false);
       } else if (event === 'SIGNED_OUT') {
         setUserId(null);
+        setUserRole(null);
         setLoading(false);
         navigate('/auth');
       } else if (event === 'TOKEN_REFRESHED') {
@@ -70,11 +113,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
-      // Clear any local storage items
       localStorage.removeItem('supabase.auth.token');
-      
-      // Reset state
       setUserId(null);
+      setUserRole(null);
       
       console.log('Logout successful, navigating to auth page...');
       navigate('/auth');
@@ -96,7 +137,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ userId, loading, logout }}>
+    <AuthContext.Provider value={{ 
+      userId, 
+      loading, 
+      logout,
+      isAuthenticated: !!userId,
+      userRole 
+    }}>
       {children}
     </AuthContext.Provider>
   );
