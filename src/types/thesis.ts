@@ -53,6 +53,7 @@ export type ThesisSectionType =
   | 'conclusion'
   | 'references'
   | 'appendix'
+  | 'table-of-contents'
   | 'custom';
 
 export interface Figure {
@@ -91,12 +92,8 @@ export interface Citation {
   thesis_id: string;
 }
 
-export interface Reference {
-  id: string;
-  title: string;
-  authors: string[];
-  year: string;
-  type: 'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other';
+export interface Reference extends Citation {
+  thesis_id?: string;
 }
 
 export interface ThesisComment {
@@ -111,4 +108,14 @@ export interface ThesisComment {
 export interface CommentThread {
   comment: ThesisComment;
   replies: ThesisComment[];
+}
+
+export interface ThesisVersion {
+  id: string;
+  thesis_id: string;
+  content: any;
+  created_at: string;
+  created_by: string;
+  version_number: number;
+  description: string;
 }
