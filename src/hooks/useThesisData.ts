@@ -13,7 +13,7 @@ export const useThesisData = (thesisId: string | undefined) => {
     data: thesis,
     isLoading,
     error,
-  } = useQuery<Thesis | null, string>({
+  } = useQuery({
     queryKey: ['thesis', thesisId],
     queryFn: async () => {
       if (!thesisId) {
@@ -29,9 +29,15 @@ export const useThesisData = (thesisId: string | undefined) => {
       try {
         console.log('Fetching thesis with ID:', thesisId);
 
-        const { data, error: fetchError } = await supabase
+        const { data: thesisData, error: fetchError } = await supabase
           .from('theses')
-          .select('*')
+          .select(`
+            *,
+            thesis_collaborators (
+              user_id,
+              role
+            )
+          `)
           .eq('id', thesisId)
           .maybeSingle();
 
@@ -40,19 +46,19 @@ export const useThesisData = (thesisId: string | undefined) => {
           throw new Error(fetchError.message);
         }
 
-        if (!data) {
+        if (!thesisData) {
           console.log('No thesis found with ID:', thesisId);
           throw new Error('Thesis not found');
         }
 
-        console.log('Thesis data loaded:', data);
+        console.log('Thesis data loaded:', thesisData);
 
-        const parsedContent = typeof data.content === 'string'
-          ? JSON.parse(data.content)
-          : data.content;
+        const parsedContent = typeof thesisData.content === 'string'
+          ? JSON.parse(thesisData.content)
+          : thesisData.content;
 
         const thesisData: Thesis = {
-          id: data.id,
+          id: thesisData.id,
           metadata: {
             description: parsedContent?.metadata?.description || '',
             keywords: parsedContent?.metadata?.keywords || [],
@@ -79,7 +85,10 @@ export const useThesisData = (thesisId: string | undefined) => {
         throw err;
       }
     },
-    enabled: !!thesisId,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    cacheTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   const setThesis = (newThesis: Thesis | ((prev: Thesis | null) => Thesis | null)) => {

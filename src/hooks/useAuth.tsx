@@ -1,108 +1,94 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from './use-toast';
 
 export const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    const savedAuth = localStorage.getItem('authState');
-    return savedAuth ? JSON.parse(savedAuth).isAuthenticated : false;
-  });
-  
-  const [loading, setLoading] = useState<boolean>(true);
-  const [userRole, setUserRole] = useState<string | null>(() => {
-    const savedAuth = localStorage.getItem('authState');
-    return savedAuth ? JSON.parse(savedAuth).userRole : null;
-  });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        console.log('🔍 Checking session...');
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          console.log('✅ Valid session found, updating user data');
-          console.log('🔍 Fetching user role for:', session.user.id);
-          
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select(`
-              roles (
-                name
-              )
-            `)
-            .eq('id', session.user.id)
-            .maybeSingle();
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    try {
+      console.log('Fetching user profile for:', userId);
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          roles (
+            name
+          )
+        `)
+        .eq('id', userId)
+        .maybeSingle();
 
-          const role = profile?.roles?.name || null;
-          
-          setUserRole(role);
-          setIsAuthenticated(true);
-          
-          // Save to localStorage
-          localStorage.setItem('authState', JSON.stringify({
-            isAuthenticated: true,
-            userRole: role
-          }));
-        } else {
-          console.log('❌ No valid session found');
-          setIsAuthenticated(false);
-          setUserRole(null);
-          localStorage.removeItem('authState');
-        }
-      } catch (error) {
-        console.error('Error checking auth:', error);
-        setIsAuthenticated(false);
-        setUserRole(null);
-        localStorage.removeItem('authState');
-      } finally {
-        setLoading(false);
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return null;
       }
-    };
 
-    console.log('🔄 Setting up auth state listener...');
-    checkAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth state changed:', event, session?.user?.email);
-      
-      if (event === 'SIGNED_IN' && session) {
-        console.log('✅ User signed in:', session.user.email);
-        console.log('🔄 Handling session change:', session.user.email);
-        
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select(`
-            roles (
-              name
-            )
-          `)
-          .eq('id', session.user.id)
-          .maybeSingle();
-
-        const role = profile?.roles?.name || null;
-        
-        setUserRole(role);
-        setIsAuthenticated(true);
-        
-        localStorage.setItem('authState', JSON.stringify({
-          isAuthenticated: true,
-          userRole: role
-        }));
-      } else if (event === 'SIGNED_OUT') {
-        console.log('🗑️ Clearing auth state from localStorage');
-        setIsAuthenticated(false);
-        setUserRole(null);
-        localStorage.removeItem('authState');
-      }
-      
-      setLoading(false);
-    });
-
-    return () => {
-      console.log('🧹 Cleaning up auth listener...');
-      subscription.unsubscribe();
-    };
+      return profile?.roles?.name || null;
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+      return null;
+    }
   }, []);
 
-  return { isAuthenticated, loading, userRole };
+  useEffect(() => {
+    let mounted = true;
+
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          console.log('✅ User signed in:', session.user.email);
+          setUser(session.user);
+          const role = await fetchUserProfile(session.user.id);
+          if (mounted) {
+            setUserRole(role);
+          }
+        }
+      } catch (error) {
+        console.error('Error in initAuth:', error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event);
+      
+      if (session?.user) {
+        setUser(session.user);
+        const role = await fetchUserProfile(session.user.id);
+        if (mounted) {
+          setUserRole(role);
+        }
+      } else {
+        setUser(null);
+        setUserRole(null);
+      }
+      
+      if (mounted) {
+        setLoading(false);
+      }
+    });
+
+    initAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [fetchUserProfile]);
+
+  return {
+    user,
+    userRole,
+    loading,
+    isAdmin: userRole === 'admin',
+  };
 };
