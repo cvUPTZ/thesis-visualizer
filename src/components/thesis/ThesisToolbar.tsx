@@ -41,10 +41,12 @@ export const ThesisToolbar = ({
       console.log('Starting DOCX export with thesis data:', thesisData);
       const doc = generateThesisDocx(thesisData);
       console.log('Document generated, converting to blob...');
-      const blob = await Packer.toBuffer(doc);
+      
+      // Use Blob instead of Buffer
+      const blob = await Packer.toBlob(doc);
       console.log('Blob created, creating download link...');
       
-      const url = window.URL.createObjectURL(new Blob([blob]));
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `${thesisData.frontMatter[0]?.title || 'thesis'}.docx`;
