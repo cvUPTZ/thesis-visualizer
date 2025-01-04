@@ -10,12 +10,13 @@ import { formatDistanceToNow } from 'date-fns';
 
 interface CommentThreadProps {
   thesisId: string;
+  sectionId: string;
   comment: ThesisComment;
   replies: ThesisComment[];
   onReplyAdded: () => void;
 }
 
-export const CommentThread = ({ thesisId, comment, replies, onReplyAdded }: CommentThreadProps) => {
+export const CommentThread = ({ thesisId, sectionId, comment, replies, onReplyAdded }: CommentThreadProps) => {
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const { userId, userEmail } = useAuth();
@@ -29,6 +30,7 @@ export const CommentThread = ({ thesisId, comment, replies, onReplyAdded }: Comm
         .from('thesis_reviews')
         .insert({
           thesis_id: thesisId,
+          section_id: sectionId,
           reviewer_id: userId,
           content: { text: replyContent },
           parent_id: comment.id,

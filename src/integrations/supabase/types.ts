@@ -327,6 +327,51 @@ export type Database = {
           },
         ]
       }
+      thesis_versions: {
+        Row: {
+          content: Json
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          thesis_id: string
+          version_number: number
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          thesis_id: string
+          version_number: number
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          thesis_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thesis_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thesis_versions_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "theses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_feedback: {
         Row: {
           created_at: string

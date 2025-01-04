@@ -92,7 +92,7 @@ export interface Citation {
   thesis_id: string;
 }
 
-export interface Reference extends Citation {
+export interface Reference extends Omit<Citation, 'thesis_id'> {
   thesis_id?: string;
 }
 

@@ -1,3 +1,5 @@
+import { Thesis } from '@/types/thesis';
+
 export interface ImageOptions {
   width?: number;
   height?: number;
