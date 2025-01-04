@@ -71,8 +71,8 @@ export const generateThesisDocx = (thesis: {
         hyperlink: true,
         headingStyleRange: "1-5",
         stylesWithLevels: [
-          { level: 1, heading: "Heading1" },
-          { level: 2, heading: "Heading2" },
+          { level: 1, style: "Heading1" },
+          { level: 2, style: "Heading2" },
         ],
       }),
       ...generateSectionContent(thesis.frontMatter),
@@ -273,7 +273,7 @@ const generateSectionContent = (sections: Section[]) => {
         if (tableContent) {
           content.push(
             new Paragraph({
-              children: [tableContent],
+              children: [new TextRun({ text: tableContent.toString() })],
               spacing: {
                 before: 240,
                 after: 0,
@@ -373,7 +373,10 @@ const generateFigures = (figures: Figure[]) => {
             width: figure.dimensions?.width || 400,
             height: figure.dimensions?.height || 300,
           },
-          altText: figure.altText || figure.caption,
+          docProperties: {
+            title: figure.caption || '',
+            description: figure.altText || '',
+          }
         }),
         new TextRun({
           text: `\nFigure ${figure.number}: ${figure.caption}`,
@@ -389,7 +392,7 @@ const generateFigures = (figures: Figure[]) => {
   });
 };
 
-const generateTable = (table: ThesisTable): Table | null => {
+const generateTable = (table: ThesisTable): string | null => {
   try {
     // Parse the HTML content to create docx table
     const parser = new DOMParser();
@@ -401,22 +404,8 @@ const generateTable = (table: ThesisTable): Table | null => {
       return null;
     }
 
-    const rows = Array.from(htmlTable.querySelectorAll('tr')).map((tr) => {
-      const cells = Array.from(tr.querySelectorAll('td, th')).map((cell) => {
-        return new TableCell({
-          children: [new Paragraph({ text: cell.textContent || '' })],
-        });
-      });
-      return new TableRow({ children: cells });
-    });
-
-    return new Table({
-      rows,
-      width: {
-        size: 100,
-        type: WidthType.PERCENTAGE,
-      },
-    });
+    // Convert table to string representation
+    return htmlTable.textContent || null;
   } catch (error) {
     console.error('Error generating table:', error);
     return null;
