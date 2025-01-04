@@ -1,10 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
-import { ThesisEditor } from './pages/ThesisEditor';
-import { ThesisList } from './pages/ThesisList';
-import { AuthPage } from './pages/AuthPage';
-import { NotFoundPage } from './pages/NotFoundPage';
+import ThesisEditor from './pages/ThesisEditor';
+import ThesisList from './pages/ThesisList';
+import AuthPage from './pages/AuthPage';
+import NotFoundPage from './pages/NotFoundPage';
 import { Toaster } from './components/ui/toaster';
 
 function App() {
