@@ -39,10 +39,9 @@ export const ThesisToolbar = ({
   const handleExportDocx = async () => {
     try {
       console.log('Starting DOCX export with thesis data:', thesisData);
-      const doc = generateThesisDocx(thesisData);
+      const doc = await generateThesisDocx(thesisData);
       console.log('Document generated, converting to blob...');
       
-      // Use Blob instead of Buffer
       const blob = await Packer.toBlob(doc);
       console.log('Blob created, creating download link...');
       

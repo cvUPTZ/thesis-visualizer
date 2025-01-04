@@ -29,7 +29,41 @@ const PAGE_MARGINS = {
   left: convertInchesToTwip(1),
 };
 
-export const generateThesisDocx = (thesis: {
+const generateFigures = async (figures: Figure[]) => {
+  return Promise.all(figures.map(async (figure) => {
+    // Convert base64 to Uint8Array
+    const base64Data = figure.imageUrl.split(',')[1];
+    const binaryString = window.atob(base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    return new Paragraph({
+      children: [
+        new ImageRun({
+          data: bytes,
+          transformation: {
+            width: figure.dimensions?.width || 400,
+            height: figure.dimensions?.height || 300,
+          },
+          altText: figure.altText || figure.caption,
+        }),
+        new TextRun({
+          text: `\nFigure ${figure.number}: ${figure.caption}`,
+          break: 1,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: {
+        before: 240,
+        after: 240,
+      },
+    });
+  }));
+};
+
+export const generateThesisDocx = async (thesis: {
   frontMatter: Section[];
   chapters: Chapter[];
   backMatter: Section[];
@@ -71,18 +105,18 @@ export const generateThesisDocx = (thesis: {
         hyperlink: true,
         headingStyleRange: "1-5",
         stylesWithLevels: [
-          { level: 1, style: "Heading1" },
-          { level: 2, style: "Heading2" },
+          { level: 1, heading: "Heading1" },
+          { level: 2, heading: "Heading2" },
         ],
       }),
-      ...generateSectionContent(thesis.frontMatter),
+      ...await generateSectionContent(thesis.frontMatter),
     ],
   });
 
   // Main Content
   const mainContent = [
-    ...generateChapterContent(thesis.chapters),
-    ...generateSectionContent(thesis.backMatter),
+    ...await generateChapterContent(thesis.chapters),
+    ...await generateSectionContent(thesis.backMatter),
   ];
 
   sections.push({
@@ -157,6 +191,133 @@ export const generateThesisDocx = (thesis: {
   });
 
   return doc;
+};
+
+const generateSectionContent = async (sections: Section[]) => {
+  const content: Paragraph[] = [];
+  
+  for (const section of sections) {
+    content.push(
+      new Paragraph({
+        text: section.title,
+        heading: HeadingLevel.HEADING_1,
+        pageBreakBefore: true,
+      }),
+      new Paragraph({
+        children: [new TextRun(section.content)],
+      })
+    );
+
+    // Add figures
+    if (section.figures?.length) {
+      const figureContent = await generateFigures(section.figures);
+      content.push(...figureContent);
+    }
+
+    // Add tables
+    if (section.tables?.length) {
+      section.tables.forEach(table => {
+        const tableContent = generateTable(table);
+        if (tableContent) {
+          content.push(
+            new Paragraph({
+              text: tableContent,
+              spacing: {
+                before: 240,
+                after: 0,
+              },
+            })
+          );
+          if (table.caption) {
+            content.push(
+              new Paragraph({
+                text: `Table ${table.id}: ${table.caption}`,
+                alignment: AlignmentType.CENTER,
+                spacing: {
+                  before: 240,
+                  after: 240,
+                },
+              })
+            );
+          }
+        }
+      });
+    }
+
+    // Add citations
+    if (section.citations?.length) {
+      content.push(...generateCitations(section.citations));
+    }
+  }
+
+  return content;
+};
+
+const generateChapterContent = async (chapters: Chapter[]) => {
+  const content: Paragraph[] = [];
+
+  for (const chapter of chapters) {
+    content.push(
+      new Paragraph({
+        text: chapter.title,
+        heading: HeadingLevel.HEADING_1,
+        pageBreakBefore: true,
+      })
+    );
+
+    for (const section of chapter.sections) {
+      content.push(
+        new Paragraph({
+          text: section.title,
+          heading: HeadingLevel.HEADING_2,
+        }),
+        new Paragraph({
+          children: [new TextRun(section.content)],
+        })
+      );
+
+      // Add figures
+      if (section.figures?.length) {
+        const figureContent = await generateFigures(section.figures);
+        content.push(...figureContent);
+      }
+
+      // Add tables
+      if (section.tables?.length) {
+        section.tables.forEach(table => {
+          const tableContent = generateTable(table);
+          content.push(
+            new Paragraph({
+              text: tableContent || '',
+              spacing: {
+                before: 240,
+                after: 0,
+              },
+            })
+          );
+          if (table.caption) {
+            content.push(
+              new Paragraph({
+                text: `Table ${table.id}: ${table.caption}`,
+                alignment: AlignmentType.CENTER,
+                spacing: {
+                  before: 240,
+                  after: 240,
+                },
+              })
+            );
+          }
+        });
+      }
+
+      // Add citations
+      if (section.citations?.length) {
+        content.push(...generateCitations(section.citations));
+      }
+    }
+  }
+
+  return content;
 };
 
 const generateTitlePage = (metadata?: {
@@ -244,152 +405,6 @@ const generateTitlePage = (metadata?: {
   }
 
   return children;
-};
-
-const generateSectionContent = (sections: Section[]) => {
-  const content: Paragraph[] = [];
-  
-  sections.forEach((section) => {
-    content.push(
-      new Paragraph({
-        text: section.title,
-        heading: HeadingLevel.HEADING_1,
-        pageBreakBefore: true,
-      }),
-      new Paragraph({
-        children: [new TextRun(section.content)],
-      })
-    );
-
-    // Add figures
-    if (section.figures?.length) {
-      content.push(...generateFigures(section.figures));
-    }
-
-    // Add tables
-    if (section.tables?.length) {
-      section.tables.forEach(table => {
-        const tableContent = generateTable(table);
-        if (tableContent) {
-          content.push(
-            new Paragraph({
-              children: [new TextRun({ text: tableContent.toString() })],
-              spacing: {
-                before: 240,
-                after: 0,
-              },
-            })
-          );
-          if (table.caption) {
-            content.push(
-              new Paragraph({
-                text: `Table ${table.id}: ${table.caption}`,
-                alignment: AlignmentType.CENTER,
-                spacing: {
-                  before: 240,
-                  after: 240,
-                },
-              })
-            );
-          }
-        }
-      });
-    }
-
-    // Add citations
-    if (section.citations?.length) {
-      content.push(...generateCitations(section.citations));
-    }
-  });
-
-  return content;
-};
-
-const generateChapterContent = (chapters: Chapter[]) => {
-  const content: Paragraph[] = [];
-
-  chapters.forEach((chapter) => {
-    content.push(
-      new Paragraph({
-        text: chapter.title,
-        heading: HeadingLevel.HEADING_1,
-        pageBreakBefore: true,
-      })
-    );
-
-    chapter.sections.forEach((section) => {
-      content.push(
-        new Paragraph({
-          text: section.title,
-          heading: HeadingLevel.HEADING_2,
-        }),
-        new Paragraph({
-          children: [new TextRun(section.content)],
-        })
-      );
-
-      // Add figures
-      if (section.figures?.length) {
-        content.push(...generateFigures(section.figures));
-      }
-
-      // Add tables
-      if (section.tables?.length) {
-        section.tables.forEach(table => {
-          const tableContent = generateTable(table);
-          content.push(
-            ...tableContent,
-            new Paragraph({
-              text: `Table ${table.id}: ${table.caption || ''}`,
-              alignment: AlignmentType.CENTER,
-              spacing: {
-                before: 240,
-                after: 240,
-              },
-            })
-          );
-        });
-      }
-
-      // Add citations
-      if (section.citations?.length) {
-        content.push(...generateCitations(section.citations));
-      }
-    });
-  });
-
-  return content;
-};
-
-const generateFigures = (figures: Figure[]) => {
-  return figures.map((figure) => {
-    const imageBuffer = Buffer.from(figure.imageUrl.split(',')[1], 'base64');
-    
-    return new Paragraph({
-      children: [
-        new ImageRun({
-          data: imageBuffer,
-          transformation: {
-            width: figure.dimensions?.width || 400,
-            height: figure.dimensions?.height || 300,
-          },
-          docProperties: {
-            title: figure.caption || '',
-            description: figure.altText || '',
-          }
-        }),
-        new TextRun({
-          text: `\nFigure ${figure.number}: ${figure.caption}`,
-          break: 1,
-        }),
-      ],
-      alignment: AlignmentType.CENTER,
-      spacing: {
-        before: 240,
-        after: 240,
-      },
-    });
-  });
 };
 
 const generateTable = (table: ThesisTable): string | null => {
