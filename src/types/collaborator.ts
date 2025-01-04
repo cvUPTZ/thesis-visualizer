@@ -1,9 +1,10 @@
-export type CollaboratorRole = 'owner' | 'admin' | 'editor' | 'viewer';
+import { Profile } from './profile';
 
-export interface CollaboratorWithProfile {
+export type CollaboratorRole = 'owner' | 'editor' | 'viewer' | 'admin';
+
+export interface Collaborator {
   user_id: string;
   role: CollaboratorRole;
-  created_at: string;
   profiles: {
     email: string;
     role_id: string;
@@ -13,11 +14,10 @@ export interface CollaboratorWithProfile {
   };
 }
 
-export interface Collaborator {
-  user_id: string;
-  role: CollaboratorRole;
-  profiles: {
-    email: string;
-    role: string;
+export interface CollaboratorWithProfile extends Omit<Collaborator, 'profiles'> {
+  profiles: Profile & {
+    roles?: {
+      name: string;
+    };
   };
 }

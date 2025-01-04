@@ -9,13 +9,25 @@ interface TableManagerProps {
   tables: Table[];
   onUpdateTable: (table: Table) => void;
   onRemoveTable: (id: string) => void;
+  onAddTable: (table: Table) => void;
 }
 
 export const TableManager: React.FC<TableManagerProps> = ({
   tables,
   onUpdateTable,
   onRemoveTable,
+  onAddTable,
 }) => {
+  const handleAddTable = () => {
+    const newTable: Table = {
+      id: Date.now().toString(),
+      caption: '',
+      content: '',
+      title: ''
+    };
+    onAddTable(newTable);
+  };
+
   const handleCaptionChange = (tableId: string, newCaption: string) => {
     const table = tables.find(t => t.id === tableId);
     if (table) {
@@ -38,6 +50,16 @@ export const TableManager: React.FC<TableManagerProps> = ({
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-medium">Tables</h3>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleAddTable}
+        >
+          Add Table
+        </Button>
+      </div>
       {tables.map((table) => (
         <Card key={table.id}>
           <CardContent className="p-4">
