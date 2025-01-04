@@ -7,25 +7,20 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageSquare, Send } from 'lucide-react';
-
-interface ThesisReview {
-  id: string;
-  content: {
-    text: string;
-    type: 'comment' | 'suggestion' | 'correction';
-  };
-  reviewer_id: string;
-  created_at: string;
-  status: string;
-  profiles?: {
-    email: string;
-  };
-}
+import { CommentThread } from './CommentThread';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const ReviewerInterface = () => {
-  const { thesisId } = useParams<{ thesisId: string }>();
-  const [reviews, setReviews] = useState<ThesisReview[]>([]);
+  const { thesisId } = useParams();
+  const [reviews, setReviews] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [commentType, setCommentType] = useState<'comment' | 'suggestion' | 'correction'>('comment');
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -34,16 +29,13 @@ export const ReviewerInterface = () => {
       const { data, error } = await supabase
         .from('thesis_reviews')
         .select(`
-          id,
-          content,
-          reviewer_id,
-          created_at,
-          status,
+          *,
           profiles (
             email
           )
         `)
-        .eq('thesis_id', thesisId);
+        .eq('thesis_id', thesisId)
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching reviews:', error);
@@ -55,13 +47,7 @@ export const ReviewerInterface = () => {
         return;
       }
 
-      console.log('Fetched reviews:', data);
-      setReviews(data?.map(review => ({
-        ...review,
-        content: typeof review.content === 'string' 
-          ? JSON.parse(review.content) 
-          : review.content
-      })) || []);
+      setReviews(data);
     };
 
     fetchReviews();
@@ -105,12 +91,12 @@ export const ReviewerInterface = () => {
     const { error } = await supabase.from('thesis_reviews').insert([
       {
         thesis_id: thesisId,
-        content: {
-          text: newComment,
-          type: 'comment'
-        },
         reviewer_id: user.id,
         section_id: activeSection,
+        content: {
+          text: newComment,
+          type: commentType
+        },
         status: 'pending'
       }
     ]);
@@ -144,29 +130,24 @@ export const ReviewerInterface = () => {
         <ScrollArea className="h-[400px] pr-4">
           <div className="space-y-4">
             {reviews.map((review) => (
-              <Card key={review.id} className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-sm font-medium">
-                    {review.profiles?.email}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(review.created_at).toLocaleString()}
-                  </span>
-                </div>
-                <p className="text-sm">{review.content.text}</p>
-                <div className="mt-2 flex justify-between items-center">
-                  <span className="text-xs px-2 py-1 rounded-full bg-muted">
-                    {review.content.type}
-                  </span>
-                  <span className="text-xs px-2 py-1 rounded-full bg-primary/10">
-                    {review.status}
-                  </span>
-                </div>
-              </Card>
+              <CommentThread key={review.id} comment={review} />
             ))}
           </div>
         </ScrollArea>
-        <div className="mt-4">
+        <div className="mt-4 space-y-4">
+          <Select
+            value={commentType}
+            onValueChange={(value: 'comment' | 'suggestion' | 'correction') => setCommentType(value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Comment type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="comment">Comment</SelectItem>
+              <SelectItem value="suggestion">Suggestion</SelectItem>
+              <SelectItem value="correction">Correction</SelectItem>
+            </SelectContent>
+          </Select>
           <Textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
@@ -175,7 +156,7 @@ export const ReviewerInterface = () => {
           />
           <Button
             onClick={addReview}
-            className="mt-2 w-full"
+            className="w-full"
             disabled={!newComment.trim()}
           >
             <Send className="w-4 h-4 mr-2" />

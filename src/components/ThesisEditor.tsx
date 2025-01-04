@@ -1,20 +1,21 @@
-    // src/components/ThesisEditor.tsx
-    import React, { useState, useRef, useCallback } from 'react';
-    import { ThesisSidebar } from './ThesisSidebar';
-    import { ThesisPreview } from './ThesisPreview';
-    import { ThesisContent } from './thesis/ThesisContent';
-    import { ThesisToolbar } from './thesis/ThesisToolbar';
-    import { Chapter, Thesis } from '@/types/thesis';
-    import { useThesisAutosave } from '@/hooks/useThesisAutosave';
-    import { useThesisInitialization } from '@/hooks/useThesisInitialization';
-    import { useParams } from 'react-router-dom';
-    import { ThesisCreationModal } from './thesis/ThesisCreationModal';
-    import { ThesisList } from './thesis/ThesisList';
-    import { useThesisData } from '@/hooks/useThesisData';
-    import { Skeleton } from './ui/skeleton';
-    import { EditorLayout } from './editor/layout/EditorLayout';
+// src/components/ThesisEditor.tsx
+import React, { useState, useRef, useCallback } from 'react';
+import { ThesisSidebar } from './ThesisSidebar';
+import { ThesisPreview } from './ThesisPreview';
+import { ThesisContent } from './thesis/ThesisContent';
+import { ThesisToolbar } from './thesis/ThesisToolbar';
+import { Chapter, Thesis } from '@/types/thesis';
+import { useThesisAutosave } from '@/hooks/useThesisAutosave';
+import { useThesisInitialization } from '@/hooks/useThesisInitialization';
+import { useParams } from 'react-router-dom';
+import { ThesisCreationModal } from './thesis/ThesisCreationModal';
+import { ThesisList } from './thesis/ThesisList';
+import { useThesisData } from '@/hooks/useThesisData';
+import { Skeleton } from './ui/skeleton';
+import { EditorLayout } from './editor/layout/EditorLayout';
+import { ReviewerInterface } from './review/ReviewerInterface';
 
-    export const ThesisEditor = () => {
+export const ThesisEditor = () => {
     const { thesisId } = useParams();
     const { thesis, setThesis, isLoading, error } = useThesisData(thesisId);
     const [activeSection, setActiveSection] = useState<string>('');
@@ -134,7 +135,7 @@
         </div>
         );
     }
-     // If thesis is null it means it's a new thesis creation or there is no thesis with this ID.
+
     if (!thesis && !thesisId) {
         return (
         <div className="flex flex-col h-screen animate-fade-in">
@@ -161,35 +162,36 @@
         <EditorLayout
             sidebar={
                 <ThesisSidebar
-                sections={getAllThesisSections()}
-                activeSection={activeSection}
-                onSectionSelect={setActiveSection}
+                    sections={getAllThesisSections()}
+                    activeSection={activeSection}
+                    onSectionSelect={setActiveSection}
                 />
             }
             content={
                 <>
-                <ThesisToolbar
-                    thesisId={thesis.id}
-                    thesisData={thesis}
-                    showPreview={showPreview}
-                    onTogglePreview={() => setShowPreview(!showPreview)}
-                />
-                <div className="mt-6">
-                    <ThesisContent
-                    frontMatter={thesis.frontMatter}
-                    chapters={thesis.chapters}
-                    backMatter={thesis.backMatter}
-                    activeSection={activeSection}
-                    onContentChange={handleContentChange}
-                    onTitleChange={handleTitleChange}
-                    onUpdateChapter={handleUpdateChapter}
-                    onAddChapter={handleAddChapter}
+                    <ThesisToolbar
+                        thesisId={thesis.id}
+                        thesisData={thesis}
+                        showPreview={showPreview}
+                        onTogglePreview={() => setShowPreview(!showPreview)}
                     />
-                </div>
+                    <div className="mt-6">
+                        <ThesisContent
+                            frontMatter={thesis.frontMatter}
+                            chapters={thesis.chapters}
+                            backMatter={thesis.backMatter}
+                            activeSection={activeSection}
+                            onContentChange={handleContentChange}
+                            onTitleChange={handleTitleChange}
+                            onUpdateChapter={handleUpdateChapter}
+                            onAddChapter={handleAddChapter}
+                        />
+                    </div>
                 </>
             }
             preview={showPreview ? <ThesisPreview thesis={thesis} /> : undefined}
+            reviewPanel={<ReviewerInterface />}
             showPreview={showPreview}
         />
     );
-    };
+};

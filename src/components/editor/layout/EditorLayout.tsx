@@ -7,10 +7,17 @@ interface EditorLayoutProps {
   sidebar?: React.ReactNode;
   content?: React.ReactNode;
   preview?: React.ReactNode;
+  reviewPanel?: React.ReactNode;
   showPreview?: boolean;
 }
 
-export const EditorLayout = ({ sidebar, content, preview, showPreview = false }: EditorLayoutProps) => {
+export const EditorLayout = ({ 
+  sidebar, 
+  content, 
+  preview, 
+  reviewPanel,
+  showPreview = false 
+}: EditorLayoutProps) => {
   console.log('EditorLayout render:', { showPreview, hasPreview: !!preview });
   
   return (
@@ -26,7 +33,7 @@ export const EditorLayout = ({ sidebar, content, preview, showPreview = false }:
         )}
         
         <ResizablePanel 
-          defaultSize={showPreview ? 50 : 80} 
+          defaultSize={showPreview ? 40 : 60} 
           minSize={30}
         >
           <ScrollArea className="h-screen">
@@ -39,10 +46,23 @@ export const EditorLayout = ({ sidebar, content, preview, showPreview = false }:
         {showPreview && preview && (
           <>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={30} minSize={20}>
+            <ResizablePanel defaultSize={20} minSize={20}>
               <ScrollArea className="h-screen">
                 <div className="p-6">
                   {preview}
+                </div>
+              </ScrollArea>
+            </ResizablePanel>
+          </>
+        )}
+
+        {reviewPanel && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+              <ScrollArea className="h-screen">
+                <div className="p-6">
+                  {reviewPanel}
                 </div>
               </ScrollArea>
             </ResizablePanel>
