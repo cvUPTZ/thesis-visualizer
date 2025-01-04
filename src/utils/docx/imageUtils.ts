@@ -1,31 +1,18 @@
-import { ImageRun, IImageOptions } from 'docx';
+import { ImageOptions, DocPropertiesOptions } from './types';
 
-export const createImageRun = async (imageUrl: string, caption?: string): Promise<ImageRun> => {
-  try {
-    const response = await fetch(imageUrl);
-    const blob = await response.blob();
-    const arrayBuffer = await blob.arrayBuffer();
-
-    const options: IImageOptions = {
-      data: arrayBuffer,
-      transformation: {
-        width: 400,
-        height: 300,
-      },
-      altText: {
-        name: caption || 'Thesis figure',
-        description: caption || 'Thesis figure',
-      },
-      type: 'png',
-      fallback: {
-        data: arrayBuffer,
-        type: 'png',
-      }
-    };
-
-    return new ImageRun(options);
-  } catch (error) {
-    console.error('Error creating image run:', error);
-    throw error;
-  }
+export const convertImageToBase64 = async (imageUrl: string): Promise<string> => {
+  const response = await fetch(imageUrl);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 };
+
+export const getImageOptions = (altText: string): DocPropertiesOptions => ({
+  name: altText,
+  description: altText,
+  title: altText // Add the required title property
+});
