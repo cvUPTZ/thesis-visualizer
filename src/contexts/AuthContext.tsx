@@ -46,8 +46,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return null;
       }
 
-      console.log('✅ User role fetched:', profile?.roles?.name);
-      return profile?.roles?.name || null;
+      const roleName = profile?.roles?.name || null;
+      console.log('✅ User role fetched:', roleName);
+      return roleName;
     } catch (error) {
       console.error('❌ Error in fetchUserRole:', error);
       return null;
@@ -56,6 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const handleSessionChange = async (session: any) => {
     console.log('🔄 Handling session change:', session?.user?.email);
+    setLoading(true);
     try {
       if (session?.user) {
         setUserId(session.user.id);
@@ -109,10 +111,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // Initial session check
     checkSession();
 
-    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 Auth state changed:', event, session?.user?.email);
       
@@ -148,9 +148,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(true);
       console.log('🔄 Starting logout process...');
       
-      const { error } = await supabase.auth.signOut({
-        scope: 'local'
-      });
+      const { error } = await supabase.auth.signOut();
       
       if (error) throw error;
 

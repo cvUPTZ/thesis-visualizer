@@ -1,4 +1,4 @@
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,58 +7,53 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuthFlow } from "@/hooks/useAuthFlow";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const inviteThesisId = searchParams.get('thesisId');
   const inviteRole = searchParams.get('role');
   const { error } = useAuthFlow({ inviteThesisId, inviteRole });
   const { toast } = useToast();
 
   useEffect(() => {
-    const cleanupSession = async () => {
+    const checkSession = async () => {
       try {
-        console.log('🧹 Auth Page - Starting session cleanup...');
+        console.log('🔍 Auth Page - Checking current session...');
+        const { data: { session } } = await supabase.auth.getSession();
         
-        // Clear any existing auth data from localStorage
-        localStorage.removeItem('supabase.auth.token');
-        console.log('🗑️ Auth Page - Cleared local storage auth token');
-        
-        // Sign out to ensure clean state
-        const { error: signOutError } = await supabase.auth.signOut();
-        if (signOutError) {
-          console.error('❌ Auth Page - Error during sign out:', signOutError);
-          toast({
-            title: "Error",
-            description: "Failed to clean up session. Please try again.",
-            variant: "destructive",
-          });
+        if (session?.user) {
+          console.log('✅ Auth Page - User already authenticated:', session.user.email);
+          navigate('/');
           return;
         }
-        console.log('✅ Auth Page - Successfully signed out');
-
-        // Get current session to verify cleanup
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          console.log('✅ Auth Page - Session successfully cleaned up');
-        } else {
-          console.warn('⚠️ Auth Page - Session still exists after cleanup');
-        }
+        
+        console.log('ℹ️ Auth Page - No active session found');
       } catch (err) {
-        console.error('❌ Auth Page - Error cleaning up session:', err);
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred. Please try again.",
-          variant: "destructive",
-        });
+        console.error('❌ Auth Page - Error checking session:', err);
       }
     };
-    
-    console.log('🔄 Auth Page - Initial render with params:', { inviteThesisId, inviteRole });
-    cleanupSession();
-  }, [toast]);
 
-  console.log('📝 Auth Page - Rendering auth component with error:', error);
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔄 Auth state changed:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_IN' && session) {
+        console.log('✅ User signed in:', session.user.email);
+        toast({
+          title: "Welcome!",
+          description: "You have successfully signed in.",
+        });
+        navigate('/');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, toast]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
