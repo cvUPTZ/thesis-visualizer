@@ -3,42 +3,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export const useAuthStatus = () => {
-  const [isChecking, setIsChecking] = useState(true);
+  const [isChecking, setIsChecking] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        console.log('🔍 Checking authentication status from database...');
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        console.log('🔍 Quick auth check...');
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (sessionError) {
-          console.error('❌ Session error:', sessionError);
-          throw sessionError;
-        }
-
-        if (session?.user) {
-          console.log('✅ User authenticated:', session.user.email);
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle();
-
-          if (profileError) {
-            console.error('❌ Profile error:', profileError);
-            throw profileError;
-          }
-
-          if (!profile) {
-            console.log('⚠️ No profile found for user');
-            throw new Error('No profile found');
-          }
-
-          console.log('✅ Profile loaded:', profile);
-        } else {
+        if (!session?.user) {
           console.log('ℹ️ No active session');
+          return;
         }
+
+        console.log('✅ Session found:', session.user.email);
       } catch (error) {
         console.error('❌ Auth check error:', error);
         toast({
