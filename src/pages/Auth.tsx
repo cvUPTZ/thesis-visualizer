@@ -18,6 +18,7 @@ const Auth = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [sessionChecked, setSessionChecked] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -42,11 +43,12 @@ const Auth = () => {
             setSessionChecked(true);
           }
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('❌ Error checking session:', err);
         if (mounted) {
           setIsLoading(false);
           setSessionChecked(true);
+          setAuthError(err.message);
           toast({
             title: "Error",
             description: "Failed to check authentication status",
@@ -65,6 +67,10 @@ const Auth = () => {
       if (event === 'SIGNED_IN' && session) {
         console.log('✅ User signed in:', session.user.email);
         navigate('/');
+      } else if (event === 'SIGNED_OUT') {
+        console.log('👋 User signed out');
+        setIsLoading(false);
+        setSessionChecked(true);
       }
     });
 
@@ -97,9 +103,9 @@ const Auth = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {error && (
+          {(error || authError) && (
             <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{error || authError}</AlertDescription>
             </Alert>
           )}
           <SupabaseAuth
