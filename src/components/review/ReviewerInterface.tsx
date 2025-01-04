@@ -118,6 +118,34 @@ export const ReviewerInterface = () => {
     });
   };
 
+  const handleReplyAdded = async (commentId: string, replyContent: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase.from('thesis_reviews').insert([
+      {
+        thesis_id: thesisId,
+        reviewer_id: user.id,
+        section_id: activeSection!,
+        parent_id: commentId,
+        content: {
+          text: replyContent,
+          type: 'reply'
+        },
+        status: 'pending'
+      }
+    ]);
+
+    if (error) {
+      console.error('Error adding reply:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add reply',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
@@ -130,7 +158,14 @@ export const ReviewerInterface = () => {
         <ScrollArea className="h-[400px] pr-4">
           <div className="space-y-4">
             {reviews.map((review) => (
-              <CommentThread key={review.id} comment={review} />
+              <CommentThread
+                key={review.id}
+                thesisId={thesisId!}
+                sectionId={review.section_id}
+                comment={review}
+                replies={reviews.filter(r => r.parent_id === review.id)}
+                onReplyAdded={handleReplyAdded}
+              />
             ))}
           </div>
         </ScrollArea>

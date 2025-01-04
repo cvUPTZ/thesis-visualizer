@@ -81,7 +81,7 @@ export interface Citation {
   source: string;
   authors: string[];
   year: string;
-  type: 'book' | 'article' | 'conference' | 'website' | 'other';
+  type: ReferenceType;
   doi?: string;
   url?: string;
   journal?: string;
@@ -92,7 +92,10 @@ export interface Citation {
   thesis_id: string;
 }
 
+export type ReferenceType = 'book' | 'article' | 'conference' | 'website' | 'other';
+
 export interface Reference extends Omit<Citation, 'thesis_id'> {
+  title: string;
   thesis_id?: string;
 }
 
