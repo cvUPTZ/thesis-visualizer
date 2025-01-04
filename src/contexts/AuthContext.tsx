@@ -29,6 +29,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading
   } = useSession();
 
+  // Load initial state from localStorage
+  useEffect(() => {
+    const savedState = localStorage.getItem('authState');
+    if (savedState) {
+      console.log('📦 Loading auth state from localStorage:', savedState);
+      const { userId: savedUserId, userRole: savedUserRole } = JSON.parse(savedState);
+      if (savedUserId && savedUserRole) {
+        console.log('✅ Restored auth state:', { userId: savedUserId, userRole: savedUserRole });
+        setUserId(savedUserId);
+        setUserRole(savedUserRole);
+      }
+    }
+  }, []);
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    if (userId && userRole) {
+      console.log('💾 Saving auth state to localStorage:', { userId, userRole });
+      localStorage.setItem('authState', JSON.stringify({ userId, userRole }));
+    } else {
+      console.log('🗑️ Clearing auth state from localStorage');
+      localStorage.removeItem('authState');
+    }
+  }, [userId, userRole]);
+
   useEffect(() => {
     console.log('🔄 Setting up auth state listener...');
     let mounted = true;
@@ -94,6 +119,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUserId(null);
           setUserRole(null);
           setLoading(false);
+          localStorage.removeItem('authState');
           navigate('/welcome');
         } else if (event === 'TOKEN_REFRESHED') {
           console.log('🔄 Token refreshed for user:', session?.user?.email);
@@ -118,7 +144,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []); // Empty dependency array since we only want to set up the listener once
+  }, []); 
 
   return (
     <AuthContext.Provider value={{ 
