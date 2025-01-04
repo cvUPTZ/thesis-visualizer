@@ -45,7 +45,7 @@ export const FigureManager = ({
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const img = new Image();
+        const img = document.createElement('img');
         img.onload = () => {
           const figure = figures.find(f => f.id === figureId);
           if (figure) {

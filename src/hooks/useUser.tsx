@@ -25,7 +25,10 @@ export const useUser = () => {
             .eq('id', session.user.id)
             .single();
 
-          if (error) throw error;
+          if (error) {
+            console.error('Error loading profile:', error);
+            throw error;
+          }
 
           if (profile) {
             console.log('Profile loaded:', profile);
@@ -43,9 +46,18 @@ export const useUser = () => {
 
   const handleLogout = async () => {
     try {
+      // First check if we have a session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.log('No active session found, redirecting to auth...');
+        navigate('/auth');
+        return;
+      }
+
       const { error } = await supabase.auth.signOut({ scope: 'local' });
       if (error) throw error;
       
+      console.log('Logout successful, redirecting to auth...');
       navigate('/auth');
     } catch (error: any) {
       console.error('Error during logout:', error);

@@ -1,8 +1,9 @@
-export type CollaboratorRole = 'owner' | 'admin' | 'editor';
+export type CollaboratorRole = 'owner' | 'admin' | 'editor' | 'viewer';
 
 export interface CollaboratorWithProfile {
   user_id: string;
   role: CollaboratorRole;
+  created_at: string;
   profiles: {
     email: string;
     role_id: string;
@@ -12,7 +13,7 @@ export interface CollaboratorWithProfile {
 export interface Collaborator {
   user_id: string;
   role: CollaboratorRole;
-  profiles?: {
+  profiles: {
     email: string;
     role_id: string;
   };
