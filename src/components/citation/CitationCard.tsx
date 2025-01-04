@@ -10,8 +10,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { X, Quote } from 'lucide-react';
+import { X, Quote, Edit2, Eye } from 'lucide-react';
 import { TagInput } from '@/components/ui/tag-input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface CitationCardProps {
   citation: Citation;
@@ -21,6 +28,7 @@ interface CitationCardProps {
 }
 
 export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: CitationCardProps) => {
+  const [isEditing, setIsEditing] = useState(false);
   const [authors, setAuthors] = useState(citation.authors);
 
   const handleAuthorChange = (tags: string[]) => {
@@ -29,13 +37,21 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
   };
 
   return (
-    <Card className="border-2 border-editor-border">
+    <Card className="group relative border-2 border-editor-border transition-all duration-200 hover:shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">
           <Quote className="w-4 h-4 inline mr-2" />
           {citation.type.charAt(0).toUpperCase() + citation.type.slice(1)} Citation
         </CardTitle>
-        <div className="flex gap-2">
+        <div className="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsEditing(!isEditing)}
+            className="h-8 w-8 p-0"
+          >
+            <Edit2 className="h-4 w-4" />
+          </Button>
           {onPreview && (
             <Button
               variant="ghost"
@@ -43,7 +59,7 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
               onClick={onPreview}
               className="h-8 w-8 p-0"
             >
-              <Quote className="w-4 h-4" />
+              <Eye className="h-4 w-4" />
             </Button>
           )}
           <Button
@@ -102,6 +118,60 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
             onUpdate({ ...citation, year: e.target.value })
           }
         />
+        {citation.type === 'article' && (
+          <div className="space-y-2 animate-fade-in">
+            <Input
+              placeholder="Journal"
+              value={citation.journal}
+              onChange={(e) =>
+                onUpdate({ ...citation, journal: e.target.value })
+              }
+            />
+            <div className="grid grid-cols-3 gap-2">
+              <Input
+                placeholder="Volume"
+                value={citation.volume}
+                onChange={(e) =>
+                  onUpdate({ ...citation, volume: e.target.value })
+                }
+              />
+              <Input
+                placeholder="Issue"
+                value={citation.issue}
+                onChange={(e) =>
+                  onUpdate({ ...citation, issue: e.target.value })
+                }
+              />
+              <Input
+                placeholder="Pages"
+                value={citation.pages}
+                onChange={(e) =>
+                  onUpdate({ ...citation, pages: e.target.value })
+                }
+              />
+            </div>
+          </div>
+        )}
+        {citation.type === 'book' && (
+          <Input
+            placeholder="Publisher"
+            value={citation.publisher}
+            onChange={(e) =>
+              onUpdate({ ...citation, publisher: e.target.value })
+            }
+            className="animate-fade-in"
+          />
+        )}
+        {(citation.type === 'website' || citation.type === 'other') && (
+          <Input
+            placeholder="URL"
+            value={citation.url}
+            onChange={(e) =>
+              onUpdate({ ...citation, url: e.target.value })
+            }
+            className="animate-fade-in"
+          />
+        )}
       </CardContent>
     </Card>
   );
