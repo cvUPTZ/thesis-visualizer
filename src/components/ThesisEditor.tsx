@@ -11,6 +11,9 @@ import { ThesisCreationModal } from './thesis/ThesisCreationModal';
 import { ThesisList } from './thesis/ThesisList';
 import { useThesisData } from '@/hooks/useThesisData';
 import { Skeleton } from './ui/skeleton';
+import { cn } from '@/lib/utils';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from './ui/resizable';
+import { ScrollArea } from './ui/scroll-area';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -124,11 +127,13 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-8">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-32 w-full" />
+      <div className="min-h-screen bg-background animate-fade-in">
+        <div className="flex h-screen">
+          <Skeleton className="w-64 h-full" />
+          <div className="flex-1 p-8">
+            <Skeleton className="h-12 w-full mb-6" />
+            <Skeleton className="h-[600px] w-full" />
+          </div>
         </div>
       </div>
     );
@@ -136,7 +141,7 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
 
   if (error || (!thesis && currentThesisId)) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center animate-fade-in">
         <div className="text-center space-y-4">
           <h2 className="text-2xl font-semibold text-destructive">Error Loading Thesis</h2>
           <p className="text-muted-foreground">{error || "Thesis not found"}</p>
@@ -147,12 +152,12 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
 
   if (!thesis && !currentThesisId) {
     return (
-      <div className="flex flex-col h-full">
-        <div className="flex justify-between p-4 items-center">
+      <div className="flex flex-col h-screen animate-fade-in">
+        <div className="flex justify-between p-4 items-center border-b">
           <ThesisCreationModal onThesisCreated={handleThesisCreated} />
           <ThesisList />
         </div>
-        <div className="flex flex-1 items-center justify-center">
+        <div className="flex-1 flex items-center justify-center">
           <p className="text-muted-foreground text-lg">No thesis loaded</p>
         </div>
       </div>
@@ -160,41 +165,58 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <ThesisSidebar
-        sections={getAllThesisSections()}
-        activeSection={activeSection}
-        onSectionSelect={setActiveSection}
-      />
-      <main className="flex-1 p-8 flex">
-        <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
-          <div className="max-w-4xl mx-auto space-y-6">
-            <ThesisToolbar
-              thesisId={thesis!.id}
-              thesisData={thesis!}
-              showPreview={showPreview}
-              onTogglePreview={() => setShowPreview(!showPreview)}
-            />
-            <ThesisContent
-              frontMatter={thesis!.frontMatter}
-              chapters={thesis!.chapters}
-              backMatter={thesis!.backMatter}
+    <div className="h-screen bg-background flex flex-col overflow-hidden animate-fade-in">
+      <ResizablePanelGroup direction="horizontal">
+        <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+          <ScrollArea className="h-screen">
+            <ThesisSidebar
+              sections={getAllThesisSections()}
               activeSection={activeSection}
-              onContentChange={handleContentChange}
-              onTitleChange={handleTitleChange}
-              onUpdateChapter={handleUpdateChapter}
-              onAddChapter={handleAddChapter}
+              onSectionSelect={setActiveSection}
             />
-          </div>
-        </div>
-        {showPreview && (
-          <div className="w-1/2 pl-8 border-l">
-            <div ref={previewRef}>
-              {thesis && <ThesisPreview thesis={thesis} />}
+          </ScrollArea>
+        </ResizablePanel>
+        
+        <ResizableHandle withHandle />
+        
+        <ResizablePanel defaultSize={showPreview ? 50 : 80}>
+          <ScrollArea className="h-screen">
+            <div className="p-6">
+              <ThesisToolbar
+                thesisId={thesis.id}
+                thesisData={thesis}
+                showPreview={showPreview}
+                onTogglePreview={() => setShowPreview(!showPreview)}
+              />
+              <div className="mt-6">
+                <ThesisContent
+                  frontMatter={thesis.frontMatter}
+                  chapters={thesis.chapters}
+                  backMatter={thesis.backMatter}
+                  activeSection={activeSection}
+                  onContentChange={handleContentChange}
+                  onTitleChange={handleTitleChange}
+                  onUpdateChapter={handleUpdateChapter}
+                  onAddChapter={handleAddChapter}
+                />
+              </div>
             </div>
-          </div>
+          </ScrollArea>
+        </ResizablePanel>
+
+        {showPreview && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={30}>
+              <ScrollArea className="h-screen">
+                <div ref={previewRef} className="p-6">
+                  <ThesisPreview thesis={thesis} />
+                </div>
+              </ScrollArea>
+            </ResizablePanel>
+          </>
         )}
-      </main>
+      </ResizablePanelGroup>
     </div>
   );
 };
