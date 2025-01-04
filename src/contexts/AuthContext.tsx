@@ -23,7 +23,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          roles (
+            name
+          )
+        `)
+        .eq('id', userId)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        return null;
+      }
+
+      return profileData;
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
+    let mounted = true;
+
     const checkAuth = async () => {
       try {
         console.log('Checking authentication status...');
@@ -31,82 +58,69 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (error) {
           console.error('Error checking session:', error);
-          toast({
-            title: 'Authentication Error',
-            description: 'There was an error checking your authentication status.',
-            variant: 'destructive',
-          });
+          if (mounted) {
+            setLoading(false);
+            setIsAuthenticated(false);
+          }
           return;
         }
 
-        if (session) {
-          console.log('Session verified successfully');
+        if (!session) {
+          console.log('No active session');
+          if (mounted) {
+            setLoading(false);
+            setIsAuthenticated(false);
+          }
+          return;
+        }
+
+        console.log('Session found:', session.user.email);
+        if (mounted) {
           setIsAuthenticated(true);
           setUserId(session.user.id);
-
-          // Fetch user role
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select(`
-              *,
-              roles (
-                name
-              )
-            `)
-            .eq('id', session.user.id)
-            .single();
-
-          if (profileError) {
-            console.error('Error fetching profile:', profileError);
-          } else if (profileData) {
+          
+          const profileData = await fetchUserProfile(session.user.id);
+          if (profileData) {
             setUserRole(profileData.roles?.name || null);
           }
-        } else {
-          setIsAuthenticated(false);
-          setUserId(null);
-          setUserRole(null);
         }
       } catch (error) {
         console.error('Error in checkAuth:', error);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        if (event === 'SIGNED_IN' && session) {
+          if (mounted) {
+            setIsAuthenticated(true);
+            setUserId(session.user.id);
+            
+            const profileData = await fetchUserProfile(session.user.id);
+            if (profileData) {
+              setUserRole(profileData.roles?.name || null);
+            }
+          }
+        } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+          if (mounted) {
+            setIsAuthenticated(false);
+            setUserId(null);
+            setUserRole(null);
+          }
+        }
+      }
+    );
+
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-      
-      if (event === 'SIGNED_IN' && session) {
-        setIsAuthenticated(true);
-        setUserId(session.user.id);
-        
-        // Fetch user role on sign in
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select(`
-            *,
-            roles (
-              name
-            )
-          `)
-          .eq('id', session.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-        } else if (profileData) {
-          setUserRole(profileData.roles?.name || null);
-        }
-      } else if (event === 'SIGNED_OUT') {
-        setIsAuthenticated(false);
-        setUserId(null);
-        setUserRole(null);
-      }
-    });
-
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [toast]);

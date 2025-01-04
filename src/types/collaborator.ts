@@ -6,16 +6,10 @@ export interface Collaborator {
   user_id: string;
   role: CollaboratorRole;
   created_at?: string;
-  profiles?: {
-    email: string;
-    role_id: string;
-    roles?: {
-      name: string;
-    };
-  };
+  profiles?: Profile;
 }
 
-export interface CollaboratorWithProfile extends Omit<Collaborator, 'profiles'> {
+export interface CollaboratorWithProfile extends Collaborator {
   profiles: Profile & {
     roles?: {
       name: string;
