@@ -7,48 +7,43 @@ import { FigureManager } from './FigureManager';
 import { TableManager } from './TableManager';
 import { CitationManager } from './CitationManager';
 import { PlusCircle } from 'lucide-react';
-import { useId } from 'react'; // Use react hook to generate IDs
 
 interface ChapterManagerProps {
-    chapters: Chapter[];
-    onUpdateChapter: (chapter: Chapter) => void;
-    onAddChapter: () => void;
+  chapters: Chapter[];
+  onUpdateChapter: (chapter: Chapter) => void;
+  onAddChapter: () => void;
 }
 
-
 export const ChapterManager = ({
-    chapters,
-    onUpdateChapter,
-    onAddChapter
+  chapters,
+  onUpdateChapter,
+  onAddChapter
 }: ChapterManagerProps) => {
-  const generateId = useId(); // Generate unique ID prefix
-    
   const handleAddSection = (chapterId: string) => {
     const chapter = chapters.find((c) => c.id === chapterId);
-      if (!chapter) return;
+    if (!chapter) return;
 
     const newSection: Section = {
-        id: `${generateId}-section-${Date.now()}`,
-        title: 'New Section',
-        content: '',
-        type: 'custom',
-        order: chapter.sections.length + 1,
-        figures: [],
-        tables: [],
-        citations: []
-      };
-
-    const introductionSection: Section = {
-      id: `${generateId}-intro-section-${Date.now()}`,
-      title: 'Introduction',
-      content: 'Introduction',
-       type: 'custom',
-       order: 1,
-       figures: [],
-       tables: [],
-       citations: []
+      id: Date.now().toString(),
+      title: 'New Section',
+      content: '',
+      type: 'custom',
+      order: chapter.sections.length + 1,
+      figures: [],
+      tables: [],
+      citations: []
     };
 
+     const introductionSection: Section = {
+        id: Date.now().toString() + "-intro",
+        title: 'Introduction', // This is the section title
+        content: 'Introduction', // this is the section content
+         type: 'custom',
+         order: 1,
+         figures: [],
+         tables: [],
+         citations: []
+      };
 
     onUpdateChapter({
       ...chapter,
@@ -76,7 +71,7 @@ export const ChapterManager = ({
             placeholder="Chapter Title"
           />
           <div className="space-y-6">
-            {chapter.sections.map((section, index) => {
+             {chapter.sections.map((section, index) => {
                  if(index === 0 && section.title === 'Introduction') {
                     return (
                       <div key={section.id} className="border-t pt-6 space-y-4">
@@ -95,6 +90,7 @@ export const ChapterManager = ({
                       </div>
                     )
                  }
+
                   return (
                   <div key={section.id} className="border-t pt-6 space-y-4">
                     <Input
@@ -124,111 +120,111 @@ export const ChapterManager = ({
                       placeholder="Section Content"
                     />
                     <FigureManager
-                        figures={section.figures}
-                        onAddFigure={(figure) => {
-                          const updatedSections = chapter.sections.map((s) =>
-                            s.id === section.id
-                                ? { ...s, figures: [...s.figures, figure] }
-                                : s
-                          );
-                          onUpdateChapter({ ...chapter, sections: updatedSections });
-                        }}
-                        onRemoveFigure={(figureId) => {
-                          const updatedSections = chapter.sections.map((s) =>
-                            s.id === section.id
-                              ? {
+                      figures={section.figures}
+                      onAddFigure={(figure) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? { ...s, figures: [...s.figures, figure] }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                      onRemoveFigure={(figureId) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? {
                                 ...s,
                                 figures: s.figures.filter((f) => f.id !== figureId)
                               }
-                              : s
-                          );
-                          onUpdateChapter({ ...chapter, sections: updatedSections });
-                        }}
-                         onUpdateFigure={(figure) => {
-                          const updatedSections = chapter.sections.map((s) =>
-                            s.id === section.id
-                              ? {
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                      onUpdateFigure={(figure) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? {
                                 ...s,
                                 figures: s.figures.map((f) =>
                                   f.id === figure.id ? figure : f
                                 )
                               }
-                              : s
-                          );
-                          onUpdateChapter({ ...chapter, sections: updatedSections });
-                        }}
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
                     />
                     <TableManager
                       tables={section.tables}
-                        onAddTable={(table) => {
-                            const updatedSections = chapter.sections.map((s) =>
-                                s.id === section.id
-                                    ? { ...s, tables: [...s.tables, table] }
-                                    : s
-                            );
-                          onUpdateChapter({ ...chapter, sections: updatedSections });
-                        }}
-                        onRemoveTable={(tableId) => {
-                            const updatedSections = chapter.sections.map((s) =>
-                              s.id === section.id
-                                ? {
-                                    ...s,
-                                    tables: s.tables.filter((t) => t.id !== tableId)
-                                  }
-                                : s
-                            );
-                          onUpdateChapter({ ...chapter, sections: updatedSections });
-                        }}
-                        onUpdateTable={(table) => {
-                            const updatedSections = chapter.sections.map((s) =>
-                              s.id === section.id
-                                ? {
-                                    ...s,
-                                    tables: s.tables.map((t) =>
-                                      t.id === table.id ? table : t
-                                    )
-                                  }
-                                : s
-                            );
-                            onUpdateChapter({ ...chapter, sections: updatedSections });
-                        }}
+                      onAddTable={(table) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? { ...s, tables: [...s.tables, table] }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                      onRemoveTable={(tableId) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? {
+                                ...s,
+                                tables: s.tables.filter((t) => t.id !== tableId)
+                              }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                      onUpdateTable={(table) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? {
+                                ...s,
+                                tables: s.tables.map((t) =>
+                                  t.id === table.id ? table : t
+                                )
+                              }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
                     />
                     <CitationManager
-                         citations={section.citations}
-                        onAddCitation={(citation) => {
-                            const updatedSections = chapter.sections.map((s) =>
-                              s.id === section.id
-                                ? { ...s, citations: [...s.citations, citation] }
-                                : s
-                            );
-                            onUpdateChapter({ ...chapter, sections: updatedSections });
-                          }}
-                          onRemoveCitation={(citationId) => {
-                            const updatedSections = chapter.sections.map((s) =>
-                              s.id === section.id
-                                ? {
-                                    ...s,
-                                    citations: s.citations.filter(
-                                      (c) => c.id !== citationId
-                                    )
-                                  }
-                                : s
-                            );
-                            onUpdateChapter({ ...chapter, sections: updatedSections });
-                          }}
-                          onUpdateCitation={(citation) => {
-                            const updatedSections = chapter.sections.map((s) =>
-                              s.id === section.id
-                                ? {
-                                    ...s,
-                                    citations: s.citations.map((c) =>
-                                      c.id === citation.id ? citation : c
-                                    )
-                                  }
-                                : s
-                            );
-                            onUpdateChapter({ ...chapter, sections: updatedSections });
-                          }}
+                      citations={section.citations}
+                      onAddCitation={(citation) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? { ...s, citations: [...s.citations, citation] }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                      onRemoveCitation={(citationId) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? {
+                                ...s,
+                                citations: s.citations.filter(
+                                  (c) => c.id !== citationId
+                                )
+                              }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
+                      onUpdateCitation={(citation) => {
+                        const updatedSections = chapter.sections.map((s) =>
+                          s.id === section.id
+                            ? {
+                                ...s,
+                                citations: s.citations.map((c) =>
+                                  c.id === citation.id ? citation : c
+                                )
+                              }
+                            : s
+                        );
+                        onUpdateChapter({ ...chapter, sections: updatedSections });
+                      }}
                     />
                   </div>
                  )

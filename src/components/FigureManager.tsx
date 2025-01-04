@@ -1,11 +1,9 @@
-// Example for FigureManager, other managers follow the same pattern
 import React from 'react';
 import { Figure } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlusCircle, X, Image } from 'lucide-react';
-import { useId } from 'react';
 
 interface FigureManagerProps {
   figures: Figure[];
@@ -20,11 +18,9 @@ export const FigureManager = ({
   onRemoveFigure,
   onUpdateFigure
 }: FigureManagerProps) => {
-     const generateId = useId();
-    
   const handleAddFigure = () => {
     const newFigure: Figure = {
-      id: `${generateId}-figure-${Date.now()}`,
+      id: Date.now().toString(),
       caption: '',
       imageUrl: '',
       altText: '',

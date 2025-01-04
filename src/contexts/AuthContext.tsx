@@ -1,112 +1,77 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
-import { useNotification } from './NotificationContext';
-import { AuthState, getInitialAuthState, handleAuthError, initializeAuth } from '@/utils/authUtils';
-import { useAuthStateUpdate } from '@/hooks/useAuthStateUpdate';
+import { useToast } from '@/hooks/use-toast';
 
-interface AuthContextType extends AuthState {
-  signOut: () => Promise<void>;
+interface AuthContextType {
+  isAuthenticated: boolean;
+  loading: boolean;
+  userId: string | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
-  ...getInitialAuthState(),
-  signOut: async () => {},
+  isAuthenticated: false,
+  loading: true,
+  userId: null,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [authState, setAuthState] = useState<AuthState>(getInitialAuthState());
-  const navigate = useNavigate();
-  const { toast } = useNotification();
-  const updateAuthState = useAuthStateUpdate(setAuthState);
-
-  const signOut = async () => {
-    try {
-      setAuthState(state => ({ ...state, loading: true }));
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "You have been signed out successfully."
-      });
-      
-      handleAuthError(navigate);
-    } catch (error) {
-      console.error('Error signing out:', error);
-      toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setAuthState(state => ({ ...state, loading: false }));
-    }
-  };
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    let mounted = true;
+    const checkAuth = async () => {
+      try {
+        console.log('Checking authentication status...');
+        const { data: { session }, error } = await supabase.auth.getSession();
 
-    const initialize = async () => {
-      const { session, error } = await initializeAuth();
-      
-      if (!mounted) return;
-      
-      if (error || !session) {
-        handleAuthError(navigate);
-        setAuthState(state => ({ ...state, loading: false }));
-        return;
+        if (error) {
+          console.error('Error checking session:', error);
+          toast({
+            title: 'Authentication Error',
+            description: 'There was an error checking your authentication status.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        if (session) {
+          console.log('Session verified successfully');
+          setIsAuthenticated(true);
+          setUserId(session.user.id);
+        } else {
+          setIsAuthenticated(false);
+          setUserId(null);
+        }
+      } catch (error) {
+        console.error('Error in checkAuth:', error);
+      } finally {
+        setLoading(false);
       }
-
-      await updateAuthState(session);
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        console.log("Auth state changed:", event, currentSession?.user?.email);
-        
-        if (!mounted) return;
+    checkAuth();
 
-        try {
-          switch (event) {
-            case 'SIGNED_IN':
-              await updateAuthState(currentSession, true);
-              navigate('/dashboard', { replace: true });
-              break;
-            case 'SIGNED_OUT':
-              handleAuthError(navigate);
-              break;
-            case 'TOKEN_REFRESHED':
-            case 'USER_UPDATED':
-              if (currentSession) {
-                await updateAuthState(currentSession);
-              } else {
-                handleAuthError(navigate);
-              }
-              break;
-          }
-        } catch (error) {
-          console.error('Error handling auth state change:', error);
-          handleAuthError(navigate);
-        }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_IN' && session) {
+        setIsAuthenticated(true);
+        setUserId(session.user.id);
+      } else if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false);
+        setUserId(null);
       }
-    );
-
-    initialize();
+    });
 
     return () => {
-      mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate, updateAuthState]);
+  }, [toast]);
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        ...authState,
-        signOut 
-      }}
-    >
+    <AuthContext.Provider value={{ isAuthenticated, loading, userId }}>
       {children}
     </AuthContext.Provider>
   );

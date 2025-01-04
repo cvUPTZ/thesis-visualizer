@@ -1,216 +1,221 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { useNotification } from "@/contexts/NotificationContext";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import {  Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+  import { useForm } from '@/hooks/useForm';
+ import { ThesisMetadataFields } from '@/components/thesis/form/ThesisMetadataFields';
+import { useThesisCreation } from '@/components/thesis/form/useThesisCreation';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from "@/components/ui/input";
-import { z } from 'zod';
-import { supabase } from '@/integrations/supabase/client';
-import { thesisService } from '@/services/thesisService';
-const thesisSchema = z.object({
-    title: z.string().min(1, "Title is required"),
-   description: z.string().min(1, "Description is required"),
-    keywords: z.string().min(1, "Keywords are required"),
-    universityName: z.string().optional(),
-    departmentName: z.string().optional(),
-    authorName: z.string().optional(),
-    thesisDate: z.string().optional(),
-   committeeMembers: z.array(z.string()).optional(),
-});
-
-type ThesisSchemaType = z.infer<typeof thesisSchema>;
 
 interface ThesisCreationModalProps {
     onThesisCreated: (thesisId: string, title: string) => void;
 }
 
 export const ThesisCreationModal = ({ onThesisCreated }: ThesisCreationModalProps) => {
-    const { toast } = useNotification();
-    const navigate = useNavigate();
-    const [error, setError] = useState<string | null>(null);
-    const { register, handleSubmit, formState: { errors, isSubmitting }, control, setValue } = useForm<ThesisSchemaType>({
-        resolver: zodResolver(thesisSchema),
-      defaultValues: {
-            title: '',
-            description: '',
-            keywords: '',
-            universityName: '',
-            departmentName: '',
-            authorName: '',
-            thesisDate: '',
-            committeeMembers: ['', '', ''],
-       }
-    });
+ const {
+    values,
+    errors,
+    isSubmitting,
+    handleChange,
+   handleSubmit,
+      handleArrayChange
+  } = useForm({
+    initialValues: {
+     title: '',
+        description: '',
+       keywords: '',
+        universityName: '',
+       departmentName: '',
+        authorName: '',
+        thesisDate: '',
+      committeeMembers: ['', '', ''],
+     },
+     validate: (values) => {
+       const err: any = {};
+        if (!values.title) {
+            err.title = "Title is required";
+         }
 
-    const [open, setOpen] = useState(false);
+         if (!values.description) {
+            err.description = "Description is required";
+          }
 
-    const onSubmit = async (values: ThesisSchemaType) => {
-        const { data: { session } } = await supabase.auth.getSession();
-         if (!session?.user?.id) {
+          if (!values.keywords) {
+           err.keywords = "Keywords are required";
+         }
+
+        return err;
+     },
+    onSubmit: async (values) => {
+      const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user?.id) {
             setError('You must be logged in to create a thesis');
-            return;
-       }
-        try {
-          const metadata = {
-              ...values,
-              keywords: values.keywords,
-            };
+           return;
+         }
 
-           const result = await thesisService.createThesis(metadata, session.user.id);
+           const metadata = {
+              ...values,
+                keywords: values.keywords
+           };
+         const result = await createThesis(metadata, session.user.id);
 
            if (result?.thesisId) {
-               setOpen(false);
-             onThesisCreated(result.thesisId, values.title);
-               navigate(`/thesis/${result.thesisId}`);
-            }
-        } catch (error: any) {
-           setError(error.message);
-        }
-  };
+            setOpen(false);
+            onThesisCreated(result.thesisId, values.title);
+            navigate(`/thesis/${result.thesisId}`);
+           }
+      }
+ });
 
-  const handleCommitteeMemberChange = (index: number, value: string) => {
-        const updatedCommitteeMembers = [...(control._defaultValues?.committeeMembers as string[] || [])];
-      updatedCommitteeMembers[index] = value;
-        setValue('committeeMembers', updatedCommitteeMembers, { shouldValidate: true});
-  };
+    const [error, setError] = useState<string | null>(null);
+      const { createThesis } = useThesisCreation();
+    const { toast } = useToast();
+    const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
 
-    return (
-        <Dialog open={open} onOpenChange={setOpen}>
-           <DialogTrigger asChild>
-                <Button>Create New Thesis</Button>
-           </DialogTrigger>
-            <DialogContent className="max-w-2xl mx-auto p-6">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-bold">Create New Thesis</DialogTitle>
-               </DialogHeader>
-               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    {error && (
-                        <Alert variant="destructive" className="mb-4">
-                            <AlertDescription>{error}</AlertDescription>
-                       </Alert>
-                   )}
+     const handleCommitteeMemberChange = (index: number, value: string) => {
+        handleArrayChange('committeeMembers', index, value)
+      };
 
-                   <div>
-                      <label htmlFor="title" className="block text-sm font-medium mb-1">
-                        Title
-                        </label>
-                        <Input
-                           id="title"
-                           {...register("title")}
-                          placeholder="Enter thesis title"
-                         required
-                         className={errors.title ? 'border-destructive' : ''}
-                       />
-                       {errors.title && (
-                         <p className="text-sm text-destructive mt-1">
-                            {errors.title.message}
-                            </p>
-                        )}
-                   </div>
+   return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>Create New Thesis</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl mx-auto p-6">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold">Create New Thesis</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
-                  <div>
-                      <label htmlFor="description" className="block text-sm font-medium mb-1">
-                           Description
-                      </label>
-                       <Input
-                           id="description"
-                           {...register("description")}
-                          placeholder="Enter a brief description of your thesis"
-                         required
-                         className={errors.description ? 'border-destructive' : ''}
-                       />
-                      {errors.description && (
-                        <p className="text-sm text-destructive mt-1">
-                          {errors.description.message}
-                           </p>
-                        )}
-                    </div>
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium mb-1">
+                  Title
+                </label>
+              <Input
+                id="title"
+               name="title"
+                  value={values.title}
+                  onChange={handleChange}
+                placeholder="Enter thesis title"
+                required
+              />
+            </div>
 
-                  <div>
-                      <label htmlFor="keywords" className="block text-sm font-medium mb-1">
-                           Keywords
-                       </label>
-                       <Input
-                            id="keywords"
-                            {...register("keywords")}
-                           placeholder="Enter keywords separated by commas"
-                           required
-                          className={errors.keywords ? 'border-destructive' : ''}
-                      />
-                        {errors.keywords && (
-                           <p className="text-sm text-destructive mt-1">
-                              {errors.keywords.message}
-                            </p>
-                        )}
-                   </div>
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium mb-1">
+                    Description
+                  </label>
+                <Input
+                  id="description"
+                    name="description"
+                    value={values.description}
+                   onChange={handleChange}
+                   placeholder="Enter a brief description of your thesis"
+                 required
+                />
+               </div>
 
-                    <div>
-                      <label htmlFor="universityName" className="block text-sm font-medium mb-1">
-                        University Name
-                     </label>
-                       <Input
-                         id="universityName"
-                          {...register("universityName")}
-                          placeholder="Enter university name"
-                      />
-                   </div>
+             <div>
+               <label htmlFor="keywords" className="block text-sm font-medium mb-1">
+                  Keywords
+                 </label>
+                <Input
+                   id="keywords"
+                   name="keywords"
+                    value={values.keywords}
+                    onChange={handleChange}
+                 placeholder="Enter keywords separated by commas"
+                 required
+               />
+            </div>
 
-                    <div>
-                       <label htmlFor="departmentName" className="block text-sm font-medium mb-1">
-                          Department Name
-                      </label>
-                        <Input
-                            id="departmentName"
-                            {...register("departmentName")}
-                          placeholder="Enter department name"
-                        />
-                  </div>
+              <div>
+                <label htmlFor="universityName" className="block text-sm font-medium mb-1">
+                  University Name
+                  </label>
+               <Input
+                      id="universityName"
+                      name="universityName"
+                     value={values.universityName}
+                     onChange={handleChange}
+                     placeholder="Enter university name"
+                    required
+                />
+            </div>
 
-                  <div>
-                     <label htmlFor="authorName" className="block text-sm font-medium mb-1">
-                           Author Name
-                       </label>
-                       <Input
-                            id="authorName"
-                          {...register("authorName")}
-                          placeholder="Enter author name"
-                        />
-                   </div>
+               <div>
+                  <label htmlFor="departmentName" className="block text-sm font-medium mb-1">
+                    Department Name
+                 </label>
+                   <Input
+                      id="departmentName"
+                     name="departmentName"
+                     value={values.departmentName}
+                     onChange={handleChange}
+                     placeholder="Enter department name"
+                    required
+                   />
+               </div>
 
-                   <div>
-                       <label htmlFor="thesisDate" className="block text-sm font-medium mb-1">
-                            Thesis Date
-                      </label>
-                     <Input
-                           id="thesisDate"
-                         {...register("thesisDate")}
-                          placeholder="Enter date of thesis submission"
-                        />
-                   </div>
+             <div>
+                <label htmlFor="authorName" className="block text-sm font-medium mb-1">
+                    Author Name
+                 </label>
+                <Input
+                    id="authorName"
+                   name="authorName"
+                   value={values.authorName}
+                     onChange={handleChange}
+                    placeholder="Enter author name"
+                     required
+               />
+              </div>
 
-                  <div>
-                       <label className="block text-sm font-medium mb-1">
-                           Committee Members
-                      </label>
-                       {control._defaultValues?.committeeMembers?.map((member, index) => (
-                         <Input
-                              key={index}
-                              placeholder={`Committee Member ${index + 1}`}
-                               value={member}
-                            onChange={(e) => handleCommitteeMemberChange(index, e.target.value)}
-                             className="mb-2"
-                        />
-                        ))}
-                  </div>
-                    <Button type="submit" disabled={isSubmitting} className="mt-6">
-                      {isSubmitting ? 'Creating...' : 'Create Thesis'}
-                   </Button>
-              </form>
-         </DialogContent>
-      </Dialog>
-    );
+                <div>
+                <label htmlFor="thesisDate" className="block text-sm font-medium mb-1">
+                   Thesis Date
+                   </label>
+                    <Input
+                        id="thesisDate"
+                      name="thesisDate"
+                      value={values.thesisDate}
+                        onChange={handleChange}
+                      placeholder="Enter date of thesis submission"
+                      required
+                  />
+                </div>
+
+             <div>
+               <label className="block text-sm font-medium mb-1">
+                   Committee Members
+                 </label>
+                {values.committeeMembers.map((member, index) => (
+                   <Input
+                     key={index}
+                     name={`committeeMembers[${index}]`}
+                       value={member}
+                     onChange={(e) => handleCommitteeMemberChange(index, e.target.value)}
+                     placeholder={`Committee Member ${index + 1}`}
+                      className="mb-2"
+                     />
+                    ))}
+                </div>
+
+            <Button type="submit" disabled={isSubmitting} className="mt-6">
+              {isSubmitting ? 'Creating...' : 'Create Thesis'}
+            </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 };

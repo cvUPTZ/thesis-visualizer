@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useNotification } from "@/contexts/NotificationContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface UseAuthFlowProps {
   inviteThesisId: string | null;
@@ -11,13 +11,12 @@ interface UseAuthFlowProps {
 export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const location = useLocation();
-  const { toast } = useNotification();
+  const { toast } = useToast();
 
   const handleInviteAcceptance = async (userId: string, thesisId: string, role: string) => {
     try {
       console.log('Handling invite acceptance:', { userId, thesisId, role });
-
+      
       const { data: existingCollaborator, error: checkError } = await supabase
         .from('thesis_collaborators')
         .select('*')
@@ -73,15 +72,16 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
   };
 
   useEffect(() => {
-    let mounted = true;
     console.log('Auth flow initialized');
     console.log('Invite params:', { inviteThesisId, inviteRole });
+
+    let mounted = true;
 
     const checkUser = async () => {
       try {
         console.log('Checking user session...');
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
+        
         if (sessionError) {
           console.error('Session error:', sessionError);
           if (mounted) {
@@ -92,12 +92,10 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
 
         if (!session) {
           console.log('No active session found');
-          if (mounted && location.pathname !== '/auth') {
-            navigate('/auth', { replace: true });
-          }
           return;
         }
 
+        // Get user data directly from session
         const user = session.user;
         console.log('User found in session:', user.email);
 
@@ -105,7 +103,6 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
           console.error('No user found in session');
           if (mounted) {
             setError("Unable to verify user. Please sign in again.");
-            navigate('/auth', { replace: true });
           }
           return;
         }
@@ -115,10 +112,7 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
           if (inviteThesisId && inviteRole) {
             await handleInviteAcceptance(user.id, inviteThesisId, inviteRole);
           }
-          
-          if (location.pathname !== '/dashboard') {
-            navigate('/dashboard', { replace: true });
-          }
+          navigate("/");
         }
       } catch (error) {
         console.error('Error in checkUser:', error);
@@ -128,10 +122,11 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
       }
     };
 
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("Auth state changed:", event, session?.user?.email);
-
+        
         if (!mounted) return;
 
         if (event === "SIGNED_IN" && session) {
@@ -140,21 +135,14 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
             if (inviteThesisId && inviteRole) {
               await handleInviteAcceptance(session.user.id, inviteThesisId, inviteRole);
             }
-            
-            if (location.pathname !== '/dashboard') {
-              toast({
-                title: "Welcome!",
-                description: "You have successfully signed in.",
-              });
-              navigate('/dashboard', { replace: true });
-            }
+            toast({
+              title: "Welcome!",
+              description: "You have successfully signed in.",
+            });
+            navigate("/");
           } catch (error) {
             console.error('Error handling sign in:', error);
             setError("Error processing sign in. Please try again.");
-          }
-        } else if (event === "SIGNED_OUT") {
-          if (location.pathname !== '/auth') {
-            navigate('/auth', { replace: true });
           }
         }
       }
@@ -166,7 +154,7 @@ export const useAuthFlow = ({ inviteThesisId, inviteRole }: UseAuthFlowProps) =>
       mounted = false;
       if (subscription) subscription.unsubscribe();
     };
-  }, [navigate, toast, inviteThesisId, inviteRole, location.pathname]);
+  }, [navigate, toast, inviteThesisId, inviteRole]);
 
   return { error };
 };
