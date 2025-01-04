@@ -28,6 +28,8 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
   const [authors, setAuthors] = React.useState<string[]>(['']);
   const [year, setYear] = React.useState('');
   const [type, setType] = React.useState<'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other'>('article');
+  const [text, setText] = React.useState('');
+  const [source, setSource] = React.useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,13 +38,17 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
       title,
       authors,
       year,
-      type
+      type,
+      text,
+      source
     };
     onAddReference(newReference);
     setTitle('');
     setAuthors(['']);
     setYear('');
     setType('article');
+    setText('');
+    setSource('');
   };
 
   return (
@@ -80,6 +86,22 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter reference title..."
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Text</label>
+            <Input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Enter reference text..."
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Source</label>
+            <Input
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+              placeholder="Enter reference source..."
             />
           </div>
           <div className="space-y-2">

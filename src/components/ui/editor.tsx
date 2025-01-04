@@ -138,7 +138,7 @@ export const Editor = ({ thesisId }: EditorProps) => {
   if (!thesis) {
     return (
       <div className="p-8">
-        <ThesisCreationModal />
+        <ThesisCreationModal onThesisCreated={(newThesis) => setThesis(newThesis)} />
         <ThesisList />
       </div>
     );
