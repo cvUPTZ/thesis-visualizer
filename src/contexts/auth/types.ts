@@ -4,5 +4,4 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   userRole: string | null;
-   setLoading: (loading: boolean) => void;
 }

@@ -1,85 +1,59 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { Section } from '@/types/thesis';
-import { SectionContent } from './editor/SectionContent';
-import { SectionHeader } from './editor/SectionHeader';
-import { SectionManagers } from './editor/SectionManagers';
 import { useToast } from '@/hooks/use-toast';
+import { SectionHeader } from './editor/SectionHeader';
+import { SectionContent } from './editor/SectionContent';
+import { SectionManagers } from './editor/SectionManagers';
 
 interface EditorSectionProps {
   section: Section;
-  onUpdate: (sectionId: string, updates: Partial<Section>) => Promise<void>;
-  onDelete: (sectionId: string) => Promise<void>;
+  isActive: boolean;
+  onContentChange: (id: string, content: string) => void;
+  onTitleChange: (id: string, title: string) => void;
 }
 
-export const EditorSection: React.FC<EditorSectionProps> = ({
+export const EditorSection = ({
   section,
-  onUpdate,
-  onDelete,
-}) => {
-  const [isEditing, setIsEditing] = useState(false);
+  isActive,
+  onContentChange,
+  onTitleChange
+}: EditorSectionProps) => {
   const { toast } = useToast();
+  console.log('EditorSection rendering with section:', { 
+    id: section.id, 
+    title: section.title,
+    isActive 
+  });
 
-  const handleContentChange = useCallback(
-    async (content: string) => {
-      try {
-        await onUpdate(section.id, { content });
-      } catch (error) {
-        console.error('Error updating section content:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update section content",
-          variant: "destructive",
-        });
-      }
-    },
-    [section.id, onUpdate, toast]
-  );
+  if (!isActive) return null;
 
-  const handleTitleChange = useCallback(
-    async (title: string) => {
-      try {
-        await onUpdate(section.id, { title });
-        setIsEditing(false);
-      } catch (error) {
-        console.error('Error updating section title:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update section title",
-          variant: "destructive",
-        });
-      }
-    },
-    [section.id, onUpdate, toast]
-  );
-
-  const handleDelete = useCallback(async () => {
-    try {
-      await onDelete(section.id);
-    } catch (error) {
-      console.error('Error deleting section:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete section",
-        variant: "destructive",
-      });
-    }
-  }, [section.id, onDelete, toast]);
+  const handleSectionUpdate = (updatedSection: Section) => {
+    console.log('Updating section:', updatedSection);
+    onContentChange(updatedSection.id, updatedSection.content);
+    
+    toast({
+      title: "Success",
+      description: "Section updated successfully",
+    });
+  };
 
   return (
-    <div className="border border-editor-border rounded-lg bg-editor-bg shadow-sm mb-4">
-      <SectionHeader
-        title={section.title}
-        required={false}
-        onTitleChange={handleTitleChange}
-      />
-      <div className="p-4">
+    <div className="editor-section animate-fade-in bg-editor-gradient">
+      <div className="editor-content space-y-6">
+        <SectionHeader
+          title={section.title}
+          required={section.required}
+          onTitleChange={(title) => onTitleChange(section.id, title)}
+        />
+        
         <SectionContent
           content={section.content}
-          onContentChange={handleContentChange}
+          onContentChange={(content) => onContentChange(section.id, content)}
         />
+
         <SectionManagers
           section={section}
-          onUpdate={handleContentChange}
+          onSectionUpdate={handleSectionUpdate}
         />
       </div>
     </div>

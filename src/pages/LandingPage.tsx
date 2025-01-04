@@ -98,7 +98,7 @@ const LandingPage = () => {
           <h2 className="text-4xl font-bold text-center mb-16 text-[#1A1F2C]">
             Trusted by Academics Worldwide
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <TestimonialCard key={index} {...testimonial} />
             ))}
@@ -106,13 +106,18 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Feedback Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-16 text-[#1A1F2C]">
-            Share Your Feedback
-          </h2>
-          <FeedbackForm />
+      {/* CTA Section */}
+      <section className="py-24 bg-[#1A1F2C] text-white">
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <h2 className="text-4xl font-bold mb-8">Ready to Start Your Journey?</h2>
+          <p className="text-xl text-gray-300 mb-12">
+            Join thousands of researchers who have already transformed their thesis writing experience.
+          </p>
+          <Link to="/auth">
+            <Button className="bg-[#9b87f5] text-white text-lg px-8 py-6 rounded-lg hover:bg-[#7E69AB] transition-colors">
+              Get Started Now
+            </Button>
+          </Link>
         </div>
       </section>
 

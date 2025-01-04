@@ -13,7 +13,7 @@ export const useThesisData = (thesisId: string | undefined) => {
     data: thesis,
     isLoading,
     error,
-  } = useQuery({
+  } = useQuery<Thesis | null, string>({
     queryKey: ['thesis', thesisId],
     queryFn: async () => {
       if (!thesisId) {
@@ -29,15 +29,9 @@ export const useThesisData = (thesisId: string | undefined) => {
       try {
         console.log('Fetching thesis with ID:', thesisId);
 
-        const { data: fetchedThesis, error: fetchError } = await supabase
+        const { data, error: fetchError } = await supabase
           .from('theses')
-          .select(`
-            *,
-            thesis_collaborators (
-              user_id,
-              role
-            )
-          `)
+          .select('*')
           .eq('id', thesisId)
           .maybeSingle();
 
@@ -46,19 +40,19 @@ export const useThesisData = (thesisId: string | undefined) => {
           throw new Error(fetchError.message);
         }
 
-        if (!fetchedThesis) {
+        if (!data) {
           console.log('No thesis found with ID:', thesisId);
           throw new Error('Thesis not found');
         }
 
-        console.log('Thesis data loaded:', fetchedThesis);
+        console.log('Thesis data loaded:', data);
 
-        const parsedContent = typeof fetchedThesis.content === 'string'
-          ? JSON.parse(fetchedThesis.content)
-          : fetchedThesis.content;
+        const parsedContent = typeof data.content === 'string'
+          ? JSON.parse(data.content)
+          : data.content;
 
-        const formattedThesis: Thesis = {
-          id: fetchedThesis.id,
+        const thesisData: Thesis = {
+          id: data.id,
           metadata: {
             description: parsedContent?.metadata?.description || '',
             keywords: parsedContent?.metadata?.keywords || [],
@@ -74,7 +68,7 @@ export const useThesisData = (thesisId: string | undefined) => {
           backMatter: parsedContent?.backMatter || []
         };
 
-        return formattedThesis;
+        return thesisData;
       } catch (err: any) {
         console.error("Error in thesis data hook:", err);
         toast({
@@ -85,10 +79,7 @@ export const useThesisData = (thesisId: string | undefined) => {
         throw err;
       }
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    enabled: !!thesisId,
   });
 
   const setThesis = (newThesis: Thesis | ((prev: Thesis | null) => Thesis | null)) => {
