@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Edit3, Users, GitBranch, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 export const DemoPreview = () => {
   const features = [
@@ -52,7 +53,9 @@ export const DemoPreview = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <Button className="w-full">Try the Editor</Button>
+            <Link to="/auth">
+              <Button className="w-full">Try the Editor</Button>
+            </Link>
           </div>
           
           <div className="grid grid-cols-1 gap-6">

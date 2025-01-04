@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const PricingTier = ({ 
   title, 
@@ -38,9 +39,11 @@ const PricingTier = ({
         </li>
       ))}
     </ul>
-    <Button className="w-full" variant={buttonVariant}>
-      {title === "Enterprise" ? "Contact Sales" : "Get Started"}
-    </Button>
+    <Link to="/auth">
+      <Button className="w-full" variant={buttonVariant}>
+        {title === "Enterprise" ? "Contact Sales" : "Get Started"}
+      </Button>
+    </Link>
   </motion.div>
 );
 
