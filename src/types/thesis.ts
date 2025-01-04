@@ -68,6 +68,7 @@ export interface Citation {
   issue?: string;
   pages?: string;
   publisher?: string;
+  thesis_id: string;
 }
 
 export interface Reference {

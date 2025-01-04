@@ -9,6 +9,7 @@ import { CitationFilters } from './citation/CitationFilters';
 import { CitationStats } from './citation/CitationStats';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useParams } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -37,9 +38,14 @@ export const CitationManager = ({
   const [sortField, setSortField] = useState<'year' | 'author' | 'title'>('year');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const { toast } = useToast();
+  const { thesisId } = useParams<{ thesisId: string }>();
 
   const handleAddCitation = async () => {
     try {
+      if (!thesisId) {
+        throw new Error('No thesis ID provided');
+      }
+
       const newCitation: Citation = {
         id: crypto.randomUUID(),
         text: '',
@@ -53,7 +59,8 @@ export const CitationManager = ({
         volume: '',
         issue: '',
         pages: '',
-        publisher: ''
+        publisher: '',
+        thesis_id: thesisId
       };
 
       const { error } = await supabase
@@ -79,13 +86,22 @@ export const CitationManager = ({
 
   const handleSearchResult = async (citation: Citation) => {
     try {
+      if (!thesisId) {
+        throw new Error('No thesis ID provided');
+      }
+
+      const citationWithThesisId = {
+        ...citation,
+        thesis_id: thesisId
+      };
+
       const { error } = await supabase
         .from('citations')
-        .insert([citation]);
+        .insert([citationWithThesisId]);
 
       if (error) throw error;
 
-      onAddCitation(citation);
+      onAddCitation(citationWithThesisId);
       setSearchDialogOpen(false);
       toast({
         title: "Success",
