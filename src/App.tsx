@@ -1,13 +1,12 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
-import { Sonner } from '@/components/ui/sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { Auth } from '@/pages/Auth';
-import { Index } from '@/pages/Index';
-import { LandingPage } from '@/pages/LandingPage';
-import { AdminPanel } from '@/pages/AdminPanel';
-import { CreateThesis } from '@/pages/CreateThesis';
+import Auth from '@/pages/Auth';
+import Index from '@/pages/Index';
+import LandingPage from '@/pages/LandingPage';
+import AdminPanel from '@/pages/AdminPanel';
+import CreateThesis from '@/pages/CreateThesis';
 import { ThesisEditor } from '@/components/ThesisEditor';
 
 const App = () => {
@@ -16,7 +15,6 @@ const App = () => {
       <div className="min-h-screen bg-background">
         <main>
           <Toaster />
-          <Sonner />
           <Routes>
             {/* Public routes - No loading state */}
             <Route path="/welcome" element={<LandingPage />} />
