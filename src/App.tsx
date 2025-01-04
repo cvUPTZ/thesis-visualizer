@@ -15,13 +15,23 @@ import { useToast } from "@/hooks/use-toast";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, userRole } = useAuth();
+  const { toast } = useToast();
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  return isAuthenticated ? children : <Navigate to="/auth" />;
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" />;
+  }
+
+  // Redirect admin users to admin panel
+  if (userRole === 'admin') {
+    return <Navigate to="/admin" />;
+  }
+
+  return children;
 };
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
