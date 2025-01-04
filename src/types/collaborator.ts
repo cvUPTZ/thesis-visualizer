@@ -16,5 +16,9 @@ export interface Collaborator {
 }
 
 export interface CollaboratorWithProfile extends Omit<Collaborator, 'profiles'> {
-  profiles: Profile;
+  profiles: Profile & {
+    roles?: {
+      name: string;
+    };
+  };
 }
