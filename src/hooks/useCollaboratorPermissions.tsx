@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types/profile';
 import { CollaboratorWithProfile } from '@/types/collaborator';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 export const useCollaboratorPermissions = (thesisId: string) => {
   const [collaborators, setCollaborators] = useState<CollaboratorWithProfile[]>([]);
@@ -12,13 +13,16 @@ export const useCollaboratorPermissions = (thesisId: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const checkPermissions = async () => {
     try {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
+      
       if (!session) {
-        console.log('No session found');
+        console.log('No session found, redirecting to auth...');
+        navigate('/auth');
         return;
       }
 
@@ -67,11 +71,6 @@ export const useCollaboratorPermissions = (thesisId: string) => {
     } catch (error: any) {
       console.error('Error checking permissions:', error);
       setError(error);
-      toast({
-        title: "Error",
-        description: "Failed to check permissions. Please try logging in again.",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
@@ -79,7 +78,12 @@ export const useCollaboratorPermissions = (thesisId: string) => {
 
   const fetchCollaborators = async () => {
     try {
-      setLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/auth');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('thesis_collaborators')
         .select(`
@@ -90,7 +94,6 @@ export const useCollaboratorPermissions = (thesisId: string) => {
             id,
             email,
             role_id,
-            created_at,
             roles (
               name
             )
@@ -110,13 +113,6 @@ export const useCollaboratorPermissions = (thesisId: string) => {
     } catch (error: any) {
       console.error('Error fetching collaborators:', error);
       setError(error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch collaborators. Please try refreshing the page.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
     }
   };
 
