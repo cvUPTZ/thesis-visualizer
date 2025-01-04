@@ -24,7 +24,16 @@ export function Toaster() {
                 <ToastDescription>{description}</ToastDescription>
               )}
             </div>
-            {action}
+            {action && (
+              <div className="mt-2">
+                <button
+                  onClick={action.onClick}
+                  className="px-3 py-1 text-sm bg-primary text-white rounded-md hover:bg-primary/90"
+                >
+                  {action.label}
+                </button>
+              </div>
+            )}
             <ToastClose />
           </Toast>
         )
