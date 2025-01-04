@@ -5,11 +5,6 @@ import {
   HeadingLevel, 
   TableOfContents,
   ImageRun,
-  Table,
-  TableRow,
-  TableCell,
-  BorderStyle,
-  WidthType,
   AlignmentType,
   convertInchesToTwip,
   LevelFormat,
@@ -31,35 +26,46 @@ const PAGE_MARGINS = {
 
 const generateFigures = async (figures: Figure[]) => {
   return Promise.all(figures.map(async (figure) => {
-    // Convert base64 to Uint8Array
-    const base64Data = figure.imageUrl.split(',')[1];
-    const binaryString = window.atob(base64Data);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+    try {
+      // Convert base64 to Uint8Array
+      const base64Data = figure.imageUrl.split(',')[1];
+      const binaryString = window.atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      return new Paragraph({
+        children: [
+          new ImageRun({
+            data: bytes,
+            transformation: {
+              width: figure.dimensions?.width || 400,
+              height: figure.dimensions?.height || 300,
+            },
+            altText: {
+              title: figure.caption || 'Figure',
+              description: figure.altText || figure.caption || 'Figure image',
+            },
+          }),
+          new TextRun({
+            text: `\nFigure ${figure.number}: ${figure.caption}`,
+            break: 1,
+          }),
+        ],
+        alignment: AlignmentType.CENTER,
+        spacing: {
+          before: 240,
+          after: 240,
+        },
+      });
+    } catch (error) {
+      console.error('Error generating figure:', error);
+      return new Paragraph({
+        text: `[Error loading figure: ${figure.caption || 'Untitled'}]`,
+        alignment: AlignmentType.CENTER,
+      });
     }
-    
-    return new Paragraph({
-      children: [
-        new ImageRun({
-          data: bytes,
-          transformation: {
-            width: figure.dimensions?.width || 400,
-            height: figure.dimensions?.height || 300,
-          },
-          altText: figure.altText || figure.caption,
-        }),
-        new TextRun({
-          text: `\nFigure ${figure.number}: ${figure.caption}`,
-          break: 1,
-        }),
-      ],
-      alignment: AlignmentType.CENTER,
-      spacing: {
-        before: 240,
-        after: 240,
-      },
-    });
   }));
 };
 
@@ -105,8 +111,8 @@ export const generateThesisDocx = async (thesis: {
         hyperlink: true,
         headingStyleRange: "1-5",
         stylesWithLevels: [
-          { level: 1, heading: "Heading1" },
-          { level: 2, heading: "Heading2" },
+          { level: 1, style: "Heading1" },
+          { level: 2, style: "Heading2" },
         ],
       }),
       ...await generateSectionContent(thesis.frontMatter),
