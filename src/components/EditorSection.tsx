@@ -34,9 +34,10 @@ export const EditorSection = ({
 
   const handleAddFigure = (figure: any) => {
     console.log('Adding figure:', figure);
+    const figures = Array.isArray(section.figures) ? section.figures : [];
     const updatedSection = {
       ...section,
-      figures: [...section.figures, figure]
+      figures: [...figures, figure]
     };
     handleSectionUpdate(updatedSection);
     toast({
@@ -47,9 +48,10 @@ export const EditorSection = ({
 
   const handleAddTable = (table: any) => {
     console.log('Adding table:', table);
+    const tables = Array.isArray(section.tables) ? section.tables : [];
     const updatedSection = {
       ...section,
-      tables: [...section.tables, table]
+      tables: [...tables, table]
     };
     handleSectionUpdate(updatedSection);
     toast({
@@ -60,9 +62,10 @@ export const EditorSection = ({
 
   const handleAddCitation = (citation: any) => {
     console.log('Adding citation:', citation);
+    const citations = Array.isArray(section.citations) ? section.citations : [];
     const updatedSection = {
       ...section,
-      citations: [...section.citations, citation]
+      citations: [...citations, citation]
     };
     handleSectionUpdate(updatedSection);
     toast({
@@ -73,12 +76,10 @@ export const EditorSection = ({
 
   const handleAddReference = (reference: any) => {
     console.log('Adding reference:', reference);
-    if (!section.references) {
-      section.references = [];
-    }
+    const references = Array.isArray(section.references) ? section.references : [];
     const updatedSection = {
       ...section,
-      references: [...section.references, reference]
+      references: [...references, reference]
     };
     handleSectionUpdate(updatedSection);
     toast({
@@ -114,55 +115,55 @@ export const EditorSection = ({
 
         <div className="space-y-8 pt-4 border-t border-editor-border">
           <FigureManager
-            figures={section.figures}
+            figures={section.figures || []}
             onAddFigure={handleAddFigure}
             onRemoveFigure={(id) => {
               const updatedSection = {
                 ...section,
-                figures: section.figures.filter(f => f.id !== id)
+                figures: (section.figures || []).filter(f => f.id !== id)
               };
               handleSectionUpdate(updatedSection);
             }}
             onUpdateFigure={(figure) => {
               const updatedSection = {
                 ...section,
-                figures: section.figures.map(f => f.id === figure.id ? figure : f)
+                figures: (section.figures || []).map(f => f.id === figure.id ? figure : f)
               };
               handleSectionUpdate(updatedSection);
             }}
           />
           <TableManager
-            tables={section.tables}
+            tables={section.tables || []}
             onAddTable={handleAddTable}
             onRemoveTable={(id) => {
               const updatedSection = {
                 ...section,
-                tables: section.tables.filter(t => t.id !== id)
+                tables: (section.tables || []).filter(t => t.id !== id)
               };
               handleSectionUpdate(updatedSection);
             }}
             onUpdateTable={(table) => {
               const updatedSection = {
                 ...section,
-                tables: section.tables.map(t => t.id === table.id ? table : t)
+                tables: (section.tables || []).map(t => t.id === table.id ? table : t)
               };
               handleSectionUpdate(updatedSection);
             }}
           />
           <CitationManager
-            citations={section.citations}
+            citations={section.citations || []}
             onAddCitation={handleAddCitation}
             onRemoveCitation={(id) => {
               const updatedSection = {
                 ...section,
-                citations: section.citations.filter(c => c.id !== id)
+                citations: (section.citations || []).filter(c => c.id !== id)
               };
               handleSectionUpdate(updatedSection);
             }}
             onUpdateCitation={(citation) => {
               const updatedSection = {
                 ...section,
-                citations: section.citations.map(c => c.id === citation.id ? citation : c)
+                citations: (section.citations || []).map(c => c.id === citation.id ? citation : c)
               };
               handleSectionUpdate(updatedSection);
             }}
@@ -174,14 +175,14 @@ export const EditorSection = ({
               onRemoveReference={(id) => {
                 const updatedSection = {
                   ...section,
-                  references: section.references?.filter(r => r.id !== id)
+                  references: (section.references || []).filter(r => r.id !== id)
                 };
                 handleSectionUpdate(updatedSection);
               }}
               onUpdateReference={(reference) => {
                 const updatedSection = {
                   ...section,
-                  references: section.references?.map(r => r.id === reference.id ? reference : r)
+                  references: (section.references || []).map(r => r.id === reference.id ? reference : r)
                 };
                 handleSectionUpdate(updatedSection);
               }}
