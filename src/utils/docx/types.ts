@@ -1,4 +1,14 @@
-import { Thesis } from '@/types/thesis';
+export interface ImageOptions {
+  width?: number;
+  height?: number;
+  altText: string;
+}
+
+export interface DocPropertiesOptions {
+  name: string;
+  description: string;
+  title: string;
+}
 
 export interface DocxGenerationOptions {
   thesis: Thesis;
