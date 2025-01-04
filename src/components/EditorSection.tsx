@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Section } from '@/types/thesis';
-import { SectionContent } from './editor/section/EditorSection';
+import { SectionContent } from './editor/section/SectionContent';
 import { SectionHeader } from './editor/SectionHeader';
 import { SectionManagers } from './editor/SectionManagers';
 import { useToast } from '@/hooks/use-toast';
@@ -69,14 +69,13 @@ export const EditorSection: React.FC<EditorSectionProps> = ({
     <div className="border border-editor-border rounded-lg bg-editor-bg shadow-sm mb-4">
       <SectionHeader
         title={section.title}
-        onEditStart={() => setIsEditing(true)}
-        onEditComplete={handleTitleChange}
-        onDelete={handleDelete}
+        required={false}
+        onTitleChange={handleTitleChange}
       />
       <div className="p-4">
         <SectionContent
           content={section.content}
-          onChange={handleContentChange}
+          onContentChange={handleContentChange}
         />
         <SectionManagers
           section={section}

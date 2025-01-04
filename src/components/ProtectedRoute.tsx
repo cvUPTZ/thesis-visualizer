@@ -1,35 +1,32 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
-interface WithAuthorizationProps {
+interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: string;
+  requireAuth?: boolean;
 }
 
-const withAuthorization = (WrappedComponent: React.ComponentType<WithAuthorizationProps>) => {
-  const WithAuthorization: React.FC<WithAuthorizationProps> = ({ children, requiredRole }) => {
-    const { isAuthenticated, userRole, loading } = useAuth();
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  requireAuth = true 
+}) => {
+  const { session, isLoading } = useAuth();
+  
+  // Skip session check for public routes
+  if (!requireAuth) {
+    return <>{children}</>;
+  }
 
-    if(loading) {
-      return <></>;
-    }
+  // Show loading state while checking auth
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-    if (!isAuthenticated) {
-      console.log('🚫 User not authenticated, redirecting to /auth');
-      return <Navigate to="/auth" />;
-    }
+  // Redirect to welcome page if not authenticated
+  if (!session && requireAuth) {
+    return <Navigate to="/welcome" replace />;
+  }
 
-    if (requiredRole && userRole !== requiredRole) {
-      console.log('🚫 User not authorized, redirecting to /');
-      return <Navigate to="/" />;
-    }
-    
-    console.log('✅ Access granted to route with role:', userRole);
-    return <WrappedComponent children={children} requiredRole={requiredRole} />;
-  };
-
-  return WithAuthorization;
+  return <>{children}</>;
 };
-
-export default withAuthorization;
