@@ -50,6 +50,71 @@ export type Database = {
           },
         ]
       }
+      citations: {
+        Row: {
+          authors: string[]
+          created_at: string
+          doi: string | null
+          id: string
+          issue: string | null
+          journal: string | null
+          pages: string | null
+          publisher: string | null
+          source: string
+          text: string
+          thesis_id: string
+          type: string
+          updated_at: string
+          url: string | null
+          volume: string | null
+          year: string
+        }
+        Insert: {
+          authors?: string[]
+          created_at?: string
+          doi?: string | null
+          id?: string
+          issue?: string | null
+          journal?: string | null
+          pages?: string | null
+          publisher?: string | null
+          source: string
+          text: string
+          thesis_id: string
+          type: string
+          updated_at?: string
+          url?: string | null
+          volume?: string | null
+          year: string
+        }
+        Update: {
+          authors?: string[]
+          created_at?: string
+          doi?: string | null
+          id?: string
+          issue?: string | null
+          journal?: string | null
+          pages?: string | null
+          publisher?: string | null
+          source?: string
+          text?: string
+          thesis_id?: string
+          type?: string
+          updated_at?: string
+          url?: string | null
+          volume?: string | null
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "citations_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "theses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       features: {
         Row: {
           created_at: string | null

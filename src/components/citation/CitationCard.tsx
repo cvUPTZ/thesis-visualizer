@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { Citation } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { X, Quote, Edit2, Eye } from 'lucide-react';
+import { TagInput } from '@/components/ui/tag-input';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Select,
   SelectContent,
@@ -9,16 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { X, Quote, Edit2, Eye } from 'lucide-react';
-import { TagInput } from '@/components/ui/tag-input';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 
 interface CitationCardProps {
   citation: Citation;
@@ -30,10 +25,61 @@ interface CitationCardProps {
 export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: CitationCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [authors, setAuthors] = useState(citation.authors);
+  const { toast } = useToast();
+
+  const handleRemove = async () => {
+    try {
+      const { error } = await supabase
+        .from('citations')
+        .delete()
+        .eq('id', citation.id);
+
+      if (error) throw error;
+
+      onRemove(citation.id);
+      toast({
+        title: "Success",
+        description: "Citation removed successfully",
+      });
+    } catch (error: any) {
+      console.error('Error removing citation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove citation: " + error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdate = async (updatedFields: Partial<Citation>) => {
+    try {
+      const updatedCitation = { ...citation, ...updatedFields };
+      
+      const { error } = await supabase
+        .from('citations')
+        .update(updatedCitation)
+        .eq('id', citation.id);
+
+      if (error) throw error;
+
+      onUpdate(updatedCitation);
+      toast({
+        title: "Success",
+        description: "Citation updated successfully",
+      });
+    } catch (error: any) {
+      console.error('Error updating citation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update citation: " + error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleAuthorChange = (tags: string[]) => {
     setAuthors(tags);
-    onUpdate({...citation, authors: tags});
+    handleUpdate({ authors: tags });
   };
 
   return (
@@ -65,7 +111,7 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onRemove(citation.id)}
+            onClick={handleRemove}
             className="h-8 w-8 p-0"
           >
             <X className="w-4 h-4" />
@@ -76,7 +122,7 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
         <Select
           value={citation.type}
           onValueChange={(value: 'book' | 'article' | 'conference' | 'website' | 'other') =>
-            onUpdate({ ...citation, type: value })
+            handleUpdate({ type: value })
           }
         >
           <SelectTrigger className="w-full">
@@ -94,7 +140,7 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
           placeholder="Text"
           value={citation.text}
           onChange={(e) =>
-            onUpdate({ ...citation, text: e.target.value })
+            handleUpdate({ text: e.target.value })
           }
           className="mb-2"
         />
@@ -102,7 +148,7 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
           placeholder="Source"
           value={citation.source}
           onChange={(e) =>
-            onUpdate({ ...citation, source: e.target.value })
+            handleUpdate({ source: e.target.value })
           }
           className="mb-2"
         />
@@ -115,7 +161,7 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
           placeholder="Year"
           value={citation.year}
           onChange={(e) =>
-            onUpdate({ ...citation, year: e.target.value })
+            handleUpdate({ year: e.target.value })
           }
         />
         {citation.type === 'article' && (
@@ -124,7 +170,7 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
               placeholder="Journal"
               value={citation.journal}
               onChange={(e) =>
-                onUpdate({ ...citation, journal: e.target.value })
+                handleUpdate({ journal: e.target.value })
               }
             />
             <div className="grid grid-cols-3 gap-2">
@@ -132,21 +178,21 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
                 placeholder="Volume"
                 value={citation.volume}
                 onChange={(e) =>
-                  onUpdate({ ...citation, volume: e.target.value })
+                  handleUpdate({ volume: e.target.value })
                 }
               />
               <Input
                 placeholder="Issue"
                 value={citation.issue}
                 onChange={(e) =>
-                  onUpdate({ ...citation, issue: e.target.value })
+                  handleUpdate({ issue: e.target.value })
                 }
               />
               <Input
                 placeholder="Pages"
                 value={citation.pages}
                 onChange={(e) =>
-                  onUpdate({ ...citation, pages: e.target.value })
+                  handleUpdate({ pages: e.target.value })
                 }
               />
             </div>
@@ -157,7 +203,7 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
             placeholder="Publisher"
             value={citation.publisher}
             onChange={(e) =>
-              onUpdate({ ...citation, publisher: e.target.value })
+              handleUpdate({ publisher: e.target.value })
             }
             className="animate-fade-in"
           />
@@ -167,7 +213,7 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
             placeholder="URL"
             value={citation.url}
             onChange={(e) =>
-              onUpdate({ ...citation, url: e.target.value })
+              handleUpdate({ url: e.target.value })
             }
             className="animate-fade-in"
           />
