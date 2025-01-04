@@ -38,7 +38,7 @@ export const useCollaboratorPermissions = (thesisId: string) => {
       }
 
       if (profileData) {
-        setUserProfile(profileData);
+        setUserProfile(profileData as Profile);
         console.log('User profile:', profileData);
       }
 
@@ -80,8 +80,13 @@ export const useCollaboratorPermissions = (thesisId: string) => {
           role,
           created_at,
           profiles (
+            id,
             email,
-            role_id
+            role_id,
+            created_at,
+            roles (
+              name
+            )
           )
         `)
         .eq('thesis_id', thesisId);

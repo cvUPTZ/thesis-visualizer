@@ -5,6 +5,7 @@ export type CollaboratorRole = 'owner' | 'editor' | 'viewer' | 'admin';
 export interface Collaborator {
   user_id: string;
   role: CollaboratorRole;
+  created_at: string;
   profiles: {
     email: string;
     role_id: string;
@@ -15,9 +16,5 @@ export interface Collaborator {
 }
 
 export interface CollaboratorWithProfile extends Omit<Collaborator, 'profiles'> {
-  profiles: Profile & {
-    roles?: {
-      name: string;
-    };
-  };
+  profiles: Profile;
 }
