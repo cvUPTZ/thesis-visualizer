@@ -28,6 +28,22 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
     } = useCollaboratorPermissions(thesisId);
 
     useEffect(() => {
+        // Check session on component mount
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                toast({
+                    title: "Session Expired",
+                    description: "Please log in again to continue.",
+                    variant: "destructive",
+                });
+                // Redirect to login or handle session expiration
+                return;
+            }
+        };
+        
+        checkSession();
+
         const inviteSubscription = supabase
             .channel('thesis-invites')
             .on('postgres_changes', {
@@ -40,16 +56,15 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
                 setHasNewInvites(true);
                 toast({
                     title: "New Collaborator",
-                    description: `${payload.new.profiles.email} has been added as a collaborator.`,
+                    description: `A new collaborator has been added.`,
                 });
-                fetchCollaborators(); // Refetch collaborators to update the list
+                fetchCollaborators();
             })
             .subscribe();
 
         return () => {
             inviteSubscription.unsubscribe();
         };
-
     }, [thesisId, toast, fetchCollaborators]);
 
     const handleClearNotification = () => {
@@ -72,32 +87,16 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
             description: error.message || "Failed to load collaborators.",
             variant: "destructive",
         });
-        return null; // Or display an error message
+        return null;
     }
-
-    const handleInviteSuccess = () => {
-        fetchCollaborators();
-    };
-
-    const handleInviteError = (error: Error) => {
-        toast({
-            title: "Error",
-            description: error.message || "Failed to invite collaborator. Please try again.",
-            variant: "destructive",
-        });
-    };
-
-    const canManageCollaboratorsProp = currentUserRole === 'owner' || 
-                                       currentUserRole === 'admin' || 
-                                       userProfile?.roles?.name === 'admin';
 
     return (
         <div>
             <div onClick={handleClearNotification} className="relative ml-auto">
                 {hasNewInvites ? (
-                  <BellRing className="w-6 h-6 text-blue-500 animate-bounce" />
+                    <BellRing className="w-6 h-6 text-blue-500 animate-bounce" />
                 ) : (
-                  <Bell className="w-6 h-6" />
+                    <Bell className="w-6 h-6" />
                 )}
                 {hasNewInvites && (
                     <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">
@@ -112,18 +111,24 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
                 <CardContent>
                     {canManageCollaborators && (
                         <CollaboratorInviteForm
-                          thesisId={thesisId}
-                          thesisTitle={thesisTitle}
-                          onInviteSuccess={handleInviteSuccess}
-                          onInviteError={handleInviteError}
-                          isAdmin={userProfile?.roles?.name === 'admin'}
-                          setIsInviting={setIsInviting}
+                            thesisId={thesisId}
+                            thesisTitle={thesisTitle}
+                            onInviteSuccess={fetchCollaborators}
+                            onInviteError={(error: Error) => {
+                                toast({
+                                    title: "Error",
+                                    description: error.message || "Failed to invite collaborator.",
+                                    variant: "destructive",
+                                });
+                            }}
+                            isAdmin={userProfile?.roles?.name === 'admin'}
+                            setIsInviting={setIsInviting}
                         />
                     )}
                     <CollaboratorList
                         collaborators={collaborators}
                         thesisId={thesisId}
-                        canManageCollaborators={canManageCollaboratorsProp}
+                        canManageCollaborators={canManageCollaborators}
                         currentUserRole={currentUserRole}
                         isAdmin={userProfile?.roles?.name === 'admin'}
                         onCollaboratorRemoved={fetchCollaborators}
