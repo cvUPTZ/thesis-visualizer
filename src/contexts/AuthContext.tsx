@@ -9,31 +9,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     console.log('🔄 Initializing auth context...');
+    let mounted = true;
     
     const checkUser = async () => {
       try {
         console.log('🔍 Checking initial session...');
         const { data: { session } } = await supabase.auth.getSession();
         
-        if (session) {
+        if (session && mounted) {
+          console.log('✅ Found active session for:', session.user.email);
           setUserId(session.user.id);
           setUserEmail(session.user.email);
+          
           // Fetch user role from profiles table
           const { data: profile } = await supabase
             .from('profiles')
             .select('roles (name)')
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
           
-          setUserRole(profile?.roles?.name || null);
+          if (mounted) {
+            setUserRole(profile?.roles?.name || null);
+            console.log('👤 User role set to:', profile?.roles?.name);
+          }
+        } else {
+          console.log('❌ No active session found');
+          if (mounted) {
+            setUserId(null);
+            setUserEmail(null);
+            setUserRole(null);
+          }
         }
       } catch (error) {
         console.error('Error checking user session:', error);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+          setInitialized(true);
+        }
       }
     };
 
@@ -43,7 +60,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       async (event, session) => {
         console.log('🔄 Auth state changed:', event, session?.user?.email);
         
-        if (session) {
+        if (session && mounted) {
           setUserId(session.user.id);
           setUserEmail(session.user.email);
           console.log('✅ User signed in:', session.user.email);
@@ -53,28 +70,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             .from('profiles')
             .select('roles (name)')
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
           
-          setUserRole(profile?.roles?.name || null);
+          if (mounted) {
+            setUserRole(profile?.roles?.name || null);
+          }
         } else {
-          setUserId(null);
-          setUserEmail(null);
-          setUserRole(null);
+          if (mounted) {
+            setUserId(null);
+            setUserEmail(null);
+            setUserRole(null);
+          }
         }
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     );
 
     return () => {
       console.log('🧹 Cleaning up auth context...');
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
 
   const logout = async () => {
+    setLoading(true);
     const { error } = await supabase.auth.signOut();
     if (error) console.error('Error logging out:', error);
+    setLoading(false);
   };
+
+  // Don't render anything until we've initialized
+  if (!initialized) {
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>;
+  }
 
   const isAuthenticated = !!userId;
 

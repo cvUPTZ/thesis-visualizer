@@ -44,8 +44,8 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
 
         console.log('Fetched comments:', commentsData);
         
-        // Transform the flat comments into a thread structure using the transformed comments
-        const threadMap = new Map<string | null, ThesisComment[]>();
+        // Transform the flat comments into a thread structure
+        const threadMap = new Map<string | null, CommentThread['comment'][]>();
         commentsData.forEach((comment: any) => {
           const transformedComment = transformComment(comment);
           const parentId = comment.parent_id || null;
