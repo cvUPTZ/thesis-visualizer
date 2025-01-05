@@ -15,20 +15,6 @@ interface CollaboratorOrbitProps {
 }
 
 export const CollaboratorOrbit = ({ collaborators }: CollaboratorOrbitProps) => {
-  // Function to generate random movement with wider range
-  const generateRandomMovement = () => ({
-    x: Math.random() * 100 - 50, // Random value between -50 and 50
-    y: Math.random() * 100 - 50, // Random value between -50 and 50
-    rotate: Math.random() * 360, // Random rotation
-    transition: {
-      duration: Math.random() * 5 + 3, // Random duration between 3 and 8 seconds
-      repeat: Infinity,
-      repeatType: "reverse" as const,
-      ease: "easeInOut",
-      type: "tween"
-    }
-  });
-
   return (
     <div className="absolute inset-0">
       {collaborators.map((collaborator, index) => {
@@ -44,9 +30,17 @@ export const CollaboratorOrbit = ({ collaborators }: CollaboratorOrbitProps) => 
             animate={{ 
               opacity: 1, 
               scale: 1,
-              ...generateRandomMovement()
+              rotate: 360,
             }}
-            transition={{ delay: index * 0.1 }}
+            transition={{ 
+              rotate: {
+                duration: 20,
+                repeat: Infinity,
+                ease: "linear"
+              },
+              opacity: { duration: 0.5 },
+              scale: { duration: 0.5 }
+            }}
             className="absolute left-1/2 top-1/2"
             style={{
               transform: `translate(${x}px, ${y}px)`,
