@@ -13,9 +13,11 @@ import { PricingSection } from "@/components/landing/PricingSection";
 import ThesisVisualization from "@/components/landing/ThesisVisualization";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSkeleton } from "@/components/loading/LoadingSkeleton";
+import { useNavigate } from "react-router-dom";
 
 const LandingPage = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -23,22 +25,22 @@ const LandingPage = () => {
     const timeout = setTimeout(() => {
       setIsLoading(false);
       console.log('✅ Landing page loaded');
-      // Welcome message when landing page loads
       toast({
         title: "Welcome to Thesis Visualizer",
         description: "Explore our features and start writing your thesis with confidence.",
       });
-    }, 2000); // 2 second loading time for landing page
+    }, 2000);
 
     return () => clearTimeout(timeout);
   }, [toast]);
 
   const handleGetStarted = () => {
-    console.log('👆 Get Started clicked');
+    console.log('👆 Get Started clicked, navigating to auth...');
     toast({
       title: "Let's Get Started!",
       description: "You're being redirected to create your account.",
     });
+    navigate('/auth');
   };
 
   if (isLoading) {
