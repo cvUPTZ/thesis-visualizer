@@ -31,10 +31,20 @@ const Auth = () => {
       }
     });
 
+    // Show error toast if there's an error in URL params
+    if (error) {
+      console.error('❌ Auth error from URL:', error);
+      toast({
+        title: "Authentication Error",
+        description: error,
+        variant: "destructive",
+      });
+    }
+
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [error, toast]);
   
   if (isLoading) {
     return <AuthLoader />;
@@ -64,14 +74,6 @@ const Auth = () => {
             }}
             providers={[]}
             redirectTo={`${window.location.origin}/auth/callback`}
-            onError={(error) => {
-              console.error('❌ Auth error:', error);
-              toast({
-                title: "Authentication Error",
-                description: error.message,
-                variant: "destructive",
-              });
-            }}
           />
           <AuthDivider />
           <DemoLogin />
