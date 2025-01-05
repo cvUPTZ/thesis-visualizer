@@ -65,8 +65,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     },
       staleTime: 1000 * 60 * 5, // Consider session data fresh for 5 minutes
       refetchOnWindowFocus: true,
-      refetchOnMount: false, // prevent initial refetching on mount
-       refetchOnReconnect: false, // prevent initial refetching on reconnect
   });
 
   // Sign in mutation with role-based redirection
@@ -110,12 +108,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('✅ Sign in successful, user role:', data.userRole);
       queryClient.invalidateQueries({ queryKey: ['auth-session'] });
       
-      // Role-based redirection
-      if (data.userRole === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
       
       toast({
         title: "Welcome back!",
@@ -131,6 +124,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
     },
   });
+
+    useEffect(() => {
+        if (authData && authData.isAuthenticated) {
+            if (authData.user?.role === 'admin') {
+                navigate('/admin');
+            }
+        }
+      }, [authData?.user?.role, authData?.isAuthenticated, navigate]);
 
   // Sign out mutation
   const signOutMutation = useMutation({
