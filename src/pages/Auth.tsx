@@ -8,11 +8,33 @@ import { DemoLogin } from "@/components/auth/DemoLogin";
 import { AuthDivider } from "@/components/auth/AuthDivider";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthLoader } from "@/components/auth/AuthLoader";
+import { useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const error = searchParams.get("error");
   const { isLoading } = useAuth();
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    // Check for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔐 Auth state changed:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_IN') {
+        console.log('✅ User signed in successfully');
+      } else if (event === 'SIGNED_OUT') {
+        console.log('👋 User signed out');
+      } else if (event === 'USER_UPDATED') {
+        console.log('👤 User profile updated');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
   
   if (isLoading) {
     return <AuthLoader />;
@@ -29,9 +51,27 @@ const Auth = () => {
           )}
           <SupabaseAuth
             supabaseClient={supabase}
-            appearance={{ theme: ThemeSupa }}
+            appearance={{ 
+              theme: ThemeSupa,
+              variables: {
+                default: {
+                  colors: {
+                    brand: '#2563eb',
+                    brandAccent: '#1d4ed8',
+                  },
+                },
+              },
+            }}
             providers={[]}
             redirectTo={`${window.location.origin}/auth/callback`}
+            onError={(error) => {
+              console.error('❌ Auth error:', error);
+              toast({
+                title: "Authentication Error",
+                description: error.message,
+                variant: "destructive",
+              });
+            }}
           />
           <AuthDivider />
           <DemoLogin />
