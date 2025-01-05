@@ -10,24 +10,28 @@ export const useAuthMutations = () => {
 
   const signInMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      await authService.signIn(email, password);
+        try {
+            await authService.signIn(email, password);
+        } catch(error: any) {
+          console.error('❌ Sign in error:', error);
+            toast({
+              title: "Error signing in",
+                description: error.message,
+                variant: "destructive",
+            });
+             throw error;
+        }
+
+      
     },
     onSuccess: () => {
-      console.log('✅ Sign in successful, invalidating queries');
-      queryClient.invalidateQueries({ queryKey: ['auth-session'] });
-      navigate('/dashboard');
-      
+        console.log('✅ Sign in successful, invalidating queries');
+        queryClient.invalidateQueries({ queryKey: ['auth-session'] });
+        navigate('/dashboard');
+
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
-      });
-    },
-    onError: (error: Error) => {
-      console.error('❌ Sign in error:', error);
-      toast({
-        title: "Error signing in",
-        description: error.message,
-        variant: "destructive",
       });
     },
   });

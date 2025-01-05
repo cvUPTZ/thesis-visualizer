@@ -116,7 +116,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     },
     onSuccess: (data) => {
       console.log('✅ Sign in successful:', data);
-      queryClient.invalidateQueries({ queryKey: ['auth-session'] });
+       queryClient.setQueryData(['auth-session'], {
+        user: {
+            id: data.user.id,
+            email: data.user.email,
+            role: data.userRole,
+          },
+         isAuthenticated: true,
+       })
       navigate(data.userRole === 'admin' ? '/admin' : '/dashboard');
       toast({
         title: "Welcome back!",
@@ -125,6 +132,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     },
     onError: (error: Error) => {
       console.error('❌ Sign in mutation error:', error);
+       queryClient.setQueryData(['auth-session'], {
+        user: null,
+        isAuthenticated: false,
+       })
       toast({
         title: "Sign in error",
         description: error.message,
@@ -132,7 +143,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
     },
   });
-
   const signOutMutation = useMutation({
     mutationFn: async () => {
       console.log('🔄 Signing out...');
