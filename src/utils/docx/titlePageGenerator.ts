@@ -1,6 +1,6 @@
 import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, convertInchesToTwip } from 'docx';
 import { TitlePageOptions } from './types';
-import { styles } from './styleConfig';
+import { defaultStyles } from './styleConfig';
 
 export const generateTitlePage = ({ thesis, language = 'en' }: TitlePageOptions): Paragraph[] => {
   const { metadata } = thesis;
@@ -10,7 +10,7 @@ export const generateTitlePage = ({ thesis, language = 'en' }: TitlePageOptions)
   const titleSection = thesis.frontMatter.find(section => section.type === 'title');
   const titleText = titleSection?.content || 'Untitled Thesis';
 
-  // University Logo Space (if needed)
+  // University Logo Space
   paragraphs.push(
     new Paragraph({
       text: '',
@@ -25,7 +25,7 @@ export const generateTitlePage = ({ thesis, language = 'en' }: TitlePageOptions)
         text: metadata.universityName.toUpperCase(),
         alignment: AlignmentType.CENTER,
         spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(0.25) },
-        style: 'heading1',
+        style: 'title',
       })
     );
   }
@@ -37,7 +37,7 @@ export const generateTitlePage = ({ thesis, language = 'en' }: TitlePageOptions)
         text: metadata.departmentName,
         alignment: AlignmentType.CENTER,
         spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(1) },
-        style: 'heading2',
+        style: 'subtitle',
       })
     );
   }
@@ -58,12 +58,13 @@ export const generateTitlePage = ({ thesis, language = 'en' }: TitlePageOptions)
       text: 'A thesis submitted in partial fulfillment of the requirements for the degree of',
       alignment: AlignmentType.CENTER,
       spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(0.25) },
+      style: 'subtitle',
     }),
     new Paragraph({
       text: 'Doctor of Philosophy',
       alignment: AlignmentType.CENTER,
       spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(1) },
-      style: 'heading2',
+      style: 'subtitle',
     })
   );
 
@@ -74,12 +75,13 @@ export const generateTitlePage = ({ thesis, language = 'en' }: TitlePageOptions)
         text: 'by',
         alignment: AlignmentType.CENTER,
         spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.25) },
+        style: 'Normal',
       }),
       new Paragraph({
         text: metadata.authorName,
         alignment: AlignmentType.CENTER,
         spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(1) },
-        style: 'heading2',
+        style: 'subtitle',
       })
     );
   }
@@ -94,6 +96,7 @@ export const generateTitlePage = ({ thesis, language = 'en' }: TitlePageOptions)
         }),
         alignment: AlignmentType.CENTER,
         spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(1) },
+        style: 'Normal',
       })
     );
   }
@@ -105,7 +108,7 @@ export const generateTitlePage = ({ thesis, language = 'en' }: TitlePageOptions)
         text: 'Thesis Committee',
         alignment: AlignmentType.CENTER,
         spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.5) },
-        style: 'heading2',
+        style: 'subtitle',
       })
     );
 
@@ -115,6 +118,7 @@ export const generateTitlePage = ({ thesis, language = 'en' }: TitlePageOptions)
           text: member,
           alignment: AlignmentType.CENTER,
           spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
+          style: 'Normal',
         })
       );
     });

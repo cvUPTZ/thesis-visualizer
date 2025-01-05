@@ -5,9 +5,16 @@ const FONT_FAMILY = 'Times New Roman';
 const NORMAL_FONT_SIZE = 24; // 12pt
 const HEADING1_FONT_SIZE = 32; // 16pt
 const HEADING2_FONT_SIZE = 28; // 14pt
+const HEADING3_FONT_SIZE = 26; // 13pt
 const TITLE_FONT_SIZE = 36; // 18pt
 const LINE_SPACING = 480; // Double spacing (240 = single space)
 const PARAGRAPH_SPACING = 240; // 12pt
+const PAGE_MARGINS = {
+  top: convertInchesToTwip(1),
+  right: convertInchesToTwip(1),
+  bottom: convertInchesToTwip(1),
+  left: convertInchesToTwip(1.5), // Wider left margin for binding
+};
 
 // Preview formatting constants
 const PREVIEW_FONT_FAMILY = 'Arial';
@@ -46,6 +53,7 @@ export const defaultStyles: IStylesOptions = {
         },
         keepNext: true,
         keepLines: true,
+        pageBreakBefore: true,
       },
     },
     heading2: {
@@ -64,8 +72,62 @@ export const defaultStyles: IStylesOptions = {
         keepLines: true,
       },
     },
+    heading3: {
+      run: {
+        size: HEADING3_FONT_SIZE,
+        bold: true,
+        font: FONT_FAMILY,
+      },
+      paragraph: {
+        spacing: { 
+          before: PARAGRAPH_SPACING * 1.25,
+          after: PARAGRAPH_SPACING,
+          line: LINE_SPACING,
+        },
+        keepNext: true,
+      },
+    },
   },
   paragraphStyles: [
+    {
+      id: 'title',
+      name: 'Title',
+      basedOn: 'Normal',
+      next: 'Normal',
+      run: {
+        size: TITLE_FONT_SIZE,
+        bold: true,
+        font: FONT_FAMILY,
+      },
+      paragraph: {
+        spacing: { 
+          before: PARAGRAPH_SPACING * 2,
+          after: PARAGRAPH_SPACING * 2,
+          line: LINE_SPACING,
+        },
+        alignment: 'center',
+      },
+    },
+    {
+      id: 'subtitle',
+      name: 'Subtitle',
+      basedOn: 'Normal',
+      next: 'Normal',
+      run: {
+        size: HEADING1_FONT_SIZE,
+        bold: false,
+        font: FONT_FAMILY,
+        italics: true,
+      },
+      paragraph: {
+        spacing: { 
+          before: PARAGRAPH_SPACING,
+          after: PARAGRAPH_SPACING * 2,
+          line: LINE_SPACING,
+        },
+        alignment: 'center',
+      },
+    },
     {
       id: 'blockquote',
       name: 'Block Quote',
@@ -105,6 +167,40 @@ export const defaultStyles: IStylesOptions = {
           after: PARAGRAPH_SPACING,
         },
         alignment: 'center',
+      },
+    },
+    {
+      id: 'header',
+      name: 'Header',
+      basedOn: 'Normal',
+      next: 'Normal',
+      run: {
+        size: NORMAL_FONT_SIZE - 2,
+        font: FONT_FAMILY,
+      },
+      paragraph: {
+        spacing: { 
+          line: 240,
+          before: 0,
+          after: 0,
+        },
+      },
+    },
+    {
+      id: 'footer',
+      name: 'Footer',
+      basedOn: 'Normal',
+      next: 'Normal',
+      run: {
+        size: NORMAL_FONT_SIZE - 2,
+        font: FONT_FAMILY,
+      },
+      paragraph: {
+        spacing: { 
+          line: 240,
+          before: 0,
+          after: 0,
+        },
       },
     },
   ],
