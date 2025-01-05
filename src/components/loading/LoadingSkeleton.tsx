@@ -6,7 +6,7 @@ export const LoadingSkeleton = () => (
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
-    className="min-h-screen bg-gray-50 p-8"
+    className="min-h-screen bg-background p-8"
   >
     <div className="container mx-auto space-y-8">
       <LoadingProgress />
@@ -17,10 +17,13 @@ export const LoadingSkeleton = () => (
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: i * 0.1 }}
-            className="bg-white rounded-lg p-6 shadow-lg"
+            className="bg-card rounded-lg p-6 shadow-lg"
           >
-            <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-4" />
-            <div className="h-8 w-16 bg-gray-300 rounded animate-pulse" />
+            <div className="space-y-4">
+              <div className="h-4 w-24 bg-muted rounded animate-pulse" />
+              <div className="h-8 w-16 bg-muted rounded animate-pulse" />
+              <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+            </div>
           </motion.div>
         ))}
       </div>

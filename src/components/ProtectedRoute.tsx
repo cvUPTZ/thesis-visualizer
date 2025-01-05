@@ -1,48 +1,34 @@
-import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: string;
 }
 
-const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
-  const { isAuthenticated, loading, userRole } = useAuth();
-  const [showLoading, setShowLoading] = useState(true);
-  
-  console.log('🔒 Protected Route Check:', { isAuthenticated, loading, userRole });
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { userId, loading } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
-    // Only show loading state for 2 seconds max
-    const timer = setTimeout(() => {
-      setShowLoading(false);
-    }, 2000);
+    console.log('🔒 Protected route check:', {
+      path: location.pathname,
+      userId,
+      loading
+    });
+  }, [location.pathname, userId, loading]);
 
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (loading && showLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+  if (loading) {
+    console.log('⌛ Loading protected route...');
+    return <LoadingSkeleton />;
   }
 
-  if (!isAuthenticated) {
-    console.log('❌ Access denied: User not authenticated');
-    return <Navigate to="/auth" replace />;
+  if (!userId) {
+    console.log('❌ No user found, redirecting to welcome page');
+    return <Navigate to="/welcome" state={{ from: location }} replace />;
   }
 
-  if (requiredRole && userRole !== requiredRole) {
-    console.log('❌ Access denied: Insufficient permissions');
-    return <Navigate to="/" replace />;
-  }
-
-  console.log('✅ Access granted to protected route');
+  console.log('✅ User authenticated, rendering protected route');
   return <>{children}</>;
 };
-
-export default ProtectedRoute;
