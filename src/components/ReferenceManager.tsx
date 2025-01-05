@@ -17,9 +17,9 @@ export const ReferenceManager: React.FC<ReferenceManagerProps> = ({
   onUpdate
 }) => {
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-serif font-medium text-primary">References</h3>
+    <div className="editor-manager-card">
+      <div className="editor-manager-header">
+        <h3 className="editor-manager-title">References</h3>
         <ReferenceDialog onAddReference={onAdd} />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

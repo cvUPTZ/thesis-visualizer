@@ -32,8 +32,8 @@ export const EditorSection: React.FC<SectionProps> = ({
   };
 
   return (
-    <div className="editor-section animate-fade-in bg-editor-gradient">
-      <div className="editor-content space-y-6">
+    <div className="editor-section">
+      <div className="space-y-6">
         <SectionHeader
           title={section.title}
           required={section.required}

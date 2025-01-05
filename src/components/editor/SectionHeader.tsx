@@ -12,18 +12,21 @@ export const SectionHeader = ({ title, required, onTitleChange }: SectionHeaderP
   console.log('Rendering SectionHeader:', { title, required });
   
   return (
-    <div className="flex items-center gap-3">
-      <Input
-        value={title}
-        onChange={(e) => onTitleChange(e.target.value)}
-        className="text-xl font-serif border-none bg-transparent px-0 focus-visible:ring-0 text-editor-text placeholder:text-editor-placeholder"
-        placeholder="Section Title"
-      />
-      {required && (
-        <Badge variant="secondary" className="bg-editor-accent/10 text-editor-accent">
-          Required
-        </Badge>
-      )}
+    <div className="editor-header">
+      <div className="flex items-center gap-3">
+        <Input
+          value={title}
+          onChange={(e) => onTitleChange(e.target.value)}
+          className="text-xl font-serif border-none bg-transparent px-0 focus-visible:ring-0 
+                     text-editor-text placeholder:text-editor-placeholder"
+          placeholder="Section Title"
+        />
+        {required && (
+          <Badge variant="secondary" className="bg-editor-accent/10 text-editor-accent">
+            Required
+          </Badge>
+        )}
+      </div>
     </div>
   );
 };
