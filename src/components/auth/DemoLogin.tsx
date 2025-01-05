@@ -11,11 +11,13 @@ export const DemoLogin = () => {
     try {
       console.log('🔑 Starting demo login process...');
       
-      // Try to get user by email first
-      const { data: userData, error: userError } = await supabase.auth.admin
-        .getUserByEmail('demo.user@thesisvisualizer.com');
-      
-      if (userError || !userData) {
+      // Try to sign in with demo credentials first
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: 'demo.user@thesisvisualizer.com',
+        password: 'demo123456'
+      });
+
+      if (signInError) {
         console.log('🆕 Demo user not found, creating account...');
         // Create new demo account
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -33,22 +35,21 @@ export const DemoLogin = () => {
           throw signUpError;
         }
 
+        // Try to sign in again after creating the account
+        const { error: secondSignInError } = await supabase.auth.signInWithPassword({
+          email: 'demo.user@thesisvisualizer.com',
+          password: 'demo123456'
+        });
+
+        if (secondSignInError) {
+          console.error('❌ Second sign in attempt failed:', secondSignInError);
+          throw secondSignInError;
+        }
+
         toast({
           title: "Demo Account Created",
           description: "You can now use the demo account to explore the app.",
         });
-      }
-
-      // Sign in with demo credentials
-      console.log('🔑 Attempting demo login...');
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: 'demo.user@thesisvisualizer.com',
-        password: 'demo123456'
-      });
-
-      if (signInError) {
-        console.error('❌ Demo login error:', signInError);
-        throw signInError;
       }
 
       console.log('✅ Demo login successful');
