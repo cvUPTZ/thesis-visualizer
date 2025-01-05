@@ -1,4 +1,4 @@
-import { Document, Paragraph, TextRun, HeadingLevel, TableOfContents, StyleLevel, convertInchesToTwip } from 'docx';
+import { Document, Paragraph, TextRun, HeadingLevel, TableOfContents, StyleLevel, convertInchesToTwip, Header, Footer } from 'docx';
 import { ContentGenerationOptions } from './types';
 import { defaultStyles, previewStyles } from './styleConfig';
 
@@ -31,6 +31,19 @@ export const generateContent = ({ thesis, isPreview = false }: ContentGeneration
   const paragraphs: Paragraph[] = [];
   const styles = isPreview ? previewStyles : defaultStyles;
 
+  // Add header
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: thesis.metadata?.title || "Thesis Title",
+          size: 20,
+        }),
+      ],
+      style: 'header',
+    })
+  );
+
   // Front Matter with proper spacing and styling
   thesis.frontMatter.forEach(section => {
     if (section.type !== 'title') {
@@ -38,8 +51,6 @@ export const generateContent = ({ thesis, isPreview = false }: ContentGeneration
         new Paragraph({
           text: section.title,
           heading: HeadingLevel.HEADING_1,
-          pageBreakBefore: true,
-          spacing: styles.default.heading1.paragraph.spacing,
           style: 'heading 1',
         }),
         new Paragraph({
@@ -140,6 +151,23 @@ export const generateContent = ({ thesis, isPreview = false }: ContentGeneration
       })
     );
   });
+
+  // Add footer with page number
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          children: [
+            TextRun.pageNumber(),
+            new TextRun(" of "),
+            TextRun.numberOfTotalPages(),
+          ],
+        }),
+      ],
+      style: 'footer',
+      alignment: 'center',
+    })
+  );
 
   return paragraphs;
 };

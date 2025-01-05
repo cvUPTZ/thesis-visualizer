@@ -16,14 +16,6 @@ const PAGE_MARGINS = {
   left: convertInchesToTwip(1.5), // Wider left margin for binding
 };
 
-// Preview formatting constants
-const PREVIEW_FONT_FAMILY = 'Arial';
-const PREVIEW_NORMAL_FONT_SIZE = 24;
-const PREVIEW_HEADING1_FONT_SIZE = 32;
-const PREVIEW_HEADING2_FONT_SIZE = 28;
-const PREVIEW_LINE_SPACING = 360;
-const PREVIEW_PARAGRAPH_SPACING = 240;
-
 export const defaultStyles: IStylesOptions = {
   default: {
     document: {
@@ -53,7 +45,6 @@ export const defaultStyles: IStylesOptions = {
         },
         keepNext: true,
         keepLines: true,
-        pageBreakBefore: true,
       },
     },
     heading2: {
@@ -89,6 +80,56 @@ export const defaultStyles: IStylesOptions = {
     },
   },
   paragraphStyles: [
+    {
+      id: 'header',
+      name: 'Header',
+      basedOn: 'Normal',
+      next: 'Normal',
+      run: {
+        size: NORMAL_FONT_SIZE - 2,
+        font: FONT_FAMILY,
+      },
+      paragraph: {
+        spacing: { 
+          line: 240,
+          before: 0,
+          after: 0,
+        },
+        border: {
+          bottom: {
+            color: "auto",
+            space: 1,
+            value: "single",
+            size: 6
+          }
+        }
+      },
+    },
+    {
+      id: 'footer',
+      name: 'Footer',
+      basedOn: 'Normal',
+      next: 'Normal',
+      run: {
+        size: NORMAL_FONT_SIZE - 2,
+        font: FONT_FAMILY,
+      },
+      paragraph: {
+        spacing: { 
+          line: 240,
+          before: 0,
+          after: 0,
+        },
+        border: {
+          top: {
+            color: "auto",
+            space: 1,
+            value: "single",
+            size: 6
+          }
+        }
+      },
+    },
     {
       id: 'title',
       name: 'Title',
@@ -169,42 +210,16 @@ export const defaultStyles: IStylesOptions = {
         alignment: 'center',
       },
     },
-    {
-      id: 'header',
-      name: 'Header',
-      basedOn: 'Normal',
-      next: 'Normal',
-      run: {
-        size: NORMAL_FONT_SIZE - 2,
-        font: FONT_FAMILY,
-      },
-      paragraph: {
-        spacing: { 
-          line: 240,
-          before: 0,
-          after: 0,
-        },
-      },
-    },
-    {
-      id: 'footer',
-      name: 'Footer',
-      basedOn: 'Normal',
-      next: 'Normal',
-      run: {
-        size: NORMAL_FONT_SIZE - 2,
-        font: FONT_FAMILY,
-      },
-      paragraph: {
-        spacing: { 
-          line: 240,
-          before: 0,
-          after: 0,
-        },
-      },
-    },
   ],
 };
+
+// Preview formatting constants
+const PREVIEW_FONT_FAMILY = 'Arial';
+const PREVIEW_NORMAL_FONT_SIZE = 24;
+const PREVIEW_HEADING1_FONT_SIZE = 32;
+const PREVIEW_HEADING2_FONT_SIZE = 28;
+const PREVIEW_LINE_SPACING = 360;
+const PREVIEW_PARAGRAPH_SPACING = 240;
 
 export const previewStyles: IStylesOptions = {
   default: {
