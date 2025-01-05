@@ -8,6 +8,7 @@ import { useAuthFlow } from "@/hooks/useAuthFlow";
 import { DemoLogin } from "@/components/auth/DemoLogin";
 import { AuthDivider } from "@/components/auth/AuthDivider";
 import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -18,6 +19,7 @@ const Auth = () => {
   const [emailAuthEnabled] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authSuccess, setAuthSuccess] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -44,7 +46,12 @@ const Auth = () => {
         
         if (session?.user) {
           console.log('✅ Active session found, redirecting to dashboard');
-          if (mounted) navigate('/dashboard');
+          setAuthSuccess(true);
+          if (mounted) {
+            setTimeout(() => {
+              navigate('/dashboard');
+            }, 1000); // Short delay to show success message
+          }
         }
       } catch (err: any) {
         console.error('❌ Error checking session:', err);
@@ -67,7 +74,10 @@ const Auth = () => {
 
       if (event === 'SIGNED_IN' && session) {
         console.log('✅ User signed in:', session.user.email);
-        navigate('/dashboard');
+        setAuthSuccess(true);
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000); // Short delay to show success message
       }
     });
 
@@ -87,7 +97,7 @@ const Auth = () => {
         <Card className="w-full max-w-md mx-4">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-4">
-              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-muted-foreground">Checking authentication...</p>
             </div>
           </CardContent>
@@ -108,6 +118,13 @@ const Auth = () => {
           {(error || authError) && (
             <Alert variant="destructive" className="mb-4">
               <AlertDescription>{error || authError}</AlertDescription>
+            </Alert>
+          )}
+          {authSuccess && (
+            <Alert className="mb-4 bg-green-50 border-green-200">
+              <AlertDescription className="text-green-800">
+                Successfully authenticated! Redirecting...
+              </AlertDescription>
             </Alert>
           )}
           {!emailAuthEnabled ? (
