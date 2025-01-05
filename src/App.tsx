@@ -18,19 +18,47 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      <LanguageProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <LanguageProvider>
           <Routes>
             <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
             <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
-            <Route path="/dashboard" element={<AuthGuard><Index /></AuthGuard>} />
-            <Route path="/admin" element={<AuthGuard requiredRole="admin"><AdminPanel /></AuthGuard>} />
-            <Route path="/create-thesis" element={<AuthGuard><CreateThesis /></AuthGuard>} />
-            <Route path="/thesis/:thesisId" element={<AuthGuard><ThesisEditor /></AuthGuard>} />
+            <Route 
+              path="/dashboard" 
+              element={
+                <AuthGuard>
+                  <Index />
+                </AuthGuard>
+              } 
+            />
+            <Route 
+              path="/admin" 
+              element={
+                <AuthGuard requiredRole="admin">
+                  <AdminPanel />
+                </AuthGuard>
+              } 
+            />
+            <Route 
+              path="/create-thesis" 
+              element={
+                <AuthGuard>
+                  <CreateThesis />
+                </AuthGuard>
+              } 
+            />
+            <Route 
+              path="/thesis/:thesisId" 
+              element={
+                <AuthGuard>
+                  <ThesisEditor />
+                </AuthGuard>
+              } 
+            />
           </Routes>
           <Toaster />
-        </AuthProvider>
-      </LanguageProvider>
+        </LanguageProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 };
