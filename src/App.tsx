@@ -1,5 +1,4 @@
-// App.tsx
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AuthGuard } from '@/components/auth/AuthGuard';
@@ -20,20 +19,20 @@ function App() {
       <AuthProvider>
         <Routes>
           {/* Public routes */}
-          <Route element={<PublicRoute />}>
+          <Route element={<PublicRoute><Outlet /></PublicRoute>}>
             <Route path="/" element={<LandingPage />} />
             <Route path="/auth" element={<Auth />} />
           </Route>
 
           {/* Protected routes */}
-          <Route element={<AuthGuard />}>
+          <Route element={<AuthGuard><Outlet /></AuthGuard>}>
             <Route path="/dashboard" element={<Index />} />
             <Route path="/create-thesis" element={<CreateThesis />} />
             <Route path="/thesis/:thesisId" element={<ThesisEditor />} />
           </Route>
 
           {/* Admin routes */}
-          <Route element={<AuthGuard requiredRole="admin" />}>
+          <Route element={<AuthGuard requiredRole="admin"><Outlet /></AuthGuard>}>
             <Route path="/admin" element={<AdminPanel />} />
           </Route>
 
