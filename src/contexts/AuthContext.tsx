@@ -129,8 +129,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Welcome back!",
         description: "Successfully signed in.",
       });
-      // Reload the page after successful sign-in
-      window.location.reload();
+      // Force a page reload after successful sign-in
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     },
     onError: (error: Error) => {
       console.error('❌ Sign in mutation error:', error);
