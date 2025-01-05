@@ -197,7 +197,8 @@ const styles = `
   }
 `;
 
-export default function EnhancedThesisVisualization() {
+// Change the export to be a default export
+export default function ThesisVisualization() {
   const [hoveredSection, setHoveredSection] = useState<number | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [activeView, setActiveView] = useState<'progress' | 'timeline' | 'collaboration'>('progress');

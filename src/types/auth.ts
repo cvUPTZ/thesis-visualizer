@@ -1,6 +1,6 @@
 export type User = {
   id: string;
-  email?: string; // Made optional to match Supabase User type
+  email?: string | null;
   role: string | null;
 };
 
