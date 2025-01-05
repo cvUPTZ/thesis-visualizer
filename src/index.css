@@ -58,13 +58,52 @@
   * {
     @apply border-border;
   }
+  
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    @apply antialiased;
+  }
+  
   body {
-    @apply bg-background text-foreground antialiased font-sans;
+    @apply bg-background text-foreground font-sans;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
+  
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif;
+    @apply font-serif tracking-tight;
     font-family: 'Merriweather', serif;
+  }
+  
+  h1 {
+    @apply text-4xl font-bold md:text-5xl;
+  }
+  
+  h2 {
+    @apply text-3xl font-bold md:text-4xl;
+  }
+  
+  h3 {
+    @apply text-2xl font-bold md:text-3xl;
+  }
+  
+  h4 {
+    @apply text-xl font-bold md:text-2xl;
+  }
+  
+  h5 {
+    @apply text-lg font-bold md:text-xl;
+  }
+  
+  h6 {
+    @apply text-base font-bold md:text-lg;
+  }
+  
+  p {
+    @apply text-base leading-relaxed;
+  }
+  
+  small {
+    @apply text-sm;
   }
 }
 
@@ -107,4 +146,32 @@
 .prose h6 {
   @apply font-serif;
   font-family: 'Merriweather', serif;
+}
+
+/* Dark mode specific text styles */
+.dark {
+  .text-primary {
+    @apply text-white;
+  }
+  
+  .text-secondary {
+    @apply text-gray-300;
+  }
+  
+  .text-muted {
+    @apply text-gray-400;
+  }
+}
+
+/* Light mode specific text styles */
+.text-primary {
+  @apply text-gray-900;
+}
+
+.text-secondary {
+  @apply text-gray-700;
+}
+
+.text-muted {
+  @apply text-gray-500;
 }

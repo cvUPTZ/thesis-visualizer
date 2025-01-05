@@ -59,3 +59,34 @@
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* Dark mode specific styles */
+.dark .thesis-page {
+  background: #1A1F2C;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .thesis-content {
+  color: #FFFFFF;
+}
+
+/* Typography styles */
+.thesis-content h1,
+.thesis-content h2,
+.thesis-content h3,
+.thesis-content h4,
+.thesis-content h5,
+.thesis-content h6 {
+  font-family: 'Merriweather', serif;
+  color: inherit;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.thesis-content p,
+.thesis-content ul,
+.thesis-content ol {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin-bottom: 1em;
+  line-height: 1.8;
+}
