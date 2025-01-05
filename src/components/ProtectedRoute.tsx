@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,18 +10,23 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { isAuthenticated, loading, userRole } = useAuth();
+  const [showLoading, setShowLoading] = useState(true);
   
   console.log('🔒 Protected Route Check:', { isAuthenticated, loading, userRole });
 
-  // Only show loading state for a brief moment
-  if (loading) {
+  useEffect(() => {
+    // Only show loading state for 2 seconds max
+    const timer = setTimeout(() => {
+      setShowLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading && showLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="w-full max-w-md space-y-4">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-12 w-2/3" />
-        </div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }

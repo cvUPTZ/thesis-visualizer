@@ -54,14 +54,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // Set a timeout to prevent infinite loading
+    // Set a shorter timeout to prevent long loading states
     timeoutId = setTimeout(() => {
       if (mounted && loading) {
         console.log('⚠️ Auth check timed out, resetting state...');
         setLoading(false);
         setInitialized(true);
       }
-    }, 5000); // 5 second timeout
+    }, 3000); // 3 second timeout
 
     checkUser();
 
@@ -112,7 +112,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   };
 
-  // Show loading spinner for max 5 seconds
   if (!initialized) {
     return <div className="flex items-center justify-center min-h-screen">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
