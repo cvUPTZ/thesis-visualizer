@@ -1,7 +1,6 @@
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from '@/contexts/AuthContext';
-import { LanguageProvider } from '@/contexts/LanguageContext';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { PublicRoute } from '@/components/auth/PublicRoute';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -12,40 +11,24 @@ import AdminPanel from '@/pages/AdminPanel';
 import CreateThesis from '@/pages/CreateThesis';
 import { ThesisEditor } from '@/components/ThesisEditor';
 
-function App() {
+const App = () => {
   console.log('🔄 App component rendering...');
- 
+
   return (
     <ErrorBoundary>
-      <LanguageProvider>
-        <AuthProvider>
-          <Routes>
-            {/* Public routes */}
-            <Route element={<PublicRoute><Outlet /></PublicRoute>}>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/auth" element={<Auth />} />
-            </Route>
-
-            {/* Protected routes */}
-            <Route element={<AuthGuard><Outlet /></AuthGuard>}>
-              <Route path="/dashboard" element={<Index />} />
-              <Route path="/create-thesis" element={<CreateThesis />} />
-              <Route path="/thesis/:thesisId" element={<ThesisEditor />} />
-            </Route>
-
-            {/* Admin routes */}
-            <Route element={<AuthGuard requiredRole="admin"><Outlet /></AuthGuard>}>
-              <Route path="/admin" element={<AdminPanel />} />
-            </Route>
-
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-          <Toaster />
-        </AuthProvider>
-      </LanguageProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
+          <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+          <Route path="/dashboard" element={<AuthGuard><Index /></AuthGuard>} />
+          <Route path="/admin" element={<AuthGuard><AdminPanel /></AuthGuard>} />
+          <Route path="/create-thesis" element={<AuthGuard><CreateThesis /></AuthGuard>} />
+          <Route path="/thesis/:thesisId" element={<AuthGuard><ThesisEditor /></AuthGuard>} />
+        </Routes>
+      </Router>
+      <Toaster />
     </ErrorBoundary>
   );
-}
+};
 
 export default App;
