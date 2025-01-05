@@ -8,7 +8,6 @@ import AdminPanel from '@/pages/AdminPanel';
 import CreateThesis from '@/pages/CreateThesis';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { PublicRoute } from '@/components/auth/PublicRoute';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { ThesisEditor } from '@/components/ThesisEditor';
 
 function App() {
@@ -17,61 +16,59 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
-        <AuthProvider>
-          <Routes>
-            {/* Public routes */}
-            <Route 
-              path="/" 
-              element={<LandingPage />}
-            />
-            <Route 
-              path="/auth" 
-              element={
-                <PublicRoute>
-                  <Auth />
-                </PublicRoute>
-              } 
-            />
+        <Routes>
+          {/* Public routes */}
+          <Route 
+            path="/" 
+            element={<LandingPage />}
+          />
+          <Route 
+            path="/auth" 
+            element={
+              <PublicRoute>
+                <Auth />
+              </PublicRoute>
+            } 
+          />
 
-            {/* Protected routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <AuthGuard>
-                  <Index />
-                </AuthGuard>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <AuthGuard requiredRole="admin">
-                  <AdminPanel />
-                </AuthGuard>
-              }
-            />
-            <Route
-              path="/create-thesis"
-              element={
-                <AuthGuard>
-                  <CreateThesis />
-                </AuthGuard>
-              }
-            />
-            <Route
-              path="/thesis/:thesisId"
-              element={
-                <AuthGuard>
-                  <ThesisEditor />
-                </AuthGuard>
-              }
-            />
+          {/* Protected routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <AuthGuard>
+                <Index />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AuthGuard requiredRole="admin">
+                <AdminPanel />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/create-thesis"
+            element={
+              <AuthGuard>
+                <CreateThesis />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/thesis/:thesisId"
+            element={
+              <AuthGuard>
+                <ThesisEditor />
+              </AuthGuard>
+            }
+          />
 
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-          <Toaster />
-        </AuthProvider>
+          {/* Catch all route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <Toaster />
       </Router>
     </ErrorBoundary>
   );

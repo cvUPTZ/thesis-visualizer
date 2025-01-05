@@ -14,6 +14,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  console.log('🔄 AuthProvider rendering...');
   const { data: authData, isLoading } = useAuthSession();
   const { signIn, signOut } = useAuthMutations();
 
@@ -23,13 +24,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     userEmail: authData?.user?.email ?? null,
     userRole: authData?.user?.role ?? null,
     isLoading,
-    isAuthenticated: authData?.isAuthenticated ?? false,
+    isAuthenticated: !!authData?.user,
     signIn,
-    signOut,
-    refreshSession: async () => {
-      // Implement if needed
-    },
+    signOut
   };
+
+  console.log('👤 Auth context value:', { 
+    isAuthenticated: value.isAuthenticated,
+    userRole: value.userRole,
+    isLoading: value.isLoading 
+  });
 
   return (
     <AuthContext.Provider value={value}>

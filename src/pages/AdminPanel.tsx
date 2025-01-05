@@ -15,12 +15,30 @@ import { Settings, Users, Flag, BookOpen, LayoutDashboard, LogOut } from 'lucide
 const AdminPanel = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { isAuthenticated, userRole, logout } = useAuth();
+  const { isAuthenticated, userRole, signOut } = useAuth();
 
   if (!isAuthenticated || userRole !== 'admin') {
     navigate('/auth');
     return null;
   }
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account.",
+      });
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast({
+        title: "Error logging out",
+        description: "There was a problem logging out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#1A1F2C] text-white">
@@ -39,7 +57,7 @@ const AdminPanel = () => {
               Back to Main
             </Button>
             <Button 
-              onClick={logout} 
+              onClick={handleLogout} 
               variant="outline"
               className="bg-[#2A2F3C]/50 border-[#7E69AB] text-[#D6BCFA] hover:bg-[#2A2F3C]/80 gap-2"
             >
