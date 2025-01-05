@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -20,16 +20,14 @@ const App = () => {
     <ErrorBoundary>
       <LanguageProvider>
         <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
-              <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
-              <Route path="/dashboard" element={<AuthGuard><Index /></AuthGuard>} />
-              <Route path="/admin" element={<AuthGuard requiredRole="admin"><AdminPanel /></AuthGuard>} />
-              <Route path="/create-thesis" element={<AuthGuard><CreateThesis /></AuthGuard>} />
-              <Route path="/thesis/:thesisId" element={<AuthGuard><ThesisEditor /></AuthGuard>} />
-            </Routes>
-          </Router>
+          <Routes>
+            <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
+            <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+            <Route path="/dashboard" element={<AuthGuard><Index /></AuthGuard>} />
+            <Route path="/admin" element={<AuthGuard requiredRole="admin"><AdminPanel /></AuthGuard>} />
+            <Route path="/create-thesis" element={<AuthGuard><CreateThesis /></AuthGuard>} />
+            <Route path="/thesis/:thesisId" element={<AuthGuard><ThesisEditor /></AuthGuard>} />
+          </Routes>
           <Toaster />
         </AuthProvider>
       </LanguageProvider>
