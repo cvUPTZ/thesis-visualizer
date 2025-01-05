@@ -6,32 +6,10 @@ import Auth from '@/pages/Auth';
 import Index from '@/pages/Index';
 import AdminPanel from '@/pages/AdminPanel';
 import CreateThesis from '@/pages/CreateThesis';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { AuthGuard } from '@/components/auth/AuthGuard';
+import { PublicRoute } from '@/components/auth/PublicRoute';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
-import { useAuth } from '@/contexts/AuthContext';
 import { ThesisEditor } from '@/components/ThesisEditor';
-
-// Public route wrapper component
-const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading, userRole } = useAuth();
-  
-  console.log('🔍 PublicRoute - Auth state:', { isAuthenticated, isLoading, userRole });
-
-  if (isLoading) {
-    return <LoadingSkeleton />;
-  }
-
-  if (isAuthenticated) {
-    console.log('✅ User is authenticated, redirecting based on role:', userRole);
-    if (userRole === 'admin') {
-      return <Navigate to="/admin" replace />;
-    }
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return <>{children}</>;
-};
 
 function App() {
   console.log('🔄 App component rendering...');
@@ -59,33 +37,33 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute>
+                <AuthGuard>
                   <Index />
-                </ProtectedRoute>
+                </AuthGuard>
               }
             />
             <Route
               path="/admin"
               element={
-                <ProtectedRoute requiredRole="admin">
+                <AuthGuard requiredRole="admin">
                   <AdminPanel />
-                </ProtectedRoute>
+                </AuthGuard>
               }
             />
             <Route
               path="/create-thesis"
               element={
-                <ProtectedRoute>
+                <AuthGuard>
                   <CreateThesis />
-                </ProtectedRoute>
+                </AuthGuard>
               }
             />
             <Route
               path="/thesis/:thesisId"
               element={
-                <ProtectedRoute>
+                <AuthGuard>
                   <ThesisEditor />
-                </ProtectedRoute>
+                </AuthGuard>
               }
             />
 

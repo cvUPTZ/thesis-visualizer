@@ -4,6 +4,11 @@ export interface User {
   role: string | null;
 }
 
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+}
+
 export interface AuthContextType {
   user: User | null;
   userId: string | null;
@@ -14,5 +19,4 @@ export interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
-  logout: () => Promise<void>;
 }
