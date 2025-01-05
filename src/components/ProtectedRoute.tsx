@@ -13,6 +13,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   
   console.log('🔒 Protected Route Check:', { isAuthenticated, loading, userRole });
 
+  // Only show loading state for a brief moment
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">

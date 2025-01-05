@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     console.log('🔄 Initializing auth context...');
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
     
     const checkUser = async () => {
       try {
@@ -25,7 +26,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUserId(session.user.id);
           setUserEmail(session.user.email);
           
-          // Fetch user role from profiles table
           const { data: profile } = await supabase
             .from('profiles')
             .select('roles (name)')
@@ -54,18 +54,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
+    // Set a timeout to prevent infinite loading
+    timeoutId = setTimeout(() => {
+      if (mounted && loading) {
+        console.log('⚠️ Auth check timed out, resetting state...');
+        setLoading(false);
+        setInitialized(true);
+      }
+    }, 5000); // 5 second timeout
+
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('🔄 Auth state changed:', event, session?.user?.email);
+        clearTimeout(timeoutId);
         
         if (session && mounted) {
           setUserId(session.user.id);
           setUserEmail(session.user.email);
           console.log('✅ User signed in:', session.user.email);
           
-          // Fetch user role when auth state changes
           const { data: profile } = await supabase
             .from('profiles')
             .select('roles (name)')
@@ -91,6 +100,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       console.log('🧹 Cleaning up auth context...');
       mounted = false;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, []);
@@ -102,7 +112,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   };
 
-  // Don't render anything until we've initialized
+  // Show loading spinner for max 5 seconds
   if (!initialized) {
     return <div className="flex items-center justify-center min-h-screen">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
