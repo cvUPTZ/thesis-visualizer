@@ -9,8 +9,6 @@ import {
   AlignmentType,
   Header,
   Footer,
-  NumberFormat,
-  PageNumberType,
 } from 'docx';
 import { Thesis } from '@/types/thesis';
 import { generateTitlePage } from './docx/titlePageGenerator';
@@ -22,7 +20,23 @@ const PAGE_MARGINS = {
   top: convertInchesToTwip(1),
   right: convertInchesToTwip(1),
   bottom: convertInchesToTwip(1),
-  left: convertInchesToTwip(1.5), // Wider left margin for binding
+  left: convertInchesToTwip(1.5),
+};
+
+const createPageNumberParagraph = (): Paragraph => {
+  return new Paragraph({
+    children: [
+      new TextRun("Page "),
+      new TextRun({
+        children: ["PAGE"],
+      }),
+      new TextRun(" of "),
+      new TextRun({
+        children: ["NUMPAGES"],
+      }),
+    ],
+    alignment: AlignmentType.CENTER,
+  });
 };
 
 export const generateThesisDocx = async (thesis: Thesis) => {
@@ -44,97 +58,47 @@ export const generateThesisDocx = async (thesis: Thesis) => {
     children: generateTitlePage({ thesis }),
   });
 
-  // Table of Contents
-  sections.push({
-    properties: {
-      page: {
-        margin: PAGE_MARGINS,
+  // Table of Contents and Content sections
+  [
+    {
+      title: "Table of Contents",
+      content: [
+        new Paragraph({
+          text: "Table of Contents",
+          heading: HeadingLevel.HEADING_1,
+          spacing: { before: 240, after: 240 },
+        }),
+        generateTableOfContents(),
+      ],
+    },
+    {
+      title: thesis.frontMatter[0]?.title || "Untitled Thesis",
+      content: generateContent({ thesis, isPreview: false }),
+    },
+  ].forEach(section => {
+    sections.push({
+      properties: {
+        page: {
+          margin: PAGE_MARGINS,
+        },
       },
-    },
-    headers: {
-      default: new Header({
-        children: [
-          new Paragraph({
-            text: thesis.frontMatter[0]?.title || "Untitled Thesis",
-            alignment: AlignmentType.CENTER,
-          }),
-        ],
-      }),
-    },
-    footers: {
-      default: new Footer({
-        children: [
-          new Paragraph({
-            children: [
-              new TextRun("Page "),
-              new TextRun({
-                children: ["PAGE"],
-                numberFormat: NumberFormat.DECIMAL,
-                pageNumberType: PageNumberType.CURRENT,
-              }),
-              new TextRun(" of "),
-              new TextRun({
-                children: ["NUMPAGES"],
-                numberFormat: NumberFormat.DECIMAL,
-                pageNumberType: PageNumberType.TOTAL_PAGES,
-              }),
-            ],
-            alignment: AlignmentType.CENTER,
-          }),
-        ],
-      }),
-    },
-    children: [
-      new Paragraph({
-        text: "Table of Contents",
-        heading: HeadingLevel.HEADING_1,
-        spacing: { before: 240, after: 240 },
-      }),
-      generateTableOfContents(),
-    ],
-  });
-
-  // Content
-  sections.push({
-    properties: {
-      page: {
-        margin: PAGE_MARGINS,
+      headers: {
+        default: new Header({
+          children: [
+            new Paragraph({
+              text: section.title,
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+        }),
       },
-    },
-    headers: {
-      default: new Header({
-        children: [
-          new Paragraph({
-            text: thesis.frontMatter[0]?.title || "Untitled Thesis",
-            alignment: AlignmentType.CENTER,
-          }),
-        ],
-      }),
-    },
-    footers: {
-      default: new Footer({
-        children: [
-          new Paragraph({
-            children: [
-              new TextRun("Page "),
-              new TextRun({
-                children: ["PAGE"],
-                numberFormat: NumberFormat.DECIMAL,
-                pageNumberType: PageNumberType.CURRENT,
-              }),
-              new TextRun(" of "),
-              new TextRun({
-                children: ["NUMPAGES"],
-                numberFormat: NumberFormat.DECIMAL,
-                pageNumberType: PageNumberType.TOTAL_PAGES,
-              }),
-            ],
-            alignment: AlignmentType.CENTER,
-          }),
-        ],
-      }),
-    },
-    children: generateContent({ thesis, isPreview: false }),
+      footers: {
+        default: new Footer({
+          children: [createPageNumberParagraph()],
+        }),
+      },
+      children: section.content,
+    });
   });
 
   const doc = new Document({
@@ -212,23 +176,7 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
     footers: {
       default: new Footer({
         children: [
-          new Paragraph({
-            children: [
-              new TextRun("Page "),
-              new TextRun({
-                children: ["PAGE"],
-                numberFormat: NumberFormat.DECIMAL,
-                pageNumberType: PageNumberType.CURRENT,
-              }),
-              new TextRun(" of "),
-              new TextRun({
-                children: ["NUMPAGES"],
-                numberFormat: NumberFormat.DECIMAL,
-                pageNumberType: PageNumberType.TOTAL_PAGES,
-              }),
-            ],
-            alignment: AlignmentType.CENTER,
-          }),
+          createPageNumberParagraph(),
         ],
       }),
     },
@@ -267,23 +215,7 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
     footers: {
       default: new Footer({
         children: [
-          new Paragraph({
-            children: [
-              new TextRun("Page "),
-              new TextRun({
-                children: ["PAGE"],
-                numberFormat: NumberFormat.DECIMAL,
-                pageNumberType: PageNumberType.CURRENT,
-              }),
-              new TextRun(" of "),
-              new TextRun({
-                children: ["NUMPAGES"],
-                numberFormat: NumberFormat.DECIMAL,
-                pageNumberType: PageNumberType.TOTAL_PAGES,
-              }),
-            ],
-            alignment: AlignmentType.CENTER,
-          }),
+          createPageNumberParagraph(),
         ],
       }),
     },

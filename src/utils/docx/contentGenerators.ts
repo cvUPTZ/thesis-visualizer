@@ -1,4 +1,4 @@
-import { Document, Paragraph, TextRun, HeadingLevel, TableOfContents, StyleLevel, convertInchesToTwip, Header, Footer, PageBreak, AlignmentType, NumberFormat, PageNumberType } from 'docx';
+import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, TableOfContents, StyleLevel } from 'docx';
 import { ContentGenerationOptions } from './types';
 import { defaultStyles, previewStyles } from './styleConfig';
 
@@ -39,14 +39,10 @@ const generateFooter = (): Paragraph => {
       new TextRun("Page "),
       new TextRun({
         children: ["PAGE"],
-        numberFormat: NumberFormat.DECIMAL,
-        pageNumberType: PageNumberType.CURRENT,
       }),
       new TextRun(" of "),
       new TextRun({
         children: ["NUMPAGES"],
-        numberFormat: NumberFormat.DECIMAL,
-        pageNumberType: PageNumberType.TOTAL_PAGES,
       }),
     ],
     alignment: AlignmentType.CENTER,
