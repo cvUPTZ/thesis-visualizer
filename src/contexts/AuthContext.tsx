@@ -43,7 +43,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('roles (name)')
+        .select(`
+          roles (
+            name
+          )
+        `)
         .eq('id', userId)
         .maybeSingle();
 
@@ -65,19 +69,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     console.log('🔄 Setting up auth listener...');
+    let mounted = true;
     
     const initializeAuth = async () => {
       try {
+        if (!mounted) return;
+        
         setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        if (session?.user) {
-          await fetchUserRole(session.user.id);
+        
+        if (mounted) {
+          setSession(session);
+          if (session?.user) {
+            await fetchUserRole(session.user.id);
+          }
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -85,6 +97,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log('🔄 Auth state changed:', _event);
+      
+      if (!mounted) return;
+      
       setIsLoading(true);
       setIsRoleLoading(true);
       
@@ -94,21 +109,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (session?.user) {
           console.log('✅ User authenticated:', session.user.email);
           await fetchUserRole(session.user.id);
-          navigate('/dashboard');
         } else {
           console.log('ℹ️ User not authenticated');
           setUserRole(null);
-          navigate('/auth');
         }
       } catch (error) {
         console.error('Error in auth state change:', error);
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     });
 
     return () => {
       console.log('🧹 Cleaning up auth listener...');
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [navigate]);
