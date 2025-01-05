@@ -1,11 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
+import { Resend } from 'npm:resend';
 
-const SMTP_HOST = Deno.env.get('SMTP_HOST');
-const SMTP_PORT = Number(Deno.env.get('SMTP_PORT'));
-const SMTP_USERNAME = Deno.env.get('SMTP_USERNAME');
-const SMTP_PASSWORD = Deno.env.get('SMTP_PASSWORD');
-const SENDER_EMAIL = Deno.env.get('SENDER_EMAIL');
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,6 +16,7 @@ interface EmailRequest {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -27,10 +24,14 @@ serve(async (req) => {
   try {
     console.log('Starting email sending process...');
 
-    if (!SMTP_HOST || !SMTP_PORT || !SMTP_USERNAME || !SMTP_PASSWORD || !SENDER_EMAIL) {
-      throw new Error('Missing SMTP configuration');
+    if (!RESEND_API_KEY) {
+      throw new Error('Missing RESEND_API_KEY');
     }
 
+    const resend = new Resend(RESEND_API_KEY);
+    const SENDER_EMAIL = 'onboarding@resend.dev'; // Using Resend's default sender
+
+    // Parse and validate request body
     const requestData: EmailRequest = await req.json();
     console.log('Received request data:', requestData);
 
@@ -40,12 +41,13 @@ serve(async (req) => {
       throw new Error('Missing required fields');
     }
 
+    // Sanitize inputs
     const safeEmail = String(to).trim();
     const safeTitle = String(thesisTitle).trim();
     const safeLink = String(inviteLink).trim();
     const safeRole = String(role).trim();
 
-    console.log('Sending invitation to:', safeEmail);
+    console.log('Sending email to:', safeEmail);
 
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -58,32 +60,38 @@ serve(async (req) => {
       </div>
     `;
 
-    const client = new SmtpClient();
-
     try {
-      await client.connect({
-        hostname: SMTP_HOST,
-        port: SMTP_PORT,
-        username: SMTP_USERNAME,
-        password: SMTP_PASSWORD,
-        tls: true,
-      });
-
-      const result = await client.send({
+      const { data, error } = await resend.emails.send({
         from: SENDER_EMAIL,
-        to: safeEmail,
+        to: [safeEmail],
         subject: `Invitation to collaborate on thesis: ${safeTitle}`,
-        content: emailHtml,
         html: emailHtml,
       });
 
-      await client.close();
+      if (error) {
+        console.error('Resend error:', error);
+        return new Response(
+          JSON.stringify({
+            error: error.message,
+            details: {
+              statusCode: error.statusCode || 500,
+              message: error.message,
+              name: error.name || 'unknown_error'
+            }
+          }),
+          {
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json',
+            },
+            status: error.statusCode || 500,
+          }
+        );
+      }
 
-      console.log('Email sent successfully to:', safeEmail);
-      console.log('SMTP Result:', result);
-
+      console.log('Email sent successfully:', data);
       return new Response(
-        JSON.stringify({ success: true }),
+        JSON.stringify({ success: true, data }),
         {
           headers: {
             ...corsHeaders,
@@ -92,40 +100,16 @@ serve(async (req) => {
           status: 200,
         }
       );
-    } catch (smtpError) {
-      console.error('SMTP error:', smtpError);
-      return new Response(
-        JSON.stringify({
-          error: 'Failed to send email',
-          details: {
-            message: smtpError.message,
-            name: smtpError.name,
-          },
-        }),
-        {
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
-          status: 500,
-        }
-      );
-    } finally {
-      try {
-        await client.close();
-      } catch (closeError) {
-        console.error('Error closing SMTP connection:', closeError);
-      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+      throw error;
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('General error:', error);
     return new Response(
       JSON.stringify({
         error: error.message || 'Internal server error',
-        details: {
-          message: error.message,
-          name: error.name || 'unknown_error'
-        }
+        details: {}
       }),
       {
         headers: {

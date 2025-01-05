@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return { 
         user: data.user,
-        userRole: (profile as any).roles?.name || null 
+        userRole: (profile as Profile).roles?.name || null 
       };
     },
     onSuccess: (data) => {
@@ -178,9 +178,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     userRole: authData?.user?.role ?? null,
     isLoading,
     isAuthenticated: authData?.isAuthenticated ?? false,
-    signIn: async (email: string, password: string) => {
-      await signInMutation.mutateAsync({ email, password });
-    },
+    signIn: (email: string, password: string) => signInMutation.mutateAsync({ email, password }),
     signOut: () => signOutMutation.mutateAsync(),
     refreshSession: () => queryClient.invalidateQueries({ queryKey: ['auth-session'] }),
   };
