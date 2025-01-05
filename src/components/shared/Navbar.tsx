@@ -2,9 +2,12 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <nav className="fixed w-full bg-[#1A1F2C] text-white z-50">
@@ -29,14 +32,15 @@ export const Navbar = () => {
           {/* Desktop menu */}
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/" className="hover:text-[#D6BCFA] transition-colors">
-              Features
+              {t('common.features')}
             </Link>
             <Link to="/" className="hover:text-[#D6BCFA] transition-colors">
-              About
+              {t('common.about')}
             </Link>
+            <LanguageSwitcher />
             <Link to="/">
               <Button variant="outline" className="bg-transparent text-white border-white hover:bg-white hover:text-[#1A1F2C]">
-                Home
+                {t('common.home')}
               </Button>
             </Link>
           </div>
@@ -51,21 +55,24 @@ export const Navbar = () => {
                 className="hover:text-[#D6BCFA] transition-colors px-4"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Features
+                {t('common.features')}
               </Link>
               <Link
                 to="/"
                 className="hover:text-[#D6BCFA] transition-colors px-4"
                 onClick={() => setIsMenuOpen(false)}
               >
-                About
+                {t('common.about')}
               </Link>
+              <div className="px-4">
+                <LanguageSwitcher />
+              </div>
               <Link to="/" onClick={() => setIsMenuOpen(false)}>
                 <Button
                   variant="outline"
                   className="w-full bg-transparent text-white border-white hover:bg-white hover:text-[#1A1F2C]"
                 >
-                  Home
+                  {t('common.home')}
                 </Button>
               </Link>
             </div>

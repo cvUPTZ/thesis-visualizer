@@ -16,7 +16,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const value = {
     language,
     setLanguage,
-    dir: language === 'ar' ? 'rtl' : 'ltr'
+    dir: language === 'ar' ? 'rtl' as const : 'ltr' as const
   };
 
   return (
