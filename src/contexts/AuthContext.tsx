@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { AuthContextType } from './auth/types';
+import { AuthContextType } from '@/types/auth';
 import { useSession } from './auth/useSession';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthMutations } from '@/hooks/auth/useAuthMutations';
@@ -11,8 +11,13 @@ const AuthContext = createContext<AuthContextType>({
   userEmail: null,
   userRole: null,
   loading: true,
-  logout: async () => {},
+  isLoading: true,
+  error: null,
+  signInError: null,
   isAuthenticated: false,
+  user: null,
+  logout: async () => {},
+  signOut: async () => {},
   setUserId: () => {},
   setUserEmail: () => {},
   setUserRole: () => {},
@@ -98,6 +103,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (event === 'SIGNED_IN') {
           console.log('✅ User signed in:', session?.user?.email);
           await handleSessionChange(session);
+          // Add delay before reload to ensure navigation and toast are visible
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
         } else if (event === 'SIGNED_OUT') {
           console.log('👋 User signed out');
           setUserId(null);
@@ -105,6 +114,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUserRole(null);
           setLoading(false);
           navigate('/auth');
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
         } else if (event === 'TOKEN_REFRESHED') {
           console.log('🔄 Token refreshed for user:', session?.user?.email);
           await handleSessionChange(session);
@@ -128,14 +140,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [navigate, handleSessionChange, setUserId, setUserEmail, setUserRole, setLoading, toast]);
 
+  const user = userId ? { id: userId, email: userEmail, role: userRole } : null;
+
   return (
     <AuthContext.Provider value={{ 
       userId, 
       userEmail,
       userRole,
-      loading, 
-      logout: signOut,
+      loading,
+      isLoading: loading,
+      error: null,
+      signInError: null,
       isAuthenticated: !!userId,
+      user,
+      logout: signOut,
+      signOut,
       setUserId,
       setUserEmail,
       setUserRole,

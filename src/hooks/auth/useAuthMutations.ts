@@ -28,7 +28,7 @@ export const useAuthMutations = () => {
       setTimeout(() => {
         console.log('🔄 Reloading page after sign out...');
         window.location.reload();
-      }, 500);
+      }, 1000);
     },
     onError: (error: Error) => {
       console.error('❌ Sign out error:', error);

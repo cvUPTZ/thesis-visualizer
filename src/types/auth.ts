@@ -11,20 +11,20 @@ export type SignInResponse = {
   userRole: string;
 };
 
-export type AuthState = {
-  user: User | null;
-  isLoading: boolean;
-  error: Error | null;
-};
-
 export type AuthContextType = {
-  user: User | null;
+  userId: string | null;
+  userEmail: string | null;
+  userRole: string | null;
+  loading: boolean;
   isLoading: boolean;
   error: Error | null;
+  signInError: Error | null;
   isAuthenticated: boolean;
-  userRole?: string;
-  userId?: string;
-  userEmail?: string;
-  signIn: (credentials: { email: string; password: string }) => Promise<SignInResponse>;
+  user: User | null;
+  logout: () => Promise<void>;
   signOut: () => Promise<void>;
+  setUserId: (id: string | null) => void;
+  setUserEmail: (email: string | null) => void;
+  setUserRole: (role: string | null) => void;
+  setLoading: (loading: boolean) => void;
 };
