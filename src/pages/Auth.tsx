@@ -1,4 +1,5 @@
-import { useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
@@ -8,30 +9,30 @@ import { DemoLogin } from "@/components/auth/DemoLogin";
 import { AuthDivider } from "@/components/auth/AuthDivider";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthLoader } from "@/components/auth/AuthLoader";
-import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const error = searchParams.get("error");
-  const { isLoading } = useAuth();
+  const { isLoading, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   
   useEffect(() => {
+    // Redirect authenticated users to dashboard
+    if (isAuthenticated) {
+      console.log('✅ User is authenticated, redirecting to dashboard');
+      navigate('/dashboard');
+      return;
+    }
+
     // Check for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('🔐 Auth state changed:', event, session?.user?.email);
       
-      if (event === 'SIGNED_IN') {
+      if (event === 'SIGNED_IN' && session) {
         console.log('✅ User signed in successfully');
-      } else if (event === 'SIGNED_OUT') {
-        console.log('👋 User signed out');
-      } else if (event === 'USER_UPDATED') {
-        console.log('👤 User profile updated');
-      } else if (event === 'USER_DELETED') {
-        console.log('❌ User account deleted');
-      } else if (event === 'PASSWORD_RECOVERY') {
-        console.log('🔑 Password recovery initiated');
+        navigate('/dashboard');
       }
     });
 
@@ -48,7 +49,7 @@ const Auth = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [error, toast]);
+  }, [error, toast, navigate, isAuthenticated]);
   
   if (isLoading) {
     return <AuthLoader />;
