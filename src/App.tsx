@@ -3,7 +3,6 @@ import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import LandingPage from '@/pages/LandingPage';
 import Auth from '@/pages/Auth';
-import AuthAlternate from '@/pages/AuthAlternate';
 import Index from '@/pages/Index';
 import AdminPanel from '@/pages/AdminPanel';
 import CreateThesis from '@/pages/CreateThesis';
@@ -16,43 +15,26 @@ function App() {
   
   return (
     <ErrorBoundary>
-      {/* Route Configuration */}
       <Routes>
-        {/* Public Routes */}
+        {/* Public routes */}
         <Route 
           path="/" 
-          element={
-            <>
-              {console.log('📍 Rendering landing page route')}
-              <LandingPage />
-            </>
-          }
+          element={<LandingPage />}
         />
         <Route 
           path="/auth" 
           element={
             <PublicRoute>
-              {console.log('🔑 Rendering auth page route')}
               <Auth />
             </PublicRoute>
           } 
         />
-        <Route 
-          path="/auth-alternate" 
-          element={
-            <PublicRoute>
-              {console.log('🔑 Rendering alternate auth page route')}
-              <AuthAlternate />
-            </PublicRoute>
-          } 
-        />
 
-        {/* Protected Routes */}
+        {/* Protected routes */}
         <Route
           path="/dashboard"
           element={
             <AuthGuard>
-              {console.log('📊 Rendering dashboard route')}
               <Index />
             </AuthGuard>
           }
@@ -61,7 +43,6 @@ function App() {
           path="/admin"
           element={
             <AuthGuard requiredRole="admin">
-              {console.log('👑 Rendering admin panel route')}
               <AdminPanel />
             </AuthGuard>
           }
@@ -70,7 +51,6 @@ function App() {
           path="/create-thesis"
           element={
             <AuthGuard>
-              {console.log('📝 Rendering create thesis route')}
               <CreateThesis />
             </AuthGuard>
           }
@@ -79,25 +59,14 @@ function App() {
           path="/thesis/:thesisId"
           element={
             <AuthGuard>
-              {console.log('📖 Rendering thesis editor route')}
               <ThesisEditor />
             </AuthGuard>
           }
         />
 
-        {/* Catch-all Route */}
-        <Route 
-          path="*" 
-          element={
-            <>
-              {console.log('🚫 No matching route found, redirecting to home')}
-              <Navigate to="/" replace />
-            </>
-          } 
-        />
+        {/* Catch all route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-
-      {/* Global Components */}
       <Toaster />
     </ErrorBoundary>
   );
