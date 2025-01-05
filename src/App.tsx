@@ -9,7 +9,6 @@ import CreateThesis from '@/pages/CreateThesis';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
 
 // Public route wrapper component
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {

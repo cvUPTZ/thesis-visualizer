@@ -4,14 +4,15 @@ export interface User {
   role: string | null;
 }
 
-export interface AuthState {
+export interface AuthContextType {
   user: User | null;
+  userId: string | null;
+  userEmail: string | null;
+  userRole: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-}
-
-export interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
+  logout: () => Promise<void>;
 }

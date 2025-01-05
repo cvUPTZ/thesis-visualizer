@@ -135,12 +135,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const value: AuthContextType = {
     user: authData?.user ?? null,
-    isLoading: isLoading || signInMutation.isPending || signOutMutation.isPending,
+    userId: authData?.user?.id ?? null,
+    userEmail: authData?.user?.email ?? null,
+    userRole: authData?.user?.role ?? null,
+    isLoading,
     isAuthenticated: authData?.isAuthenticated ?? false,
-    signIn: (email: string, password: string) => 
-      signInMutation.mutate({ email, password }),
-    signOut: () => signOutMutation.mutate(),
+    signIn: async (email: string, password: string) => {
+      await signInMutation.mutateAsync({ email, password });
+    },
+    signOut: async () => {
+      await signOutMutation.mutateAsync();
+    },
     refreshSession,
+    logout: async () => {
+      await signOutMutation.mutateAsync();
+    }
   };
 
   return (
