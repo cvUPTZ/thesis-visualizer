@@ -1,103 +1,30 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 export const useAuthMutations = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const signInMutation = useMutation({
-    mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      console.log('🔄 Attempting sign in...');
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        console.error('❌ Sign in error:', error);
-        throw error;
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('roles (name)')
-        .eq('id', data.user.id)
-        .single();
-
-      return { 
-        user: data.user,
-        userRole: profile?.roles?.name || null 
-      };
-    },
-    onSuccess: (data) => {
-      console.log('✅ Sign in successful:', data);
-      
-      // Update auth state
-      queryClient.setQueryData(['auth-session'], {
-        user: {
-          id: data.user.id,
-          email: data.user.email,
-          role: data.userRole,
-        },
-        isAuthenticated: true,
-      });
-
-      // First navigate
-      const destination = data.userRole === 'admin' ? '/admin' : '/dashboard';
-      console.log('🚀 Navigating to:', destination);
-      navigate(destination);
-      
-      // Show toast
-      toast({
-        title: "Welcome back!",
-        description: "Successfully signed in.",
-      });
-
-      // Force a page reload after navigation and toast
-      console.log('⏳ Setting up page reload...');
-      setTimeout(() => {
-        console.log('🔄 Reloading page...');
-        window.location.reload();
-      }, 2000); // Increased to 2 seconds to ensure everything completes
-    },
-    onError: (error: Error) => {
-      console.error('❌ Sign in mutation error:', error);
-      queryClient.setQueryData(['auth-session'], {
-        user: null,
-        isAuthenticated: false,
-      });
-      toast({
-        title: "Sign in error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
   const signOutMutation = useMutation({
     mutationFn: async () => {
-      console.log('🔄 Signing out...');
+      console.log('🔄 Starting sign out process...');
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      console.log('✅ Sign out successful');
     },
     onSuccess: () => {
-      console.log('✅ Sign out successful');
+      console.log('🧹 Cleaning up after successful sign out...');
       queryClient.clear();
-      queryClient.setQueryData(['auth-session'], { 
-        user: null, 
-        isAuthenticated: false 
-      });
-      
       toast({
         title: "Signed out",
         description: "Successfully signed out.",
       });
+      navigate('/auth');
       
-      navigate('/');
-      
+      // Add a small delay before reload to ensure navigation and toast are visible
       setTimeout(() => {
         console.log('🔄 Reloading page after sign out...');
         window.location.reload();
@@ -106,16 +33,14 @@ export const useAuthMutations = () => {
     onError: (error: Error) => {
       console.error('❌ Sign out error:', error);
       toast({
-        title: "Sign out error",
+        title: "Sign out failed",
         description: error.message,
         variant: "destructive",
       });
-    },
+    }
   });
 
   return {
-    signIn: (email: string, password: string) => signInMutation.mutateAsync({ email, password }),
-    signOut: () => signOutMutation.mutateAsync(),
-    signInError: signInMutation.error?.message || null,
+    signOut: () => signOutMutation.mutateAsync()
   };
 };
