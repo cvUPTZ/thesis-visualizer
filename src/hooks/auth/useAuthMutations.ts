@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { authService } from '@/services/authService';
 
 export const useAuthMutations = () => {
   const { toast } = useToast();
@@ -10,50 +10,104 @@ export const useAuthMutations = () => {
 
   const signInMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-        try {
-            await authService.signIn(email, password);
-        } catch(error: any) {
-          console.error('❌ Sign in error:', error);
-            toast({
-              title: "Error signing in",
-                description: error.message,
-                variant: "destructive",
-            });
-             throw error;
-        }
+      console.log('🔄 Attempting sign in...');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      
+      if (error) {
+        console.error('❌ Sign in error:', error);
+        throw error;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('roles (name)')
+        .eq('id', data.user.id)
+        .single();
+
+      return { 
+        user: data.user,
+        userRole: profile?.roles?.name || null 
+      };
     },
-    onSuccess: () => {
-        console.log('✅ Sign in successful, invalidating queries');
-        queryClient.invalidateQueries({ queryKey: ['auth-session'] });
-        navigate('/dashboard');
+    onSuccess: (data) => {
+      console.log('✅ Sign in successful:', data);
+      
+      // Update auth state
+      queryClient.setQueryData(['auth-session'], {
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+          role: data.userRole,
+        },
+        isAuthenticated: true,
+      });
 
+      // First navigate
+      const destination = data.userRole === 'admin' ? '/admin' : '/dashboard';
+      console.log('🚀 Navigating to:', destination);
+      navigate(destination);
+      
+      // Show toast
       toast({
         title: "Welcome back!",
-        description: "You have successfully signed in.",
+        description: "Successfully signed in.",
+      });
+
+      // Force a page reload after navigation and toast
+      console.log('⏳ Setting up page reload...');
+      setTimeout(() => {
+        console.log('🔄 Reloading page...');
+        window.location.reload();
+      }, 2000); // Increased to 2 seconds to ensure everything completes
+    },
+    onError: (error: Error) => {
+      console.error('❌ Sign in mutation error:', error);
+      queryClient.setQueryData(['auth-session'], {
+        user: null,
+        isAuthenticated: false,
+      });
+      toast({
+        title: "Sign in error",
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
 
   const signOutMutation = useMutation({
-    mutationFn: authService.signOut,
+    mutationFn: async () => {
+      console.log('🔄 Signing out...');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    },
     onSuccess: () => {
-      queryClient.setQueryData(['auth-session'], { user: null, isAuthenticated: false });
+      console.log('✅ Sign out successful');
       queryClient.clear();
-      navigate('/');
+      queryClient.setQueryData(['auth-session'], { 
+        user: null, 
+        isAuthenticated: false 
+      });
+      
       toast({
         title: "Signed out",
-        description: "You have been successfully signed out.",
+        description: "Successfully signed out.",
       });
+      
+      navigate('/');
+      
+      setTimeout(() => {
+        console.log('🔄 Reloading page after sign out...');
+        window.location.reload();
+      }, 500);
     },
     onError: (error: Error) => {
       console.error('❌ Sign out error:', error);
-      queryClient.setQueryData(['auth-session'], { user: null, isAuthenticated: false });
-      navigate('/');
       toast({
-        title: "Error during sign out",
-        description: "You have been signed out, but there was an error. Please refresh the page.",
+        title: "Sign out error",
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -62,5 +116,6 @@ export const useAuthMutations = () => {
   return {
     signIn: (email: string, password: string) => signInMutation.mutateAsync({ email, password }),
     signOut: () => signOutMutation.mutateAsync(),
+    signInError: signInMutation.error?.message || null,
   };
 };
