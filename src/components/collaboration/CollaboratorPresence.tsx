@@ -23,7 +23,10 @@ export const CollaboratorPresence = ({ thesisId }: CollaboratorPresenceProps) =>
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!userId || !thesisId) return;
+    if (!userId || !thesisId) {
+      console.log('⚠️ Missing userId or thesisId for presence tracking');
+      return;
+    }
 
     console.log('🔄 Initializing real-time presence for thesis:', thesisId);
 
@@ -38,7 +41,7 @@ export const CollaboratorPresence = ({ thesisId }: CollaboratorPresenceProps) =>
     const presence = {
       user: {
         id: userId,
-        email: userEmail,
+        email: userEmail || 'Anonymous',
         lastActive: new Date().toISOString(),
       },
     };
@@ -73,6 +76,8 @@ export const CollaboratorPresence = ({ thesisId }: CollaboratorPresenceProps) =>
       channel.unsubscribe();
     };
   }, [thesisId, userId, userEmail, toast]);
+
+  if (!userId) return null;
 
   return (
     <div className="fixed bottom-4 right-4 flex -space-x-2">

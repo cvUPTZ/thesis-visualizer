@@ -1,4 +1,4 @@
-import { User as SupabaseUser } from '@supabase/supabase-js';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 export type User = {
   id: string;
@@ -19,12 +19,13 @@ export type AuthState = {
 
 export type AuthContextType = {
   user: User | null;
+  session: Session | null;
   isLoading: boolean;
   error: Error | null;
   isAuthenticated: boolean;
-  userRole?: string;
-  userId?: string;
-  userEmail?: string;
+  userRole: string;
+  userId: string | null;
+  userEmail: string | null;
   loading: boolean; // For backward compatibility
   signIn: (credentials: { email: string; password: string }) => Promise<SignInResponse>;
   signOut: () => Promise<void>;
