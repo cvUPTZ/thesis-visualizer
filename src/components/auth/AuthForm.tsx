@@ -12,6 +12,8 @@ export const AuthForm = () => {
   const error = searchParams.get("error");
   const redirectTo = `${window.location.origin}/auth/callback`;
 
+  console.log('🔄 Rendering AuthForm with redirectTo:', redirectTo);
+
   return (
     <>
       {error && (
@@ -59,6 +61,7 @@ export const AuthForm = () => {
         }}
         providers={["google"]}
         redirectTo={redirectTo}
+        onlyThirdPartyProviders={false}
         localization={{
           variables: {
             sign_in: {

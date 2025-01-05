@@ -14,9 +14,9 @@ const Auth = () => {
     if (!isLoading && isAuthenticated) {
       console.log('✅ User is authenticated, redirecting based on role:', userRole);
       if (userRole === 'admin') {
-        navigate('/admin', { replace: true });
+        navigate('/admin');
       } else {
-        navigate('/dashboard', { replace: true });
+        navigate('/dashboard');
       }
     }
   }, [isAuthenticated, userRole, isLoading, navigate]);
@@ -24,6 +24,10 @@ const Auth = () => {
   if (isLoading) {
     console.log('⌛ Loading auth component...');
     return <AuthLoader />;
+  }
+
+  if (isAuthenticated) {
+    return null;
   }
 
   return <AuthContainer />;
