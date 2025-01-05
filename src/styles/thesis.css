@@ -11,7 +11,7 @@
   page-break-after: always;
   border-radius: 4px;
   transition: all 0.3s ease;
-  font-family: "Times New Roman", Times, serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   border: 2px solid #D1D5DB;
   counter-increment: page;
 }
@@ -25,6 +25,7 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 1.1rem;
   font-weight: 600;
+  font-family: 'Merriweather', serif;
   color: #FFFFFF;
   letter-spacing: 0.03em;
 }
@@ -36,6 +37,7 @@
   right: 0;
   text-align: center;
   font-size: 0.9rem;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color: #C8C8C9;
   padding: 0.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -54,5 +56,6 @@
   border-radius: 3px;
   line-height: 1.6;
   color: #FFFFFF;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
