@@ -16,6 +16,6 @@ export interface AuthContextType {
   userRole: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ user: User; session: any; userRole: string; }>;
   signOut: () => Promise<void>;
 }

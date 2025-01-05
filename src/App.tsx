@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import LandingPage from '@/pages/LandingPage';
@@ -15,61 +15,59 @@ function App() {
   
   return (
     <ErrorBoundary>
-      <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route 
-            path="/" 
-            element={<LandingPage />}
-          />
-          <Route 
-            path="/auth" 
-            element={
-              <PublicRoute>
-                <Auth />
-              </PublicRoute>
-            } 
-          />
+      <Routes>
+        {/* Public routes */}
+        <Route 
+          path="/" 
+          element={<LandingPage />}
+        />
+        <Route 
+          path="/auth" 
+          element={
+            <PublicRoute>
+              <Auth />
+            </PublicRoute>
+          } 
+        />
 
-          {/* Protected routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <AuthGuard>
-                <Index />
-              </AuthGuard>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <AuthGuard requiredRole="admin">
-                <AdminPanel />
-              </AuthGuard>
-            }
-          />
-          <Route
-            path="/create-thesis"
-            element={
-              <AuthGuard>
-                <CreateThesis />
-              </AuthGuard>
-            }
-          />
-          <Route
-            path="/thesis/:thesisId"
-            element={
-              <AuthGuard>
-                <ThesisEditor />
-              </AuthGuard>
-            }
-          />
+        {/* Protected routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <AuthGuard>
+              <Index />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <AuthGuard requiredRole="admin">
+              <AdminPanel />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/create-thesis"
+          element={
+            <AuthGuard>
+              <CreateThesis />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/thesis/:thesisId"
+          element={
+            <AuthGuard>
+              <ThesisEditor />
+            </AuthGuard>
+          }
+        />
 
-          {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-        <Toaster />
-      </Router>
+        {/* Catch all route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <Toaster />
     </ErrorBoundary>
   );
 }
