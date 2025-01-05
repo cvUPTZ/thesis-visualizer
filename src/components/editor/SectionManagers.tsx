@@ -113,10 +113,10 @@ export const SectionManagers = ({ section, onSectionUpdate }: SectionManagersPro
               <h3 className="text-lg font-medium">References</h3>
             </div>
             <ReferenceManager
-              references={section.references || []}
-              onAddReference={(reference) => handleReferenceUpdate([...(section.references || []), reference])}
-              onRemoveReference={(id) => handleReferenceUpdate((section.references || []).filter(r => r.id !== id))}
-              onUpdateReference={(reference) => handleReferenceUpdate((section.references || []).map(r => r.id === reference.id ? reference : r))}
+              items={section.references || []}
+              onAdd={(reference) => handleReferenceUpdate([...(section.references || []), reference])}
+              onRemove={(id) => handleReferenceUpdate((section.references || []).filter(r => r.id !== id))}
+              onUpdate={(reference) => handleReferenceUpdate((section.references || []).map(r => r.id === reference.id ? reference : r))}
             />
           </div>
         )}
