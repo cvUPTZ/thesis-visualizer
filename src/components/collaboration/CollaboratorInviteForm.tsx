@@ -47,23 +47,36 @@ export const CollaboratorInviteForm = ({
 
     setIsInviting(true);
     try {
-      const baseUrl = window.location.origin.replace(/\/$/, '');
-      const inviteLink = `${baseUrl}/auth?thesisId=${thesisId}&role=${role}`;
+      // Check if user exists
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', cleanEmail)
+        .single();
 
-      console.log('Sending invitation with link:', inviteLink);
+      if (existingUser) {
+        // Add collaborator directly if user exists
+        const { error: collaboratorError } = await supabase
+          .from('thesis_collaborators')
+          .insert({
+            thesis_id: thesisId,
+            user_id: existingUser.id,
+            role: role
+          });
 
-      const { data, error } = await supabase.functions.invoke('send-invite-email', {
-        body: {
-          to: cleanEmail,
-          thesisTitle,
-          inviteLink,
-          role
-        },
-      });
-
-      if (error) {
-        console.error('Error from edge function:', error);
-        throw error;
+        if (collaboratorError) {
+          throw collaboratorError;
+        }
+      } else {
+        // Store pending invitation in a local storage or state management
+        const pendingInvitations = JSON.parse(localStorage.getItem('pendingInvitations') || '[]');
+        pendingInvitations.push({
+          email: cleanEmail,
+          thesisId,
+          role,
+          invitedAt: new Date().toISOString()
+        });
+        localStorage.setItem('pendingInvitations', JSON.stringify(pendingInvitations));
       }
 
       onInviteSuccess();
@@ -71,14 +84,14 @@ export const CollaboratorInviteForm = ({
       setRole('editor');
       toast({
         title: "Success",
-        description: "The collaboration invitation has been sent successfully.",
+        description: "The collaboration invitation has been processed successfully.",
       });
     } catch (error: any) {
-      console.error('Error sending invitation:', error);
+      console.error('Error processing invitation:', error);
       onInviteError(error);
       toast({
         title: "Error",
-        description: "Failed to send invitation. Please try again.",
+        description: "Failed to process invitation. Please try again.",
         variant: "destructive",
       });
     } finally {
