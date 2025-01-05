@@ -70,7 +70,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Sign in mutation
   const signInMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      console.log('🔄 Signing in user:', email);
+      console.log('🔄 Attempting to sign in user:', email);
+      
+      // Validate credentials before attempting sign in
+      if (!email || !password) {
+        throw new Error('Email and password are required');
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -78,6 +84,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) {
         console.error('❌ Sign in error:', error);
+        // Provide more specific error messages
+        if (error.message === 'Invalid login credentials') {
+          throw new Error('Invalid email or password. Please check your credentials and try again.');
+        }
         throw error;
       }
 
