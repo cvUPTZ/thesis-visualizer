@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AuthLoader } from "@/components/auth/AuthLoader";
 import { useToast } from "@/hooks/use-toast";
 import { GraduationCap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -31,6 +32,11 @@ const Auth = () => {
       }
     }
   }, [isAuthenticated, userRole, isLoading, navigate]);
+
+  const handleTestRedirect = () => {
+    console.log('🔄 Test redirect to dashboard');
+    navigate('/dashboard');
+  };
 
   if (isLoading) {
     console.log('⌛ Loading auth component...');
@@ -107,7 +113,16 @@ const Auth = () => {
               />
               
               <AuthDivider />
-              <DemoLogin />
+              <div className="space-y-3">
+                <DemoLogin />
+                <Button
+                  variant="outline"
+                  className="w-full bg-[#9b87f5]/10 hover:bg-[#9b87f5]/20 text-[#9b87f5]"
+                  onClick={handleTestRedirect}
+                >
+                  Test Dashboard Access
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
