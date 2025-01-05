@@ -1,19 +1,28 @@
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Save } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HeaderActionsProps {
   showPreview: boolean;
   onTogglePreview: () => void;
   onSaveToJson: () => void;
-  onLogout: () => void;
 }
 
 export const HeaderActions = ({
   showPreview,
   onTogglePreview,
   onSaveToJson,
-  onLogout,
 }: HeaderActionsProps) => {
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
+
   return (
     <div className="flex items-center gap-2">
       <Button
@@ -46,7 +55,7 @@ export const HeaderActions = ({
       <Button
         variant="outline"
         size="sm"
-        onClick={onLogout}
+        onClick={handleLogout}
       >
         Logout
       </Button>
