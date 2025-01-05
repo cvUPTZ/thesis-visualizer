@@ -1,4 +1,13 @@
-import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, TableOfContents, StyleLevel } from 'docx';
+import { 
+  Document, 
+  Paragraph, 
+  TextRun, 
+  HeadingLevel, 
+  AlignmentType, 
+  TableOfContents, 
+  StyleLevel,
+  convertInchesToTwip
+} from 'docx';
 import { ContentGenerationOptions } from './types';
 import { defaultStyles, previewStyles } from './styleConfig';
 
