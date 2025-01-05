@@ -1,14 +1,20 @@
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Link } from 'react-router-dom';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LanguageProvider } from '@/hooks/useLanguage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Button } from '@/components/ui/button';
+import { Menu, X } from 'lucide-react';
+import { useState } from 'react';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 const queryClient = new QueryClient();
 
 function App() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -94,6 +100,7 @@ function App() {
                     </div>
                   )}
                 </nav>
+                <Toaster />
               </AuthProvider>
             </LanguageProvider>
           </ThemeProvider>
