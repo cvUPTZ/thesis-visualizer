@@ -203,13 +203,5 @@ export const styles = `
       right: 0;
       margin-top: 2rem;
     }
-
-    .timeline-card {
-      position: relative;
-      left: 0;
-      top: 0;
-      transform: none;
-      margin: 2rem auto;
-    }
   }
 `;

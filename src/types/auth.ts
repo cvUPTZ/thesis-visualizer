@@ -3,7 +3,7 @@ import { User as SupabaseUser } from '@supabase/supabase-js';
 export type User = {
   id: string;
   email?: string | null;
-  role?: string | null;
+  role?: string;
 };
 
 export type SignInResponse = {
@@ -21,6 +21,10 @@ export type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   error: Error | null;
+  isAuthenticated: boolean;
+  userRole?: string;
+  userId?: string;
+  userEmail?: string;
   signIn: (credentials: { email: string; password: string }) => Promise<SignInResponse>;
   signOut: () => Promise<void>;
 };
