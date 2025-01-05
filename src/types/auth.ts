@@ -17,4 +17,5 @@ export type AuthState = {
 
 export type AuthContextType = AuthState & {
   signOut: () => Promise<void>;
+  logout: () => Promise<void>;  // Added this line to fix the TypeScript errors
 };

@@ -1,18 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-
-type AuthContextType = {
-  user: User | null;
-  session: Session | null;
-  userRole: string;
-  userId: string | null;
-  userEmail: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: Error | null;
-  signOut: () => Promise<void>;
-};
+import { AuthContextType } from "@/types/auth";
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -24,6 +13,7 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   error: null,
   signOut: async () => {},
+  logout: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -91,6 +81,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
   };
 
+  // Added this function to match both signOut and logout functionality
+  const logout = async () => {
+    await signOut();
+  };
+
   const value = {
     user,
     session,
@@ -101,6 +96,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     isLoading,
     error,
     signOut,
+    logout,
   };
 
   return (
