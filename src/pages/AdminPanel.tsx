@@ -41,17 +41,17 @@ const AdminPanel = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#1A1F2C] text-white">
+    <div className="min-h-screen bg-admin-bg text-white">
       <div className="container mx-auto p-6 space-y-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-[#9b87f5] to-[#D6BCFA] bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold bg-admin-gradient bg-clip-text text-transparent">
             Admin Dashboard
           </h1>
           <div className="flex items-center gap-2">
             <Button 
               onClick={() => navigate('/')} 
               variant="outline"
-              className="bg-[#2A2F3C]/50 border-[#7E69AB] text-[#D6BCFA] hover:bg-[#2A2F3C]/80"
+              className="bg-admin-card/50 border-admin-accent-secondary text-admin-accent-tertiary hover:bg-admin-card/80"
             >
               <LayoutDashboard className="w-4 h-4 mr-2" />
               Back to Main
@@ -59,7 +59,7 @@ const AdminPanel = () => {
             <Button 
               onClick={handleLogout} 
               variant="outline"
-              className="bg-[#2A2F3C]/50 border-[#7E69AB] text-[#D6BCFA] hover:bg-[#2A2F3C]/80 gap-2"
+              className="bg-admin-card/50 border-admin-accent-secondary text-admin-accent-tertiary hover:bg-admin-card/80 gap-2"
             >
               <LogOut className="w-4 h-4" />
               Sign Out
@@ -67,36 +67,36 @@ const AdminPanel = () => {
           </div>
         </div>
 
-        <div className="backdrop-blur-lg bg-[#2A2F3C]/30 rounded-lg p-4 border border-[#7E69AB]/30">
+        <div className="backdrop-blur-lg bg-admin-card/30 rounded-lg p-4 border border-admin-accent-secondary/30">
           <SystemStats />
         </div>
         
         <Tabs defaultValue="users" className="w-full space-y-6">
-          <TabsList className="grid w-full grid-cols-4 gap-4 bg-[#2A2F3C]/50 p-1 rounded-lg">
+          <TabsList className="grid w-full grid-cols-4 gap-4 bg-admin-card/50 p-1 rounded-lg">
             <TabsTrigger 
               value="users" 
-              className="flex items-center gap-2 data-[state=active]:bg-[#7E69AB] data-[state=active]:text-white"
+              className="flex items-center gap-2 data-[state=active]:bg-admin-accent-secondary data-[state=active]:text-white text-admin-accent-tertiary"
             >
               <Users className="w-4 h-4" />
               Users
             </TabsTrigger>
             <TabsTrigger 
               value="features" 
-              className="flex items-center gap-2 data-[state=active]:bg-[#7E69AB] data-[state=active]:text-white"
+              className="flex items-center gap-2 data-[state=active]:bg-admin-accent-secondary data-[state=active]:text-white text-admin-accent-tertiary"
             >
               <Settings className="w-4 h-4" />
               Features
             </TabsTrigger>
             <TabsTrigger 
               value="issues" 
-              className="flex items-center gap-2 data-[state=active]:bg-[#7E69AB] data-[state=active]:text-white"
+              className="flex items-center gap-2 data-[state=active]:bg-admin-accent-secondary data-[state=active]:text-white text-admin-accent-tertiary"
             >
               <Flag className="w-4 h-4" />
               Issues
             </TabsTrigger>
             <TabsTrigger 
               value="theses" 
-              className="flex items-center gap-2 data-[state=active]:bg-[#7E69AB] data-[state=active]:text-white"
+              className="flex items-center gap-2 data-[state=active]:bg-admin-accent-secondary data-[state=active]:text-white text-admin-accent-tertiary"
             >
               <BookOpen className="w-4 h-4" />
               Theses
@@ -104,9 +104,9 @@ const AdminPanel = () => {
           </TabsList>
 
           <TabsContent value="users">
-            <Card className="backdrop-blur-lg bg-[#2A2F3C]/30 border-[#7E69AB]/30">
+            <Card className="backdrop-blur-lg bg-admin-card/30 border-admin-accent-secondary/30">
               <CardHeader>
-                <CardTitle className="text-[#D6BCFA]">User Management</CardTitle>
+                <CardTitle className="text-admin-accent-tertiary">User Management</CardTitle>
               </CardHeader>
               <CardContent>
                 <UserManagement />
@@ -115,9 +115,9 @@ const AdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="features">
-            <Card className="backdrop-blur-lg bg-[#2A2F3C]/30 border-[#7E69AB]/30">
+            <Card className="backdrop-blur-lg bg-admin-card/30 border-admin-accent-secondary/30">
               <CardHeader>
-                <CardTitle className="text-[#D6BCFA]">Feature Management</CardTitle>
+                <CardTitle className="text-admin-accent-tertiary">Feature Management</CardTitle>
               </CardHeader>
               <CardContent>
                 <FeatureManagement />
@@ -126,9 +126,9 @@ const AdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="issues">
-            <Card className="backdrop-blur-lg bg-[#2A2F3C]/30 border-[#7E69AB]/30">
+            <Card className="backdrop-blur-lg bg-admin-card/30 border-admin-accent-secondary/30">
               <CardHeader>
-                <CardTitle className="text-[#D6BCFA]">Issue Management</CardTitle>
+                <CardTitle className="text-admin-accent-tertiary">Issue Management</CardTitle>
               </CardHeader>
               <CardContent>
                 <IssueManagement />
@@ -137,9 +137,9 @@ const AdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="theses">
-            <Card className="backdrop-blur-lg bg-[#2A2F3C]/30 border-[#7E69AB]/30">
+            <Card className="backdrop-blur-lg bg-admin-card/30 border-admin-accent-secondary/30">
               <CardHeader>
-                <CardTitle className="text-[#D6BCFA]">Thesis Management</CardTitle>
+                <CardTitle className="text-admin-accent-tertiary">Thesis Management</CardTitle>
               </CardHeader>
               <CardContent>
                 <ThesisManagement />
