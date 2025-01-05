@@ -28,6 +28,15 @@ module.exports = {
           light: '#34495E',
           foreground: '#FFFFFF',
         },
+        admin: {
+          bg: '#1A1F2C',
+          card: '#2A2F3C',
+          accent: {
+            primary: '#9b87f5',
+            secondary: '#7E69AB',
+            tertiary: '#D6BCFA',
+          }
+        },
         editor: {
           bg: '#FFFFFF',
           'bg-accent': '#F8FAFC',
@@ -72,6 +81,7 @@ module.exports = {
         'editor-gradient': 'linear-gradient(to right, #E2E8F0, #F8FAFC)',
         'section-gradient': 'linear-gradient(to bottom, #FFFFFF, #F8FAFC)',
         'title-gradient': 'linear-gradient(to bottom, #FFFFFF, #F8FAFC)',
+        'admin-gradient': 'linear-gradient(to right, #9b87f5, #D6BCFA)',
       },
     },
   },
