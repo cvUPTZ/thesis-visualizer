@@ -157,33 +157,36 @@ export const FeatureManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Feature Management</h2>
+        <h2 className="text-2xl font-bold text-admin-accent-tertiary">Feature Management</h2>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
-            className="gap-2"
+            className="gap-2 text-admin-accent-primary hover:text-admin-accent-secondary border-admin-accent-primary/20 hover:border-admin-accent-secondary/40"
             onClick={addNewFeature}
           >
             <Plus className="w-4 h-4" />
             Add Feature
           </Button>
-          <Button variant="outline" className="gap-2">
+          <Button 
+            variant="outline" 
+            className="gap-2 text-admin-accent-primary hover:text-admin-accent-secondary border-admin-accent-primary/20 hover:border-admin-accent-secondary/40"
+          >
             <Settings className="w-4 h-4" />
             Settings
           </Button>
         </div>
       </div>
 
-      <div className="rounded-lg border">
+      <div className="rounded-lg border border-admin-accent-secondary/30">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Feature Name</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Health</TableHead>
-              <TableHead>Usage</TableHead>
-              <TableHead>Last Updated</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="text-admin-accent-tertiary">Feature Name</TableHead>
+              <TableHead className="text-admin-accent-tertiary">Status</TableHead>
+              <TableHead className="text-admin-accent-tertiary">Health</TableHead>
+              <TableHead className="text-admin-accent-tertiary">Usage</TableHead>
+              <TableHead className="text-admin-accent-tertiary">Last Updated</TableHead>
+              <TableHead className="text-admin-accent-tertiary">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
