@@ -12,7 +12,6 @@ type AuthContextType = {
   userId: string | null;
   userEmail: string | null;
   isLoading: boolean;
-  isRoleLoading: boolean;
   logout: () => Promise<void>;
 };
 
@@ -24,7 +23,6 @@ const AuthContext = createContext<AuthContextType>({
   userId: null,
   userEmail: null,
   isLoading: true,
-  isRoleLoading: true,
   logout: async () => {},
 });
 
@@ -32,29 +30,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRoleLoading, setIsRoleLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const fetchUserRole = async (userId: string) => {
     try {
       console.log('🔍 Fetching role for user:', userId);
-      setIsRoleLoading(true);
-      
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select(`
-          roles (
-            name
-          )
-        `)
+        .select(`roles (name)`)
         .eq('id', userId)
-        .maybeSingle();
+        .single();
 
-      if (error) {
-        console.error('Error fetching user role:', error);
-        throw error;
-      }
+      if (error) throw error;
       
       const role = profile?.roles?.name || 'user';
       console.log('✅ User role fetched:', role);
@@ -62,76 +50,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error('Error fetching user role:', error);
       setUserRole('user');
-    } finally {
-      setIsRoleLoading(false);
     }
   };
 
   useEffect(() => {
     console.log('🔄 Setting up auth listener...');
-    let mounted = true;
     
     const initializeAuth = async () => {
-      try {
-        if (!mounted) return;
-        
-        setIsLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (mounted) {
-          setSession(session);
-          if (session?.user) {
-            await fetchUserRole(session.user.id);
-          }
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      
+      if (session?.user) {
+        await fetchUserRole(session.user.id);
       }
+      
+      setIsLoading(false);
     };
 
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log('🔄 Auth state changed:', _event);
+      setSession(session);
       
-      if (!mounted) return;
-      
-      setIsLoading(true);
-      setIsRoleLoading(true);
-      
-      try {
-        setSession(session);
-        
-        if (session?.user) {
-          console.log('✅ User authenticated:', session.user.email);
-          await fetchUserRole(session.user.id);
-        } else {
-          console.log('ℹ️ User not authenticated');
-          setUserRole(null);
-        }
-      } catch (error) {
-        console.error('Error in auth state change:', error);
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
+      if (session?.user) {
+        console.log('✅ User authenticated:', session.user.email);
+        await fetchUserRole(session.user.id);
+      } else {
+        console.log('ℹ️ User not authenticated');
+        setUserRole(null);
       }
+      
+      setIsLoading(false);
     });
 
     return () => {
       console.log('🧹 Cleaning up auth listener...');
-      mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   const logout = async () => {
     try {
-      setIsLoading(true);
       await supabase.auth.signOut();
       toast({
         title: "Logged out successfully",
@@ -145,8 +105,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -158,7 +116,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     userId: session?.user?.id ?? null,
     userEmail: session?.user?.email ?? null,
     isLoading,
-    isRoleLoading,
     logout,
   };
 

@@ -9,31 +9,27 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
-  const { user, isLoading, userRole, isRoleLoading } = useAuth();
+  const { user, isLoading, userRole } = useAuth();
   const location = useLocation();
 
   console.log('🔒 AuthGuard Check:', {
     path: location.pathname,
     isLoading,
-    isRoleLoading,
     user: user?.email,
     userRole,
     requiredRole
   });
 
-  // Show loading while either auth or role is loading
-  if (isLoading || isRoleLoading) {
-    console.log('⌛ Loading auth guard... Auth loading:', isLoading, 'Role loading:', isRoleLoading);
+  if (isLoading) {
+    console.log('⌛ Loading auth guard...');
     return <LoadingSkeleton />;
   }
 
-  // If not authenticated, redirect to auth page
   if (!user) {
     console.log('❌ User not authenticated, redirecting to auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // If role is required and user doesn't have it, redirect to dashboard
   if (requiredRole && userRole !== requiredRole) {
     console.log('❌ User does not have required role, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
