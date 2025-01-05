@@ -1,6 +1,6 @@
 import { Document, Paragraph, TextRun, HeadingLevel, TableOfContents, StyleLevel, convertInchesToTwip } from 'docx';
 import { ContentGenerationOptions } from './types';
-import { styles, createStyledParagraph } from './styleConfig';
+import { defaultStyles, previewStyles } from './styleConfig';
 
 const PAGE_WIDTH = convertInchesToTwip(8.5);
 const PAGE_MARGINS = {
@@ -27,58 +27,59 @@ export const generateTableOfContents = (): TableOfContents => {
   });
 };
 
-export const generateContent = ({ thesis, includeTableOfContents = true }: ContentGenerationOptions): Paragraph[] => {
+export const generateContent = ({ thesis, isPreview = false }: ContentGenerationOptions & { isPreview?: boolean }): Paragraph[] => {
   const paragraphs: Paragraph[] = [];
+  const styles = isPreview ? previewStyles : defaultStyles;
 
   // Front Matter with proper spacing and styling
   thesis.frontMatter.forEach(section => {
-    if (section.type !== 'title') { // Title is handled separately in title page
+    if (section.type !== 'title') {
       paragraphs.push(
         new Paragraph({
           text: section.title,
           heading: HeadingLevel.HEADING_1,
           pageBreakBefore: true,
-          spacing: { before: 480, after: 240 },
+          spacing: styles.default.heading1.paragraph.spacing,
+          style: 'heading 1',
         }),
         new Paragraph({
           text: section.content,
-          spacing: { before: 240, after: 240 },
+          spacing: styles.default.document.paragraph.spacing,
           style: 'Normal',
         })
       );
     }
   });
 
-  // Chapters with proper academic formatting
+  // Chapters with proper formatting
   thesis.chapters.forEach(chapter => {
-    // Chapter title with page break
     paragraphs.push(
       new Paragraph({
         text: chapter.title,
         heading: HeadingLevel.HEADING_1,
         pageBreakBefore: true,
-        spacing: { before: 480, after: 240 },
+        spacing: styles.default.heading1.paragraph.spacing,
+        style: 'heading 1',
       })
     );
 
-    // Chapter sections
     chapter.sections.forEach(section => {
       paragraphs.push(
         new Paragraph({
           text: section.title,
           heading: HeadingLevel.HEADING_2,
-          spacing: { before: 360, after: 240 },
+          spacing: styles.default.heading2.paragraph.spacing,
+          style: 'heading 2',
         })
       );
 
-      // Split content into paragraphs and apply academic formatting
       const contentParagraphs = section.content.split('\n\n');
       contentParagraphs.forEach(content => {
         if (content.trim()) {
           paragraphs.push(
             new Paragraph({
               text: content,
-              spacing: { before: 240, after: 240 },
+              spacing: styles.default.document.paragraph.spacing,
               style: 'Normal',
             })
           );
@@ -88,7 +89,6 @@ export const generateContent = ({ thesis, includeTableOfContents = true }: Conte
       // Handle figures with captions
       if (section.figures && section.figures.length > 0) {
         section.figures.forEach(figure => {
-          // Figure placeholder (actual image handling would need additional setup)
           paragraphs.push(
             new Paragraph({
               text: `[Figure ${figure.number}]`,
@@ -97,7 +97,7 @@ export const generateContent = ({ thesis, includeTableOfContents = true }: Conte
             }),
             new Paragraph({
               text: figure.caption,
-              style: 'caption',
+              style: isPreview ? 'preview-caption' : 'caption',
               spacing: { before: 120, after: 240 },
             })
           );
@@ -114,7 +114,7 @@ export const generateContent = ({ thesis, includeTableOfContents = true }: Conte
             }),
             new Paragraph({
               text: `Table ${table.id}: ${table.caption}`,
-              style: 'caption',
+              style: isPreview ? 'preview-caption' : 'caption',
               spacing: { before: 120, after: 240 },
             })
           );
@@ -130,11 +130,12 @@ export const generateContent = ({ thesis, includeTableOfContents = true }: Conte
         text: section.title,
         heading: HeadingLevel.HEADING_1,
         pageBreakBefore: true,
-        spacing: { before: 480, after: 240 },
+        spacing: styles.default.heading1.paragraph.spacing,
+        style: 'heading 1',
       }),
       new Paragraph({
         text: section.content,
-        spacing: { before: 240, after: 240 },
+        spacing: styles.default.document.paragraph.spacing,
         style: 'Normal',
       })
     );

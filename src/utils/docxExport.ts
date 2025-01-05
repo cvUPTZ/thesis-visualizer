@@ -53,20 +53,7 @@ export const generateThesisDocx = async (thesis: Thesis) => {
         heading: HeadingLevel.HEADING_1,
         spacing: { before: 240, after: 240 },
       }),
-      new TableOfContents("Table of Contents", {
-        hyperlink: true,
-        headingStyleRange: "1-5",
-        stylesWithLevels: [
-          {
-            level: 1,
-            styleName: "heading 1",
-          } as StyleLevel,
-          {
-            level: 2,
-            styleName: "heading 2",
-          } as StyleLevel,
-        ],
-      }),
+      generateTableOfContents(),
     ],
   });
 
@@ -77,7 +64,7 @@ export const generateThesisDocx = async (thesis: Thesis) => {
         margin: PAGE_MARGINS,
       },
     },
-    children: generateContent({ thesis }),
+    children: generateContent({ thesis, isPreview: false }),
   });
 
   const doc = new Document({
@@ -93,7 +80,7 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
 
   const sections = [];
 
-  // Title Page (using preview styling)
+  // Title Page with preview styling
   sections.push({
     properties: {
       page: {
@@ -112,12 +99,21 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
             text: thesis.frontMatter[0]?.title || "Untitled Thesis",
             size: 36,
             bold: true,
+            font: 'Arial',
           }),
         ],
         alignment: AlignmentType.CENTER,
         spacing: { before: 480, after: 240 },
       }),
-      // Add other title page elements with preview styling
+      // Add preview-styled metadata
+      ...Object.entries(thesis.metadata || {}).map(([key, value]) => 
+        new Paragraph({
+          text: `${key}: ${value}`,
+          spacing: { before: 120, after: 120 },
+          alignment: AlignmentType.CENTER,
+          style: 'Normal',
+        })
+      ),
     ],
   });
 
@@ -139,20 +135,7 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
         heading: HeadingLevel.HEADING_1,
         spacing: { before: 240, after: 240 },
       }),
-      new TableOfContents("Table of Contents", {
-        hyperlink: true,
-        headingStyleRange: "1-5",
-        stylesWithLevels: [
-          {
-            level: 1,
-            styleName: "heading 1",
-          } as StyleLevel,
-          {
-            level: 2,
-            styleName: "heading 2",
-          } as StyleLevel,
-        ],
-      }),
+      generateTableOfContents(),
     ],
   });
 
@@ -168,7 +151,7 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
         },
       },
     },
-    children: generateContent({ thesis, usePreviewStyle: true }),
+    children: generateContent({ thesis, isPreview: true }),
   });
 
   const doc = new Document({

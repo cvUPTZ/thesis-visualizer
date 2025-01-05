@@ -9,6 +9,14 @@ const TITLE_FONT_SIZE = 36; // 18pt
 const LINE_SPACING = 480; // Double spacing (240 = single space)
 const PARAGRAPH_SPACING = 240; // 12pt
 
+// Preview formatting constants
+const PREVIEW_FONT_FAMILY = 'Arial';
+const PREVIEW_NORMAL_FONT_SIZE = 24;
+const PREVIEW_HEADING1_FONT_SIZE = 32;
+const PREVIEW_HEADING2_FONT_SIZE = 28;
+const PREVIEW_LINE_SPACING = 360;
+const PREVIEW_PARAGRAPH_SPACING = 240;
+
 export const defaultStyles: IStylesOptions = {
   default: {
     document: {
@@ -102,47 +110,46 @@ export const defaultStyles: IStylesOptions = {
   ],
 };
 
-// Preview styles matching the web preview
 export const previewStyles: IStylesOptions = {
   default: {
     document: {
       run: {
-        size: 24,
-        font: 'Arial',
+        size: PREVIEW_NORMAL_FONT_SIZE,
+        font: PREVIEW_FONT_FAMILY,
       },
       paragraph: {
         spacing: { 
-          line: 360,
-          before: 240,
-          after: 240,
+          line: PREVIEW_LINE_SPACING,
+          before: PREVIEW_PARAGRAPH_SPACING,
+          after: PREVIEW_PARAGRAPH_SPACING,
         },
       },
     },
     heading1: {
       run: {
-        size: 32,
+        size: PREVIEW_HEADING1_FONT_SIZE,
         bold: true,
-        font: 'Arial',
+        font: PREVIEW_FONT_FAMILY,
       },
       paragraph: {
         spacing: { 
-          before: 480,
-          after: 240,
-          line: 360,
+          before: PREVIEW_PARAGRAPH_SPACING * 2,
+          after: PREVIEW_PARAGRAPH_SPACING,
+          line: PREVIEW_LINE_SPACING,
         },
       },
     },
     heading2: {
       run: {
-        size: 28,
+        size: PREVIEW_HEADING2_FONT_SIZE,
         bold: true,
-        font: 'Arial',
+        font: PREVIEW_FONT_FAMILY,
       },
       paragraph: {
         spacing: { 
-          before: 360,
-          after: 240,
-          line: 360,
+          before: PREVIEW_PARAGRAPH_SPACING * 1.5,
+          after: PREVIEW_PARAGRAPH_SPACING,
+          line: PREVIEW_LINE_SPACING,
         },
       },
     },
@@ -154,15 +161,15 @@ export const previewStyles: IStylesOptions = {
       basedOn: 'Normal',
       next: 'Normal',
       run: {
-        size: 24,
-        font: 'Arial',
+        size: PREVIEW_NORMAL_FONT_SIZE,
+        font: PREVIEW_FONT_FAMILY,
         italics: true,
       },
       paragraph: {
         spacing: { 
-          line: 360,
-          before: 240,
-          after: 240,
+          line: PREVIEW_LINE_SPACING,
+          before: PREVIEW_PARAGRAPH_SPACING,
+          after: PREVIEW_PARAGRAPH_SPACING,
         },
         indent: {
           left: convertInchesToTwip(0.5),
@@ -176,15 +183,15 @@ export const previewStyles: IStylesOptions = {
       basedOn: 'Normal',
       next: 'Normal',
       run: {
-        size: 22,
-        font: 'Arial',
+        size: PREVIEW_NORMAL_FONT_SIZE - 2,
+        font: PREVIEW_FONT_FAMILY,
         italics: true,
       },
       paragraph: {
         spacing: { 
-          line: 360,
-          before: 120,
-          after: 240,
+          line: PREVIEW_LINE_SPACING,
+          before: PREVIEW_PARAGRAPH_SPACING / 2,
+          after: PREVIEW_PARAGRAPH_SPACING,
         },
         alignment: 'center',
       },

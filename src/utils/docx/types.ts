@@ -26,4 +26,5 @@ export interface TitlePageOptions {
 export interface ContentGenerationOptions {
   thesis: Thesis;
   includeTableOfContents?: boolean;
+  isPreview?: boolean;
 }
