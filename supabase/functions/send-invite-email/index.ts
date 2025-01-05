@@ -58,17 +58,18 @@ serve(async (req) => {
       </div>
     `;
 
-    try {
-      const client = new SmtpClient();
+    const client = new SmtpClient();
 
-      await client.connectTLS({
+    try {
+      await client.connect({
         hostname: SMTP_HOST,
         port: SMTP_PORT,
         username: SMTP_USERNAME,
         password: SMTP_PASSWORD,
+        tls: true,
       });
 
-      await client.send({
+      const result = await client.send({
         from: SENDER_EMAIL,
         to: safeEmail,
         subject: `Invitation to collaborate on thesis: ${safeTitle}`,
@@ -79,6 +80,7 @@ serve(async (req) => {
       await client.close();
 
       console.log('Email sent successfully to:', safeEmail);
+      console.log('SMTP Result:', result);
 
       return new Response(
         JSON.stringify({ success: true }),
@@ -90,9 +92,30 @@ serve(async (req) => {
           status: 200,
         }
       );
-    } catch (error) {
-      console.error('SMTP error:', error);
-      throw error;
+    } catch (smtpError) {
+      console.error('SMTP error:', smtpError);
+      return new Response(
+        JSON.stringify({
+          error: 'Failed to send email',
+          details: {
+            message: smtpError.message,
+            name: smtpError.name,
+          },
+        }),
+        {
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+          status: 500,
+        }
+      );
+    } finally {
+      try {
+        await client.close();
+      } catch (closeError) {
+        console.error('Error closing SMTP connection:', closeError);
+      }
     }
   } catch (error: any) {
     console.error('General error:', error);
