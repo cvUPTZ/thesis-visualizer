@@ -16,14 +16,14 @@ import { useAuth } from "@/contexts/AuthContext";
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const error = searchParams.get("error");
-  const { isLoading, isAuthenticated, userRole } = useAuth();
+  const { isLoading, isAuthenticated, userRole, signInError } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
   useEffect(() => {
     console.log('Auth component mount - Auth state:', { isAuthenticated, userRole, isLoading });
     
-    if (isAuthenticated && !isLoading) {
+    if (!isLoading && isAuthenticated) {
       console.log('✅ User is authenticated, redirecting based on role:', userRole);
       if (userRole === 'admin') {
         navigate('/admin', { replace: true });
@@ -71,6 +71,11 @@ const Auth = () => {
               {error && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              {signInError && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertDescription>{signInError}</AlertDescription>
                 </Alert>
               )}
               
