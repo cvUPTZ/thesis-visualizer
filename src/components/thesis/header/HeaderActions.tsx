@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, Save } from 'lucide-react';
+import { Eye, EyeOff, Save, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface HeaderActionsProps {
   showPreview: boolean;
@@ -14,12 +15,19 @@ export const HeaderActions = ({
   onSaveToJson,
 }: HeaderActionsProps) => {
   const { logout } = useAuth();
+  const { toast } = useToast();
 
   const handleLogout = async () => {
     try {
+      console.log('🔄 Initiating logout from HeaderActions...');
       await logout();
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error('❌ Error during logout:', error);
+      toast({
+        title: "Error signing out",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -56,7 +64,9 @@ export const HeaderActions = ({
         variant="outline"
         size="sm"
         onClick={handleLogout}
+        className="gap-2"
       >
+        <LogOut className="w-4 h-4" />
         Logout
       </Button>
     </div>

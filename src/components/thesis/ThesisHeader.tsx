@@ -172,7 +172,6 @@ export const ThesisHeader = ({
           showPreview={showPreview}
           onTogglePreview={onTogglePreview}
           onSaveToJson={handleSaveToJson}
-          onLogout={handleLogout}
         />
       </div>
     </div>
