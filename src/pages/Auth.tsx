@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuthFlow } from "@/hooks/useAuthFlow";
-import { useEffect, useState } from "react";
 import { DemoLogin } from "@/components/auth/DemoLogin";
 import { AuthDivider } from "@/components/auth/AuthDivider";
 
@@ -15,14 +14,12 @@ const Auth = () => {
   const inviteThesisId = searchParams.get('thesisId');
   const inviteRole = searchParams.get('role');
   const { error } = useAuthFlow({ inviteThesisId, inviteRole });
-  const [isLoading, setIsLoading] = useState(true);
-  const [sessionChecked, setSessionChecked] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
   const [emailAuthEnabled] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
-    console.log('🔍 Auth Page - Starting session check...');
+    console.log('🔍 Auth Page - Checking session...');
 
     const checkSession = async () => {
       try {
@@ -35,19 +32,11 @@ const Auth = () => {
         
         if (session?.user && mounted) {
           console.log('✅ Active session found, redirecting to dashboard');
-          navigate('/');
-        } else {
-          console.log('ℹ️ No active session found');
-          if (mounted) {
-            setIsLoading(false);
-            setSessionChecked(true);
-          }
+          navigate('/dashboard');
         }
       } catch (err: any) {
         console.error('❌ Error checking session:', err);
         if (mounted) {
-          setIsLoading(false);
-          setSessionChecked(true);
           setAuthError(err.message);
         }
       }
@@ -61,11 +50,7 @@ const Auth = () => {
 
       if (event === 'SIGNED_IN' && session) {
         console.log('✅ User signed in:', session.user.email);
-        navigate('/');
-      } else if (event === 'SIGNED_OUT') {
-        console.log('👋 User signed out');
-        setIsLoading(false);
-        setSessionChecked(true);
+        navigate('/dashboard');
       }
     });
 

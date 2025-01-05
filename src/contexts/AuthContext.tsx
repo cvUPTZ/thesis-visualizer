@@ -15,12 +15,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     handleSessionChange,
     logout,
     userEmail,
-    isAuthenticated,
     setUserId,
     setUserEmail,
     setUserRole,
     setLoading
   } = useSession();
+
+  const isAuthenticated = !!userId;
 
   useEffect(() => {
     console.log('🔄 Initializing auth context...');
@@ -74,8 +75,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     userEmail,
     userRole,
     loading,
-    logout,
     isAuthenticated,
+    logout,
     setUserId,
     setUserEmail,
     setUserRole,
