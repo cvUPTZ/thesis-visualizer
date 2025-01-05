@@ -8,7 +8,7 @@ import { PricingSection } from "@/components/landing/PricingSection";
 import { TestimonialCarousel } from "@/components/landing/TestimonialCarousel";
 import { DemoPreview } from "@/components/landing/DemoPreview";
 import { FeedbackForm } from "@/components/landing/FeedbackForm";
-import ThesisVisualization from "@/components/landing/ThesisVisualization";
+import ThesisVisualization from "@/components/landing/visualization/ThesisVisualization";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSkeleton } from "@/components/loading/LoadingSkeleton";
 import { useNavigate } from "react-router-dom";
@@ -66,70 +66,73 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="container mx-auto px-6 py-12 space-y-24">
-        {/* Hero Section */}
-        <section className="text-center space-y-8">
-          <GraduationCap className="w-16 h-16 mx-auto text-primary" />
-          <h1 className="text-4xl md:text-6xl font-bold font-serif">
-            Write Your Thesis with Confidence
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            A powerful platform designed to help you structure, write, and
-            visualize your academic thesis with ease.
-          </p>
-          <div className="flex justify-center gap-4">
-            <Button
-              size="lg"
-              className="gap-2"
-              onClick={handleGetStarted}
-            >
-              <PenTool className="w-4 h-4" />
-              Get Started
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="gap-2"
-              onClick={() => {
-                console.log('👀 Demo clicked');
-                const demoSection = document.getElementById('demo');
-                demoSection?.scrollIntoView({ behavior: 'smooth' });
-              }}
-            >
-              <BookOpen className="w-4 h-4" />
-              View Demo
-            </Button>
+      <main className="container mx-auto px-6 space-y-24">
+        {/* Hero Section with Visualization */}
+        <section className="pt-32 pb-16 relative">
+          <div className="text-center space-y-8 mb-16">
+            <GraduationCap className="w-16 h-16 mx-auto text-primary" />
+            <h1 className="text-4xl md:text-6xl font-bold font-serif bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-light">
+              Write Your Thesis with Confidence
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              A powerful platform designed to help you structure, write, and
+              visualize your academic thesis with ease.
+            </p>
+            <div className="flex justify-center gap-4">
+              <Button
+                size="lg"
+                className="gap-2 bg-gradient-to-r from-primary to-primary-light hover:opacity-90"
+                onClick={handleGetStarted}
+              >
+                <PenTool className="w-4 h-4" />
+                Get Started
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="gap-2"
+                onClick={() => {
+                  console.log('👀 Demo clicked');
+                  const demoSection = document.getElementById('demo');
+                  demoSection?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                <BookOpen className="w-4 h-4" />
+                View Demo
+              </Button>
+            </div>
           </div>
+          
+          {/* Thesis Visualization */}
+          <ThesisVisualization />
         </section>
 
         {/* Features Section */}
-        <section id="features">
+        <section id="features" className="py-20 bg-gradient-to-b from-white to-gray-50">
           <FeaturesComparison />
         </section>
 
         {/* Demo Section */}
-        <section id="demo">
+        <section id="demo" className="py-20">
           <DemoPreview />
         </section>
 
-        {/* Thesis Visualization */}
-        <section>
-          <ThesisVisualization />
-        </section>
-
         {/* Testimonials */}
-        <section>
+        <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
           <TestimonialCarousel />
         </section>
 
         {/* Pricing */}
-        <section id="pricing">
+        <section id="pricing" className="py-20">
           <PricingSection />
         </section>
 
         {/* Feedback Form */}
-        <section>
-          <FeedbackForm />
+        <section className="py-20 bg-gradient-to-b from-white to-gray-50">
+          <div className="max-w-xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-8">Share Your Feedback</h2>
+            <FeedbackForm />
+          </div>
         </section>
       </main>
       <Footer />
