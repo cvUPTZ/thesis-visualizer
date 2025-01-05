@@ -1,84 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  BookOpen, Users, CheckSquare, Square, Calendar,
-  Brain, Sparkles, Zap, Award, ArrowUp, Network
+  BookOpen,
+  Users,
+  CheckSquare,
+  Square,
+  ArrowUp,
+  Calendar,
+  ChartBar,
+  ChartLine,
+  ChartPie,
+  Clock
 } from 'lucide-react';
+import { CollaboratorOrbit } from './CollaboratorOrbit';
+import { Progress } from "@/components/ui/progress";
 
-interface Section {
-  id: number;
-  title: string;
-  complete: boolean;
-  progress: number;
-  summary: string;
-}
-
-const sections: Section[] = [
-  {
-    id: 1,
-    title: 'Introduction',
-    complete: true,
-    progress: 100,
-    summary: 'Research background and objectives'
-  },
-  {
-    id: 2,
-    title: 'Literature Review',
-    complete: true,
-    progress: 100,
-    summary: 'Theoretical framework'
-  },
-  {
-    id: 3,
-    title: 'Methodology',
-    complete: false,
-    progress: 75,
-    summary: 'Research design'
-  },
-  {
-    id: 4,
-    title: 'Results',
-    complete: false,
-    progress: 40,
-    summary: 'Data analysis'
-  },
-  {
-    id: 5,
-    title: 'Discussion',
-    complete: false,
-    progress: 20,
-    summary: 'Interpretation'
-  },
-  {
-    id: 6,
-    title: 'Conclusion',
-    complete: false,
-    progress: 10,
-    summary: 'Summary'
-  }
+const sections = [
+  { id: 1, title: 'Introduction', complete: true, progress: 100, summary: 'Research background and objectives' },
+  { id: 2, title: 'Literature Review', complete: true, progress: 100, summary: 'Theoretical framework' },
+  { id: 3, title: 'Methodology', complete: false, progress: 75, summary: 'Research design' },
+  { id: 4, title: 'Results', complete: false, progress: 40, summary: 'Data analysis' },
+  { id: 5, title: 'Discussion', complete: false, progress: 20, summary: 'Interpretation' },
+  { id: 6, title: 'Conclusion', complete: false, progress: 10, summary: 'Summary' }
 ];
 
-const EnhancedThesisViz = () => {
+const collaborators = [
+  { id: 1, name: "John Doe", role: "Author", email: "john@example.com" },
+  { id: 2, name: "Dr. Smith", role: "Supervisor", email: "smith@example.com" },
+  { id: 3, name: "Prof. Johnson", role: "Committee", email: "johnson@example.com" },
+  { id: 4, name: "Dr. Williams", role: "Reviewer", email: "williams@example.com" }
+];
+
+export default function EnhancedThesisViz() {
   const [hoveredSection, setHoveredSection] = useState<number | null>(null);
   const [rotation, setRotation] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRotation(prev => (prev + 0.1) % 360);
-    }, 50);
-    return () => clearInterval(interval);
-  }, []);
-
-  const getPosition = (index: number, total: number, radius: number) => {
-    const angle = (index * 360) / total + rotation;
-    const x = Math.cos((angle * Math.PI) / 180) * radius;
-    const y = Math.sin((angle * Math.PI) / 180) * radius;
-    return { x, y };
-  };
+  const [progress] = useState(65); // Example progress value
 
   return (
     <div className="relative w-full h-[800px] bg-gradient-to-b from-white to-gray-50 overflow-hidden rounded-3xl">
-      {/* Decorative Background Elements */}
+      {/* Background Elements */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.1),transparent_50%)]" />
       <motion.div
         className="absolute inset-0"
@@ -92,7 +52,7 @@ const EnhancedThesisViz = () => {
         transition={{ duration: 3, repeat: Infinity, repeatType: 'reverse' }}
       />
 
-      {/* Central Book Icon with Orbital Ring */}
+      {/* Central Book Icon */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <motion.div
           className="relative"
@@ -119,9 +79,37 @@ const EnhancedThesisViz = () => {
           />
           <BookOpen size={48} className="text-primary relative z-10" />
         </motion.div>
+
+        {/* Timeline Progress Ring */}
+        <div className="absolute -bottom-24 left-1/2 transform -translate-x-1/2">
+          <div className="relative">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center"
+            >
+              <div className="relative w-16 h-16">
+                <Progress
+                  value={progress}
+                  className="h-16 w-16 [&>div]:h-16 [&>div]:w-16 rotate-[-90deg]"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+              <div className="mt-2 text-xs text-center text-gray-600">
+                <p className="font-medium">{progress}% Complete</p>
+                <p>2 months left</p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
       </div>
 
-      {/* Floating Sections */}
+      {/* Collaborators Orbit */}
+      <CollaboratorOrbit collaborators={collaborators} />
+
+      {/* Sections */}
       {sections.map((section, index) => {
         const position = getPosition(index, sections.length, 250);
         return (
@@ -184,25 +172,6 @@ const EnhancedThesisViz = () => {
         );
       })}
 
-      {/* Timeline Indicator */}
-      <motion.div
-        className="absolute left-1/2 top-1/2 transform -translate-x-1/2 translate-y-[100px]"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1 }}
-      >
-        <div className="bg-white/80 backdrop-blur-sm p-3 rounded-lg shadow-sm border border-primary/10 w-[180px]">
-          <div className="flex items-center gap-2 mb-1.5">
-            <Calendar className="text-primary h-4 w-4" />
-            <span className="text-xs font-medium text-gray-700">Timeline</span>
-          </div>
-          <div className="space-y-0.5">
-            <p className="text-[11px] text-gray-500">Started: 3 months ago</p>
-            <p className="text-[11px] text-gray-500">Deadline: 2 months left</p>
-          </div>
-        </div>
-      </motion.div>
-
       {/* Floating Particles */}
       <div className="absolute inset-0 pointer-events-none">
         {[...Array(20)].map((_, i) => (
@@ -227,6 +196,4 @@ const EnhancedThesisViz = () => {
       </div>
     </div>
   );
-};
-
-export default EnhancedThesisViz;
+}
