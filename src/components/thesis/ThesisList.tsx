@@ -84,7 +84,7 @@ export const ThesisList = () => {
             fetchTheses();
             handleToggleOpen();
           }}
-          className="gap-2"
+          className="gap-2 bg-transparent border-gray-700 text-white hover:bg-white/5 font-sans"
           disabled={isLoading}
         >
           {isLoading ? (
@@ -97,14 +97,14 @@ export const ThesisList = () => {
           Load Thesis
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80">
+      <PopoverContent className="w-80 bg-[#1A1F2C] border-gray-700">
         <ScrollArea className="h-[200px] pr-4">
           <div className="space-y-2">
             {thesisList.map((thesis) => (
               <Button
                 variant="ghost"
                 key={thesis.id}
-                className="w-full text-left"
+                className="w-full text-left text-gray-300 hover:bg-white/5 hover:text-white font-sans"
                 onClick={() => handleLoadThesis(thesis.id)}
                 disabled={isLoading}
               >
@@ -112,13 +112,13 @@ export const ThesisList = () => {
               </Button>
             ))}
             {thesisList.length === 0 && !isLoading && (
-              <p className="text-center text-sm text-muted-foreground py-4">
+              <p className="text-center text-sm text-gray-400 py-4 font-sans">
                 No theses found
               </p>
             )}
             {isLoading && (
               <div className="flex justify-center py-4">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <Loader2 className="w-6 h-6 animate-spin text-[#9b87f5]" />
               </div>
             )}
           </div>
