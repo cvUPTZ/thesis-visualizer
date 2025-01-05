@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Eye, EyeOff, LogOut } from 'lucide-react';
 import { ThesisSaveButton } from './ThesisSaveButton';
 import { Thesis } from '@/types/thesis';
-import { generateThesisDocx } from '@/utils/docxExport';
+import { generateThesisDocx, generatePreviewDocx } from '@/utils/docxExport';
 import { Packer } from 'docx';
 import { useToast } from '@/hooks/use-toast';
 import { UserInfo } from './UserInfo';
@@ -11,6 +11,12 @@ import { CollaboratorSection } from './toolbar/CollaboratorSection';
 import { useUser } from '@/hooks/useUser';
 import { useCollaboratorPermissions } from '@/hooks/useCollaboratorPermissions';
 import { CollaboratorWithProfile } from '@/types/collaborator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ThesisToolbarProps {
   thesisId: string;
@@ -36,10 +42,12 @@ export const ThesisToolbar = ({
     error,
   } = useCollaboratorPermissions(thesisId);
 
-  const handleExportDocx = async () => {
+  const handleExport = async (type: 'academic' | 'preview') => {
     try {
-      console.log('Starting DOCX export with thesis data:', thesisData);
-      const doc = await generateThesisDocx(thesisData);
+      console.log(`Starting ${type} DOCX export with thesis data:`, thesisData);
+      const doc = type === 'academic' 
+        ? await generateThesisDocx(thesisData)
+        : await generatePreviewDocx(thesisData);
       console.log('Document generated, converting to blob...');
       
       const blob = await Packer.toBlob(doc);
@@ -48,7 +56,7 @@ export const ThesisToolbar = ({
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${thesisData.frontMatter[0]?.title || 'thesis'}.docx`;
+      link.download = `${thesisData.frontMatter[0]?.title || 'thesis'}_${type}.docx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -74,10 +82,22 @@ export const ThesisToolbar = ({
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
         <ThesisSaveButton thesisId={thesisId} thesisData={thesisData} />
-        <Button onClick={handleExportDocx} variant="outline" className="gap-2">
-          <Download className="h-4 w-4" />
-          Export DOCX
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+              Export
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => handleExport('academic')}>
+              Academic Format
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport('preview')}>
+              Preview Format
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         {userEmail && <UserInfo email={userEmail} role={userRole} />}
         <CollaboratorSection
           collaborators={collaborators as CollaboratorWithProfile[]}
