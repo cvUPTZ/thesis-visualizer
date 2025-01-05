@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthContextType, User, SignInResponse } from './auth/types';
+import { useToast } from '@/hooks/use-toast';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -11,6 +12,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<Error | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     console.log('🔄 Initializing auth context...');
@@ -18,9 +20,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const checkUser = async () => {
       try {
         console.log('🔍 Checking initial session...');
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('❌ Error getting session:', sessionError);
+          throw sessionError;
+        }
         
         if (session) {
+          console.log('✅ Valid session found:', session.user.email);
           setUserId(session.user.id);
           setUserEmail(session.user.email);
           setUser({
@@ -30,15 +38,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           });
           
           // Fetch user role from profiles table
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('roles (name)')
             .eq('id', session.user.id)
             .single();
           
+          if (profileError) {
+            console.error('❌ Error fetching profile:', profileError);
+            throw profileError;
+          }
+
           const role = profile?.roles?.name || null;
+          console.log('✅ User role fetched:', role);
           setUserRole(role);
           setUser(prev => prev ? { ...prev, role } : null);
+        } else {
+          console.log('ℹ️ No active session found');
+          // Clear all auth state when no session exists
+          setUserId(null);
+          setUserEmail(null);
+          setUserRole(null);
+          setUser(null);
         }
       } catch (error) {
         console.error('Error checking user session:', error);
@@ -48,8 +69,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
+    // Initial session check
     checkUser();
 
+    // Set up auth state change subscription
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('🔄 Auth state changed:', event, session?.user?.email);
@@ -60,10 +83,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser({
             id: session.user.id,
             email: session.user.email,
-            role: null // Will be set after profile fetch
+            role: null
           });
-          
-          console.log('✅ User signed in:', session.user.email);
           
           // Fetch user role when auth state changes
           const { data: profile } = await supabase
@@ -75,11 +96,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const role = profile?.roles?.name || null;
           setUserRole(role);
           setUser(prev => prev ? { ...prev, role } : null);
+          
+          console.log('✅ Auth state updated with role:', role);
         } else {
+          // Clear all auth state on signout or session expiration
           setUserId(null);
           setUserEmail(null);
           setUserRole(null);
           setUser(null);
+          console.log('ℹ️ Auth state cleared');
         }
         setLoading(false);
       }
@@ -100,20 +125,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('❌ Error during sign out:', error);
         throw error;
       }
-      console.log('✅ Sign out successful');
       
+      console.log('✅ Sign out successful');
       // Clear all auth state
       setUserId(null);
       setUserEmail(null);
       setUserRole(null);
       setUser(null);
       
+      toast({
+        title: "Signed out successfully",
+        description: "You have been signed out of your account.",
+      });
+      
       // Add a small delay before reload to ensure state is cleared
       setTimeout(() => {
-        window.location.reload();
+        window.location.href = '/auth';
       }, 500);
     } catch (error) {
       console.error('❌ Error during sign out:', error);
+      toast({
+        title: "Error signing out",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
       throw error;
     } finally {
       setLoading(false);
@@ -123,13 +158,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (credentials: { email: string; password: string }): Promise<SignInResponse> => {
     try {
       setLoading(true);
+      console.log('🔄 Attempting sign in for:', credentials.email);
+      
       const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email: credentials.email,
         password: credentials.password,
       });
 
-      if (signInError) throw signInError;
-      if (!authData.user) throw new Error('No user data returned');
+      if (signInError) {
+        console.error('❌ Sign in error:', signInError);
+        throw signInError;
+      }
+      
+      if (!authData.user) {
+        console.error('❌ No user data returned');
+        throw new Error('No user data returned');
+      }
+
+      console.log('✅ Sign in successful');
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -137,7 +183,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .eq('id', authData.user.id)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('❌ Error fetching profile:', profileError);
+        throw profileError;
+      }
 
       const userRole = profile?.roles?.name || 'user';
       const user = {
