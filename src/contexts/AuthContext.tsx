@@ -38,11 +38,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     console.log('🔄 AuthProvider - Initializing');
     
-    // Clear cache on page reload
+    // Enhanced cache clearing on page reload
     const clearCacheOnReload = () => {
-      console.log('🧹 Clearing cache on page reload');
+      console.log('🧹 Clearing all application cache and data');
+      
+      // Clear all storage
       localStorage.clear();
       sessionStorage.clear();
+      
+      // Clear all application caches
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          names.forEach(name => {
+            caches.delete(name);
+          });
+        });
+      }
+      
+      // Clear IndexedDB databases
+      if (window.indexedDB) {
+        window.indexedDB.databases().then(dbs => {
+          dbs.forEach(db => {
+            window.indexedDB.deleteDatabase(db.name!);
+          });
+        });
+      }
+      
+      console.log('✅ Cache clearing completed');
     };
 
     window.addEventListener('beforeunload', clearCacheOnReload);
