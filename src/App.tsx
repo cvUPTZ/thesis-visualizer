@@ -32,9 +32,9 @@ function App() {
   console.log('🔄 App component rendering...');
   
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <Router>
+    <Router>
+      <ErrorBoundary>
+        <AuthProvider>
           <Routes>
             {/* Public routes */}
             <Route 
@@ -80,9 +80,9 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <Toaster />
-        </Router>
-      </AuthProvider>
-    </ErrorBoundary>
+        </AuthProvider>
+      </ErrorBoundary>
+    </Router>
   );
 }
 
