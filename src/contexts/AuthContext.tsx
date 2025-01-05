@@ -37,9 +37,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     console.log('🔄 AuthProvider - Initializing');
-    
-    // Enhanced cache clearing on page reload
-    const clearCacheOnReload = () => {
+    let isMounted = true;
+
+    // Clear all application cache and data immediately on mount
+    const clearAllCache = async () => {
       console.log('🧹 Clearing all application cache and data');
       
       // Clear all storage
@@ -48,46 +49,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       // Clear all application caches
       if ('caches' in window) {
-        caches.keys().then(names => {
-          names.forEach(name => {
-            caches.delete(name);
-          });
-        });
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames.map(name => caches.delete(name))
+        );
       }
       
       // Clear IndexedDB databases
       if (window.indexedDB) {
-        window.indexedDB.databases().then(dbs => {
-          dbs.forEach(db => {
-            window.indexedDB.deleteDatabase(db.name!);
-          });
-        });
+        const dbs = await window.indexedDB.databases();
+        await Promise.all(
+          dbs.map(db => window.indexedDB.deleteDatabase(db.name!))
+        );
       }
       
       console.log('✅ Cache clearing completed');
     };
 
-    window.addEventListener('beforeunload', clearCacheOnReload);
-
     const initializeAuth = async () => {
       try {
+        if (!isMounted) return;
+        
+        await clearAllCache();
+        
         console.log('🔄 Checking initial session...');
         const { data: { session: initialSession } } = await supabase.auth.getSession();
         console.log('📡 Initial session:', initialSession?.user?.email);
         
-        if (initialSession) {
+        if (initialSession && isMounted) {
           await handleSessionChange(initialSession);
           setSession(initialSession);
         }
       } catch (error) {
         console.error('❌ Error initializing auth:', error);
-        toast({
-          title: "Error",
-          description: "Failed to initialize authentication",
-          variant: "destructive",
-        });
+        if (isMounted) {
+          toast({
+            title: "Error",
+            description: "Failed to initialize authentication",
+            variant: "destructive",
+          });
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -95,6 +100,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       console.log('🔄 Auth state changed:', event, currentSession?.user?.email);
+      if (!isMounted) return;
+      
       if (currentSession) {
         await handleSessionChange(currentSession);
         setSession(currentSession);
@@ -108,8 +115,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       console.log('🧹 Cleaning up auth subscriptions');
+      isMounted = false;
       subscription.unsubscribe();
-      window.removeEventListener('beforeunload', clearCacheOnReload);
     };
   }, [handleSessionChange, setLoading, setUserId, setUserEmail, setUserRole, toast]);
 
