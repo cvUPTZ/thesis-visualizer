@@ -38,14 +38,17 @@ const Auth = () => {
     return <AuthLoader />;
   }
 
-  // Get the current hostname to determine if we're in preview or production
-  const isPreview = window.location.hostname.includes('preview--');
-  const redirectTo = `${window.location.origin}/auth/callback`;
+  // Get the current hostname and construct the redirect URL
+  const hostname = window.location.hostname;
+  const isPreview = hostname.includes('preview--');
+  const origin = window.location.origin;
+  const redirectTo = `${origin}/auth/callback`;
   
   console.log('🔐 Auth configuration:', { 
     isPreview, 
     redirectTo,
-    hostname: window.location.hostname 
+    hostname,
+    origin
   });
 
   return (
