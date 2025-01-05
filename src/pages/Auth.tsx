@@ -4,7 +4,7 @@ import { AuthContainer } from '@/components/auth/AuthContainer';
 import { AuthLoader } from '@/components/auth/AuthLoader';
 import { useAuth } from '@/contexts/AuthContext';
 
-export const Auth = () => {
+const Auth = () => {
   const { session, isLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -24,3 +24,5 @@ export const Auth = () => {
 
   return <AuthContainer />;
 };
+
+export default Auth;
