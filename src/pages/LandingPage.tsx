@@ -8,7 +8,7 @@ import { PricingSection } from "@/components/landing/PricingSection";
 import { TestimonialCarousel } from "@/components/landing/TestimonialCarousel";
 import { DemoPreview } from "@/components/landing/DemoPreview";
 import { FeedbackForm } from "@/components/landing/FeedbackForm";
-import { ThesisVisualization } from "@/components/landing/ThesisVisualization";
+import ThesisVisualization from "@/components/landing/ThesisVisualization";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSkeleton } from "@/components/loading/LoadingSkeleton";
 import { useNavigate } from "react-router-dom";
