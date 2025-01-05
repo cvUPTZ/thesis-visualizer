@@ -14,15 +14,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
     handleSessionChange,
     logout,
-    userEmail
+    userEmail,
+    isAuthenticated
   } = useSession();
-
-  const isAuthenticated = !!userId;
 
   useEffect(() => {
     console.log('🔄 Initializing auth context...');
     
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
 
     const initializeAuth = async () => {
       try {
@@ -31,7 +31,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (mounted) {
           await handleSessionChange(session);
-          setInitialLoadComplete(true);
+          // Add a small delay to prevent flash of loading state
+          timeoutId = setTimeout(() => {
+            setInitialLoadComplete(true);
+          }, 500);
         }
       } catch (error) {
         console.error('❌ Error during auth initialization:', error);
@@ -52,11 +55,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       mounted = false;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, [handleSessionChange]);
 
-  if (!initialLoadComplete || loading) {
+  // Only show loading state for initial load
+  if (!initialLoadComplete) {
     return <LoadingSkeleton />;
   }
 

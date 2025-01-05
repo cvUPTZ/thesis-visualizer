@@ -7,19 +7,21 @@ export const LoadingProgress = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setProgress((oldProgress) => {
-        const newProgress = Math.min(oldProgress + Math.random() * 20, 90);
+        // Slow down progress as it gets closer to 90%
+        const increment = Math.max(1, (90 - oldProgress) / 10);
+        const newProgress = Math.min(oldProgress + increment, 90);
         return newProgress;
       });
-    }, 500);
+    }, 200);
 
     return () => clearInterval(timer);
   }, []);
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-4">
+    <div className="w-full space-y-4">
       <Progress value={progress} className="w-full h-2" />
       <p className="text-sm text-muted-foreground text-center animate-pulse">
-        Loading your personalized dashboard...
+        Loading your content...
       </p>
     </div>
   );
