@@ -1,31 +1,34 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { BookOpen, Users, Shield, Rocket } from "lucide-react";
-
-const features = [
-  {
-    icon: BookOpen,
-    title: "Smart Editor",
-    description: "Write and format your thesis with our intelligent editor"
-  },
-  {
-    icon: Users,
-    title: "Real-time Collaboration",
-    description: "Work together with advisors and peers seamlessly"
-  },
-  {
-    icon: Shield,
-    title: "Version Control",
-    description: "Track changes and manage different versions effortlessly"
-  },
-  {
-    icon: Rocket,
-    title: "AI-Powered",
-    description: "Get intelligent suggestions and formatting assistance"
-  }
-];
+import { useTranslation } from "@/hooks/useTranslation";
 
 export const FeaturesSection = () => {
+  const { t } = useTranslation();
+
+  const features = [
+    {
+      icon: BookOpen,
+      title: t('landing.features.smartEditor.title'),
+      description: t('landing.features.smartEditor.description')
+    },
+    {
+      icon: Users,
+      title: t('landing.features.collaboration.title'),
+      description: t('landing.features.collaboration.description')
+    },
+    {
+      icon: Shield,
+      title: t('landing.features.versionControl.title'),
+      description: t('landing.features.versionControl.description')
+    },
+    {
+      icon: Rocket,
+      title: t('landing.features.aiPowered.title'),
+      description: t('landing.features.aiPowered.description')
+    }
+  ];
+
   return (
     <section id="features" className="py-20 bg-[#1A1F2C]">
       <div className="max-w-7xl mx-auto px-4">
@@ -37,10 +40,10 @@ export const FeaturesSection = () => {
           className="text-center mb-16"
         >
           <h2 className="text-3xl font-bold text-white mb-4">
-            Powerful Features for Academic Success
+            {t('landing.features.title')}
           </h2>
           <p className="text-gray-400">
-            Everything you need to write a professional thesis
+            {t('landing.features.subtitle')}
           </p>
         </motion.div>
 

@@ -4,10 +4,12 @@ import { GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export const HeroSection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
@@ -22,14 +24,10 @@ export const HeroSection = () => {
         >
           <GraduationCap className="w-20 h-20 mx-auto text-[#6B46C1]" />
           <h1 className="text-4xl md:text-6xl font-bold text-white">
-            Write Your Thesis with{" "}
-            <span className="bg-gradient-to-r from-[#6B46C1] to-[#9F7AEA] bg-clip-text text-transparent">
-              Confidence
-            </span>
+            {t('landing.hero.title')}
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            A powerful platform designed to help you structure, write, and
-            visualize your academic thesis with ease.
+            {t('landing.hero.subtitle')}
           </p>
           <div className="flex justify-center gap-4 pt-8">
             <Button
@@ -43,7 +41,7 @@ export const HeroSection = () => {
                 navigate('/auth');
               }}
             >
-              Get Started
+              {t('landing.hero.cta')}
             </Button>
             <Button
               variant="outline"
@@ -54,7 +52,7 @@ export const HeroSection = () => {
                 featuresSection?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              Learn More
+              {t('landing.hero.learnMore')}
             </Button>
           </div>
         </motion.div>
