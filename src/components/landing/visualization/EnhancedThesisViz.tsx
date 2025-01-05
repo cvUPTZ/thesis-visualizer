@@ -15,7 +15,17 @@ import {
 import { CollaboratorOrbit } from './CollaboratorOrbit';
 import { Progress } from "@/components/ui/progress";
 
-const sections = [
+// Types
+interface Section {
+  id: number;
+  title: string;
+  complete: boolean;
+  progress: number;
+  summary: string;
+}
+
+// Data
+const sections: Section[] = [
   { id: 1, title: 'Introduction', complete: true, progress: 100, summary: 'Research background and objectives' },
   { id: 2, title: 'Literature Review', complete: true, progress: 100, summary: 'Theoretical framework' },
   { id: 3, title: 'Methodology', complete: false, progress: 75, summary: 'Research design' },
@@ -31,10 +41,18 @@ const collaborators = [
   { id: 4, name: "Dr. Williams", role: "Reviewer", email: "williams@example.com" }
 ];
 
+// Calculate positions on circle
+const getPositionOnCircle = (index: number, total: number, radius: number) => {
+  const angle = (index * 360) / total;
+  const x = Math.cos((angle * Math.PI) / 180) * radius;
+  const y = Math.sin((angle * Math.PI) / 180) * radius;
+  return { x, y };
+};
+
 export default function EnhancedThesisViz() {
   const [hoveredSection, setHoveredSection] = useState<number | null>(null);
   const [rotation, setRotation] = useState(0);
-  const [progress] = useState(65); // Example progress value
+  const [progress] = useState(65);
 
   return (
     <div className="relative w-full h-[800px] bg-gradient-to-b from-white to-gray-50 overflow-hidden rounded-3xl">
@@ -111,7 +129,7 @@ export default function EnhancedThesisViz() {
 
       {/* Sections */}
       {sections.map((section, index) => {
-        const position = getPosition(index, sections.length, 250);
+        const position = getPositionOnCircle(index, sections.length, 250);
         return (
           <motion.div
             key={section.id}
