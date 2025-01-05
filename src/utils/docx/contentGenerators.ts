@@ -1,14 +1,6 @@
-import { Document, Paragraph, TextRun, HeadingLevel, TableOfContents, StyleLevel, convertInchesToTwip, Header, Footer } from 'docx';
+import { Document, Paragraph, TextRun, HeadingLevel, TableOfContents, StyleLevel, convertInchesToTwip, Header, Footer, PageNumber, AlignmentType } from 'docx';
 import { ContentGenerationOptions } from './types';
 import { defaultStyles, previewStyles } from './styleConfig';
-
-const PAGE_WIDTH = convertInchesToTwip(8.5);
-const PAGE_MARGINS = {
-  top: convertInchesToTwip(1),
-  right: convertInchesToTwip(1),
-  bottom: convertInchesToTwip(1),
-  left: convertInchesToTwip(1.5), // Wider left margin for binding
-};
 
 export const generateTableOfContents = (): TableOfContents => {
   return new TableOfContents("Table of Contents", {
@@ -27,22 +19,21 @@ export const generateTableOfContents = (): TableOfContents => {
   });
 };
 
-export const generateContent = ({ thesis, isPreview = false }: ContentGenerationOptions & { isPreview?: boolean }): Paragraph[] => {
+export const generateContent = ({ thesis, isPreview = false }: ContentGenerationOptions): Paragraph[] => {
   const paragraphs: Paragraph[] = [];
   const styles = isPreview ? previewStyles : defaultStyles;
 
-  // Add header
-  paragraphs.push(
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: thesis.metadata?.title || "Thesis Title",
-          size: 20,
-        }),
-      ],
-      style: 'header',
-    })
-  );
+  // Add header with thesis title
+  const headerParagraph = new Paragraph({
+    children: [
+      new TextRun({
+        text: thesis.frontMatter[0]?.title || "Untitled Thesis",
+        size: 20,
+      }),
+    ],
+    style: 'header',
+  });
+  paragraphs.push(headerParagraph);
 
   // Front Matter with proper spacing and styling
   thesis.frontMatter.forEach(section => {
@@ -104,7 +95,7 @@ export const generateContent = ({ thesis, isPreview = false }: ContentGeneration
             new Paragraph({
               text: `[Figure ${figure.number}]`,
               spacing: { before: 240, after: 120 },
-              alignment: 'center',
+              alignment: AlignmentType.CENTER,
             }),
             new Paragraph({
               text: figure.caption,
@@ -153,21 +144,21 @@ export const generateContent = ({ thesis, isPreview = false }: ContentGeneration
   });
 
   // Add footer with page number
-  paragraphs.push(
-    new Paragraph({
-      children: [
-        new TextRun({
-          children: [
-            TextRun.pageNumber(),
-            new TextRun(" of "),
-            TextRun.numberOfTotalPages(),
-          ],
-        }),
-      ],
-      style: 'footer',
-      alignment: 'center',
-    })
-  );
+  const footerParagraph = new Paragraph({
+    children: [
+      new TextRun("Page "),
+      new TextRun({
+        children: [PageNumber.CURRENT],
+      }),
+      new TextRun(" of "),
+      new TextRun({
+        children: [PageNumber.TOTAL_PAGES],
+      }),
+    ],
+    alignment: AlignmentType.CENTER,
+    style: 'footer',
+  });
+  paragraphs.push(footerParagraph);
 
   return paragraphs;
 };
