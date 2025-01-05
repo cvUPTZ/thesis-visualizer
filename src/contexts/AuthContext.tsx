@@ -63,8 +63,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('✅ Session loaded:', user);
       return { user, isAuthenticated: true };
     },
-      staleTime: 1000 * 60 * 5, // Consider session data fresh for 5 minutes
-      refetchOnWindowFocus: true,
+    staleTime: 1000 * 60 * 5, // Consider session data fresh for 5 minutes
+    refetchOnWindowFocus: true,
   });
 
   // Sign in mutation with role-based redirection
@@ -108,7 +108,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('✅ Sign in successful, user role:', data.userRole);
       queryClient.invalidateQueries({ queryKey: ['auth-session'] });
       
-      navigate('/dashboard');
+      if (data.userRole === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
       
       toast({
         title: "Welcome back!",
@@ -125,23 +129,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     },
   });
 
-    useEffect(() => {
-        if (authData && authData.isAuthenticated) {
-            if (authData.user?.role === 'admin') {
-                navigate('/admin');
-            }
-        }
-      }, [authData?.user?.role, authData?.isAuthenticated, navigate]);
-
-  // Sign out mutation
+  // Sign out mutation with improved error handling
   const signOutMutation = useMutation({
     mutationFn: async () => {
       console.log('🔄 Signing out user...');
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+        
+        // Clear any cached session data
+        await supabase.auth.clearSession();
+        
+        // Clear React Query cache
+        queryClient.clear();
+        
+        console.log('✅ Sign out successful');
+      } catch (error) {
+        console.error('❌ Error during sign out:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
-      console.log('✅ Sign out successful');
+      // Reset auth state
       queryClient.setQueryData(['auth-session'], { user: null, isAuthenticated: false });
       navigate('/');
       toast({
@@ -151,9 +160,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     },
     onError: (error: Error) => {
       console.error('❌ Sign out error:', error);
+      // Even if there's an error, we want to clear local state
+      queryClient.setQueryData(['auth-session'], { user: null, isAuthenticated: false });
+      navigate('/');
       toast({
-        title: "Error signing out",
-        description: error.message,
+        title: "Error during sign out",
+        description: "You have been signed out, but there was an error. Please refresh the page.",
         variant: "destructive",
       });
     },
