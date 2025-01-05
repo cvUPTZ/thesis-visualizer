@@ -30,8 +30,6 @@ const Auth = () => {
       } else {
         navigate('/dashboard', { replace: true });
       }
-      // Add page reload after successful authentication and navigation
-      window.location.reload();
     }
   }, [isAuthenticated, userRole, isLoading, navigate]);
 
@@ -125,6 +123,12 @@ const Auth = () => {
                 }}
                 providers={["google"]}
                 redirectTo={redirectTo}
+                onSignIn={() => {
+                  // Add a slight delay to ensure navigation completes
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 1000);
+                }}
                 localization={{
                   variables: {
                     sign_in: {
