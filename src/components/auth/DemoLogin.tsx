@@ -10,18 +10,28 @@ export const DemoLogin = () => {
   const handleDemoLogin = async () => {
     try {
       console.log('🔑 Attempting demo login...');
-      const { data, error } = await supabase.auth.signInWithPassword({
+      
+      // First try to sign in
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: 'demo.user@thesisvisualizer.com',
         password: 'demo123456'
       });
 
-      if (error) {
-        console.log('❌ Demo login error:', error);
-        if (error.message === 'Invalid login credentials') {
+      if (signInError) {
+        console.log('❌ Demo login error:', signInError);
+        
+        // If login fails due to invalid credentials, try to create the account
+        if (signInError.message === 'Invalid login credentials') {
           console.log('🆕 Demo user not found, creating account...');
+          
           const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
             email: 'demo.user@thesisvisualizer.com',
-            password: 'demo123456'
+            password: 'demo123456',
+            options: {
+              data: {
+                email: 'demo.user@thesisvisualizer.com'
+              }
+            }
           });
 
           if (signUpError) {
@@ -29,12 +39,23 @@ export const DemoLogin = () => {
             throw signUpError;
           }
 
+          // After successful signup, try to sign in again
+          const { error: secondSignInError } = await supabase.auth.signInWithPassword({
+            email: 'demo.user@thesisvisualizer.com',
+            password: 'demo123456'
+          });
+
+          if (secondSignInError) {
+            console.error('❌ Second sign in attempt failed:', secondSignInError);
+            throw secondSignInError;
+          }
+
           toast({
             title: "Demo Account Created",
             description: "You can now use the demo account to explore the app.",
           });
         } else {
-          throw error;
+          throw signInError;
         }
       } else {
         console.log('✅ Demo login successful');
@@ -42,8 +63,9 @@ export const DemoLogin = () => {
           title: "Demo Login Successful",
           description: "You're now logged in as a demo user.",
         });
-        navigate('/dashboard');
       }
+      
+      navigate('/dashboard');
     } catch (error: any) {
       console.error('❌ Error in demo login:', error);
       toast({
