@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { authService } from "@/services/authService";
 import { User, AuthContextType } from "@/types/auth";
+import { useToast } from "@/hooks/use-toast";
 
 const initialState: AuthContextType = {
   user: null,
@@ -19,51 +20,81 @@ const AuthContext = createContext<AuthContextType>(initialState);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, setState] = useState<AuthContextType>(initialState);
+  const { toast } = useToast();
 
   const updateState = (updates: Partial<AuthContextType>) => {
     setState(current => ({ ...current, ...updates }));
   };
 
   const initializeAuth = async () => {
+    let mounted = true;
     try {
       console.log('🔄 Initializing auth...');
       const session = await authService.getSession();
 
       if (!session) {
         console.log('ℹ️ No active session');
-        updateState({ 
-          isLoading: false, 
-          isAuthenticated: false,
-          session: null
-        });
+        if (mounted) {
+          updateState({ 
+            isLoading: false, 
+            isAuthenticated: false,
+            session: null
+          });
+        }
         return;
       }
 
       console.log('✅ Session found:', session.user.email);
-      const userRole = await authService.getUserRole(session.user.id);
       
-      updateState({
-        user: session.user,
-        session,
-        isAuthenticated: true,
-        userRole,
-        userId: session.user.id,
-        userEmail: session.user.email,
-        isLoading: false
-      });
+      try {
+        const userRole = await authService.getUserRole(session.user.id);
+        console.log('✅ User role fetched:', userRole);
+        
+        if (mounted) {
+          updateState({
+            user: session.user,
+            session,
+            isAuthenticated: true,
+            userRole,
+            userId: session.user.id,
+            userEmail: session.user.email,
+            isLoading: false
+          });
+        }
+      } catch (roleError) {
+        console.error('❌ Error fetching user role:', roleError);
+        toast({
+          title: "Error fetching user role",
+          description: "Please try refreshing the page",
+          variant: "destructive",
+        });
+        
+        if (mounted) {
+          updateState({ 
+            isLoading: false,
+            error: roleError as Error
+          });
+        }
+      }
     } catch (error) {
       console.error('❌ Auth initialization error:', error);
-      updateState({ 
-        error: error as Error,
-        isLoading: false,
-        isAuthenticated: false 
-      });
+      if (mounted) {
+        updateState({ 
+          error: error as Error,
+          isLoading: false,
+          isAuthenticated: false 
+        });
+      }
     }
+
+    return () => {
+      mounted = false;
+    };
   };
 
   useEffect(() => {
-    let mounted = true;
     console.log('🔄 Setting up auth context...');
+    let mounted = true;
 
     const { data: { subscription } } = authService.onAuthStateChange(
       async (event, session) => {
@@ -86,21 +117,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         try {
           const userRole = await authService.getUserRole(session.user.id);
-          updateState({
-            user: session.user,
-            session,
-            isAuthenticated: true,
-            userRole,
-            userId: session.user.id,
-            userEmail: session.user.email,
-            isLoading: false
-          });
+          if (mounted) {
+            updateState({
+              user: session.user,
+              session,
+              isAuthenticated: true,
+              userRole,
+              userId: session.user.id,
+              userEmail: session.user.email,
+              isLoading: false
+            });
+          }
         } catch (error) {
           console.error('❌ Error updating auth state:', error);
-          updateState({
-            error: error as Error,
-            isLoading: false
-          });
+          if (mounted) {
+            updateState({
+              error: error as Error,
+              isLoading: false
+            });
+          }
         }
       }
     );
