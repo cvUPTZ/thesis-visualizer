@@ -1,193 +1,235 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Session } from '@supabase/supabase-js';
+import { AuthContextType, User, SignInResponse } from './auth/types';
 import { useToast } from '@/hooks/use-toast';
-import { useSession } from './auth/useSession';
-
-interface AuthContextType {
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  userRole: string | null;
-  userId: string | null;
-  userEmail: string | null;
-  session: Session | null;
-  logout: () => Promise<void>;
-}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const navigate = useNavigate();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
-  const {
-    userId,
-    setUserId,
-    userEmail,
-    setUserEmail,
-    userRole,
-    setUserRole,
-    loading: isLoading,
-    setLoading,
-    handleSessionChange,
-    logout
-  } = useSession();
-
-  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    console.log('🔄 AuthProvider - Initializing');
-    let isMounted = true;
-
-    const clearAllCache = async () => {
+    console.log('🔄 Initializing auth context...');
+    
+    const checkUser = async () => {
       try {
-        console.log('🧹 Clearing all application cache and data');
-        
-        localStorage.clear();
-        sessionStorage.clear();
-        
-        if ('caches' in window) {
-          const cacheNames = await caches.keys();
-          await Promise.all(
-            cacheNames.map(name => caches.delete(name))
-          );
-        }
-        
-        if (window.indexedDB) {
-          const dbs = await window.indexedDB.databases();
-          await Promise.all(
-            dbs.map(db => window.indexedDB.deleteDatabase(db.name!))
-          );
-        }
-        
-        console.log('✅ Cache clearing completed');
-      } catch (error) {
-        console.error('❌ Error clearing cache:', error);
-      }
-    };
-
-    const initializeAuth = async () => {
-      try {
-        if (!isMounted) return;
-        
-        await clearAllCache();
-        
-        console.log('🔄 Checking initial session...');
-        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
+        console.log('🔍 Checking initial session...');
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error('❌ Error getting session:', sessionError);
           throw sessionError;
         }
-
-        console.log('📡 Initial session:', initialSession?.user?.email);
         
-        if (initialSession?.user && isMounted) {
-          try {
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select(`
-                email,
-                roles (
-                  name
-                )
-              `)
-              .eq('id', initialSession.user.id)
-              .maybeSingle();
-
-            if (profileError) {
-              console.error('❌ Error fetching profile:', profileError);
-              if (profileError.message.includes('Failed to fetch')) {
-                toast({
-                  title: "Connection Error",
-                  description: "Failed to connect to the server. Please check your internet connection.",
-                  variant: "destructive",
-                });
-              } else {
-                toast({
-                  title: "Error",
-                  description: "Failed to load user profile. Please try again.",
-                  variant: "destructive",
-                });
-              }
-              throw profileError;
-            }
-
-            if (profile && isMounted) {
-              await handleSessionChange(initialSession);
-              setSession(initialSession);
-              console.log('✅ Profile loaded successfully:', profile);
-            } else {
-              console.log('⚠️ No profile found for user');
-              toast({
-                title: "Profile Not Found",
-                description: "Your user profile could not be found. Please contact support.",
-                variant: "destructive",
-              });
-            }
-          } catch (error: any) {
-            console.error('❌ Error in profile fetch:', error);
-            if (!error.message.includes('Failed to fetch')) {
-              toast({
-                title: "Error",
-                description: "An unexpected error occurred while loading your profile.",
-                variant: "destructive",
-              });
-            }
-            throw error;
-          }
-        }
-      } catch (error: any) {
-        console.error('❌ Error initializing auth:', error);
-        if (!error.message.includes('Failed to fetch')) {
-          toast({
-            title: "Authentication Error",
-            description: "Failed to initialize authentication. Please try again.",
-            variant: "destructive",
+        if (session) {
+          console.log('✅ Valid session found:', session.user.email);
+          setUserId(session.user.id);
+          setUserEmail(session.user.email);
+          setUser({
+            id: session.user.id,
+            email: session.user.email,
+            role: null // Will be set after profile fetch
           });
+          
+          // Fetch user role from profiles table
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('roles (name)')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profileError) {
+            console.error('❌ Error fetching profile:', profileError);
+            throw profileError;
+          }
+
+          const role = profile?.roles?.name || null;
+          console.log('✅ User role fetched:', role);
+          setUserRole(role);
+          setUser(prev => prev ? { ...prev, role } : null);
+        } else {
+          console.log('ℹ️ No active session found');
+          // Clear all auth state when no session exists
+          setUserId(null);
+          setUserEmail(null);
+          setUserRole(null);
+          setUser(null);
         }
+      } catch (error) {
+        console.error('Error checking user session:', error);
+        setError(error as Error);
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
-    initializeAuth();
+    // Initial session check
+    checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      console.log('🔄 Auth state changed:', event, currentSession?.user?.email);
-      if (!isMounted) return;
-      
-      if (currentSession) {
-        await handleSessionChange(currentSession);
-        setSession(currentSession);
-      } else {
-        setSession(null);
-        setUserId(null);
-        setUserEmail(null);
-        setUserRole(null);
+    // Set up auth state change subscription
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('🔄 Auth state changed:', event, session?.user?.email);
+        
+        if (session) {
+          setUserId(session.user.id);
+          setUserEmail(session.user.email);
+          setUser({
+            id: session.user.id,
+            email: session.user.email,
+            role: null
+          });
+          
+          // Fetch user role when auth state changes
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('roles (name)')
+            .eq('id', session.user.id)
+            .single();
+          
+          const role = profile?.roles?.name || null;
+          setUserRole(role);
+          setUser(prev => prev ? { ...prev, role } : null);
+          
+          console.log('✅ Auth state updated with role:', role);
+        } else {
+          // Clear all auth state on signout or session expiration
+          setUserId(null);
+          setUserEmail(null);
+          setUserRole(null);
+          setUser(null);
+          console.log('ℹ️ Auth state cleared');
+        }
+        setLoading(false);
       }
-    });
+    );
 
     return () => {
-      console.log('🧹 Cleaning up auth subscriptions');
-      isMounted = false;
+      console.log('🧹 Cleaning up auth context...');
       subscription.unsubscribe();
     };
-  }, [handleSessionChange, setLoading, setUserId, setUserEmail, setUserRole, toast]);
+  }, []);
 
-  const value = {
-    isAuthenticated: !!session,
-    isLoading,
-    userRole,
-    userId,
-    userEmail,
-    session,
-    logout
+  const signOut = async () => {
+    console.log('🔄 Starting sign out process...');
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('❌ Error during sign out:', error);
+        throw error;
+      }
+      
+      console.log('✅ Sign out successful');
+      // Clear all auth state
+      setUserId(null);
+      setUserEmail(null);
+      setUserRole(null);
+      setUser(null);
+      
+      toast({
+        title: "Signed out successfully",
+        description: "You have been signed out of your account.",
+      });
+      
+      // Add a small delay before reload to ensure state is cleared
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 500);
+    } catch (error) {
+      console.error('❌ Error during sign out:', error);
+      toast({
+        title: "Error signing out",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  const signIn = async (credentials: { email: string; password: string }): Promise<SignInResponse> => {
+    try {
+      setLoading(true);
+      console.log('🔄 Attempting sign in for:', credentials.email);
+      
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password,
+      });
+
+      if (signInError) {
+        console.error('❌ Sign in error:', signInError);
+        throw signInError;
+      }
+      
+      if (!authData.user) {
+        console.error('❌ No user data returned');
+        throw new Error('No user data returned');
+      }
+
+      console.log('✅ Sign in successful');
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('roles (name)')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('❌ Error fetching profile:', profileError);
+        throw profileError;
+      }
+
+      const userRole = profile?.roles?.name || 'user';
+      const user = {
+        id: authData.user.id,
+        email: authData.user.email,
+        role: userRole,
+      };
+
+      setUser(user);
+      setUserRole(userRole);
+      setUserId(authData.user.id);
+      setUserEmail(authData.user.email);
+
+      return { user, userRole };
+    } catch (error) {
+      console.error('Error during sign in:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isAuthenticated = !!userId;
+
+  const contextValue: AuthContextType = {
+    userId,
+    userEmail,
+    loading,
+    isLoading: loading,
+    user,
+    error,
+    signIn,
+    signOut,
+    logout: signOut, // Alias for backward compatibility
+    isAuthenticated,
+    userRole
+  };
+
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {

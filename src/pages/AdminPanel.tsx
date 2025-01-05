@@ -10,28 +10,14 @@ import { ThesisManagement } from '@/components/admin/ThesisManagement';
 import { SystemStats } from '@/components/admin/SystemStats';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Users, Flag, BookOpen, LayoutDashboard, LogOut, Loader2 } from 'lucide-react';
+import { Settings, Users, Flag, BookOpen, LayoutDashboard, LogOut } from 'lucide-react';
 
 const AdminPanel = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { isAuthenticated, userRole, logout, isLoading } = useAuth();
+  const { isAuthenticated, userRole, logout } = useAuth();
 
-  // Handle loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-admin-bg text-white flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-admin-accent-primary" />
-          <p className="text-admin-accent-tertiary">Loading admin panel...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Redirect if not authenticated or not admin
   if (!isAuthenticated || userRole !== 'admin') {
-    console.log('User not authorized, redirecting to auth page');
     navigate('/auth');
     return null;
   }
