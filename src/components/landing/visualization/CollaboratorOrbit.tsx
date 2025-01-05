@@ -15,6 +15,18 @@ interface CollaboratorOrbitProps {
 }
 
 export const CollaboratorOrbit = ({ collaborators }: CollaboratorOrbitProps) => {
+  // Function to generate random movement
+  const generateRandomMovement = () => ({
+    x: Math.random() * 20 - 10, // Random value between -10 and 10
+    y: Math.random() * 20 - 10,
+    transition: {
+      duration: Math.random() * 2 + 1, // Random duration between 1 and 3 seconds
+      repeat: Infinity,
+      repeatType: "reverse" as const,
+      ease: "easeInOut"
+    }
+  });
+
   return (
     <div className="absolute inset-0">
       {collaborators.map((collaborator, index) => {
@@ -27,7 +39,11 @@ export const CollaboratorOrbit = ({ collaborators }: CollaboratorOrbitProps) => 
           <motion.div
             key={collaborator.id}
             initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1,
+              ...generateRandomMovement()
+            }}
             transition={{ delay: index * 0.1 }}
             className="absolute left-1/2 top-1/2"
             style={{
