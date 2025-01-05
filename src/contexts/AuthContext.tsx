@@ -97,54 +97,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Sign In Mutation
     const signInMutation = useMutation({
-        mutationFn: async ({ email, password }: { email: string; password: string }) => {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
+      mutationFn: async ({ email, password }: { email: string; password: string }) => {
+          const { data, error } = await supabase.auth.signInWithPassword({
+              email,
+              password,
+          });
 
-            if (error) throw error;
+          if (error) throw error;
 
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('roles (name)')
-                .eq('id', data.user.id)
-                .single();
+          const { data: profile } = await supabase
+              .from('profiles')
+              .select('roles (name)')
+              .eq('id', data.user.id)
+              .single();
 
-            return {
-                user: data.user,
-                userRole: profile?.roles?.name || null
-            };
-        },
-        onSuccess: async (data) => {
-           const user : User = {
-              id: data.user.id,
-              email: data.user.email!,
-              role: data.userRole,
-            };
+          return {
+              user: data.user,
+              userRole: profile?.roles?.name || null
+          };
+      },
+      onSuccess: async (data) => {
+         const user : User = {
+            id: data.user.id,
+            email: data.user.email!,
+            role: data.userRole,
+          };
 
-           queryClient.setQueryData(['auth-session'], { user , isAuthenticated: true });
+         queryClient.setQueryData(['auth-session'], { user , isAuthenticated: true });
 
-            // Show toast
-            toast({
-                title: "Welcome back!",
-                description: "Successfully signed in.",
-            });
+          // Show toast
+          toast({
+              title: "Welcome back!",
+              description: "Successfully signed in.",
+          });
 
-            // Redirect with react router
-            const redirectPath = data.userRole === 'admin' ? '/admin' : '/dashboard';
-            navigate(redirectPath);
-        },
-        onError: (error: Error) => {
-            console.error('Sign in error:', error);
-            clearAuthState();
-            toast({
-                title: "Sign in failed",
-                description: error.message,
-                variant: "destructive",
-            });
-        }
-    });
+          // Redirect with react router
+         const redirectPath = data.userRole === 'admin' ? '/admin' : '/dashboard';
+          navigate(redirectPath);
+
+        // Reload the page after navigation
+          window.location.reload();
+      },
+      onError: (error: Error) => {
+          console.error('Sign in error:', error);
+          clearAuthState();
+          toast({
+              title: "Sign in failed",
+              description: error.message,
+              variant: "destructive",
+          });
+      }
+  });
 
     // Sign Out Mutation
     const signOutMutation = useMutation({
