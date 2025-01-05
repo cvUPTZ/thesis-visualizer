@@ -7,11 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DemoLogin } from "@/components/auth/DemoLogin";
 import { AuthDivider } from "@/components/auth/AuthDivider";
-import { useAuth } from "@/contexts/AuthContext";
 import { AuthLoader } from "@/components/auth/AuthLoader";
 import { useToast } from "@/hooks/use-toast";
 import { GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();

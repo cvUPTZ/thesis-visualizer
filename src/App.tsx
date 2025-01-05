@@ -14,16 +14,19 @@ import { ThesisEditor } from '@/components/ThesisEditor';
 
 // Public route wrapper component
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, userRole } = useAuth();
   
-  console.log('🔍 PublicRoute - Auth state:', { isAuthenticated, isLoading });
+  console.log('🔍 PublicRoute - Auth state:', { isAuthenticated, isLoading, userRole });
 
   if (isLoading) {
     return <LoadingSkeleton />;
   }
 
   if (isAuthenticated) {
-    console.log('✅ User is authenticated, redirecting to dashboard');
+    console.log('✅ User is authenticated, redirecting based on role:', userRole);
+    if (userRole === 'admin') {
+      return <Navigate to="/admin" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
