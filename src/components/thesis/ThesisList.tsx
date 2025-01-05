@@ -1,86 +1,25 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ArrowDown, ArrowUp, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-
-interface ThesisListItem {
-  id: string;
-  title: string;
-}
+import { useThesesList } from '@/hooks/useThesesList';
+import { ThesisListItem } from './ThesisListItem';
+import { supabase } from '@/integrations/supabase/client';
 
 export const ThesisList = () => {
-  const [thesisList, setThesisList] = useState<ThesisListItem[]>([]);
   const [open, setOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loadingThesis, setLoadingThesis] = useState<string | null>(null);
+  const { thesisList, isLoading, error, fetchTheses } = useThesesList();
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  const fetchTheses = async () => {
-    try {
-      console.log('📚 Fetching theses list...');
-      setIsLoading(true);
-      setError(null);
-
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session?.user) {
-        console.error('❌ No authenticated user found');
-        toast({
-          title: "Authentication Error",
-          description: "Please sign in to view your theses",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const { data, error: fetchError } = await supabase
-        .from('theses')
-        .select(`
-          id,
-          title,
-          thesis_collaborators!inner (
-            user_id,
-            role
-          )
-        `)
-        .eq('thesis_collaborators.user_id', session.session.user.id);
-
-      if (fetchError) {
-        console.error('❌ Error fetching theses:', fetchError);
-        setError(fetchError.message);
-        toast({
-          title: "Error",
-          description: "Failed to load your theses. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (data) {
-        console.log('✅ Theses loaded:', data);
-        setThesisList(data as ThesisListItem[]);
-      }
-    } catch (error: any) {
-      console.error('❌ Unexpected error:', error);
-      setError(error.message);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleLoadThesis = async (thesisId: string) => {
     try {
       console.log('📝 Loading thesis:', thesisId);
-      setIsLoading(true);
+      setLoadingThesis(thesisId);
       
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) {
@@ -123,7 +62,7 @@ export const ThesisList = () => {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setLoadingThesis(null);
     }
   };
 
@@ -134,14 +73,13 @@ export const ThesisList = () => {
       }
       return !prevOpen;
     });
-  }, []);
+  }, [fetchTheses]);
 
-  // Initial load when component mounts
   useEffect(() => {
     if (open) {
       fetchTheses();
     }
-  }, [open]);
+  }, [open, fetchTheses]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -177,15 +115,13 @@ export const ThesisList = () => {
           ) : (
             <div className="space-y-2">
               {thesisList.map((thesis) => (
-                <Button
-                  variant="ghost"
+                <ThesisListItem
                   key={thesis.id}
-                  className="w-full text-left text-gray-300 hover:bg-white/5 hover:text-white font-sans"
-                  onClick={() => handleLoadThesis(thesis.id)}
-                  disabled={isLoading}
-                >
-                  {thesis.title}
-                </Button>
+                  id={thesis.id}
+                  title={thesis.title}
+                  isLoading={loadingThesis === thesis.id}
+                  onSelect={handleLoadThesis}
+                />
               ))}
               {thesisList.length === 0 && !isLoading && (
                 <p className="text-center text-sm text-gray-400 py-4 font-sans">
