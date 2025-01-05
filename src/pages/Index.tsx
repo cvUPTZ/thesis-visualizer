@@ -53,8 +53,8 @@ const Index = () => {
       variant: "destructive",
     });
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center text-red-500">
+      <div className="min-h-screen bg-[#1A1F2C] p-6">
+        <div className="text-center text-red-400">
           Error loading dashboard data. Please try again later.
         </div>
       </div>
@@ -62,14 +62,15 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-violet-900">
+    <div className="min-h-screen bg-[#1A1F2C] text-gray-100">
       <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Header Section */}
         <div className="flex justify-between items-center">
           <div className="space-y-1">
-            <h1 className="text-4xl font-serif font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-200 to-purple-400">
+            <h1 className="text-4xl font-serif font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#9b87f5] to-[#D6BCFA]">
               Dashboard
             </h1>
-            <p className="text-purple-200/80">
+            <p className="text-[#D6BCFA]/80">
               Manage your thesis projects and track progress
             </p>
           </div>
@@ -78,7 +79,7 @@ const Index = () => {
               <Button 
                 onClick={() => navigate('/admin')} 
                 variant="outline"
-                className="bg-white/10 hover:bg-white/20 text-purple-200 border-purple-200/20"
+                className="bg-[#7E69AB]/10 hover:bg-[#7E69AB]/20 text-[#D6BCFA] border-[#D6BCFA]/20"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Admin Panel
@@ -95,10 +96,11 @@ const Index = () => {
           </div>
         </div>
 
+        {/* User Profile Section */}
         {isLoading ? (
           <Skeleton className="h-20 w-full" />
         ) : (
-          <div className="bg-white/5 backdrop-blur-lg rounded-xl border border-purple-200/20 p-6 transition-all duration-200 hover:bg-white/10">
+          <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6 transition-all duration-200 hover:bg-white/10">
             <UserProfile 
               email={userProfile?.email || ''} 
               role={userProfile?.roles?.name || ''}
@@ -106,38 +108,42 @@ const Index = () => {
           </div>
         )}
         
+        {/* Stats Grid */}
         {isLoading ? (
           <Skeleton className="h-32 w-full" />
         ) : (
           <StatsGrid stats={thesesStats || { total: 0, inProgress: 0, completed: 0 }} />
         )}
 
+        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Thesis Management */}
           <div className="space-y-6">
-            <div className="bg-white/5 backdrop-blur-lg rounded-xl border border-purple-200/20 p-6">
+            <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-serif font-semibold text-purple-200">
+                <h2 className="text-2xl font-serif font-semibold text-[#D6BCFA]">
                   Thesis Management
                 </h2>
                 <Button
                   onClick={handleCreateThesis}
-                  className="bg-purple-500 hover:bg-purple-600 text-white"
+                  className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Create New Thesis
                 </Button>
               </div>
-              <Card className="bg-white/5 border-purple-200/20">
+              <Card className="bg-white/5 border-[#D6BCFA]/20">
                 <ThesisList />
               </Card>
             </div>
           </div>
 
+          {/* Right Column - Quick Tips and Getting Started */}
           <div className="space-y-6">
-            <div className="bg-white/5 backdrop-blur-lg rounded-xl border border-purple-200/20 p-6">
+            <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6">
               <QuickTips />
             </div>
-            <div className="bg-white/5 backdrop-blur-lg rounded-xl border border-purple-200/20 p-6">
+            <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6">
               <GettingStartedWizard />
             </div>
           </div>
