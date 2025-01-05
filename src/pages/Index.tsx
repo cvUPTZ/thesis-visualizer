@@ -15,11 +15,9 @@ import { QuickTips } from '@/components/dashboard/QuickTips';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { userRole, userId, logout, isLoading: authLoading } = useAuth();
-  const { userProfile, thesesStats, isLoading: dataLoading, error } = useDashboardData(userId);
+  const { userRole, userId, logout } = useAuth();
+  const { userProfile, thesesStats, isLoading, error } = useDashboardData(userId);
   const { toast } = useToast();
-
-  console.log('Dashboard render:', { authLoading, dataLoading, userRole, userId });
 
   const handleLogout = async () => {
     try {
@@ -46,25 +44,6 @@ const Index = () => {
       description: "You're being redirected to create a new thesis.",
     });
   };
-
-  // Show loading state while auth or data is loading
-  if (authLoading || dataLoading) {
-    return (
-      <div className="min-h-screen bg-[#1A1F2C] p-6">
-        <div className="container mx-auto space-y-8">
-          <div className="flex justify-between items-center">
-            <Skeleton className="h-12 w-48" />
-            <Skeleton className="h-10 w-32" />
-          </div>
-          <Skeleton className="h-32 w-full" />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Skeleton className="h-96 w-full" />
-            <Skeleton className="h-96 w-full" />
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (error) {
     console.error('❌ Error rendering dashboard:', error);
@@ -118,15 +97,23 @@ const Index = () => {
         </div>
 
         {/* User Profile Section */}
-        <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6 transition-all duration-200 hover:bg-white/10">
-          <UserProfile 
-            email={userProfile?.email || ''} 
-            role={userProfile?.roles?.name || ''}
-          />
-        </div>
+        {isLoading ? (
+          <Skeleton className="h-20 w-full" />
+        ) : (
+          <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6 transition-all duration-200 hover:bg-white/10">
+            <UserProfile 
+              email={userProfile?.email || ''} 
+              role={userProfile?.roles?.name || ''}
+            />
+          </div>
+        )}
         
         {/* Stats Grid */}
-        <StatsGrid stats={thesesStats || { total: 0, inProgress: 0, completed: 0 }} />
+        {isLoading ? (
+          <Skeleton className="h-32 w-full" />
+        ) : (
+          <StatsGrid stats={thesesStats || { total: 0, inProgress: 0, completed: 0 }} />
+        )}
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
