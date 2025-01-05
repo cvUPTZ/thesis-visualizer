@@ -39,16 +39,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     console.log('🔄 AuthProvider - Initializing');
     let isMounted = true;
 
-    // Clear all application cache and data immediately on mount
     const clearAllCache = async () => {
       try {
         console.log('🧹 Clearing all application cache and data');
         
-        // Clear all storage
         localStorage.clear();
         sessionStorage.clear();
         
-        // Clear all application caches
         if ('caches' in window) {
           const cacheNames = await caches.keys();
           await Promise.all(
@@ -56,7 +53,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           );
         }
         
-        // Clear IndexedDB databases
         if (window.indexedDB) {
           const dbs = await window.indexedDB.databases();
           await Promise.all(
@@ -81,7 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (sessionError) {
           console.error('❌ Error getting session:', sessionError);
-          return;
+          throw sessionError;
         }
 
         console.log('📡 Initial session:', initialSession?.user?.email);
@@ -97,10 +93,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 )
               `)
               .eq('id', initialSession.user.id)
-              .single();
+              .maybeSingle();
 
             if (profileError) {
               console.error('❌ Error fetching profile:', profileError);
+              if (profileError.message.includes('Failed to fetch')) {
+                toast({
+                  title: "Connection Error",
+                  description: "Failed to connect to the server. Please check your internet connection.",
+                  variant: "destructive",
+                });
+              } else {
+                toast({
+                  title: "Error",
+                  description: "Failed to load user profile. Please try again.",
+                  variant: "destructive",
+                });
+              }
               throw profileError;
             }
 
@@ -108,18 +117,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               await handleSessionChange(initialSession);
               setSession(initialSession);
               console.log('✅ Profile loaded successfully:', profile);
+            } else {
+              console.log('⚠️ No profile found for user');
+              toast({
+                title: "Profile Not Found",
+                description: "Your user profile could not be found. Please contact support.",
+                variant: "destructive",
+              });
             }
-          } catch (error) {
+          } catch (error: any) {
             console.error('❌ Error in profile fetch:', error);
+            if (!error.message.includes('Failed to fetch')) {
+              toast({
+                title: "Error",
+                description: "An unexpected error occurred while loading your profile.",
+                variant: "destructive",
+              });
+            }
             throw error;
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('❌ Error initializing auth:', error);
-        if (isMounted) {
+        if (!error.message.includes('Failed to fetch')) {
           toast({
-            title: "Error",
-            description: "Failed to initialize authentication",
+            title: "Authentication Error",
+            description: "Failed to initialize authentication. Please try again.",
             variant: "destructive",
           });
         }
