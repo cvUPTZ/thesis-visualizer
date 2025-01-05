@@ -9,6 +9,20 @@ import CreateThesis from '@/pages/CreateThesis';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { AuthProvider } from '@/contexts/AuthContext';
 
+// Public route wrapper component
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth();
+  
+  console.log('🔍 PublicRoute check:', { isAuthenticated });
+
+  if (isAuthenticated) {
+    console.log('✅ User authenticated, redirecting to dashboard');
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 function App() {
   console.log('🔄 App component rendering...');
   
@@ -17,24 +31,23 @@ function App() {
       <Router>
         <AuthProvider>
           <Routes>
-            {/* Public routes */}
-            <Route path="/welcome" element={<LandingPage />} />
+            {/* Public routes without loading state */}
+            <Route 
+              path="/" 
+              element={
+                <PublicRoute>
+                  <LandingPage />
+                </PublicRoute>
+              } 
+            />
             <Route path="/auth" element={<Auth />} />
 
-            {/* Protected routes */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              }
-            />
+            {/* Protected routes with loading state */}
             <Route
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <Navigate to="/" replace />
+                  <Index />
                 </ProtectedRoute>
               }
             />
@@ -55,8 +68,8 @@ function App() {
               }
             />
 
-            {/* Catch all route - redirect to welcome page for unknown routes */}
-            <Route path="*" element={<Navigate to="/welcome" replace />} />
+            {/* Catch all route - redirect to root */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <Toaster />
         </AuthProvider>
