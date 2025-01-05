@@ -1,48 +1,42 @@
-import { createContext, useContext } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
-  user: User | null;
   session: Session | null;
-  userRole: string;
-  userId: string | null;
-  userEmail: string | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  error: Error | null;
-  signOut: () => Promise<void>;
-  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
-  user: null,
   session: null,
-  userRole: '',
-  userId: null,
-  userEmail: null,
-  isAuthenticated: false,
-  isLoading: false,
-  error: null,
-  signOut: async () => {},
-  logout: async () => {}
+  isAuthenticated: false
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  console.log('Rendering AuthProvider with simplified auth');
+  const [session, setSession] = useState<Session | null>(null);
   
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // Listen for changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('🔄 Auth state changed:', _event);
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <AuthContext.Provider 
       value={{
-        user: null,
-        session: null,
-        userRole: '',
-        userId: null,
-        userEmail: null,
-        isAuthenticated: true, // Temporarily set to true to prevent blocking
-        isLoading: false,
-        error: null,
-        signOut: async () => {},
-        logout: async () => {}
+        session,
+        isAuthenticated: !!session
       }}
     >
       {children}
