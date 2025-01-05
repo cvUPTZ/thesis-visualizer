@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, BookOpen, Brain, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,26 @@ import { DemoPreview } from "@/components/landing/DemoPreview";
 import { FeaturesComparison } from "@/components/landing/FeaturesComparison";
 import { PricingSection } from "@/components/landing/PricingSection";
 import ThesisVisualization from "@/components/landing/ThesisVisualization";
+import { useToast } from "@/hooks/use-toast";
 
 const LandingPage = () => {
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Welcome message when landing page loads
+    toast({
+      title: "Welcome to Thesis Visualizer",
+      description: "Explore our features and start writing your thesis with confidence.",
+    });
+  }, []);
+
+  const handleGetStarted = () => {
+    toast({
+      title: "Let's Get Started!",
+      description: "You're being redirected to create your account.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <Navbar />
@@ -43,6 +61,7 @@ const LandingPage = () => {
             <Button 
               size="lg"
               className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white px-8 py-6 text-lg rounded-lg"
+              onClick={handleGetStarted}
             >
               Get Started <ArrowRight className="ml-2" />
             </Button>
@@ -52,9 +71,8 @@ const LandingPage = () => {
 
       {/* Thesis Visualization Section */}
       <ThesisVisualization />
-
       <DemoPreview />
-
+      
       {/* Features Section */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
@@ -79,13 +97,8 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Features Comparison Section */}
       <FeaturesComparison />
-
-      {/* Testimonials Carousel Section */}
       <TestimonialCarousel />
-
-      {/* Pricing Section */}
       <PricingSection />
 
       {/* Feedback Section */}

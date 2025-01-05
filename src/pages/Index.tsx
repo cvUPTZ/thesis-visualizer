@@ -10,18 +10,38 @@ import { UserProfile } from '@/components/dashboard/UserProfile';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 
 const Index = () => {
   const navigate = useNavigate();
   const { userRole, userId } = useAuth();
   const { userProfile, thesesStats, isLoading, error } = useDashboardData(userId);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Welcome message when dashboard loads
+    toast({
+      title: "Welcome to Your Dashboard",
+      description: "Here you can manage your theses and track your progress.",
+    });
+  }, []);
 
   const handleCreateThesis = () => {
     navigate('/create-thesis');
+    toast({
+      title: "Starting New Thesis",
+      description: "You're being redirected to create a new thesis.",
+    });
   };
 
   if (error) {
     console.error('❌ Error rendering dashboard:', error);
+    toast({
+      title: "Error Loading Dashboard",
+      description: "There was a problem loading your dashboard data. Please try again.",
+      variant: "destructive",
+    });
     return (
       <div className="container mx-auto p-6">
         <div className="text-center text-red-500">
