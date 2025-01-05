@@ -19,39 +19,20 @@ const Auth = () => {
   const { toast } = useToast();
   
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log('✅ User is authenticated with role:', userRole);
+    console.log('Auth component mount - Auth state:', { isAuthenticated, userRole, isLoading });
+    
+    if (isAuthenticated && !isLoading) {
+      console.log('✅ User is authenticated, redirecting based on role:', userRole);
       if (userRole === 'admin') {
-        navigate('/admin');
+        navigate('/admin', { replace: true });
       } else {
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       }
-      return;
     }
+  }, [isAuthenticated, userRole, isLoading, navigate]);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔐 Auth state changed:', event, session?.user?.email);
-      
-      if (event === 'SIGNED_IN' && session) {
-        console.log('✅ User signed in successfully');
-      }
-    });
-
-    if (error) {
-      console.error('❌ Auth error from URL:', error);
-      toast({
-        title: "Authentication Error",
-        description: error,
-        variant: "destructive",
-      });
-    }
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [error, toast, navigate, isAuthenticated, userRole]);
-  
   if (isLoading) {
+    console.log('⌛ Loading auth component...');
     return <AuthLoader />;
   }
 

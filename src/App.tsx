@@ -23,6 +23,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (isAuthenticated) {
+    console.log('✅ User is authenticated, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -33,8 +34,8 @@ function App() {
   console.log('🔄 App component rendering...');
   
   return (
-    <Router>
-      <ErrorBoundary>
+    <ErrorBoundary>
+      <Router>
         <AuthProvider>
           <Routes>
             {/* Public routes */}
@@ -90,8 +91,8 @@ function App() {
           </Routes>
           <Toaster />
         </AuthProvider>
-      </ErrorBoundary>
-    </Router>
+      </Router>
+    </ErrorBoundary>
   );
 }
 
