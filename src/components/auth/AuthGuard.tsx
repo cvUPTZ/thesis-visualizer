@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
 
@@ -9,32 +9,19 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
-  const { user, isLoading, userRole } = useAuth();
-  const location = useLocation();
-
-  console.log('🔒 AuthGuard Check:', {
-    path: location.pathname,
-    isLoading,
-    user: user?.email,
-    userRole,
-    requiredRole
-  });
+  const { user, userRole, isLoading } = useAuth();
 
   if (isLoading) {
-    console.log('⌛ Loading auth guard...');
     return <LoadingSkeleton />;
   }
 
   if (!user) {
-    console.log('❌ User not authenticated, redirecting to auth');
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   if (requiredRole && userRole !== requiredRole) {
-    console.log('❌ User does not have required role, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
 
-  console.log('✅ Access granted to protected route');
   return <>{children}</>;
 };
