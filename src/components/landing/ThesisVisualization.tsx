@@ -7,7 +7,6 @@ import {
   ArrowDown, Minus
 } from 'lucide-react';
 
-// Types
 interface Section {
   id: number;
   title: string;
@@ -196,7 +195,7 @@ const styles = `
   }
 `;
 
-export const EnhancedThesisVisualization = () => {
+const EnhancedThesisVisualization = () => {
   const [hoveredSection, setHoveredSection] = useState<number | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [activeView, setActiveView] = useState<'progress' | 'timeline' | 'collaboration'>('progress');
@@ -512,4 +511,5 @@ export const EnhancedThesisVisualization = () => {
   );
 };
 
+export { EnhancedThesisVisualization };
 export default EnhancedThesisVisualization;
