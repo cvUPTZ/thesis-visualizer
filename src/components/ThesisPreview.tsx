@@ -44,7 +44,7 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     return position?.position || 'inline';
   };
 
-  const renderFigures = (figures: Section['figures'], position: ElementPosition['position'] = 'inline') => {
+  const renderFigures = (figures: Figure[] = [], position: ElementPosition['position'] = 'inline') => {
     if (!figures || figures.length === 0) return null;
     
     const positionedFigures = figures.filter(figure => 
@@ -53,32 +53,36 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
 
     if (positionedFigures.length === 0) return null;
 
-    return positionedFigures.map((figure) => (
-      <figure 
-        key={figure.id} 
-        className={cn(
-          "my-8 text-center page-break-inside-avoid",
-          position === 'custom' && "absolute"
-        )}
-        style={
-          position === 'custom' 
-            ? {
-                top: elementPositions.find(p => p.id === figure.id)?.customPosition?.y,
-                left: elementPositions.find(p => p.id === figure.id)?.customPosition?.x,
-              }
-            : undefined
-        }
-      >
-        <img 
-          src={figure.imageUrl} 
-          alt={figure.altText}
-          className="mx-auto max-w-full h-auto"
-        />
-        <figcaption className="mt-2 text-sm text-gray-600">
-          Figure {figure.number}: {figure.caption}
-        </figcaption>
-      </figure>
-    ));
+    return (
+      <div className="figures-container space-y-8 my-8">
+        {positionedFigures.map((figure) => (
+          <figure 
+            key={figure.id} 
+            className={cn(
+              "text-center page-break-inside-avoid",
+              position === 'custom' && "absolute"
+            )}
+            style={
+              position === 'custom' 
+                ? {
+                    top: elementPositions.find(p => p.id === figure.id)?.customPosition?.y,
+                    left: elementPositions.find(p => p.id === figure.id)?.customPosition?.x,
+                  }
+                : undefined
+            }
+          >
+            <img 
+              src={figure.imageUrl} 
+              alt={figure.altText}
+              className="mx-auto max-w-full h-auto rounded-lg shadow-md"
+            />
+            <figcaption className="mt-4 text-sm text-gray-600 italic">
+              Figure {figure.number}: {figure.caption}
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    );
   };
 
   const renderTables = (tables: Section['tables'], position: ElementPosition['position'] = 'inline') => {
@@ -216,42 +220,36 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     );
   };
 
-  const renderAbstract = () => {
-    if (!abstractSection) return null;
-    return (
-      <div className="thesis-page">
-        <div className="thesis-header">
-          Abstract
-        </div>
-        <div className="thesis-content thesis-abstract">
-          <h2 className="text-2xl font-serif mb-4">Abstract</h2>
-          <MDEditor.Markdown 
-              source={abstractSection?.content || "No Abstract Provided"}
-              className="prose prose-sm max-w-none"
-          />
-        </div>
-        <div className="thesis-footer">
-          <span>Page <span className="page-number"></span></span>
-        </div>
-      </div>
-    );
-  };
-
   const renderSection = (section: Section, chapterTitle?: string) => {
     if (!section) return null;
 
     if (section.type === 'title') {
       return renderTitlePage();
     }
+
     if (section.type === 'abstract') {
-      return renderAbstract();
+      return (
+        <div className="thesis-page">
+          <div className="thesis-header">Abstract</div>
+          <div className="thesis-content thesis-abstract">
+            <h2 className="text-2xl font-serif mb-4">Abstract</h2>
+            <MDEditor.Markdown 
+              source={abstractSection?.content || "No Abstract Provided"}
+              className="prose prose-sm max-w-none"
+            />
+          </div>
+          <div className="thesis-footer">
+            <span>Page <span className="page-number"></span></span>
+          </div>
+        </div>
+      );
     }
 
     const isSpecialSection = section.type === 'references' || section.type === 'table-of-contents';
     
     return (
       <div key={section.id} className={cn(
-        "thesis-page relative",
+        "thesis-page relative mb-8 p-8",
         isSpecialSection && "special-section",
         section.type === 'table-of-contents' && "toc-section"
       )}>
@@ -261,7 +259,7 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
         <div className={cn(
           "thesis-content",
           section.type === 'references' && "thesis-references",
-          "prose prose-sm max-w-none"
+          "prose prose-sm max-w-none space-y-6"
         )}>
           {section.type !== 'table-of-contents' && (
             <>
@@ -290,7 +288,6 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
           {section.type === 'table-of-contents' && (
             <div className="toc-content page-break-inside-avoid">
               <h2 className="text-2xl font-serif mb-4">Table of Contents</h2>
-              {/* TOC content will be generated automatically */}
             </div>
           )}
         </div>
@@ -306,13 +303,13 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
       <div className="p-4 space-y-6">
         <ElementPositionManager
           figures={thesis.chapters.flatMap(chapter => 
-            chapter.sections.flatMap(section => section.figures)
+            chapter.sections.flatMap(section => section.figures || [])
           )}
           tables={thesis.chapters.flatMap(chapter => 
-            chapter.sections.flatMap(section => section.tables)
+            chapter.sections.flatMap(section => section.tables || [])
           )}
           citations={thesis.chapters.flatMap(chapter => 
-            chapter.sections.flatMap(section => section.citations)
+            chapter.sections.flatMap(section => section.citations || [])
           )}
           onUpdatePosition={handleUpdatePosition}
         />
