@@ -9,7 +9,7 @@ import { DemoLogin } from "@/components/auth/DemoLogin";
 import { AuthDivider } from "@/components/auth/AuthDivider";
 import { AuthLoader } from "@/components/auth/AuthLoader";
 import { useToast } from "@/hooks/use-toast";
-import { GraduationCap, RotateCw } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -33,11 +33,6 @@ const Auth = () => {
     }
   }, [isAuthenticated, userRole, isLoading, navigate]);
 
-  const handleReload = () => {
-    console.log('🔄 Reloading auth page...');
-    window.location.reload();
-  };
-
   if (isLoading) {
     console.log('⌛ Loading auth component...');
     return <AuthLoader />;
@@ -55,18 +50,8 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-[#1A1F2C] flex flex-col">
-      {/* Navbar with reload button */}
-      <div className="h-16 bg-[#1A1F2C] border-b border-gray-800 flex items-center justify-end px-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleReload}
-          className="text-gray-400 hover:text-white"
-          title="Reload page"
-        >
-          <RotateCw className="h-5 w-5" />
-        </Button>
-      </div>
+      {/* Navbar placeholder to maintain consistency */}
+      <div className="h-16 bg-[#1A1F2C] border-b border-gray-800"></div>
       
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
@@ -123,12 +108,6 @@ const Auth = () => {
                 }}
                 providers={["google"]}
                 redirectTo={redirectTo}
-                onSignIn={() => {
-                  // Add a slight delay to ensure navigation completes
-                  setTimeout(() => {
-                    window.location.reload();
-                  }, 1000);
-                }}
                 localization={{
                   variables: {
                     sign_in: {

@@ -20,11 +20,11 @@ const queryClient = new QueryClient({
 const root = createRoot(rootElement);
 
 root.render(
-  <QueryClientProvider client={queryClient}>
-    <Router>
+  <Router>
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <App />
       </AuthProvider>
-    </Router>
-  </QueryClientProvider>
+    </QueryClientProvider>
+  </Router>
 );
