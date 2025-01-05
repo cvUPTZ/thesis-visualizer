@@ -2,20 +2,16 @@ import React from 'react';
 import { Reference } from '@/types/thesis';
 import { ReferenceDialog } from './reference/ReferenceDialog';
 import { ReferenceCard } from './reference/ReferenceCard';
+import { ManagerProps } from '@/types/components';
 
-interface ReferenceManagerProps {
-  references: Reference[];
-  onAddReference: (reference: Reference) => void;
-  onRemoveReference: (id: string) => void;
-  onUpdateReference: (reference: Reference) => void;
-}
+type ReferenceManagerProps = ManagerProps<Reference>;
 
-export const ReferenceManager = ({
-  references,
-  onAddReference,
-  onRemoveReference,
-  onUpdateReference
-}: ReferenceManagerProps) => {
+export const ReferenceManager: React.FC<ReferenceManagerProps> = ({
+  items: references,
+  onAdd: onAddReference,
+  onRemove: onRemoveReference,
+  onUpdate: onUpdateReference
+}) => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">

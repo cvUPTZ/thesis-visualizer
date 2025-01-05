@@ -1,13 +1,12 @@
 import React from 'react';
 import MDEditor from '@uiw/react-md-editor';
+import { EditorProps } from '@/types/components';
 
-interface MarkdownEditorProps {
-  value: string;
-  onChange: (value: string | undefined) => void;
-  placeholder?: string;
-}
-
-export const MarkdownEditor = ({ value, onChange, placeholder }: MarkdownEditorProps) => {
+export const MarkdownEditor: React.FC<EditorProps> = ({ 
+  value, 
+  onChange, 
+  placeholder 
+}) => {
   return (
     <div className="w-full rounded-lg overflow-hidden bg-white shadow-lg" data-color-mode="light">
       <MDEditor

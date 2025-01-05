@@ -4,20 +4,14 @@ import { useToast } from '@/hooks/use-toast';
 import { SectionHeader } from './editor/SectionHeader';
 import { SectionContent } from './editor/SectionContent';
 import { SectionManagers } from './editor/SectionManagers';
+import { SectionProps } from '@/types/components';
 
-interface EditorSectionProps {
-  section: Section;
-  isActive: boolean;
-  onContentChange: (id: string, content: string) => void;
-  onTitleChange: (id: string, title: string) => void;
-}
-
-export const EditorSection = ({
+export const EditorSection: React.FC<SectionProps> = ({
   section,
   isActive,
   onContentChange,
   onTitleChange
-}: EditorSectionProps) => {
+}) => {
   const { toast } = useToast();
   console.log('EditorSection rendering with section:', { 
     id: section.id, 
