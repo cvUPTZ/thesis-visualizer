@@ -3,7 +3,7 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { Footer } from "@/components/landing/Footer";
-import { EnhancedThesisVisualization } from "@/components/landing/ThesisVisualization";
+import EnhancedThesisVisualization from "@/components/landing/ThesisVisualization";
 
 const LandingPage = () => {
   return (
