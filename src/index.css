@@ -53,7 +53,54 @@
     --ring: 212.7 26.8% 83.9%;
   }
 }
-
+/* Flex */
+.py-24 .flex .flex{
+  position:relative;
+  top:10px;
+ }
+ 
+ /* Flex */
+ #root .flex:nth-child(9) .flex:nth-child(1){
+  top:15px;
+  transform:translatex(-15px) translatey(31px) !important;
+ }
+ 
+ /* Flex */
+ #root .flex .flex:nth-child(2){
+  transform:translatex(-3px) translatey(36px) !important;
+ }
+ 
+ /* Flex */
+ #root .py-24 .flex:nth-child(3){
+  transform:translatex(9px) translatey(37px) !important;
+ }
+ 
+ /* Primary/10 */
+ .py-24 div .bg-primary\/10{
+  top:0px;
+ }
+ 
+ /* Flex */
+ .py-24 .px-4 > div > .flex{
+  position:relative;
+  top:-16px;
+  transform:translatex(0px) translatey(-44px);
+ }
+ 
+ /* Division */
+ .py-24 div .px-6{
+  transform:translatex(35px) translatey(-63px) !important;
+  position:relative;
+  left:-33px;
+ }
+ 
+ /* Division */
+ .py-24 .-translate-y-1\/2 .p-4{
+  transform:translatex(394px) translatey(-199px);
+  width:101%;
+ }
+ 
+ 
 @layer base {
   * {
     @apply border-border;

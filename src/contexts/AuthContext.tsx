@@ -63,8 +63,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('✅ Session loaded:', user);
       return { user, isAuthenticated: true };
     },
-    staleTime: 1000 * 60 * 5, // Consider session data fresh for 5 minutes
-    refetchOnWindowFocus: true,
+      staleTime: 1000 * 60 * 5, // Consider session data fresh for 5 minutes
+      refetchOnWindowFocus: true,
+      refetchOnMount: false, // prevent initial refetching on mount
+       refetchOnReconnect: false, // prevent initial refetching on reconnect
   });
 
   // Sign in mutation with role-based redirection

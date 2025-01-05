@@ -27,58 +27,63 @@ export const IssueManagement = () => {
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchIssues();
-    // Set up real-time subscription
-    const subscription = supabase
-      .channel('app_issues_changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'app_issues' 
-        }, 
-        () => {
-          console.log('Issues table changed, refreshing data...');
-          fetchIssues();
-        }
-      )
-      .subscribe();
+    useEffect(() => {
+        let subscription: any;
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const fetchIssues = async () => {
-    try {
-      console.log('Fetching app issues...');
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('app_issues')
-        .select(`
+    const fetchIssues = async () => {
+        try {
+            console.log('Fetching app issues...');
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('app_issues')
+                .select(`
           *,
           profiles (
             email
           )
         `)
-        .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      console.log('Fetched issues:', data);
-      setIssues(data || []);
-      setLastRefresh(new Date());
-    } catch (error: any) {
-      console.error('Error fetching issues:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch issues',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+            if (error) throw error;
+            console.log('Fetched issues:', data);
+            setIssues(data || []);
+            setLastRefresh(new Date());
+        } catch (error: any) {
+            console.error('Error fetching issues:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to fetch issues',
+                variant: 'destructive',
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchIssues();
+
+    // Set up real-time subscription
+     subscription = supabase
+            .channel('app_issues_changes')
+            .on('postgres_changes', 
+        { 
+            event: '*', 
+            schema: 'public', 
+            table: 'app_issues' 
+        }, 
+        () => {
+            console.log('Issues table changed, refreshing data...');
+             fetchIssues();
+        }
+            )
+            .subscribe();
+
+        return () => {
+            if(subscription){
+                supabase.removeChannel(subscription);
+            }
+        };
+    }, [toast]);
+
 
   const getStatusBadge = (error: any) => {
     if (error.error_stack?.includes('TypeError')) {
