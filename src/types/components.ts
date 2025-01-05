@@ -45,6 +45,13 @@ export interface ReferenceProps extends BaseProps {
   onUpdate: (reference: Reference) => void;
 }
 
+export interface ReferenceManagerProps extends BaseProps {
+  items: Reference[];
+  onAdd: (reference: Reference) => void;
+  onRemove: (id: string) => void;
+  onUpdate: (reference: Reference) => void;
+}
+
 export interface ManagerProps<T> extends BaseProps {
   items: T[];
   onAdd: (item: T) => void;

@@ -65,4 +65,52 @@
   .editor-manager-title {
     @apply text-lg font-serif font-medium text-editor-text;
   }
+
+  .editor-manager-figure-bg {
+    @apply bg-blue-50;
+  }
+
+  .editor-manager-figure-border {
+    @apply border-blue-200;
+  }
+
+  .editor-manager-figure-icon {
+    @apply text-blue-600;
+  }
+
+  .editor-manager-table-bg {
+    @apply bg-green-50;
+  }
+
+  .editor-manager-table-border {
+    @apply border-green-200;
+  }
+
+  .editor-manager-table-icon {
+    @apply text-green-600;
+  }
+
+  .editor-manager-citation-bg {
+    @apply bg-purple-50;
+  }
+
+  .editor-manager-citation-border {
+    @apply border-purple-200;
+  }
+
+  .editor-manager-citation-icon {
+    @apply text-purple-600;
+  }
+
+  .editor-manager-reference-bg {
+    @apply bg-amber-50;
+  }
+
+  .editor-manager-reference-border {
+    @apply border-amber-200;
+  }
+
+  .editor-manager-reference-icon {
+    @apply text-amber-600;
+  }
 }
