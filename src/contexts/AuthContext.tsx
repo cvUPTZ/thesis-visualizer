@@ -1,3 +1,4 @@
+// AuthProvider.tsx
 import React, { createContext, useContext, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,7 +33,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Session management with React Query
   const { data: authData, isLoading } = useQuery({
     queryKey: ['auth-session'],
     queryFn: async () => {
@@ -76,11 +76,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { user: null, isAuthenticated: false };
       }
     },
-    staleTime: 1000 * 60 * 5, // Consider session data fresh for 5 minutes
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
   });
 
-  // Sign in mutation with role-based redirection
   const signInMutation = useMutation<SignInResponse, Error, { email: string; password: string }>({
     mutationFn: async ({ email, password }) => {
       console.log('🔄 Attempting to sign in user:', email);
@@ -117,7 +116,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('✅ Sign in successful, user role:', data.userRole);
       queryClient.invalidateQueries({ queryKey: ['auth-session'] });
       
-      navigate('/dashboard');
+      // Handle role-based navigation
+      if (data.userRole === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
       
       toast({
         title: "Welcome back!",
@@ -134,14 +138,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     },
   });
 
-  // Role-based navigation
-  useEffect(() => {
-    if (!isLoading && authData?.isAuthenticated && authData.user?.role === 'admin') {
-      navigate('/admin');
-    }
-  }, [authData?.user?.role, authData?.isAuthenticated, navigate, isLoading]);
-
-  // Auth state listener
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
@@ -154,7 +150,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [queryClient]);
 
-  // Sign out mutation
   const signOutMutation = useMutation({
     mutationFn: async () => {
       console.log('🔄 Signing out user...');
@@ -180,7 +175,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     },
   });
 
-  // Session refresh function
   const refreshSession = async () => {
     try {
       await queryClient.invalidateQueries({ queryKey: ['auth-session'] });

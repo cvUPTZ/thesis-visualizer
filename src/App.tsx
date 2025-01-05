@@ -1,3 +1,4 @@
+// App.tsx
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from '@/components/ErrorBoundary';
