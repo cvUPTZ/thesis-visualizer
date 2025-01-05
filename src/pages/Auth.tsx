@@ -17,10 +17,17 @@ const Auth = () => {
   const { error } = useAuthFlow({ inviteThesisId, inviteRole });
   const [emailAuthEnabled] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
     console.log('🔍 Auth Page - Checking session...');
+    const timeoutId = setTimeout(() => {
+      if (mounted) {
+        console.log('⌛ Auth check timeout reached (4s)');
+        setIsLoading(false);
+      }
+    }, 4000);
 
     const checkSession = async () => {
       try {
@@ -34,11 +41,15 @@ const Auth = () => {
         if (session?.user && mounted) {
           console.log('✅ Active session found, redirecting to dashboard');
           navigate('/dashboard');
+        } else if (mounted) {
+          console.log('ℹ️ No active session found');
+          setIsLoading(false);
         }
       } catch (err: any) {
         console.error('❌ Error checking session:', err);
         if (mounted) {
           setAuthError(err.message);
+          setIsLoading(false);
         }
       }
     };
@@ -60,9 +71,20 @@ const Auth = () => {
     return () => {
       console.log('🧹 Auth Page - Cleaning up...');
       mounted = false;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, [navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="text-gray-500">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
