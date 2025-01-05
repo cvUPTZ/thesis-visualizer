@@ -1,7 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Resend } from 'npm:resend';
+import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+const SMTP_HOST = Deno.env.get('SMTP_HOST');
+const SMTP_PORT = Number(Deno.env.get('SMTP_PORT'));
+const SMTP_USERNAME = Deno.env.get('SMTP_USERNAME');
+const SMTP_PASSWORD = Deno.env.get('SMTP_PASSWORD');
+const SENDER_EMAIL = Deno.env.get('SENDER_EMAIL');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,12 +27,9 @@ serve(async (req) => {
   try {
     console.log('Starting email sending process...');
 
-    if (!RESEND_API_KEY) {
-      throw new Error('Missing RESEND_API_KEY');
+    if (!SMTP_HOST || !SMTP_PORT || !SMTP_USERNAME || !SMTP_PASSWORD || !SENDER_EMAIL) {
+      throw new Error('Missing SMTP configuration');
     }
-
-    const resend = new Resend(RESEND_API_KEY);
-    const SENDER_EMAIL = 'thesis@yourdomain.com'; // Update this with your verified domain
 
     const requestData: EmailRequest = await req.json();
     console.log('Received request data:', requestData);
@@ -44,7 +45,7 @@ serve(async (req) => {
     const safeLink = String(inviteLink).trim();
     const safeRole = String(role).trim();
 
-    console.log('Sending email to:', safeEmail);
+    console.log('Sending invitation to:', safeEmail);
 
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -58,42 +59,29 @@ serve(async (req) => {
     `;
 
     try {
-      const { data, error } = await resend.emails.send({
+      const client = new SmtpClient();
+
+      await client.connectTLS({
+        hostname: SMTP_HOST,
+        port: SMTP_PORT,
+        username: SMTP_USERNAME,
+        password: SMTP_PASSWORD,
+      });
+
+      await client.send({
         from: SENDER_EMAIL,
-        to: [safeEmail],
+        to: safeEmail,
         subject: `Invitation to collaborate on thesis: ${safeTitle}`,
+        content: emailHtml,
         html: emailHtml,
       });
 
-      if (error) {
-        console.error('Resend error:', error);
-        
-        // Check specifically for domain verification error
-        if (error.message?.toLowerCase().includes('verify a domain')) {
-          return new Response(
-            JSON.stringify({
-              error: 'Domain verification required',
-              details: {
-                message: 'Please verify your domain at Resend.com before sending invitations.',
-                name: 'domain_verification_error'
-              }
-            }),
-            {
-              headers: {
-                ...corsHeaders,
-                'Content-Type': 'application/json',
-              },
-              status: 403,
-            }
-          );
-        }
-        
-        throw error;
-      }
+      await client.close();
 
-      console.log('Email sent successfully:', data);
+      console.log('Email sent successfully to:', safeEmail);
+
       return new Response(
-        JSON.stringify({ success: true, data }),
+        JSON.stringify({ success: true }),
         {
           headers: {
             ...corsHeaders,
@@ -103,10 +91,10 @@ serve(async (req) => {
         }
       );
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error('SMTP error:', error);
       throw error;
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('General error:', error);
     return new Response(
       JSON.stringify({
