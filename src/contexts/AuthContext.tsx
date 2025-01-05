@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return { 
         user: data.user,
-        userRole: (profile as Profile).roles?.name || null 
+        userRole: profile?.roles?.name || null 
       };
     },
     onSuccess: (data) => {
