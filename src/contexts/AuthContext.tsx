@@ -1,18 +1,21 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { AuthContextType } from './auth/types';
+import { AuthContextType, User } from './auth/types';
 import { useSession } from './auth/useSession';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthMutations } from '@/hooks/auth/useAuthMutations';
 
 const AuthContext = createContext<AuthContextType>({
+  user: null,
   userId: null,
   userEmail: null,
   userRole: null,
   loading: true,
-  logout: async () => {},
+  isLoading: true,
   isAuthenticated: false,
+  logout: async () => {},
+  signOut: async () => {},
   setUserId: () => {},
   setUserEmail: () => {},
   setUserRole: () => {},
@@ -36,6 +39,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUserRole,
     setLoading
   } = useSession();
+
+  const user: User | null = userId ? {
+    id: userId,
+    email: userEmail,
+    role: userRole
+  } : null;
 
   useEffect(() => {
     console.log('🔄 Setting up auth state listener...');
@@ -130,11 +139,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{ 
+      user,
       userId, 
       userEmail,
       userRole,
-      loading, 
+      loading,
+      isLoading: loading,
       logout: signOut,
+      signOut,
       isAuthenticated: !!userId,
       setUserId,
       setUserEmail,
