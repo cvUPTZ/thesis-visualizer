@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuthFlow } from "@/hooks/useAuthFlow";
 import { DemoLogin } from "@/components/auth/DemoLogin";
 import { AuthDivider } from "@/components/auth/AuthDivider";
+import { useEffect, useState } from "react";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
