@@ -106,24 +106,13 @@ const Auth = () => {
                 }}
                 providers={["google"]}
                 redirectTo={redirectTo}
+                onlyThirdPartyProviders={true}
                 localization={{
                   variables: {
                     sign_in: {
-                      email_label: 'Email address',
-                      password_label: 'Password',
-                      button_label: 'Sign in',
-                      loading_button_label: 'Signing in...',
-                      email_input_placeholder: 'Your email address',
-                      password_input_placeholder: 'Your password',
                       social_provider_text: "Continue with {{provider}}",
                     },
                     sign_up: {
-                      email_label: 'Email address',
-                      password_label: 'Create a Password',
-                      button_label: 'Sign up',
-                      loading_button_label: 'Signing up...',
-                      email_input_placeholder: 'Your email address',
-                      password_input_placeholder: 'Create a password',
                       social_provider_text: "Sign up with {{provider}}",
                     }
                   }
