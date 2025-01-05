@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowRight, BookOpen, Brain, Share2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Navbar } from "@/components/landing/Navbar";
-import { Footer } from "@/components/landing/Footer";
-import { FeatureCard } from "@/components/landing/FeatureCard";
-import { TestimonialCarousel } from "@/components/landing/TestimonialCarousel";
-import { FeedbackForm } from "@/components/landing/FeedbackForm";
-import { DemoPreview } from "@/components/landing/DemoPreview";
-import { FeaturesComparison } from "@/components/landing/FeaturesComparison";
-import { PricingSection } from "@/components/landing/PricingSection";
+import { GraduationCap, BookOpen, PenTool } from "lucide-react";
+import Footer from "@/components/landing/Footer";
+import Navbar from "@/components/landing/Navbar";
+import FeaturesComparison from "@/components/landing/FeaturesComparison";
+import PricingSection from "@/components/landing/PricingSection";
+import TestimonialCarousel from "@/components/landing/TestimonialCarousel";
+import DemoPreview from "@/components/landing/DemoPreview";
+import FeedbackForm from "@/components/landing/FeedbackForm";
 import ThesisVisualization from "@/components/landing/ThesisVisualization";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSkeleton } from "@/components/loading/LoadingSkeleton";
@@ -21,7 +19,7 @@ const LandingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('🔄 Loading landing page...');
+    console.log('🔄 Landing page mounting...');
     const timeout = setTimeout(() => {
       setIsLoading(false);
       console.log('✅ Landing page loaded');
@@ -31,103 +29,111 @@ const LandingPage = () => {
       });
     }, 2000);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      console.log('🧹 Cleaning up landing page timeouts');
+      clearTimeout(timeout);
+    };
   }, [toast]);
 
-  const handleGetStarted = () => {
-    console.log('👆 Get Started clicked, navigating to auth...');
-    toast({
-      title: "Let's Get Started!",
-      description: "You're being redirected to create your account.",
-    });
-    navigate('/auth');
+  const handleGetStarted = async () => {
+    try {
+      console.log('👆 Get Started clicked, preparing navigation...');
+      
+      // Show toast first
+      toast({
+        title: "Let's Get Started!",
+        description: "You're being redirected to create your account.",
+      });
+
+      // Small delay to ensure toast is visible
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('🔄 Navigating to /auth route...');
+      navigate('/auth');
+    } catch (error) {
+      console.error('❌ Navigation error:', error);
+      toast({
+        title: "Navigation Error",
+        description: "There was a problem redirecting you. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
+    console.log('⌛ Showing loading skeleton...');
     return <LoadingSkeleton />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-6xl font-bold text-[#1A1F2C] mb-6"
-          >
+      <main className="container mx-auto px-6 py-12 space-y-24">
+        {/* Hero Section */}
+        <section className="text-center space-y-8">
+          <GraduationCap className="w-16 h-16 mx-auto text-primary" />
+          <h1 className="text-4xl md:text-6xl font-bold font-serif">
             Write Your Thesis with Confidence
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto"
-          >
-            A powerful platform designed to help you organize, write, and collaborate on your thesis with ease.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Button 
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            A powerful platform designed to help you structure, write, and
+            visualize your academic thesis with ease.
+          </p>
+          <div className="flex justify-center gap-4">
+            <Button
               size="lg"
-              className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white px-8 py-6 text-lg rounded-lg"
+              className="gap-2"
               onClick={handleGetStarted}
             >
-              Get Started <ArrowRight className="ml-2" />
+              <PenTool className="w-4 h-4" />
+              Get Started
             </Button>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Thesis Visualization Section */}
-      <ThesisVisualization />
-      <DemoPreview />
-      
-      {/* Features Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Choose Thesis Visualizer?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <FeatureCard
-              title="Smart Organization"
-              description="Organize your thesis chapters, citations, and research materials in one place."
-              icon={BookOpen}
-            />
-            <FeatureCard
-              title="AI-Powered Assistance"
-              description="Get intelligent suggestions and writing assistance powered by advanced AI."
-              icon={Brain}
-            />
-            <FeatureCard
-              title="Real-time Collaboration"
-              description="Work seamlessly with advisors and collaborators in real-time."
-              icon={Share2}
-            />
+            <Button
+              variant="outline"
+              size="lg"
+              className="gap-2"
+              onClick={() => {
+                console.log('👀 Demo clicked');
+                const demoSection = document.getElementById('demo');
+                demoSection?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              <BookOpen className="w-4 h-4" />
+              View Demo
+            </Button>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <FeaturesComparison />
-      <TestimonialCarousel />
-      <PricingSection />
+        {/* Features Section */}
+        <section id="features">
+          <FeaturesComparison />
+        </section>
 
-      {/* Feedback Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Share Your Feedback</h2>
-          <p className="text-gray-600 text-center mb-8">
-            We're constantly improving. Let us know how we can make Thesis Visualizer better for you.
-          </p>
+        {/* Demo Section */}
+        <section id="demo">
+          <DemoPreview />
+        </section>
+
+        {/* Thesis Visualization */}
+        <section>
+          <ThesisVisualization />
+        </section>
+
+        {/* Testimonials */}
+        <section>
+          <TestimonialCarousel />
+        </section>
+
+        {/* Pricing */}
+        <section id="pricing">
+          <PricingSection />
+        </section>
+
+        {/* Feedback Form */}
+        <section>
           <FeedbackForm />
-        </div>
-      </section>
-
+        </section>
+      </main>
       <Footer />
     </div>
   );
