@@ -12,7 +12,6 @@ import {
   ChartPie,
   Clock
 } from 'lucide-react';
-import { CollaboratorOrbit } from './CollaboratorOrbit';
 import { Progress } from "@/components/ui/progress";
 
 // Types
@@ -32,13 +31,6 @@ const sections: Section[] = [
   { id: 4, title: 'Results', complete: false, progress: 40, summary: 'Data analysis' },
   { id: 5, title: 'Discussion', complete: false, progress: 20, summary: 'Interpretation' },
   { id: 6, title: 'Conclusion', complete: false, progress: 10, summary: 'Summary' }
-];
-
-const collaborators = [
-  { id: 1, name: "John Doe", role: "Author", email: "john@example.com" },
-  { id: 2, name: "Dr. Smith", role: "Supervisor", email: "smith@example.com" },
-  { id: 3, name: "Prof. Johnson", role: "Committee", email: "johnson@example.com" },
-  { id: 4, name: "Dr. Williams", role: "Reviewer", email: "williams@example.com" }
 ];
 
 // Calculate positions on circle
@@ -123,9 +115,6 @@ export default function EnhancedThesisViz() {
           </div>
         </div>
       </div>
-
-      {/* Collaborators Orbit */}
-      <CollaboratorOrbit collaborators={collaborators} />
 
       {/* Sections */}
       {sections.map((section, index) => {
