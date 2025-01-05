@@ -1,6 +1,6 @@
 export type User = {
   id: string;
-  email: string | null;
+  email: string;
   role: string | null;
 };
 
@@ -19,4 +19,9 @@ export type AuthContextType = {
 export type AuthState = {
   user: User | null;
   isAuthenticated: boolean;
+};
+
+export type SignInResponse = {
+  user: User;
+  userRole: string;
 };
