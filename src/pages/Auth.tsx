@@ -9,14 +9,14 @@ import { DemoLogin } from "@/components/auth/DemoLogin";
 import { AuthDivider } from "@/components/auth/AuthDivider";
 import { AuthLoader } from "@/components/auth/AuthLoader";
 import { useToast } from "@/hooks/use-toast";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const error = searchParams.get("error");
-  const { isLoading, isAuthenticated, userRole, signInError } = useAuth();
+  const { isLoading, isAuthenticated, userRole, signInError, refreshSession } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -32,6 +32,24 @@ const Auth = () => {
       }
     }
   }, [isAuthenticated, userRole, isLoading, navigate]);
+
+  const handleRefresh = async () => {
+    console.log('🔄 Refreshing auth session...');
+    try {
+      await refreshSession();
+      toast({
+        title: "Session refreshed",
+        description: "Your authentication session has been refreshed.",
+      });
+    } catch (error) {
+      console.error('❌ Error refreshing session:', error);
+      toast({
+        title: "Refresh failed",
+        description: "Failed to refresh your session. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (isLoading) {
     console.log('⌛ Loading auth component...');
@@ -51,7 +69,17 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-[#1A1F2C] flex flex-col">
       {/* Navbar placeholder to maintain consistency */}
-      <div className="h-16 bg-[#1A1F2C] border-b border-gray-800"></div>
+      <div className="h-16 bg-[#1A1F2C] border-b border-gray-800 flex items-center justify-end px-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleRefresh}
+          className="text-gray-400 hover:text-white"
+        >
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh Session
+        </Button>
+      </div>
       
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
