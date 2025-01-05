@@ -7,7 +7,6 @@ import Index from '@/pages/Index';
 import AdminPanel from '@/pages/AdminPanel';
 import CreateThesis from '@/pages/CreateThesis';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -32,57 +31,55 @@ function App() {
   console.log('🔄 App component rendering...');
   
   return (
-    <Router>
-      <ErrorBoundary>
-        <AuthProvider>
-          <Routes>
-            {/* Public routes */}
-            <Route 
-              path="/" 
-              element={<LandingPage />}
-            />
-            <Route 
-              path="/auth" 
-              element={
-                <PublicRoute>
-                  <Auth />
-                </PublicRoute>
-              } 
-            />
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          {/* Public routes */}
+          <Route 
+            path="/" 
+            element={<LandingPage />}
+          />
+          <Route 
+            path="/auth" 
+            element={
+              <PublicRoute>
+                <Auth />
+              </PublicRoute>
+            } 
+          />
 
-            {/* Protected routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminPanel />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/create-thesis"
-              element={
-                <ProtectedRoute>
-                  <CreateThesis />
-                </ProtectedRoute>
-              }
-            />
+          {/* Protected routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminPanel />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/create-thesis"
+            element={
+              <ProtectedRoute>
+                <CreateThesis />
+              </ProtectedRoute>
+            }
+          />
 
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-          <Toaster />
-        </AuthProvider>
-      </ErrorBoundary>
-    </Router>
+          {/* Catch all route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <Toaster />
+      </Router>
+    </ErrorBoundary>
   );
 }
 
