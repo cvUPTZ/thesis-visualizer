@@ -1,12 +1,22 @@
-import { User } from '@supabase/supabase-js';
+export type User = {
+  id: string;
+  email: string | null;
+  role: string | null;
+};
 
-export type AuthUser = User;
-
-export interface AuthContextType {
-  user: AuthUser | null;
-  loading: boolean;
+export type AuthContextType = {
+  user: User | null;
+  userId: string | null;
+  userEmail: string | null;
+  userRole: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  refreshSession?: () => Promise<void>;
-}
+  refreshSession: () => Promise<void>;
+};
+
+export type AuthState = {
+  user: User | null;
+  isAuthenticated: boolean;
+};
