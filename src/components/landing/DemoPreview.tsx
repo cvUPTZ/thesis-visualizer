@@ -35,7 +35,7 @@ export const DemoPreview = () => {
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold mb-4"
+            className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-admin-accent-primary to-admin-accent-secondary"
           >
             See How It Works
           </motion.h2>
@@ -45,7 +45,7 @@ export const DemoPreview = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          <div className="bg-white p-8 rounded-xl shadow-lg">
+          <div className="bg-gradient-to-b from-white to-gray-50 p-8 rounded-xl shadow-lg">
             <div className="aspect-video bg-gray-100 rounded-lg mb-6 overflow-hidden">
               <img 
                 src="/placeholder.svg" 
@@ -54,7 +54,9 @@ export const DemoPreview = () => {
               />
             </div>
             <Link to="/auth">
-              <Button className="w-full">Try the Editor</Button>
+              <Button className="w-full bg-gradient-to-r from-admin-accent-primary to-admin-accent-secondary hover:opacity-90 text-white">
+                Try the Editor
+              </Button>
             </Link>
           </div>
           
@@ -65,13 +67,13 @@ export const DemoPreview = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="flex items-start gap-4 p-6 bg-white rounded-lg shadow-sm"
+                className="flex items-start gap-4 p-6 bg-gradient-to-b from-white to-gray-50 rounded-lg shadow-sm hover:shadow-md transition-all"
               >
-                <div className="p-2 bg-primary/5 rounded-lg">
-                  <feature.icon className="w-6 h-6 text-primary" />
+                <div className="p-2 bg-admin-accent-primary/10 rounded-lg">
+                  <feature.icon className="w-6 h-6 text-admin-accent-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">{feature.title}</h3>
+                  <h3 className="font-semibold mb-1 text-admin-accent-primary">{feature.title}</h3>
                   <p className="text-sm text-gray-600">{feature.description}</p>
                 </div>
               </motion.div>
