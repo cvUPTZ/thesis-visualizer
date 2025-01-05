@@ -10,6 +10,8 @@ const initialState: AuthContextType = {
   isAuthenticated: false,
   userRole: null,
   error: null,
+  userId: null,
+  userEmail: null,
   logout: async () => {}
 };
 
@@ -31,7 +33,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log('ℹ️ No active session');
         updateState({ 
           isLoading: false, 
-          isAuthenticated: false 
+          isAuthenticated: false,
+          session: null
         });
         return;
       }
@@ -41,8 +44,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       updateState({
         user: session.user,
+        session,
         isAuthenticated: true,
         userRole,
+        userId: session.user.id,
+        userEmail: session.user.email,
         isLoading: false
       });
     } catch (error) {
@@ -68,8 +74,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (event === 'SIGNED_OUT' || !session) {
           updateState({
             user: null,
+            session: null,
             isAuthenticated: false,
             userRole: null,
+            userId: null,
+            userEmail: null,
             isLoading: false
           });
           return;
@@ -79,8 +88,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const userRole = await authService.getUserRole(session.user.id);
           updateState({
             user: session.user,
+            session,
             isAuthenticated: true,
             userRole,
+            userId: session.user.id,
+            userEmail: session.user.email,
             isLoading: false
           });
         } catch (error) {
@@ -108,8 +120,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await authService.signOut();
       updateState({
         user: null,
+        session: null,
         isAuthenticated: false,
-        userRole: null
+        userRole: null,
+        userId: null,
+        userEmail: null
       });
     } catch (error) {
       console.error('❌ Logout error:', error);

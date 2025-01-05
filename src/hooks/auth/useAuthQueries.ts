@@ -31,9 +31,8 @@ export const useAuthQueries = () => {
       }
 
       const user: User = {
-        id: session.user.id,
-        email: profile.email,
-        role: profile.roles?.name || null,
+        ...session.user,
+        role: profile.roles?.name || null
       };
 
       console.log('✅ Initial auth data loaded:', { user });
