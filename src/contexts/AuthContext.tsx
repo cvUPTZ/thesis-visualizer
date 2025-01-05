@@ -15,7 +15,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     handleSessionChange,
     logout,
     userEmail,
-    isAuthenticated
+    isAuthenticated,
+    setUserId,
+    setUserEmail,
+    setUserRole,
+    setLoading
   } = useSession();
 
   useEffect(() => {
@@ -71,7 +75,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     userRole,
     loading,
     logout,
-    isAuthenticated
+    isAuthenticated,
+    setUserId,
+    setUserEmail,
+    setUserRole,
+    setLoading
   };
 
   return (
