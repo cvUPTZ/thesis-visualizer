@@ -5,19 +5,22 @@ import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requiredRole?: string;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { userId, loading } = useAuth();
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
+  const { userId, userRole, loading } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
     console.log('🔒 Protected route check:', {
       path: location.pathname,
       userId,
+      userRole,
+      requiredRole,
       loading
     });
-  }, [location.pathname, userId, loading]);
+  }, [location.pathname, userId, userRole, requiredRole, loading]);
 
   if (loading) {
     console.log('⌛ Loading protected route...');
@@ -27,6 +30,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   if (!userId) {
     console.log('❌ No user found, redirecting to welcome page');
     return <Navigate to="/welcome" state={{ from: location }} replace />;
+  }
+
+  if (requiredRole && userRole !== requiredRole) {
+    console.log('❌ User does not have required role, redirecting to home');
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   console.log('✅ User authenticated, rendering protected route');
