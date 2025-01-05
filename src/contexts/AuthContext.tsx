@@ -1,4 +1,3 @@
-// providers/AuthContext.tsx
 import React, { createContext, useContext, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,20 +47,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { data: authData, isLoading } = useQuery({
     queryKey: ['auth-session'],
     queryFn: async () => {
+      console.log('🔄 Fetching auth session...');
       const { data: { session }, error } = await supabase.auth.getSession();
       
-      if (error || !session?.user) {
+      if (error) {
+        console.error('❌ Error fetching session:', error);
+        return { user: null, isAuthenticated: false };
+      }
+
+      if (!session?.user) {
+        console.log('ℹ️ No active session');
         return { user: null, isAuthenticated: false };
       }
 
       try {
+        console.log('✅ Session found, fetching profile...');
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('email, roles (name)')
           .eq('id', session.user.id)
           .single();
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('❌ Error fetching profile:', profileError);
+          throw profileError;
+        }
 
         const user: User = {
           id: session.user.id,
@@ -69,9 +79,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           role: (profile as Profile).roles?.name || null,
         };
 
+        console.log('✅ Auth data loaded:', { user });
         return { user, isAuthenticated: true };
       } catch (error) {
-        console.error('Profile fetch error:', error);
+        console.error('❌ Profile fetch error:', error);
         return { user: null, isAuthenticated: false };
       }
     },
@@ -81,12 +92,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signInMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
+      console.log('🔄 Attempting sign in...');
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Sign in error:', error);
+        throw error;
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -100,6 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       };
     },
     onSuccess: (data) => {
+      console.log('✅ Sign in successful:', data);
       queryClient.invalidateQueries({ queryKey: ['auth-session'] });
       navigate(data.userRole === 'admin' ? '/admin' : '/dashboard');
       toast({
@@ -108,6 +124,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
     },
     onError: (error: Error) => {
+      console.error('❌ Sign in mutation error:', error);
       toast({
         title: "Sign in error",
         description: error.message,
@@ -118,10 +135,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOutMutation = useMutation({
     mutationFn: async () => {
+      console.log('🔄 Signing out...');
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     },
     onSuccess: () => {
+      console.log('✅ Sign out successful');
       queryClient.setQueryData(['auth-session'], { user: null, isAuthenticated: false });
       navigate('/');
       toast({
@@ -130,6 +149,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
     },
     onError: (error: Error) => {
+      console.error('❌ Sign out error:', error);
       toast({
         title: "Sign out error",
         description: error.message,
@@ -140,6 +160,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔄 Auth state changed:', event, session?.user?.email);
       if (event === 'SIGNED_OUT') {
         queryClient.setQueryData(['auth-session'], { user: null, isAuthenticated: false });
       }

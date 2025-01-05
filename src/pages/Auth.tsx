@@ -33,11 +33,6 @@ const Auth = () => {
     }
   }, [isAuthenticated, userRole, isLoading, navigate]);
 
-  const handleTestRedirect = () => {
-    console.log('🔄 Test redirect to dashboard');
-    navigate('/dashboard');
-  };
-
   if (isLoading) {
     console.log('⌛ Loading auth component...');
     return <AuthLoader />;
@@ -125,13 +120,6 @@ const Auth = () => {
               <AuthDivider />
               <div className="space-y-3">
                 <DemoLogin />
-                <Button
-                  variant="outline"
-                  className="w-full bg-[#9b87f5]/10 hover:bg-[#9b87f5]/20 text-[#9b87f5]"
-                  onClick={handleTestRedirect}
-                >
-                  Test Dashboard Access
-                </Button>
               </div>
             </CardContent>
           </Card>
