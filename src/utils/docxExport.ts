@@ -7,6 +7,8 @@ import {
   TextRun,
   HeadingLevel,
   AlignmentType,
+  Header,
+  Footer,
 } from 'docx';
 import { Thesis } from '@/types/thesis';
 import { generateTitlePage } from './docx/titlePageGenerator';
@@ -47,6 +49,35 @@ export const generateThesisDocx = async (thesis: Thesis) => {
         margin: PAGE_MARGINS,
       },
     },
+    headers: {
+      default: new Header({
+        children: [
+          new Paragraph({
+            text: thesis.frontMatter[0]?.title || "Untitled Thesis",
+            alignment: AlignmentType.CENTER,
+          }),
+        ],
+      }),
+    },
+    footers: {
+      default: new Footer({
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun("Page "),
+              new TextRun({
+                children: [PageNumber.CURRENT],
+              }),
+              new TextRun(" of "),
+              new TextRun({
+                children: [PageNumber.TOTAL_PAGES],
+              }),
+            ],
+            alignment: AlignmentType.CENTER,
+          }),
+        ],
+      }),
+    },
     children: [
       new Paragraph({
         text: "Table of Contents",
@@ -63,6 +94,35 @@ export const generateThesisDocx = async (thesis: Thesis) => {
       page: {
         margin: PAGE_MARGINS,
       },
+    },
+    headers: {
+      default: new Header({
+        children: [
+          new Paragraph({
+            text: thesis.frontMatter[0]?.title || "Untitled Thesis",
+            alignment: AlignmentType.CENTER,
+          }),
+        ],
+      }),
+    },
+    footers: {
+      default: new Footer({
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun("Page "),
+              new TextRun({
+                children: [PageNumber.CURRENT],
+              }),
+              new TextRun(" of "),
+              new TextRun({
+                children: [PageNumber.TOTAL_PAGES],
+              }),
+            ],
+            alignment: AlignmentType.CENTER,
+          }),
+        ],
+      }),
     },
     children: generateContent({ thesis, isPreview: false }),
   });
@@ -129,6 +189,35 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
         },
       },
     },
+    headers: {
+      default: new Header({
+        children: [
+          new Paragraph({
+            text: thesis.frontMatter[0]?.title || "Untitled Thesis",
+            alignment: AlignmentType.CENTER,
+          }),
+        ],
+      }),
+    },
+    footers: {
+      default: new Footer({
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun("Page "),
+              new TextRun({
+                children: [PageNumber.CURRENT],
+              }),
+              new TextRun(" of "),
+              new TextRun({
+                children: [PageNumber.TOTAL_PAGES],
+              }),
+            ],
+            alignment: AlignmentType.CENTER,
+          }),
+        ],
+      }),
+    },
     children: [
       new Paragraph({
         text: "Table of Contents",
@@ -150,6 +239,35 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
           left: convertInchesToTwip(1),
         },
       },
+    },
+    headers: {
+      default: new Header({
+        children: [
+          new Paragraph({
+            text: thesis.frontMatter[0]?.title || "Untitled Thesis",
+            alignment: AlignmentType.CENTER,
+          }),
+        ],
+      }),
+    },
+    footers: {
+      default: new Footer({
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun("Page "),
+              new TextRun({
+                children: [PageNumber.CURRENT],
+              }),
+              new TextRun(" of "),
+              new TextRun({
+                children: [PageNumber.TOTAL_PAGES],
+              }),
+            ],
+            alignment: AlignmentType.CENTER,
+          }),
+        ],
+      }),
     },
     children: generateContent({ thesis, isPreview: true }),
   });
