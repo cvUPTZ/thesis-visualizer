@@ -28,6 +28,10 @@ const Auth = () => {
         console.log('👋 User signed out');
       } else if (event === 'USER_UPDATED') {
         console.log('👤 User profile updated');
+      } else if (event === 'USER_DELETED') {
+        console.log('❌ User account deleted');
+      } else if (event === 'PASSWORD_RECOVERY') {
+        console.log('🔑 Password recovery initiated');
       }
     });
 
@@ -74,6 +78,18 @@ const Auth = () => {
             }}
             providers={[]}
             redirectTo={`${window.location.origin}/auth/callback`}
+            localization={{
+              variables: {
+                sign_in: {
+                  email_label: 'Email address',
+                  password_label: 'Password',
+                  button_label: 'Sign in',
+                  loading_button_label: 'Signing in...',
+                  email_input_placeholder: 'Your email address',
+                  password_input_placeholder: 'Your password',
+                }
+              }
+            }}
           />
           <AuthDivider />
           <DemoLogin />
