@@ -1,15 +1,15 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { AuthLoader } from "@/components/auth/AuthLoader";
-import { AuthContainer } from "@/components/auth/AuthContainer";
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AuthContainer } from '@/components/auth/AuthContainer';
+import { AuthLoader } from '@/components/auth/AuthLoader';
+import { useAuth } from '@/contexts/AuthContext';
 
-const Auth = () => {
-  const { isLoading, isAuthenticated, userRole } = useAuth();
+export const Auth = () => {
+  const { isAuthenticated, isLoading, userRole } = useAuth();
   const navigate = useNavigate();
-  
+
   useEffect(() => {
-    console.log('Auth component mount - Auth state:', { isAuthenticated, userRole, isLoading });
+    console.log('🔄 Auth page mounted. Auth state:', { isAuthenticated, isLoading, userRole });
     
     if (!isLoading && isAuthenticated) {
       console.log('✅ User is authenticated, redirecting based on role:', userRole);
@@ -21,8 +21,9 @@ const Auth = () => {
     }
   }, [isAuthenticated, userRole, isLoading, navigate]);
 
+  console.log('🔄 Rendering Auth page with state:', { isLoading, isAuthenticated });
+
   if (isLoading) {
-    console.log('⌛ Loading auth component...');
     return <AuthLoader />;
   }
 

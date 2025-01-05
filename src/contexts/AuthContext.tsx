@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userRole, setUserRole] = useState<string>();
   
   useEffect(() => {
+    let mounted = true;
     console.info("🔄 Initializing auth context...");
     
     const initializeAuth = async () => {
@@ -37,30 +38,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.info("🔍 Checking initial session...");
         const { data: { session: initialSession } } = await supabase.auth.getSession();
         
+        if (!mounted) return;
+
         if (initialSession) {
           console.info("✅ Found initial session:", initialSession.user.email);
           setSession(initialSession);
           setUser(initialSession.user);
           
-          // Fetch user role
           const { data: profile } = await supabase
             .from('profiles')
             .select('roles (name)')
             .eq('id', initialSession.user.id)
             .single();
             
-          if (profile?.roles) {
+          if (profile?.roles && mounted) {
+            console.log('✅ User role loaded:', profile.roles.name);
             setUserRole(profile.roles.name);
           }
         } else {
           console.info("ℹ️ No active session found");
-          setSession(null);
-          setUser(null);
+          if (mounted) {
+            setSession(null);
+            setUser(null);
+          }
         }
       } catch (error) {
         console.error("❌ Error checking session:", error);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -69,6 +76,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.info("🔄 Auth state changed:", event, currentSession?.user?.email);
+        
+        if (!mounted) return;
+        
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
@@ -79,7 +89,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             .eq('id', currentSession.user.id)
             .single();
             
-          if (profile?.roles) {
+          if (profile?.roles && mounted) {
             setUserRole(profile.roles.name);
           }
         }
@@ -89,6 +99,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
