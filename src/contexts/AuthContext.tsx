@@ -1,7 +1,21 @@
-import React, { createContext, useContext } from 'react';
-import type { AuthContextType } from '@/types/auth';
-import { useAuthSession } from '@/hooks/auth/useAuthSession';
-import { useAuthMutations } from '@/hooks/auth/useAuthMutations';
+import React, { createContext, useContext, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import type { AuthContextType, User } from '@/types/auth';
+
+type SignInResponse = {
+  user: User;
+  userRole: string;
+};
+
+type Profile = {
+  email: string;
+  roles: {
+    name: string;
+  } | null;
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -14,9 +28,171 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  console.log('🔄 AuthProvider rendering...');
-  const { data: authData, isLoading } = useAuthSession();
-  const { signIn, signOut } = useAuthMutations();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Session management with React Query
+  const { data: authData, isLoading } = useQuery({
+    queryKey: ['auth-session'],
+    queryFn: async () => {
+      console.log('🔄 Fetching auth session...');
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('❌ Error fetching session:', error);
+        return { user: null, isAuthenticated: false };
+      }
+
+      if (!session?.user) {
+        console.log('ℹ️ No active session');
+        return { user: null, isAuthenticated: false };
+      }
+
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select(`
+            email,
+            roles (
+              name
+            )
+          `)
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError) throw profileError;
+
+        const user: User = {
+          id: session.user.id,
+          email: (profile as Profile).email,
+          role: (profile as Profile).roles?.name || null,
+        };
+
+        console.log('✅ Session loaded:', user);
+        return { user, isAuthenticated: true };
+      } catch (error) {
+        console.error('❌ Error fetching profile:', error);
+        return { user: null, isAuthenticated: false };
+      }
+    },
+    staleTime: 1000 * 60 * 5, // Consider session data fresh for 5 minutes
+    refetchOnWindowFocus: true,
+  });
+
+  // Sign in mutation with role-based redirection
+  const signInMutation = useMutation<SignInResponse, Error, { email: string; password: string }>({
+    mutationFn: async ({ email, password }) => {
+      console.log('🔄 Attempting to sign in user:', email);
+      
+      if (!email || !password) {
+        throw new Error('Email and password are required');
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select(`
+          roles (
+            name
+          )
+        `)
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      return { 
+        user: data.user,
+        userRole: (profile as Profile).roles?.name || null 
+      };
+    },
+    onSuccess: (data) => {
+      console.log('✅ Sign in successful, user role:', data.userRole);
+      queryClient.invalidateQueries({ queryKey: ['auth-session'] });
+      
+      navigate('/dashboard');
+      
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in.",
+      });
+    },
+    onError: (error) => {
+      console.error('❌ Sign in error:', error);
+      toast({
+        title: "Error signing in",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Role-based navigation
+  useEffect(() => {
+    if (!isLoading && authData?.isAuthenticated && authData.user?.role === 'admin') {
+      navigate('/admin');
+    }
+  }, [authData?.user?.role, authData?.isAuthenticated, navigate, isLoading]);
+
+  // Auth state listener
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        queryClient.setQueryData(['auth-session'], { user: null, isAuthenticated: false });
+      }
+    });
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, [queryClient]);
+
+  // Sign out mutation
+  const signOutMutation = useMutation({
+    mutationFn: async () => {
+      console.log('🔄 Signing out user...');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      console.log('✅ Sign out successful');
+      queryClient.setQueryData(['auth-session'], { user: null, isAuthenticated: false });
+      navigate('/');
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
+    },
+    onError: (error: Error) => {
+      console.error('❌ Sign out error:', error);
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Session refresh function
+  const refreshSession = async () => {
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['auth-session'] });
+    } catch (error) {
+      console.error('Failed to refresh session:', error);
+      toast({
+        title: "Error refreshing session",
+        description: "Failed to refresh your session",
+        variant: "destructive",
+      });
+    }
+  };
 
   const value: AuthContextType = {
     user: authData?.user ?? null,
@@ -24,16 +200,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     userEmail: authData?.user?.email ?? null,
     userRole: authData?.user?.role ?? null,
     isLoading,
-    isAuthenticated: !!authData?.user,
-    signIn,
-    signOut
+    isAuthenticated: authData?.isAuthenticated ?? false,
+    signIn: async (email: string, password: string) => {
+      await signInMutation.mutateAsync({ email, password });
+    },
+    signOut: async () => {
+      await signOutMutation.mutateAsync();
+    },
+    refreshSession,
   };
-
-  console.log('👤 Auth context value:', { 
-    isAuthenticated: value.isAuthenticated,
-    userRole: value.userRole,
-    isLoading: value.isLoading 
-  });
 
   return (
     <AuthContext.Provider value={value}>
