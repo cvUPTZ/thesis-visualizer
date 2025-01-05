@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '@/types/auth';
@@ -18,62 +18,42 @@ export const useAuthMutations = () => {
         throw new Error('Email and password are required');
       }
 
-      try {
-        const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-        if (signInError) {
-          console.error('❌ Sign in error:', signInError);
-          if (signInError.message === 'Invalid login credentials') {
-            throw new Error('Invalid email or password');
-          }
-          throw signInError;
-        }
-
-        if (!authData.user) {
-          console.error('❌ No user data returned');
-          throw new Error('Authentication failed');
-        }
-
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select(`
-            roles (
-              name
-            )
-          `)
-          .eq('id', authData.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('❌ Error fetching user role:', profileError);
-          throw profileError;
-        }
-
-        const user: User = {
-          id: authData.user.id,
-          email: authData.user.email,
-          role: profile.roles?.name || null
-        };
-
-        console.log('✅ Sign in successful, user role:', profile.roles?.name);
-        return { user, session: authData.session, userRole: profile.roles?.name };
-      } catch (error) {
-        console.error('❌ Authentication error:', error);
-        throw error;
+      if (signInError) {
+        console.error('❌ Sign in error:', signInError);
+        throw signInError;
       }
+
+      if (!authData.user) {
+        console.error('❌ No user data returned');
+        throw new Error('Authentication failed');
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select(`
+          roles (
+            name
+          )
+        `)
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('❌ Error fetching user role:', profileError);
+        throw profileError;
+      }
+
+      console.log('✅ Sign in successful, user role:', profile.roles?.name);
     },
-    onSuccess: (data) => {
-      console.log('✅ Sign in successful, redirecting based on role:', data.userRole);
+    onSuccess: () => {
+      console.log('✅ Sign in successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['auth-session'] });
-      
-      if (data.userRole === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
       
       toast({
         title: "Welcome back!",
@@ -93,22 +73,13 @@ export const useAuthMutations = () => {
   const signOutMutation = useMutation({
     mutationFn: async () => {
       console.log('🔄 Signing out user...');
-      try {
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
-        
-        // Clear React Query cache
-        queryClient.clear();
-        
-        console.log('✅ Sign out successful');
-      } catch (error) {
-        console.error('❌ Error during sign out:', error);
-        throw error;
-      }
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      console.log('✅ Sign out successful');
     },
     onSuccess: () => {
-      // Reset auth state
       queryClient.setQueryData(['auth-session'], { user: null, isAuthenticated: false });
+      queryClient.clear();
       navigate('/');
       toast({
         title: "Signed out",
@@ -117,7 +88,6 @@ export const useAuthMutations = () => {
     },
     onError: (error: Error) => {
       console.error('❌ Sign out error:', error);
-      // Even if there's an error, we want to clear local state
       queryClient.setQueryData(['auth-session'], { user: null, isAuthenticated: false });
       navigate('/');
       toast({

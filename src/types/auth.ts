@@ -1,6 +1,6 @@
 export interface User {
   id: string;
-  email: string | undefined;
+  email: string | null;
   role: string | null;
 }
 
@@ -16,6 +16,6 @@ export interface AuthContextType {
   userRole: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  signIn: (email: string, password: string) => Promise<{ user: User; session: any; userRole: string }>;
+  signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
