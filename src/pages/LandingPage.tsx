@@ -9,7 +9,7 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-[#0A0D14]">
       <HeroSection />
-      <ThesisVisualization />
+      <ThesisVisualization className="border-t border-gray-800" />
       <FeaturesSection />
       <PricingSection />
       <Footer />
