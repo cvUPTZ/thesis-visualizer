@@ -30,6 +30,8 @@ const Auth = () => {
       } else {
         navigate('/dashboard', { replace: true });
       }
+      // Add page reload after successful authentication and navigation
+      window.location.reload();
     }
   }, [isAuthenticated, userRole, isLoading, navigate]);
 
