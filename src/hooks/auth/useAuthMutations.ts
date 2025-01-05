@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { User } from '@/types/auth';
 
 export const useAuthMutations = () => {
   const { toast } = useToast();
@@ -51,8 +52,14 @@ export const useAuthMutations = () => {
           throw profileError;
         }
 
+        const user: User = {
+          id: authData.user.id,
+          email: authData.user.email,
+          role: profile.roles?.name || null
+        };
+
         console.log('✅ Sign in successful, user role:', profile.roles?.name);
-        return { user: authData.user, session: authData.session, userRole: profile.roles?.name };
+        return { user, session: authData.session, userRole: profile.roles?.name };
       } catch (error) {
         console.error('❌ Authentication error:', error);
         throw error;
