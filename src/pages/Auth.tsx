@@ -38,6 +38,16 @@ const Auth = () => {
     return <AuthLoader />;
   }
 
+  // Get the current hostname to determine if we're in preview or production
+  const isPreview = window.location.hostname.includes('preview--');
+  const redirectTo = `${window.location.origin}/auth/callback`;
+  
+  console.log('🔐 Auth configuration:', { 
+    isPreview, 
+    redirectTo,
+    hostname: window.location.hostname 
+  });
+
   return (
     <div className="min-h-screen bg-[#1A1F2C] flex flex-col">
       {/* Navbar placeholder to maintain consistency */}
@@ -92,7 +102,7 @@ const Auth = () => {
                   },
                 }}
                 providers={["google"]}
-                redirectTo={`${window.location.origin}/auth/callback`}
+                redirectTo={redirectTo}
                 localization={{
                   variables: {
                     sign_in: {
