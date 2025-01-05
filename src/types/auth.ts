@@ -1,16 +1,9 @@
-export interface User {
-  id: string;
-  email: string | null;
-  role: string | null;
-}
+import { authService } from "@/services/authService";
 
-export interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-}
+export type { AuthUser, AuthState } from "@/services/authService";
 
 export interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   userId: string | null;
   userEmail: string | null;
   userRole: string | null;

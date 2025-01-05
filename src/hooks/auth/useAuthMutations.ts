@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { authService } from '@/services/authService';
 
 export const useAuthMutations = () => {
   const { toast } = useToast();
@@ -10,44 +10,7 @@ export const useAuthMutations = () => {
 
   const signInMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      console.log('🔄 Attempting to sign in user:', email);
-      
-      if (!email || !password) {
-        console.error('❌ Email and password are required');
-        throw new Error('Email and password are required');
-      }
-
-      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        console.error('❌ Sign in error:', signInError);
-        throw signInError;
-      }
-
-      if (!authData.user) {
-        console.error('❌ No user data returned');
-        throw new Error('Authentication failed');
-      }
-
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select(`
-          roles (
-            name
-          )
-        `)
-        .eq('id', authData.user.id)
-        .single();
-
-      if (profileError) {
-        console.error('❌ Error fetching user role:', profileError);
-        throw profileError;
-      }
-
-      console.log('✅ Sign in successful, user role:', profile.roles?.name);
+      await authService.signIn(email, password);
     },
     onSuccess: () => {
       console.log('✅ Sign in successful, invalidating queries');
@@ -70,12 +33,7 @@ export const useAuthMutations = () => {
   });
 
   const signOutMutation = useMutation({
-    mutationFn: async () => {
-      console.log('🔄 Signing out user...');
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      console.log('✅ Sign out successful');
-    },
+    mutationFn: authService.signOut,
     onSuccess: () => {
       queryClient.setQueryData(['auth-session'], { user: null, isAuthenticated: false });
       queryClient.clear();
