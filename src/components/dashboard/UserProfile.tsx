@@ -13,10 +13,10 @@ export const UserProfile = ({ email, role }: UserProfileProps) => {
         <UserCircle className="w-8 h-8 text-[#9b87f5]" />
       </div>
       <div className="space-y-1">
-        <h2 className="text-xl font-medium text-white">
+        <h2 className="text-xl font-medium font-serif text-white">
           Welcome back, <span className="text-[#9b87f5]">{email}</span>
         </h2>
-        <p className="text-sm text-[#D6BCFA]/80">
+        <p className="text-sm font-sans text-[#D6BCFA]/80">
           Role: <span className="font-medium capitalize">{role}</span>
         </p>
       </div>

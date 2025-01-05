@@ -13,8 +13,8 @@ export const QuickTips = () => {
               <BookOpen className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h4 className="font-medium text-gray-900">Getting Started</h4>
-              <p className="text-sm text-muted-foreground">
+              <h4 className="font-medium text-gray-900 font-serif">Getting Started</h4>
+              <p className="text-sm text-muted-foreground font-sans">
                 Click "Create New Thesis" to begin your academic journey
               </p>
             </div>
@@ -25,8 +25,8 @@ export const QuickTips = () => {
               <Users className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <h4 className="font-medium text-gray-900">Collaboration</h4>
-              <p className="text-sm text-muted-foreground">
+              <h4 className="font-medium text-gray-900 font-serif">Collaboration</h4>
+              <p className="text-sm text-muted-foreground font-sans">
                 Invite collaborators through the sharing menu in your thesis
               </p>
             </div>
@@ -37,8 +37,8 @@ export const QuickTips = () => {
               <Save className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <h4 className="font-medium text-gray-900">Auto-saving</h4>
-              <p className="text-sm text-muted-foreground">
+              <h4 className="font-medium text-gray-900 font-serif">Auto-saving</h4>
+              <p className="text-sm text-muted-foreground font-sans">
                 Your work is automatically saved as you type
               </p>
             </div>
@@ -49,8 +49,8 @@ export const QuickTips = () => {
               <Lightbulb className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <h4 className="font-medium text-gray-900">Best Practices</h4>
-              <p className="text-sm text-muted-foreground">
+              <h4 className="font-medium text-gray-900 font-serif">Best Practices</h4>
+              <p className="text-sm text-muted-foreground font-sans">
                 Use headings to organize your content effectively
               </p>
             </div>

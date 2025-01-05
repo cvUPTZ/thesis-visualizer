@@ -70,7 +70,7 @@ const Index = () => {
             <h1 className="text-4xl font-serif font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#9b87f5] to-[#D6BCFA]">
               Dashboard
             </h1>
-            <p className="text-[#D6BCFA]/80">
+            <p className="text-[#D6BCFA]/80 font-sans">
               Manage your thesis projects and track progress
             </p>
           </div>
@@ -79,7 +79,7 @@ const Index = () => {
               <Button 
                 onClick={() => navigate('/admin')} 
                 variant="outline"
-                className="bg-[#7E69AB]/10 hover:bg-[#7E69AB]/20 text-[#D6BCFA] border-[#D6BCFA]/20"
+                className="bg-[#7E69AB]/10 hover:bg-[#7E69AB]/20 text-[#D6BCFA] border-[#D6BCFA]/20 font-sans"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Admin Panel
@@ -88,7 +88,7 @@ const Index = () => {
             <Button 
               onClick={handleLogout}
               variant="ghost"
-              className="text-red-300 hover:text-red-200 hover:bg-red-500/10"
+              className="text-red-300 hover:text-red-200 hover:bg-red-500/10 font-sans"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Logout
@@ -126,7 +126,7 @@ const Index = () => {
                 </h2>
                 <Button
                   onClick={handleCreateThesis}
-                  className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+                  className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white font-sans"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Create New Thesis
