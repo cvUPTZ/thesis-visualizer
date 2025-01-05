@@ -6,20 +6,26 @@ import { useToast } from '@/hooks/use-toast';
 export const useUser = () => {
   const [userEmail, setUserEmail] = useState<string>('');
   const [userRole, setUserRole] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
+    let mounted = true;
+    
     const loadProfile = async () => {
       try {
         console.log('Loading user profile...');
+        setIsLoading(true);
+        
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
           console.log('No active session found, redirecting to auth...');
-          setIsLoading(false);
-          navigate('/auth');
+          if (mounted) {
+            setIsLoading(false);
+            navigate('/auth');
+          }
           return;
         }
 
@@ -32,28 +38,34 @@ export const useUser = () => {
             )
           `)
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Error loading profile:', error);
-          if (error.code === 'PGRST116') {
-            console.log('Profile not found, redirecting to auth...');
-            await handleLogout();
+          if (mounted) {
+            setIsLoading(false);
+            if (error.code === 'PGRST116') {
+              console.log('Profile not found, redirecting to auth...');
+              await handleLogout();
+            }
           }
-          setIsLoading(false);
           return;
         }
 
-        if (profile) {
+        if (profile && mounted) {
           console.log('Profile loaded:', profile);
           setUserEmail(profile.email);
           setUserRole(profile.roles?.name || '');
         }
-        setIsLoading(false);
       } catch (error) {
         console.error('Error in loadProfile:', error);
-        setIsLoading(false);
-        navigate('/auth');
+        if (mounted) {
+          navigate('/auth');
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -63,16 +75,21 @@ export const useUser = () => {
       console.log('Auth state changed:', event, session?.user?.email);
       
       if (event === 'SIGNED_OUT') {
-        setUserEmail('');
-        setUserRole('');
-        setIsLoading(false);
-        navigate('/auth');
+        if (mounted) {
+          setUserEmail('');
+          setUserRole('');
+          setIsLoading(false);
+          navigate('/auth');
+        }
       } else if (event === 'SIGNED_IN' && session) {
-        await loadProfile();
+        if (mounted) {
+          await loadProfile();
+        }
       }
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [navigate]);
