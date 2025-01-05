@@ -8,6 +8,8 @@ import AdminPanel from '@/pages/AdminPanel';
 import CreateThesis from '@/pages/CreateThesis';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
 
 // Public route wrapper component
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
@@ -31,18 +33,18 @@ function App() {
       <Router>
         <AuthProvider>
           <Routes>
-            {/* Public routes without loading state */}
+            {/* Public routes */}
+            <Route path="/" element={<LandingPage />} />
             <Route 
-              path="/" 
+              path="/auth" 
               element={
                 <PublicRoute>
-                  <LandingPage />
+                  <Auth />
                 </PublicRoute>
               } 
             />
-            <Route path="/auth" element={<Auth />} />
 
-            {/* Protected routes with loading state */}
+            {/* Protected routes */}
             <Route
               path="/dashboard"
               element={
@@ -68,7 +70,7 @@ function App() {
               }
             />
 
-            {/* Catch all route - redirect to root */}
+            {/* Catch all route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <Toaster />

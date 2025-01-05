@@ -1,86 +1,146 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } from './auth/useSession';
-import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
-import { AuthContextType } from './auth/types';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import type { AuthContextType, User } from '@/types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-  const {
-    userId,
-    userRole,
-    loading,
-    handleSessionChange,
-    logout,
-    userEmail,
-    setUserId,
-    setUserEmail,
-    setUserRole,
-    setLoading
-  } = useSession();
-
-  const isAuthenticated = !!userId;
-
-  useEffect(() => {
-    console.log('🔄 Initializing auth context...');
-    
-    let mounted = true;
-    let timeoutId: NodeJS.Timeout;
-
-    const initializeAuth = async () => {
-      try {
-        console.log('🔍 Checking initial session...');
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (mounted) {
-          await handleSessionChange(session);
-          // Add a small delay to prevent flash of loading state
-          timeoutId = setTimeout(() => {
-            setInitialLoadComplete(true);
-          }, 500);
-        }
-      } catch (error) {
-        console.error('❌ Error during auth initialization:', error);
-        if (mounted) {
-          setInitialLoadComplete(true);
-        }
-      }
-    };
-
-    initializeAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth state changed:', event, session?.user?.email);
-      if (mounted) {
-        await handleSessionChange(session);
-      }
-    });
-
-    return () => {
-      mounted = false;
-      clearTimeout(timeoutId);
-      subscription.unsubscribe();
-    };
-  }, [handleSessionChange]);
-
-  // Only show loading state for initial load
-  if (!initialLoadComplete) {
-    return <LoadingSkeleton />;
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
   }
+  return context;
+};
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Session management with React Query
+  const { data: authData, isLoading } = useQuery({
+    queryKey: ['auth-session'],
+    queryFn: async () => {
+      console.log('🔄 Fetching auth session...');
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('❌ Error fetching session:', error);
+        return { user: null, isAuthenticated: false };
+      }
+
+      if (!session?.user) {
+        console.log('ℹ️ No active session');
+        return { user: null, isAuthenticated: false };
+      }
+
+      // Fetch user role from profiles table
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select(`
+          email,
+          roles (
+            name
+          )
+        `)
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('❌ Error fetching profile:', profileError);
+        return { user: null, isAuthenticated: false };
+      }
+
+      const user: User = {
+        id: session.user.id,
+        email: profile.email,
+        role: profile.roles?.name || null,
+      };
+
+      console.log('✅ Session loaded:', user);
+      return { user, isAuthenticated: true };
+    },
+    staleTime: 1000 * 60 * 5, // Consider session data fresh for 5 minutes
+    refetchOnWindowFocus: true,
+  });
+
+  // Sign in mutation
+  const signInMutation = useMutation({
+    mutationFn: async ({ email, password }: { email: string; password: string }) => {
+      console.log('🔄 Signing in user:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error('❌ Sign in error:', error);
+        throw error;
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      console.log('✅ Sign in successful');
+      queryClient.invalidateQueries({ queryKey: ['auth-session'] });
+      navigate('/dashboard');
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in.",
+      });
+    },
+    onError: (error: Error) => {
+      console.error('❌ Sign in error:', error);
+      toast({
+        title: "Error signing in",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Sign out mutation
+  const signOutMutation = useMutation({
+    mutationFn: async () => {
+      console.log('🔄 Signing out user...');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      console.log('✅ Sign out successful');
+      queryClient.setQueryData(['auth-session'], { user: null, isAuthenticated: false });
+      navigate('/');
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
+    },
+    onError: (error: Error) => {
+      console.error('❌ Sign out error:', error);
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Session refresh function
+  const refreshSession = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['auth-session'] });
+  };
 
   const value: AuthContextType = {
-    userId,
-    userEmail,
-    userRole,
-    loading,
-    isAuthenticated,
-    logout,
-    setUserId,
-    setUserEmail,
-    setUserRole,
-    setLoading
+    user: authData?.user ?? null,
+    isLoading: isLoading || signInMutation.isPending || signOutMutation.isPending,
+    isAuthenticated: authData?.isAuthenticated ?? false,
+    signIn: (email: string, password: string) => 
+      signInMutation.mutate({ email, password }),
+    signOut: () => signOutMutation.mutate(),
+    refreshSession,
   };
 
   return (
@@ -88,12 +148,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };
