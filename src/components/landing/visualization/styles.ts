@@ -8,12 +8,12 @@ export const styles = `
     --text-primary: #111827;
     --text-secondary: #6B7280;
     --bg-primary: #FFFFFF;
-    --bg-secondary: #F9FAFB;
+    --bg-secondary: #F8FAFC;
   }
 
   .thesis-container {
     min-height: 100vh;
-    background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+    background: var(--bg-primary);
     padding: 2rem;
     overflow: hidden;
   }
@@ -22,6 +22,7 @@ export const styles = `
     max-width: 1200px;
     margin: 0 auto;
     position: relative;
+    background: var(--bg-primary);
   }
 
   .central-icon {
