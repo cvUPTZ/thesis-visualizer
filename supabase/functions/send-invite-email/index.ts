@@ -16,7 +16,6 @@ interface EmailRequest {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -29,9 +28,8 @@ serve(async (req) => {
     }
 
     const resend = new Resend(RESEND_API_KEY);
-    const SENDER_EMAIL = 'onboarding@resend.dev'; // Using Resend's default sender
+    const SENDER_EMAIL = 'thesis@yourdomain.com'; // Update this with your verified domain
 
-    // Parse and validate request body
     const requestData: EmailRequest = await req.json();
     console.log('Received request data:', requestData);
 
@@ -41,7 +39,6 @@ serve(async (req) => {
       throw new Error('Missing required fields');
     }
 
-    // Sanitize inputs
     const safeEmail = String(to).trim();
     const safeTitle = String(thesisTitle).trim();
     const safeLink = String(inviteLink).trim();
@@ -70,23 +67,28 @@ serve(async (req) => {
 
       if (error) {
         console.error('Resend error:', error);
-        return new Response(
-          JSON.stringify({
-            error: error.message,
-            details: {
-              statusCode: error.statusCode || 500,
-              message: error.message,
-              name: error.name || 'unknown_error'
+        
+        // Check specifically for domain verification error
+        if (error.message?.toLowerCase().includes('verify a domain')) {
+          return new Response(
+            JSON.stringify({
+              error: 'Domain verification required',
+              details: {
+                message: 'Please verify your domain at Resend.com before sending invitations.',
+                name: 'domain_verification_error'
+              }
+            }),
+            {
+              headers: {
+                ...corsHeaders,
+                'Content-Type': 'application/json',
+              },
+              status: 403,
             }
-          }),
-          {
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'application/json',
-            },
-            status: error.statusCode || 500,
-          }
-        );
+          );
+        }
+        
+        throw error;
       }
 
       console.log('Email sent successfully:', data);
@@ -109,7 +111,10 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         error: error.message || 'Internal server error',
-        details: {}
+        details: {
+          message: error.message,
+          name: error.name || 'unknown_error'
+        }
       }),
       {
         headers: {
