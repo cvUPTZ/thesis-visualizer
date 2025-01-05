@@ -1,7 +1,7 @@
 // App.tsx
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from '@/providers/AuthProvider';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { PublicRoute } from '@/components/auth/PublicRoute';
 import ErrorBoundary from '@/components/ErrorBoundary';
