@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CollaboratorRole } from '@/types/collaborator';
+import nodemailer from 'nodemailer';
 
 interface CollaboratorInviteFormProps {
   thesisId: string;
@@ -32,6 +33,41 @@ export const CollaboratorInviteForm = ({
     return regex.test(email);
   };
 
+  const sendInviteEmail = async (to: string, inviteLink: string, role: string) => {
+    try {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT),
+        secure: true,
+        auth: {
+          user: process.env.SMTP_USERNAME,
+          pass: process.env.SMTP_PASSWORD,
+        },
+      });
+
+      const mailOptions = {
+        from: process.env.SENDER_EMAIL,
+        to,
+        subject: `Invitation to collaborate on thesis: ${thesisTitle}`,
+        html: `
+          <h2>You've been invited to collaborate!</h2>
+          <p>You have been invited to collaborate on the thesis "${thesisTitle}" as a ${role}.</p>
+          <p>Click the link below to accept the invitation:</p>
+          <a href="${inviteLink}" style="display: inline-block; padding: 10px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px;">
+            Accept Invitation
+          </a>
+          <p>If you can't click the button, copy and paste this link in your browser:</p>
+          <p>${inviteLink}</p>
+        `,
+      };
+
+      await transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Error sending email:', error);
+      throw new Error('Failed to send invitation email');
+    }
+  };
+
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = email.toLowerCase().trim();
@@ -52,37 +88,15 @@ export const CollaboratorInviteForm = ({
 
       console.log('Sending invitation with link:', inviteLink);
 
-      const { error, data } = await supabase.functions.invoke('send-invite-email', {
-        body: {
-          to: cleanEmail,
-          thesisTitle,
-          inviteLink,
-          role
-        },
+      await sendInviteEmail(cleanEmail, inviteLink, role);
+      
+      onInviteSuccess();
+      setEmail('');
+      setRole('editor');
+      toast({
+        title: "Success",
+        description: "The collaboration invitation has been sent successfully.",
       });
-
-      if (error) {
-        console.error('Error from edge function:', error);
-        
-        // Check if it's a domain verification error
-        if (error.message?.toLowerCase().includes('domain is not verified')) {
-          toast({
-            title: "Domain Verification Required",
-            description: "The email domain needs to be verified. Please verify your domain at Resend.com before sending invitations.",
-            variant: "destructive",
-          });
-        } else {
-          throw error;
-        }
-      } else {
-        onInviteSuccess();
-        setEmail('');
-        setRole('editor');
-        toast({
-          title: "Invitation Sent",
-          description: "The collaboration invitation has been sent successfully.",
-        });
-      }
     } catch (error: any) {
       console.error('Error sending invitation:', error);
       onInviteError(error);
