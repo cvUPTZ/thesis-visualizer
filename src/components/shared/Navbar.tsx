@@ -34,9 +34,9 @@ export const Navbar = () => {
             <Link to="/" className="hover:text-[#D6BCFA] transition-colors">
               About
             </Link>
-            <Link to="/auth">
+            <Link to="/">
               <Button variant="outline" className="bg-transparent text-white border-white hover:bg-white hover:text-[#1A1F2C]">
-                Get Started
+                Home
               </Button>
             </Link>
           </div>
@@ -60,12 +60,12 @@ export const Navbar = () => {
               >
                 About
               </Link>
-              <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
+              <Link to="/" onClick={() => setIsMenuOpen(false)}>
                 <Button
                   variant="outline"
                   className="w-full bg-transparent text-white border-white hover:bg-white hover:text-[#1A1F2C]"
                 >
-                  Get Started
+                  Home
                 </Button>
               </Link>
             </div>
