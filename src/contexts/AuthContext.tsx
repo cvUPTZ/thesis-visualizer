@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     console.log('🔄 Initializing auth context...');
@@ -41,6 +42,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } catch (error) {
         console.error('Error checking user session:', error);
+        setError(error as Error);
       } finally {
         setLoading(false);
       }
@@ -89,16 +91,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const logout = async () => {
-    console.log('🔄 Starting logout process...');
+  const signOut = async () => {
+    console.log('🔄 Starting sign out process...');
     try {
       setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('❌ Error during logout:', error);
+        console.error('❌ Error during sign out:', error);
         throw error;
       }
-      console.log('✅ Logout successful');
+      console.log('✅ Sign out successful');
       
       // Clear all auth state
       setUserId(null);
@@ -111,7 +113,47 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         window.location.reload();
       }, 500);
     } catch (error) {
-      console.error('❌ Error during logout:', error);
+      console.error('❌ Error during sign out:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signIn = async (credentials: { email: string; password: string }): Promise<SignInResponse> => {
+    try {
+      setLoading(true);
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password,
+      });
+
+      if (signInError) throw signInError;
+      if (!authData.user) throw new Error('No user data returned');
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('roles (name)')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      const userRole = profile?.roles?.name || 'user';
+      const user = {
+        id: authData.user.id,
+        email: authData.user.email,
+        role: userRole,
+      };
+
+      setUser(user);
+      setUserRole(userRole);
+      setUserId(authData.user.id);
+      setUserEmail(authData.user.email);
+
+      return { user, userRole };
+    } catch (error) {
+      console.error('Error during sign in:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -120,17 +162,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isAuthenticated = !!userId;
 
+  // Provide both signOut and logout methods that point to the same function
+  const contextValue: AuthContextType = {
+    userId,
+    userEmail,
+    loading,
+    isLoading: loading,
+    user,
+    error,
+    signIn,
+    signOut,
+    logout: signOut, // Alias for backward compatibility
+    isAuthenticated,
+    userRole
+  };
+
   return (
-    <AuthContext.Provider value={{ 
-      userId, 
-      userEmail,
-      loading,
-      isLoading: loading, // alias for backward compatibility
-      user,
-      logout,
-      isAuthenticated,
-      userRole 
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

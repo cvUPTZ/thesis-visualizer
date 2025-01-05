@@ -27,4 +27,5 @@ export type AuthContextType = {
   userEmail?: string;
   signIn: (credentials: { email: string; password: string }) => Promise<SignInResponse>;
   signOut: () => Promise<void>;
+  logout: () => Promise<void>;  // Adding both methods for compatibility
 };
