@@ -3,7 +3,7 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { Footer } from "@/components/landing/Footer";
-import ThesisVisualization from "@/components/landing/ThesisVisualization";
+import EnhancedThesisViz from "@/components/landing/visualization/EnhancedThesisViz";
 
 const LandingPage = () => {
   return (
@@ -21,8 +21,8 @@ const LandingPage = () => {
               Monitor progress, collaborate with team members, and stay on top of deadlines.
             </p>
           </div>
-          <div className="bg-white rounded-3xl shadow-xl p-8 backdrop-blur-lg backdrop-filter">
-            <ThesisVisualization />
+          <div className="bg-white/50 backdrop-blur-sm rounded-3xl shadow-xl p-8">
+            <EnhancedThesisViz />
           </div>
         </div>
       </div>
