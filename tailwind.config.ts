@@ -32,9 +32,9 @@ module.exports = {
           bg: '#1A1F2C',
           card: '#2A2F3C',
           accent: {
-            primary: '#9b87f5',
-            secondary: '#7E69AB',
-            tertiary: '#D6BCFA',
+            primary: '#1A1F2C',    // Darker purple
+            secondary: '#2A2F3C',  // Darker secondary
+            tertiary: '#7E69AB',   // Slightly darker tertiary
           }
         },
         editor: {
@@ -81,7 +81,7 @@ module.exports = {
         'editor-gradient': 'linear-gradient(to right, #E2E8F0, #F8FAFC)',
         'section-gradient': 'linear-gradient(to bottom, #FFFFFF, #F8FAFC)',
         'title-gradient': 'linear-gradient(to bottom, #FFFFFF, #F8FAFC)',
-        'admin-gradient': 'linear-gradient(to right, #9b87f5, #D6BCFA)',
+        'admin-gradient': 'linear-gradient(to right, #1A1F2C, #2A2F3C)', // Updated gradient
       },
     },
   },

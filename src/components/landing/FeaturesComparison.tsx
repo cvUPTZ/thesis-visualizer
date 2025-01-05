@@ -84,13 +84,13 @@ export const FeaturesComparison = () => {
                 <th className="p-4 text-left">Features</th>
                 <th className="p-4 text-center">
                   <div className="font-semibold mb-1">Free</div>
-                  <div className="text-sm text-gray-500">$0/month</div>
+                  <div className="text-sm text-gray-500">0 DZD/month</div>
                 </th>
                 <th className="p-4 text-center bg-primary/5">
                   <div className="font-semibold mb-1 flex items-center justify-center gap-1">
                     Pro <Star className="w-4 h-4 text-primary" />
                   </div>
-                  <div className="text-sm text-gray-500">$10/month</div>
+                  <div className="text-sm text-gray-500">3,900 DZD/month</div>
                 </th>
                 <th className="p-4 text-center">
                   <div className="font-semibold mb-1">Enterprise</div>

@@ -19,6 +19,8 @@ interface Section {
   progress: number;
   dependencies?: number[];
   riskLevel?: 'low' | 'medium' | 'high';
+  x?: number;  // Added x property
+  y?: number;  // Added y property
 }
 
 interface Collaborator {
@@ -103,17 +105,34 @@ const ThesisVisualization: React.FC = () => {
     });
   };
 
+  // Calculate positions for sections
+  const calculateSectionPosition = (index: number, totalSections: number, radius: number) => {
+    const angle = (index * 360) / totalSections;
+    const x = Math.cos((angle * Math.PI) / 180) * radius;
+    const y = Math.sin((angle * Math.PI) / 180) * radius;
+    return { x, y };
+  };
+
+  // Update sections with positions
+  const sectionsWithPositions = sections.map((section, index) => {
+    const position = calculateSectionPosition(index, sections.length, 300);
+    return {
+      ...section,
+      x: position.x,
+      y: position.y,
+    };
+  });
+
   // Dynamic connection lines between dependent sections
   const DrawConnections: React.FC = () => {
     return (
       <svg className="absolute inset-0 w-full h-full pointer-events-none">
-        {sections.map(section => {
+        {sectionsWithPositions.map(section => {
           if (section.dependencies) {
             return section.dependencies.map(depId => {
-              const fromSection = sections.find(s => s.id === depId);
+              const fromSection = sectionsWithPositions.find(s => s.id === depId);
               const toSection = section;
               // Calculate line positions based on section positions
-              // Add animated gradients and flow effects
               return (
                 <motion.path
                   key={`${depId}-${section.id}`}
@@ -185,19 +204,14 @@ const ThesisVisualization: React.FC = () => {
         
         {/* Sections */}
         <AnimatePresence>
-          {sections.map((section, index) => {
-            const angle = (index * 360) / sections.length;
-            const radius = 300;
-            const x = Math.cos((angle * Math.PI) / 180) * radius;
-            const y = Math.sin((angle * Math.PI) / 180) * radius;
-
+          {sectionsWithPositions.map((section, index) => {
             return (
               <motion.div
                 key={section.id}
                 className="absolute"
                 style={{
-                  left: `calc(50% + ${x}px)`,
-                  top: `calc(50% + ${y}px)`,
+                  left: `calc(50% + ${section.x}px)`,
+                  top: `calc(50% + ${section.y}px)`,
                 }}
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ 
