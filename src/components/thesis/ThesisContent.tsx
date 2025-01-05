@@ -1,4 +1,3 @@
-// File: src/components/thesis/ThesisContent.tsx
 import React from 'react';
 import { Chapter, Section, ThesisSectionType } from '@/types/thesis';
 import { MarkdownEditor } from '../MarkdownEditor';
@@ -134,16 +133,16 @@ export const ThesisContent = ({
               />
               {section.type === 'references' && section.references && (
                   <ReferenceManager
-                      references={section.references}
-                    onAddReference={(reference) => {
+                      items={section.references}
+                    onAdd={(reference) => {
                       section.references = [...(section.references || []), reference];
                         onContentChange(section.id, section.content);
                     }}
-                    onRemoveReference={(id) => {
+                    onRemove={(id) => {
                       section.references = section.references?.filter(r => r.id !== id);
                         onContentChange(section.id, section.content);
                     }}
-                    onUpdateReference={(reference) => {
+                    onUpdate={(reference) => {
                       section.references = section.references?.map(r => r.id === reference.id ? reference : r);
                         onContentChange(section.id, section.content);
                     }}
