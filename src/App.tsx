@@ -8,16 +8,20 @@ import AdminPanel from '@/pages/AdminPanel';
 import CreateThesis from '@/pages/CreateThesis';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Public route wrapper component
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   
-  console.log('🔍 PublicRoute check:', { isAuthenticated });
+  console.log('🔍 PublicRoute - Auth state:', { isAuthenticated, loading });
+
+  if (loading) {
+    return <LoadingSkeleton />;
+  }
 
   if (isAuthenticated) {
-    console.log('✅ User authenticated, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -29,11 +33,14 @@ function App() {
   
   return (
     <ErrorBoundary>
-      <Router>
-        <AuthProvider>
+      <AuthProvider>
+        <Router>
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<LandingPage />} />
+            <Route 
+              path="/" 
+              element={<LandingPage />}
+            />
             <Route 
               path="/auth" 
               element={
@@ -73,8 +80,8 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <Toaster />
-        </AuthProvider>
-      </Router>
+        </Router>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }
