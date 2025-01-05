@@ -67,12 +67,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     refetchOnWindowFocus: true,
   });
 
-  // Sign in mutation
+  // Sign in mutation with role-based redirection
   const signInMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
       console.log('🔄 Attempting to sign in user:', email);
       
-      // Validate credentials before attempting sign in
       if (!email || !password) {
         throw new Error('Email and password are required');
       }
@@ -84,19 +83,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) {
         console.error('❌ Sign in error:', error);
-        // Provide more specific error messages
-        if (error.message === 'Invalid login credentials') {
-          throw new Error('Invalid email or password. Please check your credentials and try again.');
-        }
         throw error;
       }
 
-      return data;
+      // Fetch user role immediately after successful sign in
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select(`
+          roles (
+            name
+          )
+        `)
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('❌ Error fetching user role:', profileError);
+        throw profileError;
+      }
+
+      return { ...data, userRole: profile.roles?.name };
     },
-    onSuccess: () => {
-      console.log('✅ Sign in successful');
+    onSuccess: (data) => {
+      console.log('✅ Sign in successful, user role:', data.userRole);
       queryClient.invalidateQueries({ queryKey: ['auth-session'] });
-      navigate('/dashboard');
+      
+      // Role-based redirection
+      if (data.userRole === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
+      
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",

@@ -14,29 +14,29 @@ import { useToast } from "@/hooks/use-toast";
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const error = searchParams.get("error");
-  const { isLoading, isAuthenticated } = useAuth();
+  const { isLoading, isAuthenticated, userRole } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
   useEffect(() => {
-    // Redirect authenticated users to dashboard
     if (isAuthenticated) {
-      console.log('✅ User is authenticated, redirecting to dashboard');
-      navigate('/dashboard');
+      console.log('✅ User is authenticated with role:', userRole);
+      if (userRole === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
       return;
     }
 
-    // Check for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('🔐 Auth state changed:', event, session?.user?.email);
       
       if (event === 'SIGNED_IN' && session) {
         console.log('✅ User signed in successfully');
-        navigate('/dashboard');
       }
     });
 
-    // Show error toast if there's an error in URL params
     if (error) {
       console.error('❌ Auth error from URL:', error);
       toast({
@@ -49,7 +49,7 @@ const Auth = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [error, toast, navigate, isAuthenticated]);
+  }, [error, toast, navigate, isAuthenticated, userRole]);
   
   if (isLoading) {
     return <AuthLoader />;
