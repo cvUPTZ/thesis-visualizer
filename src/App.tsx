@@ -1,4 +1,3 @@
-import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from './components/ui/toaster';
@@ -12,18 +11,16 @@ function App() {
   console.log('🚀 App rendering');
   
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <LanguageProvider>
-            <ErrorBoundary>
-              <Routes />
-              <Toaster />
-            </ErrorBoundary>
-          </LanguageProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <LanguageProvider>
+          <ErrorBoundary>
+            <Routes />
+            <Toaster />
+          </ErrorBoundary>
+        </LanguageProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

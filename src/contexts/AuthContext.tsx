@@ -5,11 +5,17 @@ import { supabase } from '@/integrations/supabase/client';
 interface AuthContextType {
   session: Session | null;
   isAuthenticated: boolean;
+  userId: string | null;
+  userEmail: string | null;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
-  isAuthenticated: false
+  isAuthenticated: false,
+  userId: null,
+  userEmail: null,
+  logout: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -32,11 +38,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  const logout = async () => {
+    console.log('🔄 Logging out...');
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('❌ Error during logout:', error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider 
       value={{
         session,
-        isAuthenticated: !!session
+        isAuthenticated: !!session,
+        userId: session?.user?.id || null,
+        userEmail: session?.user?.email || null,
+        logout,
       }}
     >
       {children}
