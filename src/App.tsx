@@ -32,8 +32,8 @@ function App() {
   console.log('🔄 App component rendering...');
   
   return (
-    <ErrorBoundary>
-      <Router>
+    <Router>
+      <ErrorBoundary>
         <AuthProvider>
           <Routes>
             {/* Public routes */}
@@ -81,8 +81,8 @@ function App() {
           </Routes>
           <Toaster />
         </AuthProvider>
-      </Router>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </Router>
   );
 }
 
