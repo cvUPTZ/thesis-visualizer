@@ -32,19 +32,29 @@ export const AuthForm = () => {
                 brandButtonText: 'white',
                 defaultButtonBackground: '#1A1F2C',
                 defaultButtonBackgroundHover: '#2C3E50',
+                inputBackground: 'rgba(255, 255, 255, 0.05)',
+                inputBorder: 'rgba(255, 255, 255, 0.1)',
+                inputBorderHover: 'rgba(255, 255, 255, 0.2)',
+                inputBorderFocus: '#9b87f5',
               },
               radii: {
                 borderRadiusButton: '0.5rem',
                 buttonBorderRadius: '0.5rem',
                 inputBorderRadius: '0.5rem',
               },
+              fonts: {
+                bodyFontFamily: `ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`,
+                buttonFontFamily: `ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`,
+                inputFontFamily: `ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`,
+              },
             },
           },
           className: {
-            container: 'text-white',
-            label: 'text-gray-300',
-            button: 'hover:opacity-90 transition-opacity',
-            input: 'bg-white/10 border-gray-700 text-white placeholder-gray-400',
+            container: 'text-white font-sans',
+            label: 'text-gray-300 font-sans',
+            button: 'hover:opacity-90 transition-opacity font-sans',
+            input: 'bg-white/10 border-gray-700 text-white placeholder-gray-400 font-sans',
+            loader: 'border-t-[#9b87f5]',
           },
         }}
         providers={["google"]}

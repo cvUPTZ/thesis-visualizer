@@ -11,7 +11,6 @@ export const DemoLogin = () => {
     try {
       console.log('🔑 Starting demo login process...');
       
-      // Try to sign in with demo credentials first
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: 'demo.user@thesisvisualizer.com',
         password: 'demo123456'
@@ -19,7 +18,6 @@ export const DemoLogin = () => {
 
       if (signInError) {
         console.log('🆕 Demo user not found, creating account...');
-        // Create new demo account
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: 'demo.user@thesisvisualizer.com',
           password: 'demo123456',
@@ -35,10 +33,8 @@ export const DemoLogin = () => {
           throw signUpError;
         }
 
-        // Wait a moment for the account to be created
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Try to sign in again after creating the account
         const { data: secondSignInData, error: secondSignInError } = await supabase.auth.signInWithPassword({
           email: 'demo.user@thesisvisualizer.com',
           password: 'demo123456'
@@ -75,7 +71,7 @@ export const DemoLogin = () => {
   return (
     <Button
       variant="outline"
-      className="w-full"
+      className="w-full bg-transparent border-gray-700 text-white hover:bg-white/5 hover:text-white font-sans"
       onClick={handleDemoLogin}
     >
       Try Demo Account
