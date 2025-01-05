@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from '@/components/ui/badge';
-import { Shield, ShieldCheck, User } from 'lucide-react';
+import { Shield, ShieldCheck, User, Settings, UserPlus } from 'lucide-react';
 
 export const UserManagement = () => {
   const [users, setUsers] = useState<any[]>([]);
@@ -120,16 +120,32 @@ export const UserManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">User Management</h2>
+        <h2 className="text-2xl font-bold text-admin-accent-tertiary">User Management</h2>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            className="gap-2 text-admin-accent-primary hover:text-admin-accent-secondary border-admin-accent-primary/20 hover:border-admin-accent-secondary/40"
+          >
+            <UserPlus className="w-4 h-4" />
+            Add User
+          </Button>
+          <Button 
+            variant="outline" 
+            className="gap-2 text-admin-accent-primary hover:text-admin-accent-secondary border-admin-accent-primary/20 hover:border-admin-accent-secondary/40"
+          >
+            <Settings className="w-4 h-4" />
+            Settings
+          </Button>
+        </div>
       </div>
       
-      <div className="rounded-md border">
+      <div className="rounded-md border border-admin-accent-secondary/30">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Current Role</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="text-admin-accent-tertiary">User</TableHead>
+              <TableHead className="text-admin-accent-tertiary">Current Role</TableHead>
+              <TableHead className="text-admin-accent-tertiary">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -137,7 +153,7 @@ export const UserManagement = () => {
               <TableRow key={user.id} className="hover:bg-muted/50">
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
+                    <User className="h-4 w-4 text-admin-accent-primary" />
                     {user.email}
                   </div>
                 </TableCell>
@@ -159,7 +175,7 @@ export const UserManagement = () => {
                     onValueChange={(value) => updateUserRole(user.id, value)}
                     defaultValue={user.role_id || ''}
                   >
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-[180px] border-admin-accent-primary/20 text-admin-accent-primary">
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
                     <SelectContent>
