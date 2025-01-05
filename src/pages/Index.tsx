@@ -8,7 +8,7 @@ import { GettingStartedWizard } from '@/components/onboarding/GettingStartedWiza
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
 import { UserProfile } from '@/components/dashboard/UserProfile';
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { QuickTips } from '@/components/dashboard/QuickTips';
@@ -62,30 +62,34 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-violet-900">
       <div className="container mx-auto px-4 py-8 space-y-8">
         <div className="flex justify-between items-center">
           <div className="space-y-1">
-            <h1 className="text-4xl font-serif font-bold text-primary">Dashboard</h1>
-            <p className="text-muted-foreground">Manage your thesis projects and track progress</p>
+            <h1 className="text-4xl font-serif font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-200 to-purple-400">
+              Dashboard
+            </h1>
+            <p className="text-purple-200/80">
+              Manage your thesis projects and track progress
+            </p>
           </div>
           <div className="flex items-center gap-4">
             {userRole === 'admin' && (
               <Button 
                 onClick={() => navigate('/admin')} 
                 variant="outline"
-                className="flex items-center gap-2"
+                className="bg-white/10 hover:bg-white/20 text-purple-200 border-purple-200/20"
               >
-                <Settings className="w-4 h-4" />
+                <Settings className="w-4 h-4 mr-2" />
                 Admin Panel
               </Button>
             )}
             <Button 
               onClick={handleLogout}
               variant="ghost"
-              className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="text-red-300 hover:text-red-200 hover:bg-red-500/10"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>
           </div>
@@ -94,7 +98,7 @@ const Index = () => {
         {isLoading ? (
           <Skeleton className="h-20 w-full" />
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border p-6 transition-all duration-200 hover:shadow-md">
+          <div className="bg-white/5 backdrop-blur-lg rounded-xl border border-purple-200/20 p-6 transition-all duration-200 hover:bg-white/10">
             <UserProfile 
               email={userProfile?.email || ''} 
               role={userProfile?.roles?.name || ''}
@@ -110,30 +114,30 @@ const Index = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="bg-white/5 backdrop-blur-lg rounded-xl border border-purple-200/20 p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-serif font-semibold text-primary">Thesis Management</h2>
+                <h2 className="text-2xl font-serif font-semibold text-purple-200">
+                  Thesis Management
+                </h2>
                 <Button
                   onClick={handleCreateThesis}
-                  className="gap-2"
+                  className="bg-purple-500 hover:bg-purple-600 text-white"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 mr-2" />
                   Create New Thesis
                 </Button>
               </div>
-              <Card className="bg-gray-50 border-dashed">
-                <CardContent className="pt-6">
-                  <ThesisList />
-                </CardContent>
+              <Card className="bg-white/5 border-purple-200/20">
+                <ThesisList />
               </Card>
             </div>
           </div>
 
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="bg-white/5 backdrop-blur-lg rounded-xl border border-purple-200/20 p-6">
               <QuickTips />
             </div>
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="bg-white/5 backdrop-blur-lg rounded-xl border border-purple-200/20 p-6">
               <GettingStartedWizard />
             </div>
           </div>
