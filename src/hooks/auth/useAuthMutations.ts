@@ -13,38 +13,53 @@ export const useAuthMutations = () => {
       console.log('🔄 Attempting to sign in user:', email);
       
       if (!email || !password) {
+        console.error('❌ Email and password are required');
         throw new Error('Email and password are required');
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      try {
+        const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-      if (error) {
-        console.error('❌ Sign in error:', error);
+        if (signInError) {
+          console.error('❌ Sign in error:', signInError);
+          if (signInError.message === 'Invalid login credentials') {
+            throw new Error('Invalid email or password');
+          }
+          throw signInError;
+        }
+
+        if (!authData.user) {
+          console.error('❌ No user data returned');
+          throw new Error('Authentication failed');
+        }
+
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select(`
+            roles (
+              name
+            )
+          `)
+          .eq('id', authData.user.id)
+          .single();
+
+        if (profileError) {
+          console.error('❌ Error fetching user role:', profileError);
+          throw profileError;
+        }
+
+        console.log('✅ Sign in successful, user role:', profile.roles?.name);
+        return { user: authData.user, session: authData.session, userRole: profile.roles?.name };
+      } catch (error) {
+        console.error('❌ Authentication error:', error);
         throw error;
       }
-
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select(`
-          roles (
-            name
-          )
-        `)
-        .eq('id', data.user.id)
-        .single();
-
-      if (profileError) {
-        console.error('❌ Error fetching user role:', profileError);
-        throw profileError;
-      }
-
-      return { ...data, userRole: profile.roles?.name };
     },
     onSuccess: (data) => {
-      console.log('✅ Sign in successful, user role:', data.userRole);
+      console.log('✅ Sign in successful, redirecting based on role:', data.userRole);
       queryClient.invalidateQueries({ queryKey: ['auth-session'] });
       
       if (data.userRole === 'admin') {
@@ -74,9 +89,6 @@ export const useAuthMutations = () => {
       try {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
-        
-        // Invalidate and remove session
-        await supabase.auth.setSession(null);
         
         // Clear React Query cache
         queryClient.clear();
