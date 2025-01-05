@@ -1,6 +1,15 @@
-import { authService } from "@/services/authService";
+import type { User } from '@supabase/supabase-js';
 
-export type { AuthUser, AuthState } from "@/services/authService";
+export interface AuthUser {
+  id: string;
+  email: string | null;
+  role: string | null;
+}
+
+export interface AuthState {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+}
 
 export interface AuthContextType {
   user: AuthUser | null;
