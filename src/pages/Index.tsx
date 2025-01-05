@@ -15,13 +15,13 @@ import { QuickTips } from '@/components/dashboard/QuickTips';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { userRole, userId, signOut } = useAuth();
+  const { userRole, userId, logout } = useAuth();
   const { userProfile, thesesStats, isLoading, error } = useDashboardData(userId);
   const { toast } = useToast();
 
   const handleLogout = async () => {
     try {
-      await signOut();
+      await logout();
       toast({
         title: "Logged out successfully",
         description: "You have been logged out of your account.",

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { AuthContextType, User } from './auth/types';
+import { AuthContextType, User, SignInResponse } from './auth/types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -162,7 +162,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isAuthenticated = !!userId;
 
-  // Provide both signOut and logout methods that point to the same function
   const contextValue: AuthContextType = {
     userId,
     userEmail,

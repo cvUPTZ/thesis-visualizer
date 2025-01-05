@@ -15,7 +15,7 @@ import { Settings, Users, Flag, BookOpen, LayoutDashboard, LogOut } from 'lucide
 const AdminPanel = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { isAuthenticated, userRole, signOut } = useAuth();
+  const { isAuthenticated, userRole, logout } = useAuth();
 
   if (!isAuthenticated || userRole !== 'admin') {
     navigate('/auth');
@@ -24,7 +24,7 @@ const AdminPanel = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut();
+      await logout();
       toast({
         title: "Logged out successfully",
         description: "You have been logged out of your account.",

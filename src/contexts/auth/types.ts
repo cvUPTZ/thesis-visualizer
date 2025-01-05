@@ -6,13 +6,27 @@ export type User = {
   role?: string | null;
 };
 
-export type AuthContextType = {
-  userId: string | null;
-  userEmail: string | null;
-  loading: boolean;
-  isLoading: boolean; // alias for loading for backward compatibility
+export type SignInResponse = {
+  user: User;
+  userRole: string;
+};
+
+export type AuthState = {
   user: User | null;
-  logout: () => Promise<void>;
+  isLoading: boolean;
+  error: Error | null;
+};
+
+export type AuthContextType = {
+  user: User | null;
+  isLoading: boolean;
+  error: Error | null;
   isAuthenticated: boolean;
-  userRole: string | null;
+  userRole?: string;
+  userId?: string;
+  userEmail?: string;
+  loading: boolean; // For backward compatibility
+  signIn: (credentials: { email: string; password: string }) => Promise<SignInResponse>;
+  signOut: () => Promise<void>;
+  logout: () => Promise<void>;  // Adding both methods for compatibility
 };
