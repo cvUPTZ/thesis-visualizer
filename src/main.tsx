@@ -20,8 +20,6 @@ const root = createRoot(rootElement);
 
 root.render(
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <App />
   </QueryClientProvider>
 );
