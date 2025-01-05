@@ -36,7 +36,11 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 bg-transparent border-gray-700 text-white hover:bg-white/5">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="gap-2 bg-transparent border-gray-700 text-gray-300 hover:text-white hover:bg-white/5"
+        >
           <PlusCircle className="w-4 h-4" />
           Add Table
         </Button>
