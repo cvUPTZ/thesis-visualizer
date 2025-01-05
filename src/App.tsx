@@ -1,10 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { LanguageProvider } from '@/contexts/LanguageContext';
-import { AuthGuard } from '@/components/auth/AuthGuard';
-import { PublicRoute } from '@/components/auth/PublicRoute';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import LandingPage from '@/pages/LandingPage';
 import Auth from '@/pages/Auth';
@@ -18,47 +14,15 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <LanguageProvider>
-          <Routes>
-            <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
-            <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
-            <Route 
-              path="/dashboard" 
-              element={
-                <AuthGuard>
-                  <Index />
-                </AuthGuard>
-              } 
-            />
-            <Route 
-              path="/admin" 
-              element={
-                <AuthGuard requiredRole="admin">
-                  <AdminPanel />
-                </AuthGuard>
-              } 
-            />
-            <Route 
-              path="/create-thesis" 
-              element={
-                <AuthGuard>
-                  <CreateThesis />
-                </AuthGuard>
-              } 
-            />
-            <Route 
-              path="/thesis/:thesisId" 
-              element={
-                <AuthGuard>
-                  <ThesisEditor />
-                </AuthGuard>
-              } 
-            />
-          </Routes>
-          <Toaster />
-        </LanguageProvider>
-      </AuthProvider>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/dashboard" element={<Index />} />
+        <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/create-thesis" element={<CreateThesis />} />
+        <Route path="/thesis/:thesisId" element={<ThesisEditor />} />
+      </Routes>
+      <Toaster />
     </ErrorBoundary>
   );
 };
