@@ -3,27 +3,29 @@
   position: relative;
   margin: 2rem auto;
   padding: 2.5rem;
-  background: linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  background: #F6F6F7;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   width: 210mm;
   min-height: 297mm;
   box-sizing: border-box;
   page-break-after: always;
-  border-radius: 8px;
+  border-radius: 4px;
   transition: all 0.3s ease;
+  font-family: "Times New Roman", Times, serif;
 }
 
 .thesis-content {
   position: relative;
   margin: 0 auto;
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 6px;
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 3px;
+  line-height: 1.6;
+  color: #222222;
 }
 
 .thesis-preview-container {
-  background: linear-gradient(to right, #243949 0%, #517fa4 100%);
+  background: linear-gradient(to right, #403E43 0%, #221F26 100%);
   padding: 3rem;
   min-height: 100vh;
 }
@@ -40,7 +42,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: linear-gradient(to top, #accbee 0%, #e7f0fd 100%);
+  background: linear-gradient(to top, #F1F0FB 0%, #FFFFFF 100%);
   padding: 4rem 2rem;
 }
 
@@ -56,35 +58,29 @@
   display: flex;
   justify-content: center;
   margin: 2rem 0;
-  opacity: 0.8;
+  opacity: 0.85;
   transition: all 0.3s ease;
 }
 
-.university-decoration:hover,
-.thesis-decoration:hover,
-.author-decoration:hover {
-  transform: scale(1.05);
-  opacity: 1;
-}
-
 .title-icon {
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+  color: #7E69AB;
 }
 
 .university-name {
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: var(--primary);
+  color: #1A1F2C;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .department-name {
   font-size: 1.5rem;
   margin-bottom: 3rem;
-  color: var(--primary-light);
+  color: #6E59A5;
   font-style: italic;
 }
 
@@ -93,14 +89,13 @@
   font-weight: 800;
   margin: 2rem 0;
   line-height: 1.4;
-  color: var(--primary);
+  color: #1A1F2C;
   padding: 2rem;
-  border-top: 3px solid rgba(var(--primary-light-rgb), 0.3);
-  border-bottom: 3px solid rgba(var(--primary-light-rgb), 0.3);
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(5px);
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-top: 2px solid rgba(126, 105, 171, 0.2);
+  border-bottom: 2px solid rgba(126, 105, 171, 0.2);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
 /* Header and Footer styles */
@@ -109,11 +104,11 @@
   text-align: center;
   margin-bottom: 2rem;
   padding: 1rem 0;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-  font-size: 1.2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
   font-weight: 600;
-  color: var(--primary);
-  letter-spacing: 0.05em;
+  color: #403E43;
+  letter-spacing: 0.03em;
 }
 
 .thesis-footer {
@@ -123,9 +118,10 @@
   right: 0;
   text-align: center;
   font-size: 0.9rem;
-  color: #666;
+  color: #8E9196;
   padding: 0.5rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-family: "Times New Roman", Times, serif;
 }
 
 /* Print-specific styles */
@@ -172,4 +168,63 @@
     font-size: 2rem;
     padding: 1.5rem;
   }
+}
+
+/* Academic styling for content */
+.thesis-content h1,
+.thesis-content h2,
+.thesis-content h3,
+.thesis-content h4,
+.thesis-content h5,
+.thesis-content h6 {
+  font-family: "Times New Roman", Times, serif;
+  color: #1A1F2C;
+  margin-top: 2em;
+  margin-bottom: 1em;
+  line-height: 1.3;
+}
+
+.thesis-content p {
+  margin-bottom: 1.5em;
+  text-align: justify;
+  hyphens: auto;
+}
+
+.thesis-content figure {
+  margin: 2em 0;
+}
+
+.thesis-content figcaption {
+  font-size: 0.9em;
+  color: #555555;
+  text-align: center;
+  margin-top: 0.5em;
+}
+
+.thesis-content blockquote {
+  margin: 2em 0;
+  padding: 1em 2em;
+  border-left: 3px solid #7E69AB;
+  background: #F1F0FB;
+  font-style: italic;
+}
+
+.thesis-content table {
+  width: 100%;
+  margin: 2em 0;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+.thesis-content th,
+.thesis-content td {
+  padding: 0.75em;
+  border: 1px solid #C8C8C9;
+  text-align: left;
+}
+
+.thesis-content th {
+  background: #F1F0FB;
+  font-weight: bold;
+  color: #403E43;
 }
