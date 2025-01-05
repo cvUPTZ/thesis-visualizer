@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, BookOpen, PenTool } from "lucide-react";
-import Footer from "@/components/landing/Footer";
-import Navbar from "@/components/landing/Navbar";
-import FeaturesComparison from "@/components/landing/FeaturesComparison";
-import PricingSection from "@/components/landing/PricingSection";
-import TestimonialCarousel from "@/components/landing/TestimonialCarousel";
-import DemoPreview from "@/components/landing/DemoPreview";
-import FeedbackForm from "@/components/landing/FeedbackForm";
-import ThesisVisualization from "@/components/landing/ThesisVisualization";
+import { Footer } from "@/components/landing/Footer";
+import { Navbar } from "@/components/landing/Navbar";
+import { FeaturesComparison } from "@/components/landing/FeaturesComparison";
+import { PricingSection } from "@/components/landing/PricingSection";
+import { TestimonialCarousel } from "@/components/landing/TestimonialCarousel";
+import { DemoPreview } from "@/components/landing/DemoPreview";
+import { FeedbackForm } from "@/components/landing/FeedbackForm";
+import { ThesisVisualization } from "@/components/landing/ThesisVisualization";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSkeleton } from "@/components/loading/LoadingSkeleton";
 import { useNavigate } from "react-router-dom";
@@ -39,13 +39,11 @@ const LandingPage = () => {
     try {
       console.log('👆 Get Started clicked, preparing navigation...');
       
-      // Show toast first
       toast({
         title: "Let's Get Started!",
         description: "You're being redirected to create your account.",
       });
 
-      // Small delay to ensure toast is visible
       await new Promise(resolve => setTimeout(resolve, 100));
       
       console.log('🔄 Navigating to /auth route...');
