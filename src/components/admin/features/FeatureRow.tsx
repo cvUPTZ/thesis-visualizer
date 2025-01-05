@@ -67,7 +67,6 @@ export const FeatureRow = ({
   const formatUsageData = (usageData: any) => {
     if (!usageData) return 'N/A';
     
-    // Try to find a numeric value or percentage to display
     const entries = Object.entries(usageData);
     for (const [key, value] of entries) {
       if (typeof value === 'number') {
@@ -78,7 +77,6 @@ export const FeatureRow = ({
       }
     }
     
-    // If no suitable numeric value is found, return the first value
     return entries[0]?.[1]?.toString() || 'N/A';
   };
 
@@ -93,7 +91,7 @@ export const FeatureRow = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-0 h-6 w-6"
+                className="p-0 h-6 w-6 text-admin-accent-primary hover:text-admin-accent-secondary"
                 onClick={onToggleExpand}
               >
                 {expanded ? (
@@ -103,7 +101,11 @@ export const FeatureRow = ({
                 )}
               </Button>
             )}
-            <Button variant="link" className="p-0" onClick={() => onOpenDialog(feature)}>
+            <Button 
+              variant="link" 
+              className="p-0 text-admin-accent-primary hover:text-admin-accent-secondary transition-colors"
+              onClick={() => onOpenDialog(feature)}
+            >
               {feature.name}
             </Button>
           </div>
@@ -118,6 +120,7 @@ export const FeatureRow = ({
             size="sm"
             onClick={() => handleToggleFeature(feature.id, feature.status)}
             disabled={isUpdating}
+            className="text-admin-accent-primary hover:text-admin-accent-secondary border-admin-accent-primary/20 hover:border-admin-accent-secondary/40"
           >
             {isUpdating ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
