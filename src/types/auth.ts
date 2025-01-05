@@ -10,11 +10,11 @@ export type AuthState = {
   isLoading: boolean;
   error: Error | null;
   isAuthenticated: boolean;
-  userRole: string | null;
-  userId?: string;
-  userEmail?: string;
+  userRole: string;
+  userId: string | null;
+  userEmail: string | null;
 };
 
 export type AuthContextType = AuthState & {
-  logout: () => Promise<void>;
+  signOut: () => Promise<void>;
 };
