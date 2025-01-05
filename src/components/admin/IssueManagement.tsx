@@ -24,10 +24,30 @@ import { Badge } from '@/components/ui/badge';
 export const IssueManagement = () => {
   const [issues, setIssues] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const { toast } = useToast();
 
   useEffect(() => {
     fetchIssues();
+    // Set up real-time subscription
+    const subscription = supabase
+      .channel('app_issues_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'app_issues' 
+        }, 
+        () => {
+          console.log('Issues table changed, refreshing data...');
+          fetchIssues();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchIssues = async () => {
@@ -47,6 +67,7 @@ export const IssueManagement = () => {
       if (error) throw error;
       console.log('Fetched issues:', data);
       setIssues(data || []);
+      setLastRefresh(new Date());
     } catch (error: any) {
       console.error('Error fetching issues:', error);
       toast({
@@ -96,7 +117,7 @@ export const IssueManagement = () => {
         <div>
           <h2 className="text-2xl font-bold">Application Issues</h2>
           <p className="text-sm text-muted-foreground">
-            Showing {issues.length} total issues
+            Showing {issues.length} total issues • Last updated {formatDate(lastRefresh.toISOString())}
           </p>
         </div>
         <Button onClick={fetchIssues} variant="outline" className="gap-2">
