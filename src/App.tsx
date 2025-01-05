@@ -13,11 +13,11 @@ import { useAuth } from '@/contexts/AuthContext';
 
 // Public route wrapper component
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   
-  console.log('🔍 PublicRoute - Auth state:', { isAuthenticated, loading });
+  console.log('🔍 PublicRoute - Auth state:', { isAuthenticated, isLoading });
 
-  if (loading) {
+  if (isLoading) {
     return <LoadingSkeleton />;
   }
 
@@ -33,8 +33,8 @@ function App() {
   
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <Router>
+      <Router>
+        <AuthProvider>
           <Routes>
             {/* Public routes */}
             <Route 
@@ -80,8 +80,8 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <Toaster />
-        </Router>
-      </AuthProvider>
+        </AuthProvider>
+      </Router>
     </ErrorBoundary>
   );
 }
