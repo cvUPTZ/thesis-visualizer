@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, BookOpen, Brain, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,24 +12,38 @@ import { FeaturesComparison } from "@/components/landing/FeaturesComparison";
 import { PricingSection } from "@/components/landing/PricingSection";
 import ThesisVisualization from "@/components/landing/ThesisVisualization";
 import { useToast } from "@/hooks/use-toast";
+import { LoadingSkeleton } from "@/components/loading/LoadingSkeleton";
 
 const LandingPage = () => {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Welcome message when landing page loads
-    toast({
-      title: "Welcome to Thesis Visualizer",
-      description: "Explore our features and start writing your thesis with confidence.",
-    });
-  }, []);
+    console.log('🔄 Loading landing page...');
+    const timeout = setTimeout(() => {
+      setIsLoading(false);
+      console.log('✅ Landing page loaded');
+      // Welcome message when landing page loads
+      toast({
+        title: "Welcome to Thesis Visualizer",
+        description: "Explore our features and start writing your thesis with confidence.",
+      });
+    }, 2000); // 2 second loading time for landing page
+
+    return () => clearTimeout(timeout);
+  }, [toast]);
 
   const handleGetStarted = () => {
+    console.log('👆 Get Started clicked');
     toast({
       title: "Let's Get Started!",
       description: "You're being redirected to create your account.",
     });
   };
+
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">

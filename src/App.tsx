@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Route, Routes } from 'react-router-dom';
@@ -8,11 +8,20 @@ import Auth from './pages/Auth';
 import AdminPanel from './pages/AdminPanel';
 import Index from './pages/Index';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { LoadingSkeleton } from './components/loading/LoadingSkeleton';
+import LandingPage from './pages/LandingPage';
 
 const App = () => {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log('🔄 Initializing app...');
+    const timeout = setTimeout(() => {
+      setIsLoading(false);
+      console.log('⌛ Loading timeout reached, showing content');
+    }, 4000); // 4 second maximum loading time
+
     const handleAuthStateChange = async (event: string, session: any) => {
       console.log('Auth state changed:', event, session);
       
@@ -37,11 +46,17 @@ const App = () => {
 
     return () => {
       subscription.unsubscribe();
+      clearTimeout(timeout);
     };
   }, [toast]);
 
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
+
   return (
     <Routes>
+      <Route path="/welcome" element={<LandingPage />} />
       <Route path="/" element={<Auth />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/dashboard" element={
