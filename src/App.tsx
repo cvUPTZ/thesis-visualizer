@@ -10,6 +10,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
 import { useAuth } from '@/contexts/AuthContext';
+import { ThesisEditor } from '@/components/ThesisEditor';
 
 // Public route wrapper component
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
@@ -72,6 +73,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CreateThesis />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/thesis/:thesisId"
+              element={
+                <ProtectedRoute>
+                  <ThesisEditor />
                 </ProtectedRoute>
               }
             />
