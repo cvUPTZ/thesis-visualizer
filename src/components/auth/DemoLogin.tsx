@@ -12,7 +12,7 @@ export const DemoLogin = () => {
       console.log('🔑 Starting demo login process...');
       
       // Try to sign in with demo credentials first
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: 'demo.user@thesisvisualizer.com',
         password: 'demo123456'
       });
@@ -35,8 +35,11 @@ export const DemoLogin = () => {
           throw signUpError;
         }
 
+        // Wait a moment for the account to be created
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         // Try to sign in again after creating the account
-        const { error: secondSignInError } = await supabase.auth.signInWithPassword({
+        const { data: secondSignInData, error: secondSignInError } = await supabase.auth.signInWithPassword({
           email: 'demo.user@thesisvisualizer.com',
           password: 'demo123456'
         });
