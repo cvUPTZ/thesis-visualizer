@@ -22,7 +22,7 @@ export const Auth = () => {
       });
     }
 
-    if (!isLoading && isAuthenticated && userRole) {
+    if (!isLoading && isAuthenticated) {
       console.log('✅ User authenticated, redirecting based on role:', userRole);
       if (userRole === 'admin') {
         navigate('/admin', { replace: true });

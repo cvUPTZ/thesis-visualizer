@@ -58,21 +58,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             userRole,
             userId: session.user.id,
             userEmail: session.user.email,
-            isLoading: false
+            isLoading: false,
+            error: null
           });
         }
       } catch (roleError) {
         console.error('❌ Error fetching user role:', roleError);
-        toast({
-          title: "Error fetching user role",
-          description: "Please try refreshing the page",
-          variant: "destructive",
-        });
-        
         if (mounted) {
           updateState({ 
             isLoading: false,
-            error: roleError as Error
+            error: roleError as Error,
+            isAuthenticated: true, // Still authenticate the user even if role fetch fails
+            user: session.user,
+            session,
+            userId: session.user.id,
+            userEmail: session.user.email,
+            userRole: 'user' // Default role
           });
         }
       }
@@ -110,7 +111,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             userRole: null,
             userId: null,
             userEmail: null,
-            isLoading: false
+            isLoading: false,
+            error: null
           });
           return;
         }
@@ -122,10 +124,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               user: session.user,
               session,
               isAuthenticated: true,
-              userRole,
+              userRole: userRole || 'user',
               userId: session.user.id,
               userEmail: session.user.email,
-              isLoading: false
+              isLoading: false,
+              error: null
             });
           }
         } catch (error) {
@@ -133,7 +136,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (mounted) {
             updateState({
               error: error as Error,
-              isLoading: false
+              isLoading: false,
+              isAuthenticated: true,
+              user: session.user,
+              session,
+              userId: session.user.id,
+              userEmail: session.user.email,
+              userRole: 'user' // Default role
             });
           }
         }
@@ -159,7 +168,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isAuthenticated: false,
         userRole: null,
         userId: null,
-        userEmail: null
+        userEmail: null,
+        error: null
       });
     } catch (error) {
       console.error('❌ Logout error:', error);

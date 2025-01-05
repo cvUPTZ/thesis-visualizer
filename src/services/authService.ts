@@ -15,20 +15,39 @@ export const authService = {
   },
 
   async getUserRole(userId: string) {
-    console.log('🔍 Fetching user role for:', userId);
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('roles (name)')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      console.error('❌ Error fetching user role:', error);
-      throw error;
+    if (!userId) {
+      console.error('❌ No user ID provided for role fetch');
+      return null;
     }
 
-    console.log('✅ User role retrieved:', data?.roles?.name);
-    return data?.roles?.name;
+    console.log('🔍 Fetching user role for:', userId);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          roles (
+            name
+          )
+        `)
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('❌ Error fetching user role:', error);
+        return null;
+      }
+
+      if (!data?.roles?.name) {
+        console.log('ℹ️ No role found for user');
+        return 'user'; // Default role if none is set
+      }
+
+      console.log('✅ User role retrieved:', data.roles.name);
+      return data.roles.name;
+    } catch (error) {
+      console.error('❌ Error in getUserRole:', error);
+      return null;
+    }
   },
 
   onAuthStateChange(callback: (event: string, session: any) => void) {
