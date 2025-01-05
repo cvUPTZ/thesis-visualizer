@@ -9,7 +9,9 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-[#0A0D14]">
       <HeroSection />
-      <EnhancedThesisVisualization className="border-t border-gray-800" />
+      <div className="py-20 border-t border-gray-800">
+        <EnhancedThesisVisualization />
+      </div>
       <FeaturesSection />
       <PricingSection />
       <Footer />

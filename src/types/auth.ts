@@ -1,6 +1,6 @@
 export type User = {
   id: string;
-  email: string;
+  email: string | undefined;  // Making email optional to match Supabase User type
   role: string | null;
 };
 
