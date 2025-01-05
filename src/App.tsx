@@ -1,46 +1,104 @@
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { Toaster } from "@/components/ui/toaster";
+import { BrowserRouter } from 'react-router-dom';
+import { ThemeProvider } from 'next-themes';
+import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { AuthGuard } from '@/components/auth/AuthGuard';
-import { PublicRoute } from '@/components/auth/PublicRoute';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import LandingPage from '@/pages/LandingPage';
-import Auth from '@/pages/Auth';
-import Index from '@/pages/Index';
-import AdminPanel from '@/pages/AdminPanel';
-import CreateThesis from '@/pages/CreateThesis';
-import { ThesisEditor } from '@/components/ThesisEditor';
+import { LanguageProvider } from '@/hooks/useLanguage';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+
+const queryClient = new QueryClient();
 
 function App() {
-  console.log('🔄 App component rendering...');
- 
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <Routes>
-          {/* Public routes */}
-          <Route element={<PublicRoute><Outlet /></PublicRoute>}>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/auth" element={<Auth />} />
-          </Route>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <ThemeProvider>
+            <LanguageProvider>
+              <AuthProvider>
+                <nav className="fixed top-0 left-0 right-0 z-50 bg-[#1A1F2C] shadow-lg">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between h-16 items-center">
+                      <div className="flex items-center">
+                        <Link to="/" className="text-white font-bold text-xl">
+                          Thesis<span className="text-[#D6BCFA]">Visualizer</span>
+                        </Link>
+                      </div>
 
-          {/* Protected routes */}
-          <Route element={<AuthGuard><Outlet /></AuthGuard>}>
-            <Route path="/dashboard" element={<Index />} />
-            <Route path="/create-thesis" element={<CreateThesis />} />
-            <Route path="/thesis/:thesisId" element={<ThesisEditor />} />
-          </Route>
+                      {/* Desktop Navigation */}
+                      <div className="hidden md:flex items-center space-x-8 text-white">
+                        <Link to="/" className="hover:text-[#D6BCFA] transition-colors">
+                          Features
+                        </Link>
+                        <Link to="/" className="hover:text-[#D6BCFA] transition-colors">
+                          About
+                        </Link>
+                        <Link to="/">
+                          <Button variant="outline" className="bg-transparent text-white border-white hover:bg-white hover:text-[#1A1F2C]">
+                            Home
+                          </Button>
+                        </Link>
+                        <LanguageSwitcher />
+                      </div>
 
-          {/* Admin routes */}
-          <Route element={<AuthGuard requiredRole="admin"><Outlet /></AuthGuard>}>
-            <Route path="/admin" element={<AdminPanel />} />
-          </Route>
+                      {/* Mobile Menu Button */}
+                      <div className="md:hidden">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setIsMenuOpen(!isMenuOpen)}
+                          className="text-white"
+                        >
+                          {isMenuOpen ? (
+                            <X className="h-6 w-6" />
+                          ) : (
+                            <Menu className="h-6 w-6" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
 
-          {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-        <Toaster />
-      </AuthProvider>
+                  {/* Mobile Navigation */}
+                  {isMenuOpen && (
+                    <div className="md:hidden">
+                      <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-[#1A1F2C] border-t border-gray-700">
+                        <div className="flex flex-col space-y-4 p-4">
+                          <Link
+                            to="/"
+                            className="text-white hover:text-[#D6BCFA] transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            Features
+                          </Link>
+                          <Link
+                            to="/"
+                            className="text-white hover:text-[#D6BCFA] transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            About
+                          </Link>
+                          <Link to="/" onClick={() => setIsMenuOpen(false)}>
+                            <Button
+                              variant="outline"
+                              className="w-full bg-transparent text-white border-white hover:bg-white hover:text-[#1A1F2C]"
+                            >
+                              Home
+                            </Button>
+                          </Link>
+                          <div className="flex justify-center">
+                            <LanguageSwitcher />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </nav>
+              </AuthProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }
