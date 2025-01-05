@@ -2,13 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from './auth/useSession';
 import { LoadingSkeleton } from '@/components/loading/LoadingSkeleton';
-
-interface AuthContextType {
-  userId: string | null;
-  userRole: string | null;
-  loading: boolean;
-  logout: () => Promise<void>;
-}
+import { AuthContextType } from './auth/types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -19,8 +13,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     userRole,
     loading,
     handleSessionChange,
-    logout
+    logout,
+    userEmail
   } = useSession();
+
+  const isAuthenticated = !!userId;
 
   useEffect(() => {
     console.log('🔄 Initializing auth context...');
@@ -63,11 +60,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return <LoadingSkeleton />;
   }
 
-  const value = {
+  const value: AuthContextType = {
     userId,
+    userEmail,
     userRole,
     loading,
-    logout
+    logout,
+    isAuthenticated
   };
 
   return (

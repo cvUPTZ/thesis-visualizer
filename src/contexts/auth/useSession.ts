@@ -6,6 +6,7 @@ import { fetchUserRole } from './userRole';
 
 export const useSession = () => {
   const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -19,12 +20,14 @@ export const useSession = () => {
       if (session?.user) {
         console.log('✅ Valid session found, updating user data');
         setUserId(session.user.id);
+        setUserEmail(session.user.email);
         const role = await fetchUserRole(session.user.id);
         setUserRole(role);
         console.log('✅ Session updated successfully with role:', role);
       } else {
         console.log('ℹ️ No valid session, clearing user data');
         setUserId(null);
+        setUserEmail(null);
         setUserRole(null);
         navigate('/welcome');
       }
@@ -55,6 +58,7 @@ export const useSession = () => {
 
       console.log('✅ Logout successful');
       setUserId(null);
+      setUserEmail(null);
       setUserRole(null);
       
       navigate('/welcome');
@@ -78,6 +82,8 @@ export const useSession = () => {
   return {
     userId,
     setUserId,
+    userEmail,
+    setUserEmail,
     userRole,
     setUserRole,
     loading,

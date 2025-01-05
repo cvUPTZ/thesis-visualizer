@@ -7,7 +7,7 @@ import { ThesisList } from './components/thesis/ThesisList';
 import Auth from './pages/Auth';
 import AdminPanel from './pages/AdminPanel';
 import Index from './pages/Index';
-import ProtectedRoute from './components/ProtectedRoute';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 const App = () => {
   const { toast } = useToast();
