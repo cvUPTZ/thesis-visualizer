@@ -1,31 +1,18 @@
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
-export type User = {
-  id: string;
-  email?: string | null;
+export type User = SupabaseUser & {
   role?: string;
 };
 
-export type SignInResponse = {
-  user: User;
-  userRole: string;
+export type AuthError = {
+  message: string;
+  status?: number;
 };
 
 export type AuthState = {
   user: User | null;
   isLoading: boolean;
   error: Error | null;
-};
-
-export type AuthContextType = {
-  user: User | null;
-  isLoading: boolean;
-  error: Error | null;
   isAuthenticated: boolean;
-  userRole?: string;
-  userId?: string;
-  userEmail?: string;
-  signIn: (credentials: { email: string; password: string }) => Promise<SignInResponse>;
-  signOut: () => Promise<void>;
-  logout: () => Promise<void>;  // Adding both methods for compatibility
+  userRole: string | null;
 };

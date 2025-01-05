@@ -1,104 +1,120 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { Session } from "@supabase/supabase-js";
+import { authService } from "@/services/authService";
+import { User } from "@/types/auth";
 
-interface AuthContextType {
-  session: Session | null;
+interface AuthState {
   user: User | null;
-  loading: boolean;
+  session: Session | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  userRole?: string;
-  userId?: string;
-  userEmail?: string;
+  userRole: string | null;
+  error: Error | null;
+}
+
+interface AuthContextType extends AuthState {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  session: null,
+const initialState: AuthState = {
   user: null,
-  loading: true,
+  session: null,
   isLoading: true,
   isAuthenticated: false,
+  userRole: null,
+  error: null
+};
+
+const AuthContext = createContext<AuthContextType>({
+  ...initialState,
   logout: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string>();
-  
+  const [state, setState] = useState<AuthState>(initialState);
+
+  const updateState = (updates: Partial<AuthState>) => {
+    setState(current => ({ ...current, ...updates }));
+  };
+
+  const initializeAuth = async () => {
+    try {
+      console.log('🔄 Initializing auth...');
+      const session = await authService.getSession();
+
+      if (!session) {
+        console.log('ℹ️ No active session');
+        updateState({ 
+          isLoading: false, 
+          isAuthenticated: false 
+        });
+        return;
+      }
+
+      console.log('✅ Session found:', session.user.email);
+      const userRole = await authService.getUserRole(session.user.id);
+      
+      updateState({
+        session,
+        user: session.user,
+        isAuthenticated: true,
+        userRole,
+        isLoading: false
+      });
+    } catch (error) {
+      console.error('❌ Auth initialization error:', error);
+      updateState({ 
+        error: error as Error,
+        isLoading: false,
+        isAuthenticated: false 
+      });
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
-    console.info("🔄 Initializing auth context...");
-    
-    const initializeAuth = async () => {
-      try {
-        console.info("🔍 Checking initial session...");
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
+    console.log('🔄 Setting up auth context...');
+
+    const { data: { subscription } } = authService.onAuthStateChange(
+      async (event, session) => {
+        console.log('🔄 Auth state changed:', event, session?.user?.email);
         
         if (!mounted) return;
 
-        if (initialSession) {
-          console.info("✅ Found initial session:", initialSession.user.email);
-          setSession(initialSession);
-          setUser(initialSession.user);
-          
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('roles (name)')
-            .eq('id', initialSession.user.id)
-            .single();
-            
-          if (profile?.roles && mounted) {
-            console.log('✅ User role loaded:', profile.roles.name);
-            setUserRole(profile.roles.name);
-          }
-        } else {
-          console.info("ℹ️ No active session found");
-          if (mounted) {
-            setSession(null);
-            setUser(null);
-          }
+        if (!session) {
+          updateState({
+            user: null,
+            session: null,
+            isAuthenticated: false,
+            userRole: null,
+            isLoading: false
+          });
+          return;
         }
-      } catch (error) {
-        console.error("❌ Error checking session:", error);
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
 
-    initializeAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        console.info("🔄 Auth state changed:", event, currentSession?.user?.email);
-        
-        if (!mounted) return;
-        
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (currentSession?.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('roles (name)')
-            .eq('id', currentSession.user.id)
-            .single();
-            
-          if (profile?.roles && mounted) {
-            setUserRole(profile.roles.name);
-          }
+        try {
+          const userRole = await authService.getUserRole(session.user.id);
+          updateState({
+            session,
+            user: session.user,
+            isAuthenticated: true,
+            userRole,
+            isLoading: false
+          });
+        } catch (error) {
+          console.error('❌ Error updating auth state:', error);
+          updateState({
+            error: error as Error,
+            isLoading: false
+          });
         }
-        
-        setLoading(false);
       }
     );
 
+    initializeAuth();
+
     return () => {
+      console.log('🧹 Cleaning up auth context...');
       mounted = false;
       subscription.unsubscribe();
     };
@@ -106,30 +122,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
-      console.log('🔄 Starting logout process...');
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      console.log('✅ Logout successful');
+      console.log('🔄 Starting logout...');
+      await authService.signOut();
+      updateState({
+        user: null,
+        session: null,
+        isAuthenticated: false,
+        userRole: null
+      });
     } catch (error) {
-      console.error('❌ Error during logout:', error);
-      throw error;
+      console.error('❌ Logout error:', error);
+      updateState({ error: error as Error });
     }
   };
 
-  const value = {
-    session,
-    user,
-    loading,
-    isLoading: loading,
-    isAuthenticated: !!session,
-    userRole,
-    userId: user?.id,
-    userEmail: user?.email,
-    logout,
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ ...state, logout }}>
       {children}
     </AuthContext.Provider>
   );
