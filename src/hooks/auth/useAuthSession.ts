@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { authService } from '@/services/authService';
-import type { AuthState } from '@/types/auth';
 
 export const useAuthSession = () => {
   return useQuery({

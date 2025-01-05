@@ -1,15 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-
-export interface AuthUser {
-  id: string;
-  email: string | null;
-  role: string | null;
-}
-
-export interface AuthState {
-  user: AuthUser | null;
-  isAuthenticated: boolean;
-}
+import type { AuthState } from '@/types/auth';
 
 export const authService = {
   async signIn(email: string, password: string): Promise<void> {
@@ -46,12 +36,12 @@ export const authService = {
     
     if (error) {
       console.error('❌ Error fetching session:', error);
-      return { user: null, isAuthenticated: false };
+      return { user: null, isLoading: false, error };
     }
 
     if (!session?.user) {
       console.log('ℹ️ No active session');
-      return { user: null, isAuthenticated: false };
+      return { user: null, isLoading: false, error: null };
     }
 
     const { data: profile, error: profileError } = await supabase
@@ -67,16 +57,16 @@ export const authService = {
 
     if (profileError) {
       console.error('❌ Error fetching profile:', profileError);
-      return { user: null, isAuthenticated: false };
+      return { user: null, isLoading: false, error: profileError };
     }
 
-    const user: AuthUser = {
+    const user = {
       id: session.user.id,
       email: profile.email,
       role: profile.roles?.name || null,
     };
 
     console.log('✅ Session loaded:', user);
-    return { user, isAuthenticated: true };
+    return { user, isLoading: false, error: null };
   }
 };
