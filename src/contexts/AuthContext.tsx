@@ -12,6 +12,7 @@ type AuthContextType = {
   userId: string | null;
   userEmail: string | null;
   isLoading: boolean;
+  isRoleLoading: boolean;
   logout: () => Promise<void>;
 };
 
@@ -23,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   userId: null,
   userEmail: null,
   isLoading: true,
+  isRoleLoading: true,
   logout: async () => {},
 });
 
@@ -30,14 +32,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRoleLoading, setIsRoleLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const fetchUserRole = async (userId: string) => {
+    try {
+      console.log('🔍 Fetching role for user:', userId);
+      setIsRoleLoading(true);
+      
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('roles (name)')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching user role:', error);
+        throw error;
+      }
+      
+      const role = profile?.roles?.name || 'user';
+      console.log('✅ User role fetched:', role);
+      setUserRole(role);
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      setUserRole('user');
+    } finally {
+      setIsRoleLoading(false);
+    }
+  };
 
   useEffect(() => {
     console.log('🔄 Setting up auth listener...');
     
     const initializeAuth = async () => {
       try {
+        setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         setSession(session);
         if (session?.user) {
@@ -55,6 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log('🔄 Auth state changed:', _event);
       setIsLoading(true);
+      setIsRoleLoading(true);
       
       try {
         setSession(session);
@@ -80,29 +112,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       subscription.unsubscribe();
     };
   }, [navigate]);
-
-  const fetchUserRole = async (userId: string) => {
-    try {
-      console.log('🔍 Fetching role for user:', userId);
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('roles (name)')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching user role:', error);
-        throw error;
-      }
-      
-      const role = profile?.roles?.name || 'user';
-      console.log('✅ User role fetched:', role);
-      setUserRole(role);
-    } catch (error) {
-      console.error('Error fetching user role:', error);
-      setUserRole('user');
-    }
-  };
 
   const logout = async () => {
     try {
@@ -133,6 +142,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     userId: session?.user?.id ?? null,
     userEmail: session?.user?.email ?? null,
     isLoading,
+    isRoleLoading,
     logout,
   };
 

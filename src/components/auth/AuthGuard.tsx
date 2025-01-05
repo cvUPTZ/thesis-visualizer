@@ -9,31 +9,21 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
-  const { user, isLoading, userRole } = useAuth();
+  const { user, isLoading, userRole, isRoleLoading } = useAuth();
   const location = useLocation();
 
   console.log('🔒 AuthGuard Check:', {
     path: location.pathname,
     isLoading,
+    isRoleLoading,
     user: user?.email,
     userRole,
     requiredRole
   });
 
-  // Show loading skeleton only for the first 2 seconds
-  const [showLoadingSkeleton, setShowLoadingSkeleton] = React.useState(true);
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowLoadingSkeleton(false);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // If still loading within first 2 seconds, show skeleton
-  if (isLoading && showLoadingSkeleton) {
-    console.log('⌛ Loading auth guard...');
+  // Show loading while either auth or role is loading
+  if (isLoading || isRoleLoading) {
+    console.log('⌛ Loading auth guard... Auth loading:', isLoading, 'Role loading:', isRoleLoading);
     return <LoadingSkeleton />;
   }
 
