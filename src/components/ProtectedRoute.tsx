@@ -28,13 +28,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
   }
 
   if (!userId) {
-    console.log('❌ No user found, redirecting to welcome page');
-    return <Navigate to="/welcome" state={{ from: location }} replace />;
+    console.log('❌ No user found, redirecting to root');
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   if (requiredRole && userRole !== requiredRole) {
-    console.log('❌ User does not have required role, redirecting to home');
-    return <Navigate to="/" state={{ from: location }} replace />;
+    console.log('❌ User does not have required role, redirecting to dashboard');
+    return <Navigate to="/dashboard" state={{ from: location }} replace />;
   }
 
   console.log('✅ User authenticated, rendering protected route');

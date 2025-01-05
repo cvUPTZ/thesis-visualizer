@@ -42,7 +42,7 @@ export const DemoLogin = () => {
           title: "Demo Login Successful",
           description: "You're now logged in as a demo user.",
         });
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (error: any) {
       console.error('❌ Error in demo login:', error);
