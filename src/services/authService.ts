@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@/types/auth";
 
 export const authService = {
   async getSession() {
@@ -11,6 +10,7 @@ export const authService = {
       throw error;
     }
     
+    console.log('✅ Session retrieved:', session?.user?.email);
     return session;
   },
 
@@ -27,6 +27,7 @@ export const authService = {
       throw error;
     }
 
+    console.log('✅ User role retrieved:', data?.roles?.name);
     return data?.roles?.name;
   },
 

@@ -1,39 +1,24 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { authService } from "@/services/authService";
-import { User } from "@/types/auth";
+import { User, AuthContextType } from "@/types/auth";
 
-interface AuthState {
-  user: User | null;
-  session: Session | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  userRole: string | null;
-  error: Error | null;
-}
-
-interface AuthContextType extends AuthState {
-  logout: () => Promise<void>;
-}
-
-const initialState: AuthState = {
+const initialState: AuthContextType = {
   user: null,
   session: null,
   isLoading: true,
   isAuthenticated: false,
   userRole: null,
-  error: null
+  error: null,
+  logout: async () => {}
 };
 
-const AuthContext = createContext<AuthContextType>({
-  ...initialState,
-  logout: async () => {},
-});
+const AuthContext = createContext<AuthContextType>(initialState);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [state, setState] = useState<AuthState>(initialState);
+  const [state, setState] = useState<AuthContextType>(initialState);
 
-  const updateState = (updates: Partial<AuthState>) => {
+  const updateState = (updates: Partial<AuthContextType>) => {
     setState(current => ({ ...current, ...updates }));
   };
 
@@ -55,7 +40,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const userRole = await authService.getUserRole(session.user.id);
       
       updateState({
-        session,
         user: session.user,
         isAuthenticated: true,
         userRole,
@@ -81,10 +65,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (!mounted) return;
 
-        if (!session) {
+        if (event === 'SIGNED_OUT' || !session) {
           updateState({
             user: null,
-            session: null,
             isAuthenticated: false,
             userRole: null,
             isLoading: false
@@ -95,7 +78,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
           const userRole = await authService.getUserRole(session.user.id);
           updateState({
-            session,
             user: session.user,
             isAuthenticated: true,
             userRole,
@@ -126,7 +108,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await authService.signOut();
       updateState({
         user: null,
-        session: null,
         isAuthenticated: false,
         userRole: null
       });

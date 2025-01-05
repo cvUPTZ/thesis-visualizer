@@ -1,12 +1,7 @@
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
 export type User = SupabaseUser & {
-  role?: string;
-};
-
-export type AuthError = {
-  message: string;
-  status?: number;
+  role?: string | null;
 };
 
 export type AuthState = {
@@ -15,4 +10,8 @@ export type AuthState = {
   error: Error | null;
   isAuthenticated: boolean;
   userRole: string | null;
+};
+
+export type AuthContextType = AuthState & {
+  logout: () => Promise<void>;
 };
