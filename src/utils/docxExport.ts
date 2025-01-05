@@ -9,6 +9,8 @@ import {
   AlignmentType,
   Header,
   Footer,
+  NumberFormat,
+  PageNumberType,
 } from 'docx';
 import { Thesis } from '@/types/thesis';
 import { generateTitlePage } from './docx/titlePageGenerator';
@@ -66,11 +68,15 @@ export const generateThesisDocx = async (thesis: Thesis) => {
             children: [
               new TextRun("Page "),
               new TextRun({
-                children: [PageNumber.CURRENT],
+                children: ["PAGE"],
+                numberFormat: NumberFormat.DECIMAL,
+                pageNumberType: PageNumberType.CURRENT,
               }),
               new TextRun(" of "),
               new TextRun({
-                children: [PageNumber.TOTAL_PAGES],
+                children: ["NUMPAGES"],
+                numberFormat: NumberFormat.DECIMAL,
+                pageNumberType: PageNumberType.TOTAL_PAGES,
               }),
             ],
             alignment: AlignmentType.CENTER,
@@ -112,11 +118,15 @@ export const generateThesisDocx = async (thesis: Thesis) => {
             children: [
               new TextRun("Page "),
               new TextRun({
-                children: [PageNumber.CURRENT],
+                children: ["PAGE"],
+                numberFormat: NumberFormat.DECIMAL,
+                pageNumberType: PageNumberType.CURRENT,
               }),
               new TextRun(" of "),
               new TextRun({
-                children: [PageNumber.TOTAL_PAGES],
+                children: ["NUMPAGES"],
+                numberFormat: NumberFormat.DECIMAL,
+                pageNumberType: PageNumberType.TOTAL_PAGES,
               }),
             ],
             alignment: AlignmentType.CENTER,
@@ -206,11 +216,15 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
             children: [
               new TextRun("Page "),
               new TextRun({
-                children: [PageNumber.CURRENT],
+                children: ["PAGE"],
+                numberFormat: NumberFormat.DECIMAL,
+                pageNumberType: PageNumberType.CURRENT,
               }),
               new TextRun(" of "),
               new TextRun({
-                children: [PageNumber.TOTAL_PAGES],
+                children: ["NUMPAGES"],
+                numberFormat: NumberFormat.DECIMAL,
+                pageNumberType: PageNumberType.TOTAL_PAGES,
               }),
             ],
             alignment: AlignmentType.CENTER,
@@ -257,11 +271,15 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
             children: [
               new TextRun("Page "),
               new TextRun({
-                children: [PageNumber.CURRENT],
+                children: ["PAGE"],
+                numberFormat: NumberFormat.DECIMAL,
+                pageNumberType: PageNumberType.CURRENT,
               }),
               new TextRun(" of "),
               new TextRun({
-                children: [PageNumber.TOTAL_PAGES],
+                children: ["NUMPAGES"],
+                numberFormat: NumberFormat.DECIMAL,
+                pageNumberType: PageNumberType.TOTAL_PAGES,
               }),
             ],
             alignment: AlignmentType.CENTER,
