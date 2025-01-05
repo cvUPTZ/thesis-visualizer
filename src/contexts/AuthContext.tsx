@@ -124,15 +124,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         },
         isAuthenticated: true,
       });
+      
+      // First navigate
       navigate(data.userRole === 'admin' ? '/admin' : '/dashboard');
+      
+      // Show toast
       toast({
         title: "Welcome back!",
         description: "Successfully signed in.",
       });
-      // Force a page reload after successful sign-in
+
+      // Force a page reload after navigation and toast
       setTimeout(() => {
+        console.log('🔄 Reloading page after successful sign in...');
         window.location.reload();
-      }, 500);
+      }, 1500); // Increased timeout to 1.5 seconds
     },
     onError: (error: Error) => {
       console.error('❌ Sign in mutation error:', error);
