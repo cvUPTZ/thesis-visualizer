@@ -1,30 +1,27 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import LandingPage from '@/pages/LandingPage';
-import Auth from '@/pages/Auth';
-import Index from '@/pages/Index';
-import AdminPanel from '@/pages/AdminPanel';
-import CreateThesis from '@/pages/CreateThesis';
-import { ThesisEditor } from '@/components/ThesisEditor';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { Toaster } from './components/ui/toaster';
+import { LanguageProvider } from './contexts/LanguageContext';
+import Routes from './Routes';
 
-const App = () => {
-  console.log('🔄 App component rendering...');
+const queryClient = new QueryClient();
 
+function App() {
+  console.log('🚀 App rendering');
+  
   return (
-    <ErrorBoundary>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/dashboard" element={<Index />} />
-        <Route path="/admin" element={<AdminPanel />} />
-        <Route path="/create-thesis" element={<CreateThesis />} />
-        <Route path="/thesis/:thesisId" element={<ThesisEditor />} />
-      </Routes>
-      <Toaster />
-    </ErrorBoundary>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <ErrorBoundary>
+            <Routes />
+            <Toaster />
+          </ErrorBoundary>
+        </LanguageProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
-};
+}
 
 export default App;
