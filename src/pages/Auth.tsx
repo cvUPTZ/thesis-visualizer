@@ -21,9 +21,12 @@ const Auth = () => {
 
   useEffect(() => {
     let mounted = true;
+    let sessionCheckComplete = false;
     console.log('🔍 Auth Page - Checking session...');
+
+    // Set a maximum loading time of 4 seconds
     const timeoutId = setTimeout(() => {
-      if (mounted) {
+      if (mounted && !sessionCheckComplete) {
         console.log('⌛ Auth check timeout reached (4s)');
         setIsLoading(false);
       }
@@ -31,6 +34,7 @@ const Auth = () => {
 
     const checkSession = async () => {
       try {
+        console.log('🔍 Checking for active session...');
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -38,17 +42,18 @@ const Auth = () => {
           throw sessionError;
         }
         
-        if (session?.user && mounted) {
+        if (session?.user) {
           console.log('✅ Active session found, redirecting to dashboard');
-          navigate('/dashboard');
-        } else if (mounted) {
-          console.log('ℹ️ No active session found');
-          setIsLoading(false);
+          if (mounted) navigate('/dashboard');
         }
       } catch (err: any) {
         console.error('❌ Error checking session:', err);
         if (mounted) {
           setAuthError(err.message);
+        }
+      } finally {
+        if (mounted) {
+          sessionCheckComplete = true;
           setIsLoading(false);
         }
       }
@@ -79,9 +84,14 @@ const Auth = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <p className="text-gray-500">Checking authentication...</p>
-        </div>
+        <Card className="w-full max-w-md mx-4">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+              <p className="text-muted-foreground">Checking authentication...</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
