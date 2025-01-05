@@ -1,16 +1,27 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-type User = {
+// Type Definitions
+interface User {
   id: string;
   email: string;
   role: string | null;
-};
+}
 
-type AuthContextType = {
+interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+}
+
+interface Profile {
+  email: string;
+  roles: { name: string } | null;
+}
+
+interface AuthContextType {
   user: User | null;
   userId: string | null;
   userEmail: string | null;
@@ -21,17 +32,12 @@ type AuthContextType = {
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
   signInError: string | null;
-};
+}
 
-type Profile = {
-  email: string;
-  roles: {
-    name: string;
-  } | null;
-};
-
+// Create Context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Custom Hook for Auth
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -40,39 +46,38 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+// Utility Functions
+const saveAuthState = (state: AuthState) => {
+  sessionStorage.setItem('authState', JSON.stringify(state));
+};
+
+const clearAuthState = () => {
+  sessionStorage.removeItem('authState');
+};
+
+// Auth Provider Component
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  // Initial Session Query
   const { data: authData, isLoading: initialLoading } = useQuery({
-    queryKey: ['auth-session-initial'],
+    queryKey: ['auth-session'],
     queryFn: async () => {
-      console.log('🔄 Fetching initial auth session...');
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('❌ Error fetching session:', error);
-        return { user: null, isAuthenticated: false };
-      }
-
-      if (!session?.user) {
-        console.log('ℹ️ No active session');
-        return { user: null, isAuthenticated: false };
-      }
-
       try {
-        console.log('✅ Session found, fetching profile...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) throw error;
+        if (!session?.user) return { user: null, isAuthenticated: false };
+
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('email, roles (name)')
           .eq('id', session.user.id)
           .single();
 
-        if (profileError) {
-          console.error('❌ Error fetching profile:', profileError);
-          throw profileError;
-        }
+        if (profileError) throw profileError;
 
         const user: User = {
           id: session.user.id,
@@ -80,98 +85,106 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           role: (profile as Profile).roles?.name || null,
         };
 
-        console.log('✅ Initial auth data loaded:', { user });
         return { user, isAuthenticated: true };
       } catch (error) {
-        console.error('❌ Profile fetch error:', error);
+        console.error('Session fetch error:', error);
         return { user: null, isAuthenticated: false };
       }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
-    refetchOnWindowFocus: true,
+    cacheTime: 1000 * 60 * 30, // 30 minutes
   });
 
+  // Sign In Mutation
   const signInMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      console.log('🔄 Attempting sign in...');
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        console.error('❌ Sign in error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       const { data: profile } = await supabase
         .from('profiles')
         .select('roles (name)')
         .eq('id', data.user.id)
         .single();
-      return { 
+
+      return {
         user: data.user,
-        userRole: profile?.roles?.name || null 
+        userRole: profile?.roles?.name || null
       };
     },
-    onSuccess: (data) => {
-      console.log('✅ Sign in successful:', data);
+    onSuccess: async (data) => {
+      const authState: AuthState = {
+        user: {
+          id: data.user.id,
+          email: data.user.email!,
+          role: data.userRole,
+        },
+        isAuthenticated: true
+      };
+
+      // Save state before reload
+      saveAuthState(authState);
+
+      // Show toast and reload
+      toast({
+        title: "Welcome back!",
+        description: "Successfully signed in.",
+      });
+
+      // Redirect with reload
       const redirectPath = data.userRole === 'admin' ? '/admin' : '/dashboard';
-      
-      // Set query data and reload in one go
       window.location.href = redirectPath;
     },
     onError: (error: Error) => {
-      console.error('❌ Sign in mutation error:', error);
-      queryClient.setQueryData(['auth-session'], {
-        user: null,
-        isAuthenticated: false,
-      });
+      console.error('Sign in error:', error);
+      clearAuthState();
       toast({
-        title: "Sign in error",
+        title: "Sign in failed",
         description: error.message,
         variant: "destructive",
       });
-    },
+    }
   });
 
-  // Handle initial authentication
-  useEffect(() => {
-    if (authData?.isAuthenticated && window.location.pathname === '/auth') {
-      const path = authData.user?.role === 'admin' ? '/admin' : '/dashboard';
-      navigate(path, { replace: true });
-    }
-  }, [authData?.isAuthenticated, navigate]);
-
+  // Sign Out Mutation
   const signOutMutation = useMutation({
     mutationFn: async () => {
-      console.log('🔄 Signing out...');
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     },
     onSuccess: () => {
-      console.log('✅ Sign out successful');
-      queryClient.setQueryData(['auth-session'], { user: null, isAuthenticated: false });
-      navigate('/');
+      // Clear auth state
+      clearAuthState();
+      queryClient.clear();
+
+      // Show toast
       toast({
         title: "Signed out",
         description: "Successfully signed out.",
       });
+
+      // Redirect with reload
+      window.location.href = '/auth';
     },
     onError: (error: Error) => {
-      console.error('❌ Sign out error:', error);
+      console.error('Sign out error:', error);
       toast({
-        title: "Sign out error",
+        title: "Sign out failed",
         description: error.message,
         variant: "destructive",
       });
-    },
+    }
   });
 
+  // Auth State Change Listener
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔄 Auth state changed:', event, session?.user?.email);
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
+        clearAuthState();
         queryClient.setQueryData(['auth-session'], { user: null, isAuthenticated: false });
       }
     });
@@ -181,6 +194,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [queryClient]);
 
+  // Context Value
   const value: AuthContextType = {
     user: authData?.user ?? null,
     userId: authData?.user?.id ?? null,
@@ -191,7 +205,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signIn: async (email: string, password: string) => {
       await signInMutation.mutateAsync({ email, password });
     },
-    signOut: () => signOutMutation.mutateAsync(),
+    signOut: async () => {
+      await signOutMutation.mutateAsync();
+    },
     refreshSession: () => queryClient.invalidateQueries({ queryKey: ['auth-session'] }),
     signInError: signInMutation.error?.message || null,
   };
