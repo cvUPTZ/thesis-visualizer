@@ -116,26 +116,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     },
     onSuccess: (data) => {
       console.log('✅ Sign in successful:', data);
-      queryClient.setQueryData(['auth-session'], {
-        user: {
-          id: data.user.id,
-          email: data.user.email,
-          role: data.userRole,
-        },
-        isAuthenticated: true,
-      });
-      
-      toast({
-        title: "Welcome back!",
-        description: "Successfully signed in.",
-      });
-
-      // Set the intended redirect URL in sessionStorage
       const redirectPath = data.userRole === 'admin' ? '/admin' : '/dashboard';
-      sessionStorage.setItem('redirectAfterReload', redirectPath);
       
-      // Reload the page
-      window.location.reload();
+      // Set query data and reload in one go
+      window.location.href = redirectPath;
     },
     onError: (error: Error) => {
       console.error('❌ Sign in mutation error:', error);
@@ -151,12 +135,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     },
   });
 
-  // Check for redirect after page reload
+  // Handle initial authentication
   useEffect(() => {
-    const redirectPath = sessionStorage.getItem('redirectAfterReload');
-    if (redirectPath && authData?.isAuthenticated) {
-      sessionStorage.removeItem('redirectAfterReload');
-      navigate(redirectPath, { replace: true });
+    if (authData?.isAuthenticated && window.location.pathname === '/auth') {
+      const path = authData.user?.role === 'admin' ? '/admin' : '/dashboard';
+      navigate(path, { replace: true });
     }
   }, [authData?.isAuthenticated, navigate]);
 
