@@ -12,6 +12,7 @@ import { ThesisList } from './thesis/ThesisList';
 import { useThesisData } from '@/hooks/useThesisData';
 import { Skeleton } from './ui/skeleton';
 import { CollaboratorPresence } from './collaboration/CollaboratorPresence';
+import { NotificationCenter } from './collaboration/NotificationCenter';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -183,12 +184,15 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
       <main className="flex-1 p-8 flex">
         <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
           <div className="max-w-4xl mx-auto space-y-6">
-            <ThesisToolbar
-              thesisId={thesis?.id || ''}
-              thesisData={thesis!}
-              showPreview={showPreview}
-              onTogglePreview={() => setShowPreview(!showPreview)}
-            />
+            <div className="flex justify-between items-center">
+              <ThesisToolbar
+                thesisId={thesis?.id || ''}
+                thesisData={thesis!}
+                showPreview={showPreview}
+                onTogglePreview={() => setShowPreview(!showPreview)}
+              />
+              <NotificationCenter />
+            </div>
             <ThesisContent
               frontMatter={thesis?.frontMatter || []}
               chapters={thesis?.chapters || []}
