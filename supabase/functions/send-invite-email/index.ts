@@ -1,7 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Resend } from 'npm:resend';
+import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+const SMTP_HOST = Deno.env.get('SMTP_HOST')!;
+const SMTP_PORT = parseInt(Deno.env.get('SMTP_PORT')!);
+const SMTP_USERNAME = Deno.env.get('SMTP_USERNAME')!;
+const SMTP_PASSWORD = Deno.env.get('SMTP_PASSWORD')!;
+const SENDER_EMAIL = Deno.env.get('SENDER_EMAIL')!;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,12 +28,10 @@ serve(async (req) => {
   try {
     console.log('Starting email sending process...');
 
-    if (!RESEND_API_KEY) {
-      throw new Error('Missing RESEND_API_KEY');
+    // Validate environment variables
+    if (!SMTP_HOST || !SMTP_PORT || !SMTP_USERNAME || !SMTP_PASSWORD || !SENDER_EMAIL) {
+      throw new Error('Missing SMTP configuration');
     }
-
-    const resend = new Resend(RESEND_API_KEY);
-    const SENDER_EMAIL = 'onboarding@resend.dev'; // Using Resend's default sender
 
     // Parse and validate request body
     const requestData: EmailRequest = await req.json();
@@ -60,38 +62,30 @@ serve(async (req) => {
       </div>
     `;
 
+    // Create SMTP client
+    const client = new SmtpClient();
+
     try {
-      const { data, error } = await resend.emails.send({
+      await client.connectTLS({
+        hostname: SMTP_HOST,
+        port: SMTP_PORT,
+        username: SMTP_USERNAME,
+        password: SMTP_PASSWORD,
+      });
+
+      await client.send({
         from: SENDER_EMAIL,
-        to: [safeEmail],
+        to: safeEmail,
         subject: `Invitation to collaborate on thesis: ${safeTitle}`,
+        content: emailHtml,
         html: emailHtml,
       });
 
-      if (error) {
-        console.error('Resend error:', error);
-        return new Response(
-          JSON.stringify({
-            error: error.message,
-            details: {
-              statusCode: error.statusCode || 500,
-              message: error.message,
-              name: error.name || 'unknown_error'
-            }
-          }),
-          {
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'application/json',
-            },
-            status: error.statusCode || 500,
-          }
-        );
-      }
+      await client.close();
 
-      console.log('Email sent successfully:', data);
+      console.log('Email sent successfully');
       return new Response(
-        JSON.stringify({ success: true, data }),
+        JSON.stringify({ success: true }),
         {
           headers: {
             ...corsHeaders,
@@ -101,7 +95,7 @@ serve(async (req) => {
         }
       );
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error('SMTP error:', error);
       throw error;
     }
   } catch (error) {
