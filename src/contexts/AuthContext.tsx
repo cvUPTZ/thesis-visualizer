@@ -73,33 +73,51 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     console.log('🔄 Starting logout process...');
     
     try {
-      // First attempt to sign out from Supabase
-      const { error } = await supabase.auth.signOut({
-        scope: 'local'
-      });
+      // Get current session first
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log('ℹ️ No active session found, clearing local state only');
+        setIsAuthenticated(false);
+        setUserId(null);
+        setUserEmail(null);
+        navigate('/auth');
+        return;
+      }
+
+      // Attempt to sign out with the active session
+      const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error('❌ Error during signOut:', error);
-        throw error;
+        // Even if server logout fails, clear local state
+        setIsAuthenticated(false);
+        setUserId(null);
+        setUserEmail(null);
+        
+        toast({
+          title: "Partial sign out",
+          description: "You have been signed out locally. Please refresh the page.",
+          variant: "destructive",
+        });
+      } else {
+        console.log('✅ Logout successful');
+        toast({
+          title: "Logged out successfully",
+          description: "You have been signed out of your account.",
+        });
       }
-
-      // Then clear the local state
+      
+    } catch (error) {
+      console.error('❌ Error during logout:', error);
+      // Ensure local state is cleared even if there's an error
       setIsAuthenticated(false);
       setUserId(null);
       setUserEmail(null);
       
-      console.log('✅ Logout successful');
-      
-      toast({
-        title: "Logged out successfully",
-        description: "You have been signed out of your account.",
-      });
-      
-    } catch (error) {
-      console.error('❌ Error during logout:', error);
       toast({
         title: "Error signing out",
-        description: "An unexpected error occurred. Please try again.",
+        description: "You have been signed out locally. Please refresh the page.",
         variant: "destructive",
       });
     } finally {
