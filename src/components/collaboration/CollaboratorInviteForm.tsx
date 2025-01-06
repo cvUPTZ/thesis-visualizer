@@ -92,9 +92,9 @@ export const CollaboratorInviteForm = ({
         console.error('Error sending invite email:', emailError);
         // Don't throw here, as the collaboration was already created
         toast({
-          title: "Warning",
+          title: "Notice",
           description: "Collaborator added but email notification failed to send.",
-          variant: "warning",
+          variant: "default",
         });
       }
 
