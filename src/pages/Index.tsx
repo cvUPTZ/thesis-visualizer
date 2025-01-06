@@ -26,6 +26,8 @@ const Index = () => {
     });
   };
 
+  const isAdmin = userProfile?.roles?.name === 'admin';
+
   return (
     <div className="min-h-screen bg-[#1A1F2C] text-gray-100">
       <div className="container mx-auto px-4 py-8 space-y-8">
@@ -48,14 +50,16 @@ const Index = () => {
               <LogOut className="w-4 h-4 mr-2" />
               Logout
             </Button>
-            <Button 
-              onClick={() => navigate('/admin')} 
-              variant="outline"
-              className="bg-[#7E69AB]/10 hover:bg-[#7E69AB]/20 text-[#D6BCFA] border-[#D6BCFA]/20 font-sans"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Admin Panel
-            </Button>
+            {isAdmin && (
+              <Button 
+                onClick={() => navigate('/admin')} 
+                variant="outline"
+                className="bg-[#7E69AB]/10 hover:bg-[#7E69AB]/20 text-[#D6BCFA] border-[#D6BCFA]/20 font-sans"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Admin Panel
+              </Button>
+            )}
           </div>
         </div>
 
