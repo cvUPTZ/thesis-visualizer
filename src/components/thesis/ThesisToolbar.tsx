@@ -11,6 +11,8 @@ import { CollaboratorSection } from './toolbar/CollaboratorSection';
 import { useUser } from '@/hooks/useUser';
 import { useCollaboratorPermissions } from '@/hooks/useCollaboratorPermissions';
 import { CollaboratorWithProfile } from '@/types/collaborator';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,7 +34,8 @@ export const ThesisToolbar = ({
   onTogglePreview,
 }: ThesisToolbarProps) => {
   const { toast } = useToast();
-  const { userEmail, userRole, handleLogout } = useUser();
+  const navigate = useNavigate();
+  const { userEmail, userRole } = useUser();
   const {
     collaborators,
     canManageCollaborators,
@@ -41,6 +44,38 @@ export const ThesisToolbar = ({
     loading,
     error,
   } = useCollaboratorPermissions(thesisId);
+
+  const handleLogout = async () => {
+    try {
+      console.log('🔄 Starting logout process...');
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('❌ Error during sign out:', error);
+        toast({
+          title: "Error signing out",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('✅ Successfully signed out');
+      toast({
+        title: "Success",
+        description: "You have been signed out successfully",
+      });
+      
+      navigate('/auth');
+    } catch (error: any) {
+      console.error('❌ Unexpected error during logout:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while signing out",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleExport = async (type: 'academic' | 'preview') => {
     try {

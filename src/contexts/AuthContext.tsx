@@ -49,6 +49,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setIsAuthenticated(false);
           setUserId(null);
           setUserEmail(null);
+          navigate('/auth');
         }
       } catch (error) {
         console.error('❌ Error initializing session:', error);
@@ -65,8 +66,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsAuthenticated(true);
         setUserId(session.user.id);
         setUserEmail(session.user.email);
-      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        console.log('👋 User signed out or token refreshed');
+      } else if (event === 'SIGNED_OUT') {
+        console.log('👋 User signed out');
         setIsAuthenticated(false);
         setUserId(null);
         setUserEmail(null);
@@ -83,47 +84,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleLogout = async () => {
     console.log('🔄 Starting logout process...');
     
-    // Clear local state immediately
-    setIsAuthenticated(false);
-    setUserId(null);
-    setUserEmail(null);
-
     try {
-      // Try to get current session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        console.log('ℹ️ No active session to logout from');
-        navigate('/auth');
-        return;
-      }
-
-      // Attempt to sign out
-      const { error } = await supabase.auth.signOut({
-        scope: 'local'
-      });
+      const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error('❌ Error during signOut:', error);
         toast({
-          title: "Notice",
-          description: "You have been signed out locally.",
+          title: "Error signing out",
+          description: error.message,
+          variant: "destructive",
         });
-      } else {
-        console.log('✅ Logout successful');
-        toast({
-          title: "Success",
-          description: "You have been signed out successfully.",
-        });
+        return;
       }
-    } catch (error) {
+
+      console.log('✅ Logout successful');
+      setIsAuthenticated(false);
+      setUserId(null);
+      setUserEmail(null);
+      
+      toast({
+        title: "Success",
+        description: "You have been signed out successfully",
+      });
+      
+      navigate('/auth');
+    } catch (error: any) {
       console.error('❌ Error during logout:', error);
       toast({
-        title: "Notice",
-        description: "You have been signed out locally.",
+        title: "Error",
+        description: "An unexpected error occurred while signing out",
+        variant: "destructive",
       });
-    } finally {
-      // Always navigate to auth page
       navigate('/auth');
     }
   };
