@@ -72,51 +72,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleLogout = async () => {
     console.log('🔄 Starting logout process...');
     
-    try {
-      // Get current session first
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        console.log('ℹ️ No active session found, clearing local state only');
-        setIsAuthenticated(false);
-        setUserId(null);
-        setUserEmail(null);
-        navigate('/auth');
-        return;
-      }
+    // Clear local state first
+    setIsAuthenticated(false);
+    setUserId(null);
+    setUserEmail(null);
 
-      // Attempt to sign out with the active session
+    try {
+      // Attempt to sign out from Supabase
       const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error('❌ Error during signOut:', error);
-        // Even if server logout fails, clear local state
-        setIsAuthenticated(false);
-        setUserId(null);
-        setUserEmail(null);
-        
         toast({
-          title: "Partial sign out",
+          title: "Warning",
           description: "You have been signed out locally. Please refresh the page.",
           variant: "destructive",
         });
       } else {
         console.log('✅ Logout successful');
         toast({
-          title: "Logged out successfully",
-          description: "You have been signed out of your account.",
+          title: "Success",
+          description: "You have been signed out successfully.",
         });
       }
-      
     } catch (error) {
       console.error('❌ Error during logout:', error);
-      // Ensure local state is cleared even if there's an error
-      setIsAuthenticated(false);
-      setUserId(null);
-      setUserEmail(null);
-      
       toast({
-        title: "Error signing out",
+        title: "Warning",
         description: "You have been signed out locally. Please refresh the page.",
         variant: "destructive",
       });
