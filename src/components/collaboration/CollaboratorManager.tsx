@@ -39,67 +39,99 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
                     description: "Please log in again to continue.",
                     variant: "destructive",
                 });
-                return;
+                return false;
             }
             console.log('✅ Session active for user:', session.user.email);
+            return true;
         };
-        
-        checkSession();
 
-        // Subscribe to thesis collaborator changes
-        const channel = supabase
-            .channel(`thesis_collaborators_${thesisId}`)
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'thesis_collaborators',
-                    filter: `thesis_id=eq.${thesisId}`,
-                },
-                async (payload) => {
-                    console.log('📥 New collaborator event received:', payload);
-                    setHasNewInvites(true);
-                    
-                    try {
-                        // Fetch the new collaborator's profile information
-                        const { data: profileData, error: profileError } = await supabase
-                            .from('profiles')
-                            .select('email')
-                            .eq('id', payload.new.user_id)
-                            .single();
+        const setupSubscription = async () => {
+            const hasValidSession = await checkSession();
+            if (!hasValidSession) return;
 
-                        if (profileError) {
-                            console.error('❌ Error fetching profile:', profileError);
-                            throw profileError;
-                        }
+            // Create a unique channel name for this thesis
+            const channelName = `thesis_collaborators_${thesisId}`;
+            console.log('📡 Setting up subscription on channel:', channelName);
 
-                        const collaboratorEmail = profileData?.email || 'A new collaborator';
-                        console.log('✉️ Collaborator email:', collaboratorEmail);
+            const channel = supabase
+                .channel(channelName)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*', // Listen to all events
+                        schema: 'public',
+                        table: 'thesis_collaborators',
+                        filter: `thesis_id=eq.${thesisId}`,
+                    },
+                    async (payload) => {
+                        console.log('📥 Collaborator event received:', payload);
                         
-                        toast({
-                            title: "New Collaborator Joined",
-                            description: `${collaboratorEmail} has joined as a ${payload.new.role}.`,
-                        });
+                        try {
+                            if (payload.eventType === 'INSERT') {
+                                // Fetch the new collaborator's profile information
+                                const { data: profileData, error: profileError } = await supabase
+                                    .from('profiles')
+                                    .select('email')
+                                    .eq('id', payload.new.user_id)
+                                    .single();
 
-                        // Refresh the collaborators list
-                        await fetchCollaborators();
-                    } catch (error) {
-                        console.error('❌ Error handling new collaborator:', error);
+                                if (profileError) {
+                                    console.error('❌ Error fetching profile:', profileError);
+                                    throw profileError;
+                                }
+
+                                const collaboratorEmail = profileData?.email || 'A new collaborator';
+                                console.log('✉️ New collaborator joined:', collaboratorEmail);
+                                
+                                setHasNewInvites(true);
+                                toast({
+                                    title: "New Collaborator Joined",
+                                    description: `${collaboratorEmail} has joined as a ${payload.new.role}.`,
+                                });
+                            }
+
+                            // Refresh the collaborators list for any change
+                            await fetchCollaborators();
+                        } catch (error) {
+                            console.error('❌ Error handling collaborator event:', error);
+                            toast({
+                                title: "Error",
+                                description: "Failed to process collaborator update.",
+                                variant: "destructive",
+                            });
+                        }
                     }
-                }
-            )
-            .subscribe((status) => {
-                console.log('📡 Subscription status:', status);
-            });
+                )
+                .subscribe((status) => {
+                    console.log('📡 Subscription status:', status);
+                    if (status === 'SUBSCRIBED') {
+                        console.log('✅ Successfully subscribed to collaborator changes');
+                    } else if (status === 'CHANNEL_ERROR') {
+                        console.error('❌ Failed to subscribe to collaborator changes');
+                        toast({
+                            title: "Connection Error",
+                            description: "Failed to connect to real-time updates.",
+                            variant: "destructive",
+                        });
+                    }
+                });
 
+            return () => {
+                console.log('🧹 Cleaning up subscription for channel:', channelName);
+                supabase.removeChannel(channel);
+            };
+        };
+
+        const cleanup = setupSubscription();
         return () => {
-            console.log('🧹 Cleaning up subscription');
-            supabase.removeChannel(channel);
+            if (cleanup) {
+                cleanup.then(cleanupFn => cleanupFn && cleanupFn());
+            }
         };
     }, [thesisId, toast, fetchCollaborators]);
 
     const handleClearNotification = () => {
+        console.log('🔔 Clearing notification state');
         setHasNewInvites(false);
     };
 
