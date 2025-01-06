@@ -14,11 +14,16 @@ export const SocialAuth = ({ isLoading, setLoading }: SocialAuthProps) => {
     try {
       setLoading(true);
       console.log('🔐 Attempting Google sign in...');
+      console.log('📍 Current origin:', window.location.origin);
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         }
       });
 
@@ -29,7 +34,11 @@ export const SocialAuth = ({ isLoading, setLoading }: SocialAuthProps) => {
           description: error.message,
           variant: "destructive",
         });
+        return;
       }
+
+      console.log('✅ Google sign in initiated:', data);
+      
     } catch (error: any) {
       console.error('❌ Unexpected error during Google sign in:', error);
       toast({
