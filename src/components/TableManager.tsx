@@ -19,7 +19,7 @@ export const TableManager: React.FC<TableManagerProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium">Tables</h3>
+        <h3 className="text-lg font-serif font-medium text-primary">Tables</h3>
         <TableDialog onAddTable={onAddTable} />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
