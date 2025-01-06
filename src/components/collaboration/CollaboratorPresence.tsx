@@ -54,7 +54,34 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
       }
     };
 
+    // Initial fetch
     fetchCollaborators();
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('thesis_collaborators_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'thesis_collaborators',
+          filter: `thesis_id=eq.${thesisId}`
+        },
+        (payload) => {
+          console.log('🔄 Real-time update received:', payload);
+          fetchCollaborators(); // Refresh the collaborators list
+        }
+      )
+      .subscribe(status => {
+        console.log('📡 Subscription status:', status);
+      });
+
+    // Cleanup subscription
+    return () => {
+      console.log('🧹 Cleaning up subscription');
+      supabase.removeChannel(channel);
+    };
   }, [thesisId]);
 
   return (
