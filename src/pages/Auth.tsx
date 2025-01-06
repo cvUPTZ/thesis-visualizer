@@ -16,13 +16,33 @@ const Auth = () => {
     e.preventDefault();
     try {
       setLoading(true);
+      console.log('🔐 Attempting login with email:', email);
+      
+      if (!email || !password) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter both email and password",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Login error:', error);
+        toast({
+          title: "Login Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
 
+      console.log('✅ Login successful');
       toast({
         title: "Success",
         description: "You have been logged in successfully",
@@ -30,9 +50,10 @@ const Auth = () => {
       
       navigate('/');
     } catch (error: any) {
+      console.error('❌ Unexpected error during login:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -43,21 +64,42 @@ const Auth = () => {
   const handleSignUp = async () => {
     try {
       setLoading(true);
+      console.log('📝 Attempting signup with email:', email);
+      
+      if (!email || !password) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter both email and password",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Signup error:', error);
+        toast({
+          title: "Signup Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
 
+      console.log('✅ Signup successful');
       toast({
         title: "Success",
         description: "Please check your email to verify your account",
       });
     } catch (error: any) {
+      console.error('❌ Unexpected error during signup:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
