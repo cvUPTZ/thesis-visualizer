@@ -59,7 +59,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
 
     // Set up real-time subscription
     const channel = supabase
-      .channel('thesis_collaborators_changes')
+      .channel(`thesis_collaborators_${thesisId}`)
       .on(
         'postgres_changes',
         {
@@ -73,7 +73,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
           fetchCollaborators(); // Refresh the collaborators list
         }
       )
-      .subscribe(status => {
+      .subscribe((status) => {
         console.log('📡 Subscription status:', status);
       });
 
