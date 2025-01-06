@@ -7,9 +7,7 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { TableDialogHeader } from './TableDialogHeader';
-import { TableDialogGrid } from './TableDialogGrid';
-import { TableDialogFooter } from './TableDialogFooter';
+import { Input } from '@/components/ui/input';
 import { Table } from '@/types/thesis';
 
 interface TableDialogProps {
@@ -19,146 +17,49 @@ interface TableDialogProps {
 export const TableDialog = ({ onAddTable }: TableDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [caption, setCaption] = useState('');
-  const [gridData, setGridData] = useState<Array<Array<{ value: string; format: any }>>>([
-    [{ value: '', format: {} }, { value: '', format: {} }, { value: '', format: {} }],
-    [{ value: '', format: {} }, { value: '', format: {} }, { value: '', format: {} }],
-    [{ value: '', format: {} }, { value: '', format: {} }, { value: '', format: {} }]
-  ]);
+  const [sheetUrl, setSheetUrl] = useState('');
   const { toast } = useToast();
-
-  const addColumn = () => {
-    console.log('📊 Adding new column to table');
-    setGridData(gridData.map(row => [...row, { value: '', format: {} }]));
-  };
-
-  const removeColumn = (index: number) => {
-    if (gridData[0].length > 1) {
-      console.log('📊 Removing column at index:', index);
-      setGridData(gridData.map(row => {
-        const newRow = [...row];
-        newRow.splice(index, 1);
-        return newRow;
-      }));
-    }
-  };
-
-  const addRow = () => {
-    console.log('📊 Adding new row to table');
-    setGridData([...gridData, Array(gridData[0].length).fill({ value: '', format: {} })]);
-  };
-
-  const removeRow = (index: number) => {
-    if (gridData.length > 1) {
-      console.log('📊 Removing row at index:', index);
-      const newData = [...gridData];
-      newData.splice(index, 1);
-      setGridData(newData);
-    }
-  };
-
-  const updateCell = (rowIndex: number, colIndex: number, value: string) => {
-    console.log(`📊 Updating cell at [${rowIndex}, ${colIndex}] with value:`, value);
-    const newData = [...gridData];
-    newData[rowIndex][colIndex] = {
-      ...newData[rowIndex][colIndex],
-      value
-    };
-    setGridData(newData);
-  };
-
-  const handleFormatChange = (format: string, rowIndex: number, colIndex: number) => {
-    console.log(`📊 Applying format "${format}" to cell at [${rowIndex}, ${colIndex}]`);
-    const newData = [...gridData];
-    const currentFormat = { ...newData[rowIndex][colIndex].format };
-
-    switch (format) {
-      case 'align-left':
-      case 'align-center':
-      case 'align-right':
-        currentFormat.align = format.replace('align-', '') as 'left' | 'center' | 'right';
-        break;
-      case 'bold':
-        currentFormat.bold = !currentFormat.bold;
-        break;
-      case 'italic':
-        currentFormat.italic = !currentFormat.italic;
-        break;
-      case 'underline':
-        currentFormat.underline = !currentFormat.underline;
-        break;
-      case 'header-primary':
-        currentFormat.headerStyle = 'primary';
-        break;
-      case 'header-secondary':
-        currentFormat.headerStyle = 'secondary';
-        break;
-      case 'header-none':
-        currentFormat.headerStyle = 'none';
-        break;
-    }
-
-    newData[rowIndex][colIndex] = {
-      ...newData[rowIndex][colIndex],
-      format: currentFormat
-    };
-    setGridData(newData);
-  };
-
-  const generateTableHtml = () => {
-    return `<table class="min-w-full divide-y divide-gray-200">
-      <thead>
-        <tr>
-          ${gridData[0].map((cell, i) => `
-            <th class="${getFormatClasses(cell.format)}">${cell.value}</th>
-          `).join('')}
-        </tr>
-      </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
-        ${gridData.slice(1).map(row => `
-          <tr>
-            ${row.map(cell => `
-              <td class="${getFormatClasses(cell.format)}">${cell.value}</td>
-            `).join('')}
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>`;
-  };
-
-  const getFormatClasses = (format: any) => {
-    const classes = ['px-6 py-4 whitespace-nowrap text-sm text-gray-900'];
-    if (format.align) classes.push(`text-${format.align}`);
-    if (format.bold) classes.push('font-bold');
-    if (format.italic) classes.push('italic');
-    if (format.underline) classes.push('underline');
-    if (format.headerStyle === 'primary') classes.push('bg-gray-100 font-bold uppercase tracking-wider');
-    if (format.headerStyle === 'secondary') classes.push('bg-gray-50 font-semibold');
-    return classes.join(' ');
-  };
 
   const handleSave = () => {
     try {
-      console.log('📊 Saving table...');
-      const tableContent = generateTableHtml();
+      console.log('📊 Saving table from Google Sheets');
+      
+      if (!sheetUrl) {
+        toast({
+          title: "Error",
+          description: "Please enter a Google Sheets URL",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Extract the embedded HTML from Google Sheets
+      const embedUrl = sheetUrl.replace('/edit', '/preview');
+      const tableContent = `
+        <div class="google-sheets-table">
+          <iframe 
+            src="${embedUrl}"
+            style="width: 100%; min-height: 400px; border: none;"
+            allowfullscreen
+          ></iframe>
+        </div>
+      `;
+
       const newTable: Table = {
         id: Date.now().toString(),
-        title: 'New Table',
+        title: 'Google Sheets Table',
         content: tableContent,
         caption: caption
       };
 
       onAddTable(newTable);
       setIsOpen(false);
+      setSheetUrl('');
       setCaption('');
-      setGridData([
-        [{ value: '', format: {} }, { value: '', format: {} }, { value: '', format: {} }],
-        [{ value: '', format: {} }, { value: '', format: {} }, { value: '', format: {} }],
-        [{ value: '', format: {} }, { value: '', format: {} }, { value: '', format: {} }]
-      ]);
       
       toast({
-        title: "Table created successfully",
-        description: "Your table has been added to the document",
+        title: "Success",
+        description: "Table created from Google Sheets",
       });
       console.log('✅ Table saved successfully');
     } catch (error) {
@@ -179,24 +80,66 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
           Add Table
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl">
-        <TableDialogHeader />
-        <div className="space-y-6 py-4">
-          <TableDialogGrid
-            gridData={gridData}
-            onAddColumn={addColumn}
-            onAddRow={addRow}
-            onRemoveColumn={removeColumn}
-            onRemoveRow={removeRow}
-            onUpdateCell={updateCell}
-            onFormatChange={handleFormatChange}
-          />
-          <TableDialogFooter
-            caption={caption}
-            onCaptionChange={setCaption}
-            onCancel={() => setIsOpen(false)}
-            onSave={handleSave}
-          />
+      <DialogContent className="max-w-2xl">
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-lg font-semibold mb-4">Create Table from Google Sheets</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              1. Create your table in Google Sheets
+              <br />
+              2. Click "Share" and set to "Anyone with the link can view"
+              <br />
+              3. Copy the URL and paste it below
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-1.5 block text-gray-700">
+                Google Sheets URL
+              </label>
+              <Input
+                value={sheetUrl}
+                onChange={(e) => setSheetUrl(e.target.value)}
+                placeholder="https://docs.google.com/spreadsheets/d/..."
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Make sure your sheet is set to "Anyone with the link can view"
+              </p>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1.5 block text-gray-700">
+                Table Caption
+              </label>
+              <Input
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                placeholder="Enter a descriptive caption for your table..."
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                A good caption helps readers understand your table's content
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+              className="hover:bg-gray-50"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSave}
+              className="bg-primary hover:bg-primary/90"
+            >
+              Create Table
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
