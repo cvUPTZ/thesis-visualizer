@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Table } from '@/types/thesis';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface TableDialogProps {
   onAddTable: (table: Table) => void;
@@ -97,19 +98,18 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
           <DialogTitle>Create Table with Google Sheets</DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
-          <div>
-            <p className="text-sm text-muted-foreground mb-4">
-              Follow these steps to create your table:
-              <br />
-              1. A new Google Sheet has opened in a new tab
-              <br />
-              2. Create your table in Google Sheets
-              <br />
-              3. Click "Share" and set to "Anyone with the link can view"
-              <br />
-              4. Copy the URL and paste it below
-            </p>
-          </div>
+          <Alert>
+            <AlertDescription>
+              <ol className="list-decimal pl-4 space-y-2">
+                <li>A new Google Sheet has opened in a new tab</li>
+                <li><strong>Enter your data</strong> in the Google Sheet</li>
+                <li>Click the "Share" button in the top right</li>
+                <li>Change access to "Anyone with the link can view"</li>
+                <li>Copy the URL from your browser's address bar</li>
+                <li>Paste the URL below</li>
+              </ol>
+            </AlertDescription>
+          </Alert>
 
           <div className="space-y-4">
             <div>
