@@ -1,24 +1,71 @@
-/* Excel-like grid styles */
+/* ... keep existing code */
+
+/* Enhanced Excel-like grid styles */
 .excel-grid {
-  @apply bg-white rounded-lg overflow-hidden;
+  @apply bg-white rounded-lg overflow-hidden shadow-lg border border-gray-200;
 }
 
 .excel-grid .grid-controls {
-  @apply border-b border-gray-200 bg-gradient-to-b from-gray-50 to-white;
+  @apply border-b border-gray-200 bg-gradient-to-b from-gray-50 to-white p-2;
+  @apply flex items-center justify-between flex-wrap gap-2;
 }
 
 .excel-grid .grid-content {
   @apply p-4 bg-white;
 }
 
-.excel-grid input {
+.excel-grid .cell {
   @apply transition-all duration-150 ease-in-out;
   @apply hover:bg-blue-50/30 focus:bg-blue-50/50;
   @apply border border-gray-200;
+  @apply focus:ring-2 focus:ring-primary/20 focus:outline-none;
+}
+
+.excel-grid .cell.header {
+  @apply bg-gray-50 font-semibold;
+  @apply hover:bg-gray-100;
+}
+
+.excel-grid .cell.align-left {
+  @apply text-left;
+}
+
+.excel-grid .cell.align-center {
+  @apply text-center;
+}
+
+.excel-grid .cell.align-right {
+  @apply text-right;
+}
+
+.excel-grid .cell.bold {
+  @apply font-bold;
+}
+
+.excel-grid .cell.italic {
+  @apply italic;
+}
+
+.excel-grid .cell.underline {
+  @apply underline;
 }
 
 .excel-grid .grid {
   @apply gap-1;
+}
+
+.excel-grid .row-controls,
+.excel-grid .col-controls {
+  @apply flex items-center gap-1;
+}
+
+.excel-grid .format-controls {
+  @apply flex items-center gap-2 p-2 bg-white border-b border-gray-200;
+  @apply divide-x divide-gray-200;
+}
+
+.excel-grid .format-group {
+  @apply flex items-center gap-1 px-2;
 }
 
 .excel-grid button {
@@ -26,9 +73,50 @@
 }
 
 .excel-grid button:hover:not(:disabled) {
-  @apply bg-red-50 text-red-600;
+  @apply bg-gray-100;
 }
 
 .excel-grid button:disabled {
   @apply opacity-50 cursor-not-allowed;
+}
+
+/* Preview styles */
+.table-preview {
+  @apply mt-4 border border-gray-200 rounded-lg overflow-hidden;
+}
+
+.table-preview table {
+  @apply w-full border-collapse;
+}
+
+.table-preview th {
+  @apply bg-gray-50 font-semibold p-2 border border-gray-200;
+}
+
+.table-preview td {
+  @apply p-2 border border-gray-200;
+}
+
+.table-preview .align-left {
+  @apply text-left;
+}
+
+.table-preview .align-center {
+  @apply text-center;
+}
+
+.table-preview .align-right {
+  @apply text-right;
+}
+
+.table-preview .bold {
+  @apply font-bold;
+}
+
+.table-preview .italic {
+  @apply italic;
+}
+
+.table-preview .underline {
+  @apply underline;
 }

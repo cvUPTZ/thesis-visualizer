@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, Plus, Minus, Table2 } from 'lucide-react';
+import { Plus, Minus, Table2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { TableFormatControls } from './TableFormatControls';
+import { TableGridCell } from './TableGridCell';
 import {
   Dialog,
   DialogContent,
@@ -16,75 +18,124 @@ interface TableDialogProps {
   onAddTable: (table: Table) => void;
 }
 
+interface CellFormat {
+  align?: 'left' | 'center' | 'right';
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+}
+
+interface CellData {
+  value: string;
+  format: CellFormat;
+}
+
 export const TableDialog = ({ onAddTable }: TableDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [caption, setCaption] = useState('');
-  const [gridData, setGridData] = useState([['', '', ''], ['', '', ''], ['', '', '']]);
+  const [gridData, setGridData] = useState<CellData[][]>([
+    [{ value: '', format: {} }, { value: '', format: {} }, { value: '', format: {} }],
+    [{ value: '', format: {} }, { value: '', format: {} }, { value: '', format: {} }],
+    [{ value: '', format: {} }, { value: '', format: {} }, { value: '', format: {} }]
+  ]);
   const { toast } = useToast();
 
+  const handleFormatChange = (format: string, rowIndex: number, colIndex: number) => {
+    const newData = [...gridData];
+    const currentFormat = { ...newData[rowIndex][colIndex].format };
+
+    switch (format) {
+      case 'align-left':
+      case 'align-center':
+      case 'align-right':
+        currentFormat.align = format.replace('align-', '') as 'left' | 'center' | 'right';
+        break;
+      case 'bold':
+        currentFormat.bold = !currentFormat.bold;
+        break;
+      case 'italic':
+        currentFormat.italic = !currentFormat.italic;
+        break;
+      case 'underline':
+        currentFormat.underline = !currentFormat.underline;
+        break;
+    }
+
+    newData[rowIndex][colIndex] = {
+      ...newData[rowIndex][colIndex],
+      format: currentFormat
+    };
+    setGridData(newData);
+  };
+
   const addRow = () => {
-    console.log('Adding new row to grid');
-    setGridData([...gridData, Array(gridData[0].length).fill('')]);
+    setGridData([...gridData, Array(gridData[0].length).fill({ value: '', format: {} })]);
   };
 
   const removeRow = (index: number) => {
-    console.log('Removing row at index:', index);
     if (gridData.length > 1) {
       const newData = [...gridData];
       newData.splice(index, 1);
       setGridData(newData);
-    } else {
-      toast({
-        title: "Cannot remove last row",
-        description: "Table must have at least one row",
-        variant: "destructive",
-      });
     }
   };
 
   const addColumn = () => {
-    console.log('Adding new column to grid');
-    setGridData(gridData.map(row => [...row, '']));
+    setGridData(gridData.map(row => [...row, { value: '', format: {} }]));
   };
 
   const removeColumn = (index: number) => {
-    console.log('Removing column at index:', index);
     if (gridData[0].length > 1) {
       setGridData(gridData.map(row => {
         const newRow = [...row];
         newRow.splice(index, 1);
         return newRow;
       }));
-    } else {
-      toast({
-        title: "Cannot remove last column",
-        description: "Table must have at least one column",
-        variant: "destructive",
-      });
     }
   };
 
   const updateCell = (rowIndex: number, colIndex: number, value: string) => {
-    console.log('Updating cell:', { rowIndex, colIndex, value });
     const newData = [...gridData];
-    newData[rowIndex][colIndex] = value;
+    newData[rowIndex][colIndex] = {
+      ...newData[rowIndex][colIndex],
+      value
+    };
     setGridData(newData);
+  };
+
+  const generateTableHtml = () => {
+    return `<table class="min-w-full divide-y divide-gray-200">
+      <thead>
+        <tr>
+          ${gridData[0].map((cell, i) => `
+            <th class="${getFormatClasses(cell.format)}">${cell.value}</th>
+          `).join('')}
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        ${gridData.slice(1).map((row, rowIndex) => `
+          <tr>
+            ${row.map((cell, cellIndex) => `
+              <td class="${getFormatClasses(cell.format)}">${cell.value}</td>
+            `).join('')}
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+  };
+
+  const getFormatClasses = (format: CellFormat) => {
+    const classes = ['px-6 py-4 whitespace-nowrap text-sm text-gray-900'];
+    if (format.align) classes.push(`text-${format.align}`);
+    if (format.bold) classes.push('font-bold');
+    if (format.italic) classes.push('italic');
+    if (format.underline) classes.push('underline');
+    return classes.join(' ');
   };
 
   const handleAddTable = () => {
     try {
-      console.log('Creating new table with data:', { gridData, caption });
-      
-      const tableContent = `<table class="min-w-full divide-y divide-gray-200">
-        <tbody class="bg-white divide-y divide-gray-200">
-          ${gridData.map((row, rowIndex) => `
-            <tr key="row-${rowIndex}">
-              ${row.map((cell, cellIndex) => `<td key="cell-${rowIndex}-${cellIndex}" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${cell}</td>`).join('')}
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>`;
-
+      const tableContent = generateTableHtml();
       const newTable: Table = {
         id: Date.now().toString(),
         title: 'New Table',
@@ -95,7 +146,11 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
       onAddTable(newTable);
       setIsOpen(false);
       setCaption('');
-      setGridData([['', '', ''], ['', '', ''], ['', '', '']]);
+      setGridData([
+        [{ value: '', format: {} }, { value: '', format: {} }, { value: '', format: {} }],
+        [{ value: '', format: {} }, { value: '', format: {} }, { value: '', format: {} }],
+        [{ value: '', format: {} }, { value: '', format: {} }, { value: '', format: {} }]
+      ]);
       
       toast({
         title: "Table created successfully",
@@ -137,7 +192,7 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
             />
           </div>
           <div className="relative overflow-hidden rounded-lg border border-gray-200 shadow-sm">
-            <div className="excel-grid bg-white">
+            <div className="excel-grid">
               <div className="grid-controls flex justify-end gap-2 p-2 bg-gray-50 border-b">
                 <Button
                   variant="outline"
@@ -171,7 +226,7 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeColumn(colIndex)}
-                        className="h-6 w-6 p-0 hover:bg-red-50"
+                        className="h-6 w-6 p-0"
                         disabled={gridData[0].length <= 1}
                       >
                         <Minus className="h-3 w-3" />
@@ -187,19 +242,26 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
                           variant="ghost"
                           size="sm"
                           onClick={() => removeRow(rowIndex)}
-                          className="h-6 w-6 p-0 hover:bg-red-50"
+                          className="h-6 w-6 p-0"
                           disabled={gridData.length <= 1}
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
                       </div>
                       {row.map((cell, colIndex) => (
-                        <Input
-                          key={`cell-${rowIndex}-${colIndex}`}
-                          value={cell}
-                          onChange={(e) => updateCell(rowIndex, colIndex, e.target.value)}
-                          className="h-8 text-sm focus:ring-2 focus:ring-primary/20"
-                        />
+                        <div key={`cell-${rowIndex}-${colIndex}`} className="relative">
+                          <TableFormatControls
+                            onFormatChange={(format) => handleFormatChange(format, rowIndex, colIndex)}
+                            isHeader={rowIndex === 0}
+                          />
+                          <TableGridCell
+                            value={cell.value}
+                            onChange={(value) => updateCell(rowIndex, colIndex, value)}
+                            isHeader={rowIndex === 0}
+                            align={cell.format.align}
+                            format={cell.format}
+                          />
+                        </div>
                       ))}
                     </React.Fragment>
                   ))}
