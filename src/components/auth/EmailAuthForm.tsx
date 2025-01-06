@@ -7,9 +7,10 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface EmailAuthFormProps {
   mode: 'signin' | 'signup';
+  onModeChange: () => void;
 }
 
-export const EmailAuthForm = ({ mode }: EmailAuthFormProps) => {
+export const EmailAuthForm = ({ mode, onModeChange }: EmailAuthFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -58,42 +59,61 @@ export const EmailAuthForm = ({ mode }: EmailAuthFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <div className="relative">
-          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-          <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-            className="pl-10"
-          />
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+              className="pl-10"
+              required
+            />
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+              className="pl-10"
+              required
+              minLength={6}
+            />
+          </div>
         </div>
-        <div className="relative">
-          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+        <Button
+          type="submit"
+          className="w-full bg-primary hover:bg-primary-light"
+          disabled={loading}
+        >
+          {loading ? (
+            'Loading...'
+          ) : mode === 'signin' ? (
+            'Sign In'
+          ) : (
+            'Sign Up'
+          )}
+        </Button>
+      </form>
+      
+      <div className="text-center">
+        <Button
+          variant="link"
+          onClick={onModeChange}
+          className="text-sm text-gray-500 hover:text-gray-700"
+        >
+          {mode === 'signin' ? (
+            "Don't have an account? Sign up"
+          ) : (
+            'Already have an account? Sign in'
+          )}
+        </Button>
       </div>
-      <Button
-        type="submit"
-        className="w-full bg-primary"
-        disabled={loading}
-      >
-        {loading ? (
-          'Loading...'
-        ) : mode === 'signin' ? (
-          'Sign In'
-        ) : (
-          'Sign Up'
-        )}
-      </Button>
-    </form>
+    </div>
   );
 };

@@ -9,10 +9,15 @@ import LandingPage from './LandingPage';
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const navigate = useNavigate();
 
   const handleClose = () => {
     navigate('/');
+  };
+
+  const toggleAuthMode = () => {
+    setAuthMode(prev => prev === 'signin' ? 'signup' : 'signin');
   };
 
   return (
@@ -36,8 +41,14 @@ const Auth = () => {
           </Button>
 
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-            <p className="text-gray-400">Sign in to continue to your account</p>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              {authMode === 'signin' ? 'Welcome Back' : 'Create Account'}
+            </h1>
+            <p className="text-gray-400">
+              {authMode === 'signin' 
+                ? 'Sign in to continue to your account' 
+                : 'Sign up to get started'}
+            </p>
           </div>
 
           <div className="space-y-4">
@@ -52,7 +63,7 @@ const Auth = () => {
               </div>
             </div>
 
-            <EmailAuthForm mode="signin" />
+            <EmailAuthForm mode={authMode} onModeChange={toggleAuthMode} />
           </div>
 
           <p className="text-center text-sm text-gray-400">
