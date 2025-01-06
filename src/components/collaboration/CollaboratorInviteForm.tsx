@@ -42,6 +42,18 @@ export const CollaboratorInviteForm = ({
         throw new Error('User not found. Please make sure they have an account.');
       }
 
+      // Check if user is already a collaborator
+      const { data: existingCollaborator } = await supabase
+        .from('thesis_collaborators')
+        .select('id')
+        .eq('thesis_id', thesisId)
+        .eq('user_id', profiles.id)
+        .single();
+
+      if (existingCollaborator) {
+        throw new Error('This user is already a collaborator.');
+      }
+
       // Add collaborator
       const { error: collaboratorError } = await supabase
         .from('thesis_collaborators')
@@ -52,10 +64,8 @@ export const CollaboratorInviteForm = ({
         });
 
       if (collaboratorError) {
-        if (collaboratorError.code === '23505') {
-          throw new Error('This user is already a collaborator.');
-        }
-        throw collaboratorError;
+        console.error('Error adding collaborator:', collaboratorError);
+        throw new Error('Failed to add collaborator. Please try again.');
       }
 
       // Create notification
@@ -80,6 +90,12 @@ export const CollaboratorInviteForm = ({
 
       if (emailError) {
         console.error('Error sending invite email:', emailError);
+        // Don't throw here, as the collaboration was already created
+        toast({
+          title: "Warning",
+          description: "Collaborator added but email notification failed to send.",
+          variant: "warning",
+        });
       }
 
       toast({
