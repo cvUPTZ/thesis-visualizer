@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Settings, Plus } from 'lucide-react';
+import { Settings, Plus, LogOut } from 'lucide-react';
 import { ThesisList } from '@/components/thesis/ThesisList';
 import { GettingStartedWizard } from '@/components/onboarding/GettingStartedWizard';
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
@@ -9,10 +9,14 @@ import { UserProfile } from '@/components/dashboard/UserProfile';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { QuickTips } from '@/components/dashboard/QuickTips';
+import { useAuth } from '@/contexts/AuthContext';
+import { useDashboardData } from '@/hooks/useDashboardData';
 
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { handleLogout, userId } = useAuth();
+  const { userProfile, thesesStats, isLoading, error } = useDashboardData(userId);
 
   const handleCreateThesis = () => {
     navigate('/create-thesis');
@@ -37,6 +41,14 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-4">
             <Button 
+              onClick={handleLogout}
+              variant="outline"
+              className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-400/20 font-sans"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+            <Button 
               onClick={() => navigate('/admin')} 
               variant="outline"
               className="bg-[#7E69AB]/10 hover:bg-[#7E69AB]/20 text-[#D6BCFA] border-[#D6BCFA]/20 font-sans"
@@ -50,13 +62,13 @@ const Index = () => {
         {/* User Profile Section */}
         <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6 transition-all duration-200 hover:bg-white/10">
           <UserProfile 
-            email="user@example.com"
-            role="user"
+            email={userProfile?.email || 'Loading...'}
+            role={userProfile?.roles?.name || 'user'}
           />
         </div>
         
         {/* Stats Grid */}
-        <StatsGrid stats={{ total: 0, inProgress: 0, completed: 0 }} />
+        <StatsGrid stats={thesesStats || { total: 0, inProgress: 0, completed: 0 }} />
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
