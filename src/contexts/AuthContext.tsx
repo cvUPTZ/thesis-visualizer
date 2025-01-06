@@ -88,25 +88,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const handleLogout = async () => {
     console.log('🔄 Starting logout process...');
-    setLoading(true);
     try {
       const { error } = await supabase.auth.signOut();
       
-      // Handle session_not_found error gracefully
-      if (error && error.message.includes('session_not_found')) {
-        console.log('ℹ️ Session already expired, cleaning up local state');
-        setIsAuthenticated(false);
-        setUserId(null);
-        setUserEmail(null);
-        navigate('/auth');
-        toast({
-          title: "Logged out",
-          description: "Your session has expired. Please log in again.",
-        });
-        return;
-      }
-      
       if (error) {
+        // Handle session_not_found error gracefully
+        if (error.message.includes('session_not_found')) {
+          console.log('ℹ️ Session already expired, cleaning up local state');
+          setIsAuthenticated(false);
+          setUserId(null);
+          setUserEmail(null);
+          navigate('/auth');
+          toast({
+            title: "Session Expired",
+            description: "Your session has expired. Please log in again.",
+          });
+          return;
+        }
+        
+        // Handle other errors
         console.error('❌ Error during signOut:', error);
         toast({
           title: "Error signing out",
@@ -120,14 +120,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsAuthenticated(false);
       setUserId(null);
       setUserEmail(null);
-
+      
       toast({
         title: "Success",
         description: "You have been signed out successfully",
       });
       navigate('/auth');
     } catch (error: any) {
-      console.error('❌ Error during logout:', error);
+      console.error('❌ Unexpected error during logout:', error);
+      // Force cleanup of auth state even if there's an error
+      setIsAuthenticated(false);
+      setUserId(null);
+      setUserEmail(null);
+      
       toast({
         title: "Error",
         description: "An unexpected error occurred while signing out",
@@ -135,8 +140,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       // Force navigation to auth page even if there's an error
       navigate('/auth');
-    } finally {
-      setLoading(false);
     }
   };
 
