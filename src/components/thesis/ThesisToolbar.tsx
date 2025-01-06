@@ -18,14 +18,16 @@ export const ThesisToolbar = ({
 }: ThesisToolbarProps) => {
   const { 
     collaborators, 
-    canManageCollaborators, 
-    isAdmin, 
+    canManageCollaborators,
+    currentUserRole,
     loading 
   } = useCollaboratorPermissions(thesisId);
 
   if (loading) {
     return <div>Loading...</div>;
   }
+
+  const isAdmin = currentUserRole === 'admin';
 
   return (
     <div className="flex items-center justify-between w-full">
