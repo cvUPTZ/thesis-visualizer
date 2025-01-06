@@ -22,15 +22,18 @@ export const useThesesList = () => {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) {
         console.error('❌ No authenticated user found');
+        setError('Please sign in to view your theses');
         toast({
-          title: "Authentication Error",
+          title: "Authentication Required",
           description: "Please sign in to view your theses",
           variant: "destructive",
         });
         return;
       }
 
-      const { data, error: fetchError } = await supabase
+      console.log('🔑 User authenticated, fetching theses for user:', session.session.user.id);
+
+      const { data: thesesData, error: fetchError } = await supabase
         .from('theses')
         .select(`
           id,
@@ -44,7 +47,7 @@ export const useThesesList = () => {
 
       if (fetchError) {
         console.error('❌ Error fetching theses:', fetchError);
-        setError(fetchError.message);
+        setError('Failed to load your theses');
         toast({
           title: "Error",
           description: "Failed to load your theses. Please try again.",
@@ -53,10 +56,14 @@ export const useThesesList = () => {
         return;
       }
 
-      if (data) {
-        console.log('✅ Theses loaded:', data);
-        setThesisList(data as ThesisListItem[]);
+      if (!thesesData) {
+        console.log('ℹ️ No theses found for user');
+        setThesisList([]);
+        return;
       }
+
+      console.log('✅ Theses loaded successfully:', thesesData);
+      setThesisList(thesesData);
     } catch (error: any) {
       console.error('❌ Unexpected error:', error);
       setError(error.message);
