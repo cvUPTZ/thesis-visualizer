@@ -18,9 +18,9 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
   const handleAddTable = () => {
     const newTable: Table = {
       id: Date.now().toString(),
+      title: 'New Table',
       content: '<table><tr><td>New Table</td></tr></table>',
-      caption: '',
-      number: 1
+      caption: ''
     };
     onAddTable(newTable);
   };
@@ -37,7 +37,6 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
         <DialogHeader>
           <DialogTitle>Add Table</DialogTitle>
         </DialogHeader>
-        {/* Table creation form content */}
         <div className="space-y-4">
           <textarea
             placeholder="Enter table content..."

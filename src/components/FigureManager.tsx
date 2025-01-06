@@ -34,15 +34,25 @@ export const FigureManager = ({
     const reader = new FileReader();
     reader.onloadend = () => {
       const imageUrl = reader.result as string;
-      const newFigure: Figure = {
-        id: Date.now().toString(),
-        imageUrl,
-        caption: '',
-        altText: '',
-        number: (figures?.length || 0) + 1
+      
+      // Create a temporary image to get dimensions
+      const img = new Image();
+      img.onload = () => {
+        const newFigure: Figure = {
+          id: Date.now().toString(),
+          imageUrl,
+          caption: '',
+          altText: '',
+          number: (figures?.length || 0) + 1,
+          dimensions: {
+            width: img.width,
+            height: img.height
+          }
+        };
+        onAddFigure(newFigure);
+        setIsAddingFigure(false);
       };
-      onAddFigure(newFigure);
-      setIsAddingFigure(false);
+      img.src = imageUrl;
     };
     reader.readAsDataURL(file);
   };
