@@ -73,50 +73,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     console.log('🔄 Starting logout process...');
     
     try {
-      // First check if we have a valid session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        console.log('⚠️ No active session found, clearing local state...');
-        setIsAuthenticated(false);
-        setUserId(null);
-        setUserEmail(null);
-        navigate('/auth');
-        return;
-      }
-      
-      // Attempt to sign out with the valid session
-      const { error } = await supabase.auth.signOut({
-        scope: 'local' // Changed from 'global' to 'local' to avoid session issues
-      });
-      
-      if (error) {
-        console.error('❌ Error during signOut:', error);
-        throw error;
-      }
-      
-      console.log('✅ Supabase signOut successful');
-      
-      // Update local state after successful signOut
+      // First clear the local state
       setIsAuthenticated(false);
       setUserId(null);
       setUserEmail(null);
+
+      // Then attempt to sign out from Supabase
+      await supabase.auth.signOut();
+      
+      console.log('✅ Logout successful');
       
       toast({
         title: "Logged out successfully",
         description: "You have been signed out of your account.",
       });
       
-      // Navigate to auth page after successful logout
+      // Navigate to auth page
       navigate('/auth');
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Error during logout:', error);
-      
-      // Clear local state even if there's an error
-      setIsAuthenticated(false);
-      setUserId(null);
-      setUserEmail(null);
       
       toast({
         title: "Error signing out",
@@ -124,7 +100,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         variant: "destructive",
       });
       
-      // Redirect to auth page even if there's an error
+      // Navigate to auth page even if there's an error
       navigate('/auth');
     }
   };
