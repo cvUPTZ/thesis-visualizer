@@ -100,14 +100,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      console.log('🔄 Starting logout process...');
       
+      // First update local state
+      setIsAuthenticated(false);
+      setUserId(null);
+      setUserEmail(null);
+      
+      // Then sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('❌ Error during signOut:', error);
+        throw error;
+      }
+      
+      console.log('✅ Logout successful');
       toast({
         title: "Logged out successfully",
         description: "You have been signed out of your account.",
       });
       
+      // Finally navigate to auth page
       navigate('/auth');
     } catch (error: any) {
       console.error('❌ Error during logout:', error);
@@ -116,6 +129,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
+      
+      // Even if there's an error, we should redirect to auth page
+      navigate('/auth');
     }
   };
 
