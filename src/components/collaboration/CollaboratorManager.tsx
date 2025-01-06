@@ -28,10 +28,12 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
     } = useCollaboratorPermissions(thesisId);
 
     useEffect(() => {
-        // Check session on component mount
+        console.log('🔄 Setting up CollaboratorManager subscription for thesis:', thesisId);
+        
         const checkSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
+                console.log('❌ No active session found');
                 toast({
                     title: "Session Expired",
                     description: "Please log in again to continue.",
@@ -39,42 +41,61 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
                 });
                 return;
             }
+            console.log('✅ Session active for user:', session.user.email);
         };
         
         checkSession();
 
-        const inviteSubscription = supabase
-            .channel(`thesis-invites-${thesisId}`)
-            .on('postgres_changes', {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'thesis_collaborators',
-                filter: `thesis_id=eq.${thesisId}`,
-            }, async (payload) => {
-                console.log('New collaborator added:', payload.new);
-                setHasNewInvites(true);
-                
-                // Fetch the new collaborator's profile information
-                const { data: profileData } = await supabase
-                    .from('profiles')
-                    .select('email')
-                    .eq('id', payload.new.user_id)
-                    .single();
+        // Subscribe to thesis collaborator changes
+        const channel = supabase
+            .channel(`thesis_collaborators_${thesisId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'thesis_collaborators',
+                    filter: `thesis_id=eq.${thesisId}`,
+                },
+                async (payload) => {
+                    console.log('📥 New collaborator event received:', payload);
+                    setHasNewInvites(true);
+                    
+                    try {
+                        // Fetch the new collaborator's profile information
+                        const { data: profileData, error: profileError } = await supabase
+                            .from('profiles')
+                            .select('email')
+                            .eq('id', payload.new.user_id)
+                            .single();
 
-                const collaboratorEmail = profileData?.email || 'A new collaborator';
-                
-                toast({
-                    title: "New Collaborator Joined",
-                    description: `${collaboratorEmail} has joined as a ${payload.new.role}.`,
-                });
-                fetchCollaborators();
-            })
+                        if (profileError) {
+                            console.error('❌ Error fetching profile:', profileError);
+                            throw profileError;
+                        }
+
+                        const collaboratorEmail = profileData?.email || 'A new collaborator';
+                        console.log('✉️ Collaborator email:', collaboratorEmail);
+                        
+                        toast({
+                            title: "New Collaborator Joined",
+                            description: `${collaboratorEmail} has joined as a ${payload.new.role}.`,
+                        });
+
+                        // Refresh the collaborators list
+                        await fetchCollaborators();
+                    } catch (error) {
+                        console.error('❌ Error handling new collaborator:', error);
+                    }
+                }
+            )
             .subscribe((status) => {
-                console.log('Subscription status:', status);
+                console.log('📡 Subscription status:', status);
             });
 
         return () => {
-            inviteSubscription.unsubscribe();
+            console.log('🧹 Cleaning up subscription');
+            supabase.removeChannel(channel);
         };
     }, [thesisId, toast, fetchCollaborators]);
 
@@ -93,6 +114,7 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
     }
 
     if (error) {
+        console.error('❌ Error in CollaboratorManager:', error);
         toast({
             title: "Error",
             description: error.message || "Failed to load collaborators.",
@@ -103,7 +125,7 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
 
     return (
         <div>
-            <div onClick={handleClearNotification} className="relative ml-auto">
+            <div onClick={handleClearNotification} className="relative ml-auto cursor-pointer">
                 {hasNewInvites ? (
                     <BellRing className="w-6 h-6 text-blue-500 animate-bounce" />
                 ) : (
@@ -111,6 +133,7 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
                 )}
                 {hasNewInvites && (
                     <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">
+                        !
                     </span>
                 )}
             </div>
@@ -126,6 +149,7 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
                             thesisTitle={thesisTitle}
                             onInviteSuccess={fetchCollaborators}
                             onInviteError={(error: Error) => {
+                                console.error('❌ Error inviting collaborator:', error);
                                 toast({
                                     title: "Error",
                                     description: error.message || "Failed to invite collaborator.",
