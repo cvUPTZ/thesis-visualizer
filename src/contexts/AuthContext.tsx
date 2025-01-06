@@ -32,12 +32,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     const initSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('❌ Error getting session:', sessionError);
+          return;
+        }
+
         if (session) {
-          console.log('✅ Stored session found:', session.user.email);
+          console.log('✅ Valid session found:', session.user.email);
           setIsAuthenticated(true);
           setUserId(session.user.id);
           setUserEmail(session.user.email);
+        } else {
+          console.log('ℹ️ No active session');
+          setIsAuthenticated(false);
+          setUserId(null);
+          setUserEmail(null);
         }
       } catch (error) {
         console.error('❌ Error initializing session:', error);
@@ -54,8 +65,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsAuthenticated(true);
         setUserId(session.user.id);
         setUserEmail(session.user.email);
-      } else if (event === 'SIGNED_OUT') {
-        console.log('👋 User signed out');
+      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        console.log('👋 User signed out or token refreshed');
         setIsAuthenticated(false);
         setUserId(null);
         setUserEmail(null);
@@ -72,21 +83,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleLogout = async () => {
     console.log('🔄 Starting logout process...');
     
-    // Clear local state first
+    // Clear local state immediately
     setIsAuthenticated(false);
     setUserId(null);
     setUserEmail(null);
 
     try {
-      // Attempt to sign out from Supabase
-      const { error } = await supabase.auth.signOut();
+      // Try to get current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log('ℹ️ No active session to logout from');
+        navigate('/auth');
+        return;
+      }
+
+      // Attempt to sign out
+      const { error } = await supabase.auth.signOut({
+        scope: 'local'
+      });
       
       if (error) {
         console.error('❌ Error during signOut:', error);
         toast({
-          title: "Warning",
-          description: "You have been signed out locally. Please refresh the page.",
-          variant: "destructive",
+          title: "Notice",
+          description: "You have been signed out locally.",
         });
       } else {
         console.log('✅ Logout successful');
@@ -98,18 +119,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error('❌ Error during logout:', error);
       toast({
-        title: "Warning",
-        description: "You have been signed out locally. Please refresh the page.",
-        variant: "destructive",
+        title: "Notice",
+        description: "You have been signed out locally.",
       });
     } finally {
       // Always navigate to auth page
-      console.log('🔄 Navigating to auth page...');
       navigate('/auth');
     }
   };
-
-  console.log('🔐 Auth state:', isAuthenticated);
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, userId, userEmail, handleLogout }}>
