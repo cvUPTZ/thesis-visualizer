@@ -5,6 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
@@ -17,14 +19,20 @@ interface TableDialogProps {
 export const TableDialog = ({ onAddTable }: TableDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [caption, setCaption] = useState('');
-  const [sheetUrl, setSheetUrl] = useState('');
   const { toast } = useToast();
+
+  // Create a new spreadsheet when dialog opens
+  const handleOpenDialog = () => {
+    window.open('https://docs.google.com/spreadsheets/create', '_blank');
+    setIsOpen(true);
+  };
 
   const handleSave = () => {
     try {
-      console.log('📊 Saving table from Google Sheets');
+      console.log('📊 Creating table from Google Sheets');
       
-      if (!sheetUrl) {
+      const sheetUrl = document.getElementById('sheet-url') as HTMLInputElement;
+      if (!sheetUrl?.value) {
         toast({
           title: "Error",
           description: "Please enter a Google Sheets URL",
@@ -34,7 +42,7 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
       }
 
       // Extract the embedded HTML from Google Sheets
-      const embedUrl = sheetUrl.replace('/edit', '/preview');
+      const embedUrl = sheetUrl.value.replace('/edit', '/preview');
       const tableContent = `
         <div class="google-sheets-table">
           <iframe 
@@ -54,7 +62,6 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
 
       onAddTable(newTable);
       setIsOpen(false);
-      setSheetUrl('');
       setCaption('');
       
       toast({
@@ -75,21 +82,32 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 bg-white shadow-md hover:bg-gray-50">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="gap-2 bg-white shadow-md hover:bg-gray-50"
+          onClick={handleOpenDialog}
+        >
           <Table2 className="w-4 h-4" />
           Add Table
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Create Table with Google Sheets</DialogTitle>
+        </DialogHeader>
         <div className="space-y-6">
           <div>
-            <h2 className="text-lg font-semibold mb-4">Create Table from Google Sheets</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              1. Create your table in Google Sheets
+              Follow these steps to create your table:
               <br />
-              2. Click "Share" and set to "Anyone with the link can view"
+              1. A new Google Sheet has opened in a new tab
               <br />
-              3. Copy the URL and paste it below
+              2. Create your table in Google Sheets
+              <br />
+              3. Click "Share" and set to "Anyone with the link can view"
+              <br />
+              4. Copy the URL and paste it below
             </p>
           </div>
 
@@ -99,8 +117,7 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
                 Google Sheets URL
               </label>
               <Input
-                value={sheetUrl}
-                onChange={(e) => setSheetUrl(e.target.value)}
+                id="sheet-url"
                 placeholder="https://docs.google.com/spreadsheets/d/..."
                 className="w-full"
               />
