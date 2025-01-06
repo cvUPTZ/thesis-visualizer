@@ -27,11 +27,13 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
   const { toast } = useToast();
 
   const addColumn = () => {
+    console.log('📊 Adding new column to table');
     setGridData(gridData.map(row => [...row, { value: '', format: {} }]));
   };
 
   const removeColumn = (index: number) => {
     if (gridData[0].length > 1) {
+      console.log('📊 Removing column at index:', index);
       setGridData(gridData.map(row => {
         const newRow = [...row];
         newRow.splice(index, 1);
@@ -41,11 +43,13 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
   };
 
   const addRow = () => {
+    console.log('📊 Adding new row to table');
     setGridData([...gridData, Array(gridData[0].length).fill({ value: '', format: {} })]);
   };
 
   const removeRow = (index: number) => {
     if (gridData.length > 1) {
+      console.log('📊 Removing row at index:', index);
       const newData = [...gridData];
       newData.splice(index, 1);
       setGridData(newData);
@@ -53,6 +57,7 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
   };
 
   const updateCell = (rowIndex: number, colIndex: number, value: string) => {
+    console.log(`📊 Updating cell at [${rowIndex}, ${colIndex}] with value:`, value);
     const newData = [...gridData];
     newData[rowIndex][colIndex] = {
       ...newData[rowIndex][colIndex],
@@ -62,6 +67,7 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
   };
 
   const handleFormatChange = (format: string, rowIndex: number, colIndex: number) => {
+    console.log(`📊 Applying format "${format}" to cell at [${rowIndex}, ${colIndex}]`);
     const newData = [...gridData];
     const currentFormat = { ...newData[rowIndex][colIndex].format };
 
@@ -132,6 +138,7 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
 
   const handleSave = () => {
     try {
+      console.log('📊 Saving table...');
       const tableContent = generateTableHtml();
       const newTable: Table = {
         id: Date.now().toString(),
@@ -153,8 +160,9 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
         title: "Table created successfully",
         description: "Your table has been added to the document",
       });
+      console.log('✅ Table saved successfully');
     } catch (error) {
-      console.error('Error creating table:', error);
+      console.error('❌ Error creating table:', error);
       toast({
         title: "Error creating table",
         description: "Please try again",

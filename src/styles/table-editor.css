@@ -1,20 +1,22 @@
 .table-editor-grid {
-  @apply relative overflow-hidden rounded-lg border border-gray-200 shadow-sm;
+  @apply relative overflow-hidden rounded-lg border border-gray-200 shadow-sm bg-white;
 }
 
 .table-editor-cell {
-  @apply transition-all duration-150 ease-in-out;
-  @apply focus:ring-2 focus:ring-primary/20;
+  @apply h-10 px-4 transition-all duration-150 ease-in-out;
+  @apply focus:ring-2 focus:ring-primary/20 focus:outline-none;
   @apply hover:bg-blue-50/30 focus:bg-blue-50/50;
+  @apply border border-gray-200;
 }
 
 .table-editor-header {
   @apply bg-gray-50 font-semibold;
+  @apply hover:bg-gray-100;
 }
 
 .table-editor-controls {
   @apply sticky top-0 z-10;
-  @apply bg-white/90 backdrop-blur-sm border-b;
+  @apply bg-white/90 backdrop-blur-sm border-b border-gray-200;
   @apply p-2 flex items-center gap-2;
 }
 
@@ -22,8 +24,47 @@
   @apply h-8 w-8 p-0 rounded-md;
   @apply hover:bg-gray-100 focus:ring-2 focus:ring-primary/20;
   @apply transition-colors duration-150;
+  @apply flex items-center justify-center;
 }
 
 .format-button.active {
   @apply bg-primary/10 text-primary;
+}
+
+.format-group {
+  @apply flex items-center gap-1 px-2;
+  @apply border-r border-gray-200 last:border-r-0;
+}
+
+.table-preview {
+  @apply mt-4 rounded-lg overflow-hidden;
+  @apply border border-gray-200;
+  @apply bg-white;
+}
+
+.table-preview table {
+  @apply w-full border-collapse;
+}
+
+.table-preview th {
+  @apply bg-gray-50 font-semibold p-3 border border-gray-200;
+  @apply text-sm text-gray-700;
+}
+
+.table-preview td {
+  @apply p-3 border border-gray-200;
+  @apply text-sm text-gray-600;
+}
+
+.header-controls {
+  @apply flex items-center gap-2 p-2;
+  @apply bg-gray-50/80 backdrop-blur-sm;
+  @apply border-b border-gray-200;
+}
+
+.cell-controls {
+  @apply absolute top-0 left-0 right-0;
+  @apply bg-white shadow-sm;
+  @apply opacity-0 group-hover:opacity-100;
+  @apply transition-opacity duration-200;
 }

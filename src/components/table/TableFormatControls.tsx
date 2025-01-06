@@ -9,7 +9,6 @@ import {
   Underline,
   Heading,
   Type,
-  ArrowUpDown,
   MinusSquare
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -33,13 +32,13 @@ export const TableFormatControls = ({
   activeFormats = {}
 }: TableFormatControlsProps) => {
   return (
-    <div className="flex items-center gap-2 p-2 bg-white/50 backdrop-blur-sm border-b border-gray-200">
-      <div className="flex items-center gap-1">
+    <div className="table-editor-controls">
+      <div className="format-group">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => onFormatChange('align-left')}
-          className={cn("h-8 w-8 p-0", activeFormats.align === 'left' && "bg-gray-100")}
+          className={cn("format-button", activeFormats.align === 'left' && "active")}
         >
           <AlignLeft className="h-4 w-4" />
         </Button>
@@ -47,7 +46,7 @@ export const TableFormatControls = ({
           variant="ghost"
           size="sm"
           onClick={() => onFormatChange('align-center')}
-          className={cn("h-8 w-8 p-0", activeFormats.align === 'center' && "bg-gray-100")}
+          className={cn("format-button", activeFormats.align === 'center' && "active")}
         >
           <AlignCenter className="h-4 w-4" />
         </Button>
@@ -55,7 +54,7 @@ export const TableFormatControls = ({
           variant="ghost"
           size="sm"
           onClick={() => onFormatChange('align-right')}
-          className={cn("h-8 w-8 p-0", activeFormats.align === 'right' && "bg-gray-100")}
+          className={cn("format-button", activeFormats.align === 'right' && "active")}
         >
           <AlignRight className="h-4 w-4" />
         </Button>
@@ -63,12 +62,12 @@ export const TableFormatControls = ({
       
       <Separator orientation="vertical" className="h-6" />
       
-      <div className="flex items-center gap-1">
+      <div className="format-group">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => onFormatChange('bold')}
-          className={cn("h-8 w-8 p-0", activeFormats.bold && "bg-gray-100")}
+          className={cn("format-button", activeFormats.bold && "active")}
         >
           <Bold className="h-4 w-4" />
         </Button>
@@ -76,7 +75,7 @@ export const TableFormatControls = ({
           variant="ghost"
           size="sm"
           onClick={() => onFormatChange('italic')}
-          className={cn("h-8 w-8 p-0", activeFormats.italic && "bg-gray-100")}
+          className={cn("format-button", activeFormats.italic && "active")}
         >
           <Italic className="h-4 w-4" />
         </Button>
@@ -84,7 +83,7 @@ export const TableFormatControls = ({
           variant="ghost"
           size="sm"
           onClick={() => onFormatChange('underline')}
-          className={cn("h-8 w-8 p-0", activeFormats.underline && "bg-gray-100")}
+          className={cn("format-button", activeFormats.underline && "active")}
         >
           <Underline className="h-4 w-4" />
         </Button>
@@ -93,47 +92,40 @@ export const TableFormatControls = ({
       {isHeader && (
         <>
           <Separator orientation="vertical" className="h-6" />
-          <div className="flex items-center gap-1">
+          <div className="format-group">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onFormatChange('header-primary')}
               className={cn(
-                "h-8 px-3 flex items-center gap-1",
-                activeFormats.headerStyle === 'primary' && "bg-gray-100"
+                "format-button",
+                activeFormats.headerStyle === 'primary' && "active"
               )}
+              title="Primary Header Style"
             >
               <Heading className="h-4 w-4" />
-              <span className="text-sm">Primary</span>
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onFormatChange('header-secondary')}
               className={cn(
-                "h-8 px-3 flex items-center gap-1",
-                activeFormats.headerStyle === 'secondary' && "bg-gray-100"
+                "format-button",
+                activeFormats.headerStyle === 'secondary' && "active"
               )}
+              title="Secondary Header Style"
             >
               <Type className="h-4 w-4" />
-              <span className="text-sm">Secondary</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onFormatChange('header-sort')}
-              className="h-8 w-8 p-0"
-            >
-              <ArrowUpDown className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onFormatChange('header-none')}
               className={cn(
-                "h-8 w-8 p-0",
-                activeFormats.headerStyle === 'none' && "bg-gray-100"
+                "format-button",
+                activeFormats.headerStyle === 'none' && "active"
               )}
+              title="Remove Header Style"
             >
               <MinusSquare className="h-4 w-4" />
             </Button>
