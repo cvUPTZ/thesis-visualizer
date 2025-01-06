@@ -37,7 +37,6 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
                     description: "Please log in again to continue.",
                     variant: "destructive",
                 });
-                // Redirect to login or handle session expiration
                 return;
             }
         };
@@ -45,22 +44,34 @@ export const CollaboratorManager = ({ thesisId, thesisTitle }: CollaboratorManag
         checkSession();
 
         const inviteSubscription = supabase
-            .channel('thesis-invites')
+            .channel(`thesis-invites-${thesisId}`)
             .on('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
                 table: 'thesis_collaborators',
                 filter: `thesis_id=eq.${thesisId}`,
-            }, (payload) => {
+            }, async (payload) => {
                 console.log('New collaborator added:', payload.new);
                 setHasNewInvites(true);
+                
+                // Fetch the new collaborator's profile information
+                const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('email')
+                    .eq('id', payload.new.user_id)
+                    .single();
+
+                const collaboratorEmail = profileData?.email || 'A new collaborator';
+                
                 toast({
-                    title: "New Collaborator",
-                    description: `A new collaborator has been added.`,
+                    title: "New Collaborator Joined",
+                    description: `${collaboratorEmail} has joined as a ${payload.new.role}.`,
                 });
                 fetchCollaborators();
             })
-            .subscribe();
+            .subscribe((status) => {
+                console.log('Subscription status:', status);
+            });
 
         return () => {
             inviteSubscription.unsubscribe();
