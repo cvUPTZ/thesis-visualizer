@@ -63,7 +63,22 @@ export const EmailAuthForm = ({ mode, onModeChange }: EmailAuthFormProps) => {
         console.log('🔑 Signin response:', response);
         
         if (response.error) {
-          throw response.error;
+          if (response.error.message === 'Invalid login credentials') {
+            toast({
+              title: "Invalid Credentials",
+              description: "The email or password you entered is incorrect. Please try again.",
+              variant: "destructive",
+            });
+          } else if (response.error.message.includes('Email not confirmed')) {
+            toast({
+              title: "Email Not Verified",
+              description: "Please check your email and verify your account before signing in.",
+              variant: "destructive",
+            });
+          } else {
+            throw response.error;
+          }
+          return;
         }
         
         toast({
