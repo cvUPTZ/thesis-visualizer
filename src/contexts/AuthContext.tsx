@@ -73,34 +73,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     console.log('🔄 Starting logout process...');
     
     try {
-      // First clear the local state
+      // Get current session
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Current session:', session);
+
+      // Clear local state first to prevent UI issues
       setIsAuthenticated(false);
       setUserId(null);
       setUserEmail(null);
 
-      // Then attempt to sign out from Supabase
-      await supabase.auth.signOut();
-      
-      console.log('✅ Logout successful');
+      // Only attempt to sign out if we have a session
+      if (session) {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error('❌ Error during signOut:', error);
+          throw error;
+        }
+        console.log('✅ Supabase signOut successful');
+      } else {
+        console.log('ℹ️ No active session to sign out from');
+      }
       
       toast({
         title: "Logged out successfully",
         description: "You have been signed out of your account.",
       });
       
-      // Navigate to auth page
-      navigate('/auth');
-      
     } catch (error) {
       console.error('❌ Error during logout:', error);
-      
       toast({
         title: "Error signing out",
         description: "You have been signed out locally. Please refresh the page.",
         variant: "destructive",
       });
-      
-      // Navigate to auth page even if there's an error
+    } finally {
+      // Always navigate to auth page
+      console.log('🔄 Navigating to auth page...');
       navigate('/auth');
     }
   };
