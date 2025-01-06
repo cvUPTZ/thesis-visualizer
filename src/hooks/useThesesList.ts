@@ -38,7 +38,7 @@ export const useThesesList = () => {
         .select(`
           id,
           title,
-          thesis_collaborators!inner (
+          thesis_collaborators!inner(
             user_id,
             role
           )
