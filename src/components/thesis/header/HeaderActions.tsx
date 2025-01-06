@@ -14,13 +14,13 @@ export const HeaderActions = ({
   onTogglePreview,
   onSaveToJson,
 }: HeaderActionsProps) => {
-  const { logout } = useAuth();
+  const { handleLogout } = useAuth();
   const { toast } = useToast();
 
-  const handleLogout = async () => {
+  const handleLogoutClick = async () => {
     try {
       console.log('🔄 Initiating logout from HeaderActions...');
-      await logout();
+      await handleLogout();
     } catch (error) {
       console.error('❌ Error during logout:', error);
       toast({
@@ -63,7 +63,7 @@ export const HeaderActions = ({
       <Button
         variant="outline"
         size="sm"
-        onClick={handleLogout}
+        onClick={handleLogoutClick}
         className="gap-2"
       >
         <LogOut className="w-4 h-4" />

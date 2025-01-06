@@ -2,16 +2,19 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { AuthError, AuthResponse, User, AuthChangeEvent } from '@supabase/supabase-js';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   userId: string | null;
+  userEmail: string | null;
   handleLogout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   userId: null,
+  userEmail: null,
   handleLogout: async () => {},
 });
 
@@ -20,6 +23,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -33,21 +37,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           console.log('✅ Stored session found:', session.user.email);
           setIsAuthenticated(true);
           setUserId(session.user.id);
+          setUserEmail(session.user.email);
         } else {
           console.log('ℹ️ No stored session found');
           setIsAuthenticated(false);
           setUserId(null);
+          setUserEmail(null);
         }
       } catch (error) {
         console.error('❌ Error initializing session:', error);
         setIsAuthenticated(false);
         setUserId(null);
+        setUserEmail(null);
       }
     };
 
     initSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
       console.log('🔄 Auth state changed:', event, session?.user?.email);
 
       switch (event) {
@@ -56,6 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             console.log('✅ User signed in:', session.user.email);
             setIsAuthenticated(true);
             setUserId(session.user.id);
+            setUserEmail(session.user.email);
             navigate('/');
           }
           break;
@@ -64,6 +72,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           console.log('👋 User signed out');
           setIsAuthenticated(false);
           setUserId(null);
+          setUserEmail(null);
           navigate('/auth');
           break;
 
@@ -72,12 +81,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (session?.user) {
             setIsAuthenticated(true);
             setUserId(session.user.id);
+            setUserEmail(session.user.email);
           }
           break;
 
-        case 'USER_DELETED':
         case 'USER_UPDATED':
-          console.log('👤 User profile updated:', event);
+          console.log('👤 User profile updated');
           await initSession();
           break;
       }
@@ -113,7 +122,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   console.log('🔐 Auth state:', isAuthenticated);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userId, handleLogout }}>
+    <AuthContext.Provider value={{ isAuthenticated, userId, userEmail, handleLogout }}>
       {children}
     </AuthContext.Provider>
   );
