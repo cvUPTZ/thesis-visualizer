@@ -19,7 +19,7 @@ export const EmailAuthForm = ({ mode, onModeChange }: EmailAuthFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    console.log(`Attempting to ${mode} with email:`, email);
+    console.log(`🔐 Attempting to ${mode} with email:`, email);
 
     try {
       let response;
@@ -27,8 +27,28 @@ export const EmailAuthForm = ({ mode, onModeChange }: EmailAuthFormProps) => {
         response = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth`,
+            data: {
+              email: email,
+            }
+          }
         });
-        if (response.error) throw response.error;
+        
+        console.log('📧 Signup response:', response);
+        
+        if (response.error) {
+          throw response.error;
+        }
+        
+        if (response.data?.user?.identities?.length === 0) {
+          toast({
+            title: "Account Exists",
+            description: "An account with this email already exists. Please sign in instead.",
+            variant: "destructive",
+          });
+          return;
+        }
         
         toast({
           title: "Success",
@@ -39,7 +59,12 @@ export const EmailAuthForm = ({ mode, onModeChange }: EmailAuthFormProps) => {
           email,
           password,
         });
-        if (response.error) throw response.error;
+        
+        console.log('🔑 Signin response:', response);
+        
+        if (response.error) {
+          throw response.error;
+        }
         
         toast({
           title: "Success",
@@ -47,7 +72,7 @@ export const EmailAuthForm = ({ mode, onModeChange }: EmailAuthFormProps) => {
         });
       }
     } catch (error: any) {
-      console.error(`Error during ${mode}:`, error);
+      console.error(`❌ Error during ${mode}:`, error);
       toast({
         title: "Error",
         description: error.message || `Failed to ${mode}. Please try again.`,
