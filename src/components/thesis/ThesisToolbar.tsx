@@ -7,10 +7,7 @@ import { generateThesisDocx, generatePreviewDocx } from '@/utils/docxExport';
 import { Packer } from 'docx';
 import { useToast } from '@/hooks/use-toast';
 import { UserInfo } from './UserInfo';
-import { CollaboratorSection } from './toolbar/CollaboratorSection';
 import { useUser } from '@/hooks/useUser';
-import { useCollaboratorPermissions } from '@/hooks/useCollaboratorPermissions';
-import { CollaboratorWithProfile } from '@/types/collaborator';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -36,14 +33,6 @@ export const ThesisToolbar = ({
   const { toast } = useToast();
   const navigate = useNavigate();
   const { userEmail, userRole } = useUser();
-  const {
-    collaborators,
-    canManageCollaborators,
-    currentUserRole,
-    userProfile,
-    loading,
-    error,
-  } = useCollaboratorPermissions(thesisId);
 
   const handleLogout = async () => {
     try {
@@ -111,8 +100,6 @@ export const ThesisToolbar = ({
     }
   };
 
-  const canManageCollaboratorsProp = currentUserRole === 'owner' || currentUserRole === 'admin' || userProfile?.roles?.name === 'admin';
-
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -134,13 +121,6 @@ export const ThesisToolbar = ({
           </DropdownMenuContent>
         </DropdownMenu>
         {userEmail && <UserInfo email={userEmail} role={userRole} />}
-        <CollaboratorSection
-          collaborators={collaborators as CollaboratorWithProfile[]}
-          thesisId={thesisId}
-          thesisTitle={thesisData.frontMatter[0]?.title || 'Untitled Thesis'}
-          canManageCollaborators={canManageCollaboratorsProp}
-          isAdmin={userProfile?.roles?.name === 'admin'}
-        />
       </div>
       <div className="flex items-center gap-2">
         <Button onClick={onTogglePreview} variant="outline" className="gap-2">
