@@ -20,11 +20,12 @@ interface TableDialogProps {
 export const TableDialog = ({ onAddTable }: TableDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [caption, setCaption] = useState('');
+  const [sheetUrl, setSheetUrl] = useState('');
   const { toast } = useToast();
 
-  // Create a new spreadsheet when dialog opens
   const handleOpenDialog = () => {
-    window.open('https://docs.google.com/spreadsheets/create', '_blank');
+    const newSheetUrl = 'https://docs.google.com/spreadsheets/d/1/edit';
+    setSheetUrl(newSheetUrl);
     setIsOpen(true);
   };
 
@@ -32,18 +33,17 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
     try {
       console.log('📊 Creating table from Google Sheets');
       
-      const sheetUrl = document.getElementById('sheet-url') as HTMLInputElement;
-      if (!sheetUrl?.value) {
+      if (!sheetUrl) {
         toast({
           title: "Error",
-          description: "Please enter a Google Sheets URL",
+          description: "Please enter your table data in Google Sheets",
           variant: "destructive",
         });
         return;
       }
 
       // Extract the embedded HTML from Google Sheets
-      const embedUrl = sheetUrl.value.replace('/edit', '/preview');
+      const embedUrl = sheetUrl.replace('/edit', '/preview');
       const tableContent = `
         <div class="google-sheets-table">
           <iframe 
@@ -64,6 +64,7 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
       onAddTable(newTable);
       setIsOpen(false);
       setCaption('');
+      setSheetUrl('');
       
       toast({
         title: "Success",
@@ -93,39 +94,32 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
           Add Table
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl h-[80vh]">
         <DialogHeader>
           <DialogTitle>Create Table with Google Sheets</DialogTitle>
         </DialogHeader>
-        <div className="space-y-6">
+        <div className="flex flex-col h-full space-y-4">
           <Alert>
             <AlertDescription>
-              <ol className="list-decimal pl-4 space-y-2">
-                <li>A new Google Sheet has opened in a new tab</li>
-                <li><strong>Enter your data</strong> in the Google Sheet</li>
-                <li>Click the "Share" button in the top right</li>
-                <li>Change access to "Anyone with the link can view"</li>
-                <li>Copy the URL from your browser's address bar</li>
-                <li>Paste the URL below</li>
+              <p className="mb-2">Create your table directly in Google Sheets below:</p>
+              <ol className="list-decimal pl-4 space-y-1">
+                <li>Enter your data in the embedded Google Sheet</li>
+                <li>Click "Share" in the top right and set to "Anyone with the link can view"</li>
+                <li>Add a descriptive caption for your table</li>
+                <li>Click "Create Table" when you're done</li>
               </ol>
             </AlertDescription>
           </Alert>
 
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-1.5 block text-gray-700">
-                Google Sheets URL
-              </label>
-              <Input
-                id="sheet-url"
-                placeholder="https://docs.google.com/spreadsheets/d/..."
-                className="w-full"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Make sure your sheet is set to "Anyone with the link can view"
-              </p>
-            </div>
+          <div className="flex-grow border rounded-lg overflow-hidden bg-white">
+            <iframe 
+              src="https://docs.google.com/spreadsheets/d/1/edit?usp=sharing&embedded=true"
+              className="w-full h-full border-none"
+              title="Google Sheets Table Editor"
+            />
+          </div>
 
+          <div className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-1.5 block text-gray-700">
                 Table Caption
@@ -140,22 +134,22 @@ export const TableDialog = ({ onAddTable }: TableDialogProps) => {
                 A good caption helps readers understand your table's content
               </p>
             </div>
-          </div>
 
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsOpen(false)}
-              className="hover:bg-gray-50"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSave}
-              className="bg-primary hover:bg-primary/90"
-            >
-              Create Table
-            </Button>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+                className="hover:bg-gray-50"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSave}
+                className="bg-primary hover:bg-primary/90"
+              >
+                Create Table
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
