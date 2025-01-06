@@ -89,6 +89,10 @@ export const ThesisCreationForm = () => {
     handleArrayChange('committeeMembers', index, value)
   }
 
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto p-6 relative">
       <Button
@@ -120,9 +124,23 @@ export const ThesisCreationForm = () => {
               handleCommitteeMemberChange={handleCommitteeMemberChange}
             />
             
-            <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? 'Creating...' : 'Create Thesis'}
-            </Button>
+            <div className="flex gap-4">
+              <Button 
+                type="submit" 
+                disabled={isSubmitting} 
+                className="flex-1"
+              >
+                {isSubmitting ? 'Creating...' : 'Create Thesis'}
+              </Button>
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={handleCancel}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
