@@ -88,58 +88,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const handleLogout = async () => {
     console.log('🔄 Starting logout process...');
+    setLoading(true);
+    
     try {
-      const { error } = await supabase.auth.signOut();
+      // First, clear local session state
+      setIsAuthenticated(false);
+      setUserId(null);
+      setUserEmail(null);
+      
+      // Then attempt to sign out from Supabase
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
-        // Handle session_not_found error gracefully
+        // Ignore session_not_found error as we've already cleared local state
         if (error.message.includes('session_not_found')) {
-          console.log('ℹ️ Session already expired, cleaning up local state');
-          setIsAuthenticated(false);
-          setUserId(null);
-          setUserEmail(null);
-          navigate('/auth');
+          console.log('ℹ️ Session already expired');
           toast({
-            title: "Session Expired",
-            description: "Your session has expired. Please log in again.",
+            title: "Logged out",
+            description: "You have been signed out successfully",
           });
-          return;
+        } else {
+          console.error('❌ Error during signOut:', error);
+          toast({
+            title: "Notice",
+            description: "You have been signed out, but there was an issue with the server",
+            variant: "default",
+          });
         }
-        
-        // Handle other errors
-        console.error('❌ Error during signOut:', error);
+      } else {
+        console.log('✅ Logout successful');
         toast({
-          title: "Error signing out",
-          description: error.message,
-          variant: "destructive",
+          title: "Success",
+          description: "You have been signed out successfully",
         });
-        return;
       }
-
-      console.log('✅ Logout successful');
-      setIsAuthenticated(false);
-      setUserId(null);
-      setUserEmail(null);
-      
-      toast({
-        title: "Success",
-        description: "You have been signed out successfully",
-      });
-      navigate('/auth');
     } catch (error: any) {
       console.error('❌ Unexpected error during logout:', error);
-      // Force cleanup of auth state even if there's an error
-      setIsAuthenticated(false);
-      setUserId(null);
-      setUserEmail(null);
-      
       toast({
-        title: "Error",
-        description: "An unexpected error occurred while signing out",
-        variant: "destructive",
+        title: "Notice",
+        description: "You have been signed out locally",
+        variant: "default",
       });
-      // Force navigation to auth page even if there's an error
-      // navigate('/auth');
+    } finally {
+      setLoading(false);
+      navigate('/auth');
     }
   };
 
