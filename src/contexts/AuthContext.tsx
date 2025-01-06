@@ -139,7 +139,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         variant: "destructive",
       });
       // Force navigation to auth page even if there's an error
-      navigate('/auth');
+      // navigate('/auth');
     }
   };
 
