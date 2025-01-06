@@ -5,6 +5,7 @@ import Auth from './pages/Auth';
 import AdminPanel from './pages/AdminPanel';
 import { ThesisEditor } from './components/ThesisEditor';
 import CreateThesis from './pages/CreateThesis';
+import Index from './pages/Index';
 
 export default function Routes() {
   const { isAuthenticated, userId } = useAuth();
@@ -22,7 +23,8 @@ export default function Routes() {
 
   return (
     <RouterRoutes>
-      <Route path="/" element={<CreateThesis />} />
+      <Route path="/" element={<Index />} />
+      <Route path="/create-thesis" element={<CreateThesis />} />
       <Route path="/admin" element={<AdminPanel />} />
       <Route path="/thesis/:thesisId" element={<ThesisEditor />} />
       <Route path="*" element={<Navigate to="/" replace />} />
