@@ -1,5 +1,3 @@
-/* ... keep existing code */
-
 /* Enhanced Excel-like grid styles */
 .excel-grid {
   @apply bg-white rounded-lg overflow-hidden shadow-lg border border-gray-200;
@@ -42,12 +40,21 @@
   @apply font-bold;
 }
 
+/* Fix circular dependency by removing @apply for text styles */
 .excel-grid .cell.italic {
-  @apply italic;
+  font-style: italic;
 }
 
 .excel-grid .cell.underline {
-  @apply underline;
+  text-decoration: underline;
+}
+
+.excel-grid .cell.header-primary {
+  @apply bg-gray-50 font-semibold uppercase tracking-wide text-xs text-gray-900;
+}
+
+.excel-grid .cell.header-secondary {
+  @apply bg-gray-100/50 font-medium capitalize text-gray-700;
 }
 
 .excel-grid .grid {
@@ -60,7 +67,7 @@
 }
 
 .excel-grid .format-controls {
-  @apply flex items-center gap-2 p-2 bg-white border-b border-gray-200;
+  @apply flex items-center gap-2 p-2 bg-white/50 backdrop-blur-sm border-b border-gray-200;
   @apply divide-x divide-gray-200;
 }
 
@@ -113,10 +120,19 @@
   @apply font-bold;
 }
 
+/* Fix circular dependency by removing @apply for text styles */
 .table-preview .italic {
-  @apply italic;
+  font-style: italic;
 }
 
 .table-preview .underline {
-  @apply underline;
+  text-decoration: underline;
+}
+
+.table-preview .header-primary {
+  @apply bg-gray-50 font-semibold uppercase tracking-wide text-xs text-gray-900;
+}
+
+.table-preview .header-secondary {
+  @apply bg-gray-100/50 font-medium capitalize text-gray-700;
 }

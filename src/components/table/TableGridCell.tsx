@@ -11,6 +11,7 @@ interface TableGridCellProps {
     bold?: boolean;
     italic?: boolean;
     underline?: boolean;
+    headerStyle?: 'none' | 'primary' | 'secondary';
   };
 }
 
@@ -27,13 +28,19 @@ export const TableGridCell = ({
     "hover:bg-blue-50/30 focus:bg-blue-50/50",
     "border border-gray-200",
     {
-      'font-bold': format.bold || isHeader,
-      'italic': format.italic,
+      'font-bold': format.bold || (isHeader && format.headerStyle !== 'none'),
+      'font-normal': format.headerStyle === 'none',
+      'font-style-italic': format.italic,
       'underline': format.underline,
       'text-left': align === 'left',
       'text-center': align === 'center',
       'text-right': align === 'right',
-      'bg-gray-50 font-semibold': isHeader,
+      'bg-gray-50': isHeader && format.headerStyle === 'primary',
+      'bg-gray-100/50': isHeader && format.headerStyle === 'secondary',
+      'text-gray-900': isHeader && format.headerStyle === 'primary',
+      'text-gray-700': isHeader && format.headerStyle === 'secondary',
+      'uppercase tracking-wide text-xs': isHeader && format.headerStyle === 'primary',
+      'capitalize': isHeader && format.headerStyle === 'secondary',
     }
   );
 
