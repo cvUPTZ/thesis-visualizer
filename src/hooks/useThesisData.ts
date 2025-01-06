@@ -27,7 +27,13 @@ export const useThesisData = (thesisId: string | undefined) => {
       }
 
       try {
-        console.log('Fetching thesis with ID:', thesisId);
+        console.log('🔍 Fetching thesis with ID:', thesisId);
+
+        const { data: session } = await supabase.auth.getSession();
+        if (!session?.session?.user) {
+          console.error('❌ No authenticated user found');
+          throw new Error('Authentication required');
+        }
 
         const { data: fetchedThesis, error: fetchError } = await supabase
           .from('theses')
@@ -35,23 +41,26 @@ export const useThesisData = (thesisId: string | undefined) => {
             *,
             thesis_collaborators (
               user_id,
-              role
+              role,
+              profiles (
+                email
+              )
             )
           `)
           .eq('id', thesisId)
           .maybeSingle();
 
         if (fetchError) {
-          console.error("Error fetching thesis:", fetchError);
+          console.error("❌ Error fetching thesis:", fetchError);
           throw new Error(fetchError.message);
         }
 
         if (!fetchedThesis) {
-          console.log('No thesis found with ID:', thesisId);
+          console.log('⚠️ No thesis found with ID:', thesisId);
           return null;
         }
 
-        console.log('Thesis data loaded:', fetchedThesis);
+        console.log('✅ Thesis data loaded:', fetchedThesis);
 
         const parsedContent = typeof fetchedThesis.content === 'string'
           ? JSON.parse(fetchedThesis.content)
@@ -81,10 +90,10 @@ export const useThesisData = (thesisId: string | undefined) => {
 
         return formattedThesis;
       } catch (err: any) {
-        console.error("Error in thesis data hook:", err);
+        console.error("❌ Error in thesis data hook:", err);
         toast({
           title: "Error",
-          description: "Failed to load thesis data. Please try again.",
+          description: err.message || "Failed to load thesis data. Please try again.",
           variant: "destructive",
         });
         throw err;
