@@ -99,38 +99,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [navigate]);
 
   const handleLogout = async () => {
+    console.log('🔄 Starting logout process...');
+    
     try {
-      console.log('🔄 Starting logout process...');
-      
-      // First update local state
-      setIsAuthenticated(false);
-      setUserId(null);
-      setUserEmail(null);
-      
-      // Then sign out from Supabase
+      // First attempt to sign out from Supabase
       const { error } = await supabase.auth.signOut();
+      
       if (error) {
         console.error('❌ Error during signOut:', error);
         throw error;
       }
       
-      console.log('✅ Logout successful');
+      console.log('✅ Supabase signOut successful');
+      
+      // Only after successful signOut, update local state
+      setIsAuthenticated(false);
+      setUserId(null);
+      setUserEmail(null);
+      
       toast({
         title: "Logged out successfully",
         description: "You have been signed out of your account.",
       });
       
-      // Finally navigate to auth page
+      // Navigate to auth page after successful logout
       navigate('/auth');
     } catch (error: any) {
       console.error('❌ Error during logout:', error);
+      
+      // If there's an error, we should still clear local state
+      setIsAuthenticated(false);
+      setUserId(null);
+      setUserEmail(null);
+      
       toast({
         title: "Error signing out",
         description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
       
-      // Even if there's an error, we should redirect to auth page
+      // Redirect to auth page even if there's an error
       navigate('/auth');
     }
   };
