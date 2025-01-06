@@ -1,149 +1,190 @@
 @layer components {
   .editor-section {
-    @apply bg-gradient-to-br from-editor-bg to-editor-bg-accent 
-           border border-editor-border rounded-xl p-8 mb-6 
-           shadow-soft-lg transition-all duration-300 hover:shadow-soft-xl
-           backdrop-blur-sm backdrop-filter;
+    @apply bg-gradient-to-br from-white/90 to-white/95
+           border border-editor-border/20 rounded-xl p-8 mb-6 
+           shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] 
+           transition-all duration-300 hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.15)]
+           backdrop-blur-md backdrop-filter;
   }
 
   .editor-header {
     @apply flex items-center justify-between mb-8 pb-4 
-           border-b border-editor-border/30
+           border-b border-editor-border/10
            bg-gradient-to-r from-transparent via-editor-border/5 to-transparent;
   }
 
   .editor-title {
-    @apply text-2xl font-serif font-medium text-editor-text
+    @apply text-2xl font-serif font-medium 
            bg-gradient-to-r from-editor-text to-editor-text/80
-           bg-clip-text text-transparent;
+           bg-clip-text text-transparent
+           tracking-tight;
   }
 
   .editor-content {
-    @apply bg-white/80 rounded-xl p-6 shadow-soft-md
+    @apply bg-white/95 rounded-xl p-6 
+           shadow-[0_2px_10px_-2px_rgba(0,0,0,0.06)]
            backdrop-blur-md transition-all duration-200
-           hover:shadow-soft-lg hover:bg-white/90;
+           hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)]
+           hover:bg-white/98;
   }
 
   .editor-toolbar {
-    @apply flex items-center gap-3 mb-4 p-2
-           bg-editor-bg-accent/50 rounded-lg
-           backdrop-blur-sm;
+    @apply flex items-center gap-3 mb-4 p-3
+           bg-editor-bg/50 rounded-lg
+           backdrop-blur-sm border border-editor-border/10
+           shadow-sm;
   }
 
   .editor-button {
     @apply inline-flex items-center justify-center rounded-lg text-sm font-medium
            transition-all duration-200 focus-visible:outline-none focus-visible:ring-2
-           focus-visible:ring-editor-accent focus-visible:ring-offset-2 disabled:opacity-50
+           focus-visible:ring-editor-accent/30 focus-visible:ring-offset-2 disabled:opacity-50
            disabled:pointer-events-none ring-offset-editor-bg;
   }
 
   .editor-button-primary {
-    @apply editor-button bg-editor-accent text-white px-4 py-2
-           hover:bg-editor-accent-hover shadow-soft-sm
-           hover:shadow-soft-md active:transform active:scale-95;
+    @apply editor-button bg-gradient-to-r from-editor-accent to-editor-accent-hover 
+           text-white px-4 py-2
+           hover:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.2)]
+           active:transform active:scale-95;
   }
 
   .editor-button-secondary {
-    @apply editor-button bg-editor-bg hover:bg-editor-hover text-editor-text 
-           border border-editor-border px-4 py-2
-           hover:border-editor-accent/30;
+    @apply editor-button bg-white hover:bg-editor-hover/5 text-editor-text 
+           border border-editor-border/20 px-4 py-2
+           hover:border-editor-accent/30
+           hover:shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)];
   }
 
   .editor-button-icon {
-    @apply editor-button p-2 hover:bg-editor-hover text-editor-text
-           hover:text-editor-accent transition-colors;
+    @apply editor-button p-2 hover:bg-editor-hover/5 text-editor-text
+           hover:text-editor-accent transition-colors
+           border border-transparent hover:border-editor-border/10;
   }
 
   .editor-input {
-    @apply bg-editor-bg/80 border-editor-border text-editor-text 
+    @apply bg-white/80 border-editor-border/20 text-editor-text 
            placeholder-editor-placeholder focus:ring-editor-accent/20
-           focus:border-editor-accent rounded-lg px-4 py-2
-           transition-all duration-200 hover:bg-editor-bg;
+           focus:border-editor-accent/30 rounded-lg px-4 py-2
+           transition-all duration-200 hover:bg-white
+           shadow-[0_2px_6px_-2px_rgba(0,0,0,0.05)];
   }
 
   .editor-label {
-    @apply text-sm font-medium text-editor-text/80 mb-2;
+    @apply text-sm font-medium text-editor-text/80 mb-2
+           tracking-wide;
   }
 
   .editor-section-title {
-    @apply text-xl font-serif font-medium text-editor-text mb-4
+    @apply text-xl font-serif font-medium mb-4
            bg-gradient-to-r from-editor-text to-editor-text/80
            bg-clip-text text-transparent;
   }
 
   .editor-manager-card {
-    @apply p-6 rounded-xl border border-editor-border/30 
-           bg-white/90 backdrop-blur-sm transition-all duration-200
-           hover:shadow-soft-lg hover:border-editor-accent/20;
+    @apply p-6 rounded-xl border border-editor-border/10 
+           bg-white/95 backdrop-blur-sm transition-all duration-200
+           hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)]
+           hover:border-editor-accent/20;
   }
 
   .editor-manager-header {
     @apply flex items-center justify-between mb-6
-           border-b border-editor-border/20 pb-4;
+           border-b border-editor-border/10 pb-4;
   }
 
   .editor-manager-title {
-    @apply text-lg font-serif font-medium text-editor-text
+    @apply text-lg font-serif font-medium
            bg-gradient-to-r from-editor-text to-editor-text/80
            bg-clip-text text-transparent;
   }
 
-  /* Manager-specific styling */
+  /* Manager-specific styling with enhanced gradients */
   .editor-manager-figure {
-    @apply bg-editor-manager-figure-bg border-editor-manager-figure-border 
+    @apply bg-gradient-to-br from-editor-manager-figure-bg/50 to-editor-manager-figure-bg/30
+           border-editor-manager-figure-border/20 
            text-editor-manager-figure-icon;
   }
 
   .editor-manager-table {
-    @apply bg-editor-manager-table-bg border-editor-manager-table-border 
+    @apply bg-gradient-to-br from-editor-manager-table-bg/50 to-editor-manager-table-bg/30
+           border-editor-manager-table-border/20 
            text-editor-manager-table-icon;
   }
 
   .editor-manager-citation {
-    @apply bg-editor-manager-citation-bg border-editor-manager-citation-border 
+    @apply bg-gradient-to-br from-editor-manager-citation-bg/50 to-editor-manager-citation-bg/30
+           border-editor-manager-citation-border/20 
            text-editor-manager-citation-icon;
   }
 
   .editor-manager-reference {
-    @apply bg-editor-manager-reference-bg border-editor-manager-reference-border 
+    @apply bg-gradient-to-br from-editor-manager-reference-bg/50 to-editor-manager-reference-bg/30
+           border-editor-manager-reference-border/20 
            text-editor-manager-reference-icon;
   }
 
-  /* Markdown editor customization */
+  /* Enhanced Markdown editor customization */
   .w-md-editor {
-    @apply shadow-none border border-editor-border/30 rounded-xl overflow-hidden
-           transition-all duration-200 hover:border-editor-accent/20 !important;
+    @apply shadow-none border border-editor-border/20 rounded-xl overflow-hidden
+           transition-all duration-200 hover:border-editor-accent/20 
+           bg-white/95 !important;
   }
 
   .w-md-editor-toolbar {
-    @apply bg-editor-bg-accent/50 border-b border-editor-border/30
+    @apply bg-gradient-to-r from-editor-bg-accent/30 to-editor-bg-accent/20 
+           border-b border-editor-border/10
            backdrop-blur-sm !important;
   }
 
   .w-md-editor-text {
-    @apply bg-white/90 text-editor-text !important;
+    @apply bg-white/98 text-editor-text !important;
   }
 
   .w-md-editor-preview {
-    @apply bg-editor-bg-accent/20 !important;
+    @apply bg-editor-bg-accent/5 !important;
   }
 
-  /* Interactive elements */
+  .w-md-editor-text-pre > code,
+  .w-md-editor-text-input {
+    @apply text-editor-text !important;
+  }
+
+  /* Interactive elements with enhanced animations */
   .interactive-hover {
-    @apply transition-all duration-200 hover:scale-[1.02] hover:shadow-soft-lg;
+    @apply transition-all duration-300 
+           hover:scale-[1.02] hover:shadow-lg
+           active:scale-[0.98];
   }
 
   .glass-effect {
-    @apply bg-white/80 backdrop-blur-md;
+    @apply bg-white/90 backdrop-blur-md
+           shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)];
   }
 
   .gradient-border {
-    @apply border border-transparent bg-gradient-to-r from-editor-accent/30 to-editor-accent-hover/30 
+    @apply border border-transparent bg-gradient-to-r 
+           from-editor-accent/20 to-editor-accent-hover/20 
            bg-clip-border;
   }
 
   .text-gradient {
     @apply bg-gradient-to-r from-editor-text to-editor-text/80 
            bg-clip-text text-transparent;
+  }
+
+  /* New animation classes */
+  .hover-lift {
+    @apply transition-all duration-300
+           hover:-translate-y-1 hover:shadow-lg;
+  }
+
+  .hover-glow {
+    @apply transition-all duration-300
+           hover:shadow-[0_0_20px_rgba(0,0,0,0.1)];
+  }
+
+  .pulse-subtle {
+    @apply animate-[pulse_3s_ease-in-out_infinite];
   }
 }
