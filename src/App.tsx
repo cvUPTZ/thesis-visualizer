@@ -37,17 +37,17 @@ function App() {
   console.log('🚀 App wrapper rendering');
   
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <LanguageProvider>
-          <ErrorBoundary>
-            <BrowserRouter>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <LanguageProvider>
+            <ErrorBoundary>
               <AppContent />
-            </BrowserRouter>
-          </ErrorBoundary>
-        </LanguageProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+            </ErrorBoundary>
+          </LanguageProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
 }
 
