@@ -1,0 +1,29 @@
+.table-editor-grid {
+  @apply relative overflow-hidden rounded-lg border border-gray-200 shadow-sm;
+}
+
+.table-editor-cell {
+  @apply transition-all duration-150 ease-in-out;
+  @apply focus:ring-2 focus:ring-primary/20;
+  @apply hover:bg-blue-50/30 focus:bg-blue-50/50;
+}
+
+.table-editor-header {
+  @apply bg-gray-50 font-semibold;
+}
+
+.table-editor-controls {
+  @apply sticky top-0 z-10;
+  @apply bg-white/90 backdrop-blur-sm border-b;
+  @apply p-2 flex items-center gap-2;
+}
+
+.format-button {
+  @apply h-8 w-8 p-0 rounded-md;
+  @apply hover:bg-gray-100 focus:ring-2 focus:ring-primary/20;
+  @apply transition-colors duration-150;
+}
+
+.format-button.active {
+  @apply bg-primary/10 text-primary;
+}
