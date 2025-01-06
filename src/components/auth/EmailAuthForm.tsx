@@ -55,6 +55,10 @@ export const EmailAuthForm = ({ mode, onModeChange }: EmailAuthFormProps) => {
           description: "Please check your email to verify your account.",
         });
       } else {
+        // Clear any existing session data before attempting to sign in
+        await supabase.auth.signOut({ scope: 'local' });
+        
+        console.log('🔑 Attempting signin with:', { email });
         response = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -63,7 +67,7 @@ export const EmailAuthForm = ({ mode, onModeChange }: EmailAuthFormProps) => {
         console.log('🔑 Signin response:', JSON.stringify(response, null, 2));
         
         if (response.error) {
-          console.log('❌ Signin error:', response.error);
+          console.log('❌ Error during signin:', response.error);
           
           if (response.error.message === 'Invalid login credentials' || 
               response.error.message.includes('invalid_credentials')) {
@@ -85,6 +89,17 @@ export const EmailAuthForm = ({ mode, onModeChange }: EmailAuthFormProps) => {
           throw response.error;
         }
         
+        if (!response.data?.user) {
+          console.log('❌ No user data in response');
+          toast({
+            title: "Error",
+            description: "Failed to sign in. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        console.log('✅ Signin successful:', response.data.user.email);
         toast({
           title: "Success",
           description: "Successfully signed in!",
