@@ -106,7 +106,7 @@ export const CollaboratorInviteForm = ({
 
         toast({
           title: "Success",
-          description: "Collaborator role updated successfully",
+          description: `Collaborator role updated to ${role}`,
         });
       } else {
         // Add new collaborator
