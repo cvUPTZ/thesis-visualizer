@@ -44,6 +44,7 @@ export interface Thesis {
 export interface Chapter {
   id: string;
   title: string;
+  content?: string;
   order: number;
   sections: Section[];
 }
