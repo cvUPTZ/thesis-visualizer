@@ -29,6 +29,7 @@ export const CollaboratorInviteForm = ({
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsInviting(true);
+    console.log('Starting invite process for:', { email, role, thesisId });
 
     try {
       // First check if user exists
@@ -64,15 +65,31 @@ export const CollaboratorInviteForm = ({
         throw new Error('This user is already a collaborator.');
       }
 
+      // Get current user's role for this thesis
+      const { data: currentUserRole, error: roleError } = await supabase
+        .from('thesis_collaborators')
+        .select('role')
+        .eq('thesis_id', thesisId)
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (roleError) {
+        console.error('Error checking user role:', roleError);
+        throw new Error('Error checking user permissions');
+      }
+
+      // Verify permissions
+      if (!isAdmin && currentUserRole.role !== 'owner' && currentUserRole.role !== 'editor') {
+        throw new Error('You do not have permission to add collaborators.');
+      }
+
       // Add collaborator with unique constraint handling
       const { error: insertError } = await supabase
         .from('thesis_collaborators')
-        .upsert({
+        .insert({
           thesis_id: thesisId,
           user_id: profiles.id,
           role: role
-        }, {
-          onConflict: 'thesis_id,user_id'
         });
 
       if (insertError) {
