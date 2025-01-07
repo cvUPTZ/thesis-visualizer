@@ -7,7 +7,7 @@ import { ContentSection } from './thesis/preview/ContentSection';
 import { Button } from './ui/button';
 import { FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import toPDF from 'react-to-pdf';
+import { usePDF } from 'react-to-pdf';
 
 interface ThesisPreviewProps {
   thesis: any;
@@ -17,18 +17,14 @@ interface ThesisPreviewProps {
 export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language = 'en' }) => {
   const previewRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { toPDF, targetRef } = usePDF({
+    filename: `${thesis.frontMatter[0]?.title || 'thesis'}.pdf`,
+    page: { margin: 20 }
+  });
 
   const handleExport = async () => {
-    if (!previewRef.current) return;
-
     try {
-      await toPDF(previewRef.current, {
-        filename: `${thesis.frontMatter[0]?.title || 'thesis'}.pdf`,
-        page: {
-          margin: 20,
-        },
-      });
-      
+      await toPDF();
       toast({
         title: "Success",
         description: "PDF exported successfully",
@@ -61,7 +57,7 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
       </div>
       
       <ScrollArea className="h-[calc(100vh-10rem)] rounded-md border p-4">
-        <div ref={previewRef} className="thesis-preview space-y-8">
+        <div ref={targetRef} className="thesis-preview space-y-8">
           {language === 'en' ? (
             <TitlePage metadata={thesis.metadata} titleSection={thesis.frontMatter[0]} />
           ) : (
