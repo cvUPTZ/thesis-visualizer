@@ -1,6 +1,8 @@
 import React from 'react';
 import { Chapter, Section } from '@/types/thesis';
 import { ChapterManager } from '../ChapterManager';
+import { Input } from '@/components/ui/input';
+import { MarkdownEditor } from '../MarkdownEditor';
 
 interface ThesisContentProps {
   frontMatter: Section[];
