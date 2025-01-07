@@ -1,6 +1,7 @@
 import React from 'react';
 import { ThesisContent } from '../ThesisContent';
 import { Chapter, Section } from '@/types/thesis';
+import { useParams } from 'react-router-dom';
 
 interface ThesisEditorContentProps {
   frontMatter: Section[];
@@ -23,6 +24,8 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
   onUpdateChapter,
   onAddChapter
 }) => {
+  const { thesisId } = useParams<{ thesisId: string }>();
+
   return (
     <ThesisContent
       frontMatter={frontMatter}
@@ -33,6 +36,7 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
       onTitleChange={onTitleChange}
       onUpdateChapter={onUpdateChapter}
       onAddChapter={onAddChapter}
+      thesisId={thesisId || ''}
     />
   );
 };

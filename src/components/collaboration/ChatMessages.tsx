@@ -29,6 +29,11 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    if (!thesisId) {
+      console.log('No thesis ID provided, skipping message fetch');
+      return;
+    }
+
     const fetchMessages = async () => {
       try {
         console.log('Fetching messages for thesis:', thesisId);
@@ -115,16 +120,22 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !thesisId) return;
 
     setIsLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       console.log('Sending message:', newMessage);
       const { error } = await supabase
         .from('chat_messages')
         .insert({
           thesis_id: thesisId,
           content: newMessage.trim(),
+          sender_id: user.id
         });
 
       if (error) {
@@ -144,6 +155,10 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
       setIsLoading(false);
     }
   };
+
+  if (!thesisId) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col h-[400px] bg-background border rounded-lg shadow-sm">
