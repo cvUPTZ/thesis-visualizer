@@ -15,6 +15,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollArea } from './ui/scroll-area';
 import { Card } from './ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BookOpen, Search, Clock } from 'lucide-react';
 
 interface CitationManagerProps {
   citations: Citation[];
@@ -49,6 +51,16 @@ export const CitationManager = ({
   } = useCitationManager(thesisId);
 
   const filteredAndSortedCitations = getFilteredAndSortedCitations(citations);
+  const recentCitations = [...citations].sort((a, b) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  ).slice(0, 5);
+
+  console.log('CitationManager rendering with:', {
+    totalCitations: citations.length,
+    filteredCitations: filteredAndSortedCitations.length,
+    searchTerm,
+    filterType
+  });
 
   return (
     <Card className="p-6 space-y-6 bg-white/50 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-xl">
@@ -67,41 +79,102 @@ export const CitationManager = ({
         />
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <CitationFilters
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          filterType={filterType}
-          onFilterChange={setFilterType}
-          sortField={sortField}
-          onSortFieldChange={setSortField}
-          sortDirection={sortDirection}
-          onSortDirectionChange={setSortDirection}
-        />
-      </motion.div>
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-4">
+          <TabsTrigger value="all" className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            All Citations
+          </TabsTrigger>
+          <TabsTrigger value="search" className="flex items-center gap-2">
+            <Search className="w-4 h-4" />
+            Search & Filter
+          </TabsTrigger>
+          <TabsTrigger value="recent" className="flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Recent
+          </TabsTrigger>
+        </TabsList>
 
-      <ScrollArea className="h-[600px] pr-4">
-        <AnimatePresence mode="wait">
+        <TabsContent value="all">
+          <ScrollArea className="h-[600px] pr-4">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key="all-citations"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <CitationList
+                  citations={citations}
+                  onRemove={onRemoveCitation}
+                  onUpdate={onUpdateCitation}
+                  onPreview={setSelectedCitation}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="search">
           <motion.div
-            key={searchTerm + filterType + sortField + sortDirection}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
           >
-            <CitationList
-              citations={filteredAndSortedCitations}
-              onRemove={onRemoveCitation}
-              onUpdate={onUpdateCitation}
-              onPreview={setSelectedCitation}
+            <CitationFilters
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              filterType={filterType}
+              onFilterChange={setFilterType}
+              sortField={sortField}
+              onSortFieldChange={setSortField}
+              sortDirection={sortDirection}
+              onSortDirectionChange={setSortDirection}
             />
           </motion.div>
-        </AnimatePresence>
-      </ScrollArea>
+
+          <ScrollArea className="h-[500px] pr-4 mt-4">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={searchTerm + filterType + sortField + sortDirection}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <CitationList
+                  citations={filteredAndSortedCitations}
+                  onRemove={onRemoveCitation}
+                  onUpdate={onUpdateCitation}
+                  onPreview={setSelectedCitation}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="recent">
+          <ScrollArea className="h-[600px] pr-4">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key="recent-citations"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <CitationList
+                  citations={recentCitations}
+                  onRemove={onRemoveCitation}
+                  onUpdate={onUpdateCitation}
+                  onPreview={setSelectedCitation}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </ScrollArea>
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={!!selectedCitation} onOpenChange={() => setSelectedCitation(null)}>
         <DialogContent className="max-w-3xl">
