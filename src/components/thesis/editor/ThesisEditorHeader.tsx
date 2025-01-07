@@ -1,6 +1,5 @@
 import React from 'react';
 import { ThesisToolbar } from '../ThesisToolbar';
-import { NotificationCenter } from '../../collaboration/NotificationCenter';
 import { Thesis } from '@/types/thesis';
 
 interface ThesisEditorHeaderProps {
@@ -24,7 +23,6 @@ export const ThesisEditorHeader: React.FC<ThesisEditorHeaderProps> = ({
         showPreview={showPreview}
         onTogglePreview={onTogglePreview}
       />
-      {thesis?.id && <NotificationCenter thesisId={thesis.id} />}
     </div>
   );
 };
