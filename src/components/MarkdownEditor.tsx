@@ -1,13 +1,14 @@
 import React from 'react';
 import MDEditor, { commands } from '@uiw/react-md-editor';
 import { EditorProps } from '@/types/components';
+import { Card } from './ui/card';
+import { motion } from 'framer-motion';
 
 export const MarkdownEditor: React.FC<EditorProps> = ({ 
   value, 
   onChange, 
   placeholder 
 }) => {
-  // Custom heading commands for H1-H6
   const headingCommands = [
     commands.title1,
     commands.title2,
@@ -17,7 +18,6 @@ export const MarkdownEditor: React.FC<EditorProps> = ({
     commands.title6,
   ];
 
-  // Combine with other default commands
   const customCommands = [
     ...headingCommands,
     commands.divider,
@@ -38,34 +38,40 @@ export const MarkdownEditor: React.FC<EditorProps> = ({
   console.log('MarkdownEditor rendering with value length:', value?.length);
 
   return (
-    <div className="w-full rounded-lg overflow-hidden bg-white shadow-lg" data-color-mode="light">
-      <MDEditor
-        value={value}
-        onChange={(val) => onChange(val || '')}
-        preview="edit"
-        height={400}
-        className="border-none bg-transparent shadow-none hover:shadow-sm transition-shadow duration-200"
-        hideToolbar={false}
-        commands={customCommands}
-        textareaProps={{
-          placeholder,
-          className: "focus:outline-none focus:ring-2 focus:ring-editor-accent/20 rounded-md p-4 bg-editor-bg",
-        }}
-        previewOptions={{
-          className: "prose prose-sm max-w-none prose-headings:font-serif prose-headings:text-editor-text prose-p:text-editor-text p-4",
-          skipHtml: false,
-          rehypeRewrite: (node: any) => {
-            if (node.type === 'element' && node.tagName === 'a') {
-              node.properties = {
-                ...node.properties,
-                target: '_blank',
-                rel: 'noopener noreferrer',
-                className: 'text-editor-accent hover:text-editor-accent-hover transition-colors duration-200'
-              };
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Card className="overflow-hidden bg-white/50 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-xl" data-color-mode="light">
+        <MDEditor
+          value={value}
+          onChange={(val) => onChange(val || '')}
+          preview="edit"
+          height={400}
+          className="border-none bg-transparent"
+          hideToolbar={false}
+          commands={customCommands}
+          textareaProps={{
+            placeholder,
+            className: "focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-md p-4 bg-editor-bg/50",
+          }}
+          previewOptions={{
+            className: "prose prose-sm max-w-none prose-headings:font-serif prose-headings:text-editor-text prose-p:text-editor-text p-4",
+            skipHtml: false,
+            rehypeRewrite: (node: any) => {
+              if (node.type === 'element' && node.tagName === 'a') {
+                node.properties = {
+                  ...node.properties,
+                  target: '_blank',
+                  rel: 'noopener noreferrer',
+                  className: 'text-primary hover:text-primary/80 transition-colors duration-200'
+                };
+              }
             }
-          }
-        }}
-      />
-    </div>
+          }}
+        />
+      </Card>
+    </motion.div>
   );
 };

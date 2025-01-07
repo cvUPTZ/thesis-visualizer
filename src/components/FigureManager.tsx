@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Figure } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Image as ImageIcon } from 'lucide-react';
 import { FigureList } from './editor/managers/FigureList';
 import { FigureUpload } from './editor/managers/FigureUpload';
 import {
@@ -11,6 +11,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card } from './ui/card';
+import { ScrollArea } from './ui/scroll-area';
 
 interface FigureManagerProps {
   figures: Figure[];
@@ -38,13 +41,12 @@ export const FigureManager = ({
       reader.onloadend = () => {
         const imageUrl = reader.result as string;
         
-        // Create a temporary image to get dimensions
         const img = new Image();
         img.onload = () => {
           const newFigure: Figure = {
             id: Date.now().toString(),
             imageUrl,
-            title: '', // Initialize empty title
+            title: '',
             caption: '',
             altText: '',
             number: (figures?.length || 0) + 1,
@@ -82,30 +84,46 @@ export const FigureManager = ({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-serif font-medium text-primary">Figures</h3>
+    <Card className="p-6 space-y-6 bg-white/50 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-xl">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex justify-between items-center"
+      >
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-full">
+            <ImageIcon className="w-5 h-5 text-primary" />
+          </div>
+          <h3 className="text-lg font-serif font-medium text-primary">Figures</h3>
+        </div>
         <Button
           onClick={() => setIsAddingFigure(true)} 
           variant="outline" 
           size="sm"
-          className="gap-2"
+          className="gap-2 hover:bg-primary/10 transition-colors"
         >
           <PlusCircle className="w-4 h-4" />
           Add Figure
         </Button>
-      </div>
+      </motion.div>
 
       <Dialog open={isAddingFigure} onOpenChange={setIsAddingFigure}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Figure</DialogTitle>
           </DialogHeader>
-          <FigureUpload
-            onUpload={handleFileUpload}
-            imageUrl={previewImage || undefined}
-            altText="Preview"
-          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            <FigureUpload
+              onUpload={handleFileUpload}
+              imageUrl={previewImage || undefined}
+              altText="Preview"
+            />
+          </motion.div>
         </DialogContent>
       </Dialog>
 
@@ -114,22 +132,38 @@ export const FigureManager = ({
           <DialogHeader>
             <DialogTitle>Figure Preview</DialogTitle>
           </DialogHeader>
-          {selectedImage && (
-            <img
-              src={selectedImage}
-              alt="Preview"
-              className="w-full h-auto"
-            />
-          )}
+          <AnimatePresence mode="wait">
+            {selectedImage && (
+              <motion.img
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                src={selectedImage}
+                alt="Preview"
+                className="w-full h-auto rounded-lg shadow-lg"
+              />
+            )}
+          </AnimatePresence>
         </DialogContent>
       </Dialog>
 
-      <FigureList
-        figures={figures || []}
-        onRemove={onRemoveFigure}
-        onUpdate={onUpdateFigure}
-        onPreview={handlePreview}
-      />
-    </div>
+      <ScrollArea className="h-[600px] pr-4">
+        <AnimatePresence mode="wait">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <FigureList
+              figures={figures || []}
+              onRemove={onRemoveFigure}
+              onUpdate={onUpdateFigure}
+              onPreview={handlePreview}
+            />
+          </motion.div>
+        </AnimatePresence>
+      </ScrollArea>
+    </Card>
   );
 };
