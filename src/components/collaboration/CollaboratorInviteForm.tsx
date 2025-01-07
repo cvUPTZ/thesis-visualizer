@@ -51,7 +51,7 @@ export const CollaboratorInviteForm = ({
       // Check if user is already a collaborator
       const { data: existingCollaborator, error: collaboratorError } = await supabase
         .from('thesis_collaborators')
-        .select('id')
+        .select('id, role')
         .eq('thesis_id', thesisId)
         .eq('user_id', profiles.id)
         .maybeSingle();
@@ -62,7 +62,30 @@ export const CollaboratorInviteForm = ({
       }
 
       if (existingCollaborator) {
-        throw new Error('This user is already a collaborator.');
+        if (existingCollaborator.role === role) {
+          throw new Error(`This user is already a collaborator with role: ${role}`);
+        }
+        
+        // Update existing collaborator's role if different
+        const { error: updateError } = await supabase
+          .from('thesis_collaborators')
+          .update({ role })
+          .eq('id', existingCollaborator.id);
+
+        if (updateError) {
+          console.error('Error updating collaborator role:', updateError);
+          throw new Error('Failed to update collaborator role');
+        }
+
+        toast({
+          title: "Success",
+          description: `Collaborator role updated to ${role}`,
+        });
+        
+        setEmail('');
+        setRole('viewer');
+        onInviteSuccess();
+        return;
       }
 
       // Get current user's role for this thesis
@@ -83,7 +106,7 @@ export const CollaboratorInviteForm = ({
         throw new Error('You do not have permission to add collaborators.');
       }
 
-      // Add collaborator with unique constraint handling
+      // Add collaborator
       const { error: insertError } = await supabase
         .from('thesis_collaborators')
         .insert({
