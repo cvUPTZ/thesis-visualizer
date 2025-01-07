@@ -98,6 +98,8 @@ export interface Citation {
   pages?: string;
   publisher?: string;
   thesis_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Reference {

@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { QuickTips } from '@/components/dashboard/QuickTips';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { motion } from 'framer-motion';
 
 const Index = () => {
   console.log('📊 Dashboard page rendering');
@@ -30,15 +31,15 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#1A1F2C] text-gray-100 flex items-center justify-center">
-        <p>Loading dashboard data...</p>
+      <div className="min-h-screen bg-gradient-to-br from-[#1a1f2c] via-[#2d364d] to-[#1a1f2c] text-gray-100 flex items-center justify-center">
+        <div className="animate-pulse">Loading dashboard data...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#1A1F2C] text-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#1a1f2c] via-[#2d364d] to-[#1a1f2c] text-gray-100 flex items-center justify-center">
         <p>Error loading dashboard: {error.message}</p>
       </div>
     );
@@ -47,8 +48,35 @@ const Index = () => {
   const isAdmin = userProfile?.roles?.name === 'admin';
 
   return (
-    <div className="min-h-screen bg-[#1A1F2C] text-gray-100">
-      <div className="container mx-auto px-4 py-8 space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#1a1f2c] via-[#2d364d] to-[#1a1f2c] text-gray-100 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute w-full h-full">
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute bg-white/5 rounded-full"
+              style={{
+                width: Math.random() * 300 + 50,
+                height: Math.random() * 300 + 50,
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.1, 0.2, 0.1],
+              }}
+              transition={{
+                duration: Math.random() * 5 + 5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8 space-y-8 relative z-10">
         {/* Header Section */}
         <div className="flex justify-between items-center">
           <div className="space-y-1">
@@ -82,23 +110,45 @@ const Index = () => {
         </div>
 
         {/* User Profile Section */}
-        <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6 transition-all duration-200 hover:bg-white/10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6 transition-all duration-200 hover:bg-white/10"
+        >
           <UserProfile 
             email={userProfile?.email || 'Loading...'}
             role={userProfile?.roles?.name || 'user'}
           />
-        </div>
+        </motion.div>
         
         {/* Stats Grid */}
-        <StatsGrid stats={thesesStats || { total: 0, inProgress: 0, completed: 0 }} />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <StatsGrid stats={thesesStats || { total: 0, inProgress: 0, completed: 0 }} />
+        </motion.div>
 
         {/* Thesis Progress Map */}
-        <ThesisProgressMap stats={thesesStats || { total: 0, inProgress: 0, completed: 0 }} />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <ThesisProgressMap stats={thesesStats || { total: 0, inProgress: 0, completed: 0 }} />
+        </motion.div>
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Thesis Management */}
-          <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="space-y-6"
+          >
             <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-serif font-semibold text-[#D6BCFA]">
@@ -116,17 +166,22 @@ const Index = () => {
                 <ThesisList />
               </Card>
             </div>
-          </div>
+          </motion.div>
 
           {/* Right Column - Quick Tips and Getting Started */}
-          <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.8 }}
+            className="space-y-6"
+          >
             <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6">
               <QuickTips />
             </div>
             <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6">
               <GettingStartedWizard />
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>
