@@ -1,36 +1,20 @@
 import React from 'react';
-import { Chapter, Section } from '@/types/thesis';
+import { Section } from '@/types/thesis';
 import { TableOfContents } from './thesis/sidebar/TableOfContents';
 import { cn } from '@/lib/utils';
 
 interface ThesisSidebarProps {
-    frontMatter: Section[];
-    chapters: Chapter[];
-    backMatter: Section[];
+  sections: Section[];
   activeSection: string;
   onSectionSelect: (id: string) => void;
 }
 
 export const ThesisSidebar = ({ 
-  frontMatter, 
-  chapters,
-    backMatter,
+  sections,
   activeSection, 
   onSectionSelect 
 }: ThesisSidebarProps) => {
-    console.log('Rendering ThesisSidebar:', { activeSection });
-
-    const allSections = [
-        ...frontMatter,
-        ...chapters.flatMap(chapter =>
-            chapter.sections.map(section => ({
-              ...section,
-              chapterTitle: chapter.title // Add chapter title for context
-            }))
-        ),
-        ...backMatter
-    ] as Section[];
-
+    console.log('Rendering ThesisSidebar:', { activeSection, sectionsCount: sections?.length });
   
   return (
     <aside className="w-64 h-full bg-editor-bg border-r border-editor-border">
@@ -39,7 +23,7 @@ export const ThesisSidebar = ({
       </div>
       <div className="p-4">
         <TableOfContents
-          sections={allSections}
+          sections={sections}
           activeSection={activeSection}
           onSectionSelect={onSectionSelect}
         />

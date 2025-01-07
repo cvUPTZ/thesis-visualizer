@@ -40,6 +40,23 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
     error: error?.message 
   });
 
+  const getAllThesisSections = useCallback(() => {
+    if (!thesis) return [];
+    
+    const allSections = [
+      ...(thesis.frontMatter || []),
+      ...(thesis.chapters || []).flatMap(chapter =>
+        (chapter.sections || []).map(section => ({
+          ...section,
+          title: `${chapter.title} - ${section.title}`
+        }))
+      ),
+      ...(thesis.backMatter || [])
+    ] as Section[];
+
+    return allSections.sort((a, b) => a.order - b.order);
+  }, [thesis]);
+
   const handleThesisCreated = (thesisId: string, title: string) => {
     console.log('Creating new thesis:', { thesisId, title });
     const newThesis: Thesis = {
@@ -132,22 +149,6 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
       }));
   };
 
-  const getAllThesisSections = useCallback(() => {
-    if (!thesis) return [];
-    const allSections = [
-      ...thesis.frontMatter,
-      ...thesis.chapters.flatMap(chapter =>
-        chapter.sections.map(section => ({
-          ...section,
-          title: `${chapter.title} - ${section.title}`
-        }))
-      ),
-      ...thesis.backMatter
-    ] as Section[];
-
-    return allSections.sort((a, b) => a.order - b.order);
-  }, [thesis]);
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background p-8">
@@ -192,10 +193,12 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
     );
   }
 
+  const sections = getAllThesisSections();
+
   return (
     <div className="min-h-screen bg-background flex">
       <ThesisSidebar
-        sections={getAllThesisSections()}
+        sections={sections}
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
       />
