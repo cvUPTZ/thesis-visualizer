@@ -6,10 +6,15 @@ import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import LandingPage from './LandingPage';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AuthError, AuthApiError } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect } from 'react';
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const navigate = useNavigate();
 
   const handleClose = () => {
@@ -18,6 +23,56 @@ const Auth = () => {
 
   const toggleAuthMode = () => {
     setAuthMode(prev => prev === 'signin' ? 'signup' : 'signin');
+    setErrorMessage(''); // Clear any existing errors when switching modes
+  };
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/');
+      }
+    };
+    checkSession();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_IN' && session) {
+        navigate('/');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  // Error message handler
+  const getErrorMessage = (error: AuthError) => {
+    console.error('Authentication error:', error);
+    
+    if (error instanceof AuthApiError) {
+      switch (error.status) {
+        case 400:
+          if (error.message.includes('invalid_credentials')) {
+            return 'Invalid email or password. Please check your credentials and try again.';
+          }
+          if (error.message.includes('email not confirmed')) {
+            return 'Please verify your email address before signing in.';
+          }
+          return 'Invalid login attempt. Please check your credentials and try again.';
+        case 422:
+          return 'Invalid email format. Please enter a valid email address.';
+        case 429:
+          return 'Too many login attempts. Please try again later.';
+        default:
+          return error.message;
+      }
+    }
+    return 'An unexpected error occurred. Please try again.';
   };
 
   return (
@@ -51,8 +106,18 @@ const Auth = () => {
             </p>
           </div>
 
+          {errorMessage && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-4">
-            <SocialAuth isLoading={loading} setLoading={setLoading} />
+            <SocialAuth 
+              isLoading={loading} 
+              setLoading={setLoading}
+              onError={(error) => setErrorMessage(getErrorMessage(error))}
+            />
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -63,7 +128,11 @@ const Auth = () => {
               </div>
             </div>
 
-            <EmailAuthForm mode={authMode} onModeChange={toggleAuthMode} />
+            <EmailAuthForm 
+              mode={authMode} 
+              onModeChange={toggleAuthMode}
+              onError={(error) => setErrorMessage(getErrorMessage(error))} 
+            />
           </div>
 
           <p className="text-center text-sm text-gray-400">

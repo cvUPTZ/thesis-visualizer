@@ -1,69 +1,54 @@
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { AuthError, Provider } from '@supabase/supabase-js';
+import { Github, Loader2 } from 'lucide-react';
 
 interface SocialAuthProps {
   isLoading: boolean;
   setLoading: (loading: boolean) => void;
+  onError: (error: AuthError) => void;
 }
 
-export const SocialAuth = ({ isLoading, setLoading }: SocialAuthProps) => {
-  const { toast } = useToast();
-
-  const handleGoogleSignIn = async () => {
+export const SocialAuth = ({ isLoading, setLoading, onError }: SocialAuthProps) => {
+  const handleSocialLogin = async (provider: Provider) => {
     try {
       setLoading(true);
-      console.log('🔐 Attempting Google sign in...');
-      console.log('📍 Current origin:', window.location.origin);
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
+          redirectTo: `${window.location.origin}/auth/callback`
         }
       });
 
       if (error) {
-        console.error('❌ Google sign in error:', error);
-        toast({
-          title: "Sign In Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
+        onError(error);
       }
-
-      console.log('✅ Google sign in initiated:', data);
-      
-    } catch (error: any) {
-      console.error('❌ Unexpected error during Google sign in:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error('Social auth error:', err);
+        onError(err as AuthError);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Button 
-      variant="outline" 
-      className="w-full bg-white hover:bg-gray-50 text-gray-900 font-medium"
-      onClick={handleGoogleSignIn}
-      disabled={isLoading}
-    >
-      <img 
-        src="https://www.google.com/favicon.ico" 
-        alt="Google" 
-        className="w-4 h-4 mr-2"
-      />
-      Continue with Google
-    </Button>
+    <div className="space-y-2">
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full bg-gray-800/50 border-gray-700 text-white hover:bg-gray-700/50"
+        onClick={() => handleSocialLogin('github')}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Github className="mr-2 h-4 w-4" />
+        )}
+        Continue with GitHub
+      </Button>
+    </div>
   );
 };
