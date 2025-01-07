@@ -18,7 +18,6 @@ export const CitationSearch = ({ onSelect }: CitationSearchProps) => {
     queryFn: async () => {
       if (!searchTerm) return null;
       
-      // Example API call - replace with actual citation API
       const response = await fetch(
         searchType === 'doi'
           ? `https://api.crossref.org/works/${searchTerm}`
@@ -48,7 +47,9 @@ export const CitationSearch = ({ onSelect }: CitationSearchProps) => {
       issue: result.issue,
       pages: result.page,
       publisher: result.publisher,
-      thesis_id: '' // This will be set by the parent component
+      thesis_id: '', // This will be set by the parent component
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
   };
 
