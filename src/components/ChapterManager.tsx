@@ -1,3 +1,4 @@
+// File: src/components/ChapterManager.tsx
 import React from 'react';
 import { Chapter, Section } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
@@ -34,20 +35,9 @@ export const ChapterManager = ({
       citations: []
     };
 
-     const introductionSection: Section = {
-        id: Date.now().toString() + "-intro",
-        title: 'Introduction', // This is the section title
-        content: 'Introduction', // this is the section content
-         type: 'custom',
-         order: 1,
-         figures: [],
-         tables: [],
-         citations: []
-      };
-
     onUpdateChapter({
       ...chapter,
-      sections: [introductionSection, ...chapter.sections, newSection]
+      sections: [...chapter.sections, newSection] // Just append
     });
   };
 
@@ -72,25 +62,6 @@ export const ChapterManager = ({
           />
           <div className="space-y-6">
              {chapter.sections.map((section, index) => {
-                 if(index === 0 && section.title === 'Introduction') {
-                    return (
-                      <div key={section.id} className="border-t pt-6 space-y-4">
-                        <Input
-                            value={section.title}
-                            className="text-lg font-medium"
-                            placeholder="Section Title"
-                             disabled
-                        />
-                         <Textarea
-                            value={section.content}
-                            className="min-h-[200px]"
-                            placeholder="Section Content"
-                            disabled
-                        />
-                      </div>
-                    )
-                 }
-
                   return (
                   <div key={section.id} className="border-t pt-6 space-y-4">
                     <Input
