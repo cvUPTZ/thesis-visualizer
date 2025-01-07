@@ -1,10 +1,11 @@
 import React from 'react';
 import { Chapter } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
-import { BookOpen, PlusCircle, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { BookOpen, PlusCircle } from 'lucide-react';
 import { ChapterItem } from './editor/chapters/ChapterItem';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { ChapterCreationDialog } from './editor/chapters/ChapterCreationDialog';
 
 interface ChapterManagerProps {
   chapters: Chapter[];
@@ -18,6 +19,7 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
   onAddChapter
 }) => {
   const [openChapters, setOpenChapters] = React.useState<string[]>([]);
+  const [showCreateDialog, setShowCreateDialog] = React.useState(false);
   const { toast } = useToast();
 
   const toggleChapter = (chapterId: string) => {
@@ -26,6 +28,14 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
         ? prev.filter(id => id !== chapterId)
         : [...prev, chapterId]
     );
+  };
+
+  const handleCreateChapter = (chapter: Chapter) => {
+    onAddChapter();
+    toast({
+      title: "Chapter Added",
+      description: "New chapter has been created successfully",
+    });
   };
 
   return (
@@ -38,13 +48,7 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
           <h2 className="text-2xl font-serif font-semibold text-editor-text">Chapters</h2>
         </div>
         <Button 
-          onClick={() => {
-            onAddChapter();
-            toast({
-              title: "Chapter Added",
-              description: "New chapter has been created successfully",
-            });
-          }} 
+          onClick={() => setShowCreateDialog(true)} 
           className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white transition-colors duration-200 px-6 py-2 rounded-lg shadow-sm hover:shadow-md"
         >
           <PlusCircle className="w-5 h-5" />
@@ -64,6 +68,12 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
           />
         ))}
       </div>
+
+      <ChapterCreationDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onChapterCreate={handleCreateChapter}
+      />
     </div>
   );
 };
