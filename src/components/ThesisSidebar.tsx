@@ -10,11 +10,18 @@ interface ThesisSidebarProps {
 }
 
 export const ThesisSidebar = ({ 
-  sections,
+  sections = [],
   activeSection, 
   onSectionSelect 
 }: ThesisSidebarProps) => {
-    console.log('Rendering ThesisSidebar:', { activeSection, sectionsCount: sections?.length });
+  console.log('Rendering ThesisSidebar:', { 
+    activeSection, 
+    sectionsCount: sections?.length,
+    sections: sections?.map(s => ({ id: s.id, title: s.title }))
+  });
+  
+  // Ensure sections is always an array
+  const validSections = Array.isArray(sections) ? sections : [];
   
   return (
     <aside className="w-64 h-full bg-editor-bg border-r border-editor-border">
@@ -23,7 +30,7 @@ export const ThesisSidebar = ({
       </div>
       <div className="p-4">
         <TableOfContents
-          sections={sections}
+          sections={validSections}
           activeSection={activeSection}
           onSectionSelect={onSectionSelect}
         />

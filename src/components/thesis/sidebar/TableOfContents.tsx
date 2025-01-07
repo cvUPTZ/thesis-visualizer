@@ -15,7 +15,11 @@ interface TableOfContentsProps {
   onSectionSelect: (id: string) => void;
 }
 
-export const TableOfContents = ({ sections, activeSection, onSectionSelect }: TableOfContentsProps) => {
+export const TableOfContents = ({ 
+  sections = [], 
+  activeSection, 
+  onSectionSelect 
+}: TableOfContentsProps) => {
   // Group sections by type
   const frontMatterSections = sections.filter(section => 
     ['title', 'abstract', 'acknowledgments'].includes(section.type)
@@ -39,6 +43,14 @@ export const TableOfContents = ({ sections, activeSection, onSectionSelect }: Ta
     );
   };
 
+  console.log('TableOfContents rendering:', {
+    totalSections: sections.length,
+    frontMatter: frontMatterSections.length,
+    mainContent: mainContentSections.length,
+    backMatter: backMatterSections.length,
+    activeSection
+  });
+
   const renderSectionItem = (section: Section) => (
     <button
       key={section.id}
@@ -52,7 +64,7 @@ export const TableOfContents = ({ sections, activeSection, onSectionSelect }: Ta
       )}
     >
       <FileText className="w-4 h-4 text-editor-text group-hover:text-editor-accent transition-colors" />
-      <span className="truncate">{section.title}</span>
+      <span className="truncate">{section.title || 'Untitled Section'}</span>
     </button>
   );
 
@@ -62,6 +74,7 @@ export const TableOfContents = ({ sections, activeSection, onSectionSelect }: Ta
     sectionKey: string
   ) => (
     <Collapsible
+      key={sectionKey}
       open={openSections.includes(sectionKey)}
       onOpenChange={() => toggleSection(sectionKey)}
       className="space-y-1"

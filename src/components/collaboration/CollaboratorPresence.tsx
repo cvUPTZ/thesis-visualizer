@@ -1,107 +1,111 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Avatar } from '@/components/ui/avatar';
-import { AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User2Icon } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
 
 interface CollaboratorPresence {
+  id: string;
   user_id: string;
-  email: string;
+  thesis_id: string;
   last_seen: string;
-  cursor_position?: { x: number; y: number };
-  status?: 'active' | 'idle';
-  avatar_url?: string;
+  email?: string;
 }
 
-export const CollaboratorPresence = ({ thesisId }: { thesisId: string }) => {
-  const [activeCollaborators, setActiveCollaborators] = useState<CollaboratorPresence[]>([]);
+interface CollaboratorPresenceProps {
+  thesisId: string;
+}
 
+export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thesisId }) => {
+  const [activeCollaborators, setActiveCollaborators] = useState<CollaboratorPresence[]>([]);
+  const { toast } = useToast();
+  
   useEffect(() => {
-    console.log('Setting up presence channel for thesis:', thesisId);
-    
-    const channel = supabase.channel(`thesis:${thesisId}`)
-      .on('presence', { event: 'sync' }, () => {
-        const newState = channel.presenceState<CollaboratorPresence>();
-        const collaborators = Object.values(newState).flat();
-        setActiveCollaborators(collaborators);
-      })
-      .on('presence', { event: 'join' }, ({ newPresences }) => {
-        console.log('Collaborator joined:', newPresences);
-      })
-      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        console.log('Collaborator left:', leftPresences);
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await channel.track({
-              user_id: user.id,
-              email: user.email,
-              last_seen: new Date().toISOString(),
-              status: 'active',
-              avatar_url: user.user_metadata?.avatar_url
-            });
-          }
+    const fetchCollaborators = async () => {
+      try {
+        console.log('Fetching collaborators for thesis:', thesisId);
+        
+        const { data: collaborators, error } = await supabase
+          .from('thesis_collaborators')
+          .select(`
+            id,
+            user_id,
+            profiles (
+              email
+            )
+          `)
+          .eq('thesis_id', thesisId);
+
+        if (error) {
+          console.error('Error fetching collaborators:', error);
+          throw error;
         }
-      });
+
+        // Transform the data to include email from profiles
+        const transformedCollaborators = collaborators.map(collab => ({
+          id: collab.id,
+          user_id: collab.user_id,
+          thesis_id: thesisId,
+          last_seen: new Date().toISOString(),
+          email: collab.profiles?.email
+        }));
+
+        console.log('Active collaborators:', transformedCollaborators);
+        setActiveCollaborators(transformedCollaborators);
+      } catch (error: any) {
+        console.error('Error in CollaboratorPresence:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load collaborators",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchCollaborators();
+    
+    // Subscribe to presence changes
+    const presenceChannel = supabase.channel(`presence:${thesisId}`);
+    
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        console.log('Presence sync event received');
+        fetchCollaborators();
+      })
+      .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      presenceChannel.unsubscribe();
     };
-  }, [thesisId]);
+  }, [thesisId, toast]);
 
   return (
-    <div className="fixed bottom-4 left-4 z-50">
-      <div className="bg-background/80 backdrop-blur-lg rounded-full p-2 shadow-lg border border-border">
-        <div className="flex items-center gap-1">
-          <User2Icon className="w-4 h-4 text-muted-foreground mr-2" />
-          <AnimatePresence mode="popLayout">
+    <div className="fixed bottom-4 right-4 flex flex-col items-end space-y-2">
+      <div className="bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg">
+        <AnimatePresence>
+          <div className="flex -space-x-2">
             {activeCollaborators.map((collaborator) => (
               <motion.div
-                key={collaborator.user_id}
-                initial={{ scale: 0, x: -20 }}
-                animate={{ scale: 1, x: 0 }}
-                exit={{ scale: 0, x: -20 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                key={`${collaborator.user_id}-${collaborator.last_seen}`}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
                 className="relative"
               >
-                <TooltipProvider>
-                  <Tooltip delayDuration={200}>
-                    <TooltipTrigger asChild>
-                      <div className="relative group">
-                        <Avatar className="h-8 w-8 border-2 border-background transition-all duration-200 hover:scale-110">
-                          {collaborator.avatar_url ? (
-                            <AvatarImage src={collaborator.avatar_url} alt={collaborator.email} />
-                          ) : (
-                            <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
-                              {collaborator.email?.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          )}
-                        </Avatar>
-                        <div className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background ${
-                          collaborator.status === 'active' ? 'bg-green-500' : 'bg-yellow-500'
-                        }`} />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="flex flex-col items-center gap-1">
-                      <p className="font-medium">{collaborator.email}</p>
-                      <Badge variant="secondary" className="text-xs">
-                        {collaborator.status === 'active' ? 'Active now' : 'Idle'}
-                      </Badge>
-                      <p className="text-xs text-muted-foreground">
-                        Last seen: {new Date(collaborator.last_seen).toLocaleTimeString()}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Avatar className="h-8 w-8 border-2 border-background">
+                  <AvatarImage 
+                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${collaborator.email}`} 
+                    alt={collaborator.email} 
+                  />
+                  <AvatarFallback>
+                    {collaborator.email?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-green-500 border border-background" />
               </motion.div>
             ))}
-          </AnimatePresence>
-        </div>
+          </div>
+        </AnimatePresence>
       </div>
     </div>
   );
