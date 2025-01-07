@@ -43,16 +43,34 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
   const getAllThesisSections = useCallback(() => {
     if (!thesis) return [];
     
+    console.log('Getting all thesis sections:', { 
+      frontMatterCount: thesis.frontMatter?.length,
+      chaptersCount: thesis.chapters?.length,
+      backMatterCount: thesis.backMatter?.length
+    });
+    
     const allSections = [
       ...(thesis.frontMatter || []),
-      ...(thesis.chapters || []).flatMap(chapter =>
-        (chapter.sections || []).map(section => ({
+      ...(thesis.chapters || []).flatMap(chapter => {
+        console.log('Processing chapter:', { 
+          id: chapter.id, 
+          title: chapter.title,
+          sectionsCount: chapter.sections?.length 
+        });
+        
+        return chapter.sections.map(section => ({
           ...section,
-          title: `${chapter.title} - ${section.title}`
-        }))
-      ),
+          title: `${chapter.title} - ${section.title}`,
+          chapterId: chapter.id // Add chapter ID for reference
+        }));
+      }),
       ...(thesis.backMatter || [])
-    ] as Section[];
+    ];
+
+    console.log('All sections processed:', {
+      totalSections: allSections.length,
+      sections: allSections.map(s => ({ id: s.id, title: s.title }))
+    });
 
     return allSections.sort((a, b) => a.order - b.order);
   }, [thesis]);

@@ -20,20 +20,28 @@ export const TableOfContents = ({
   activeSection, 
   onSectionSelect 
 }: TableOfContentsProps) => {
+  const [openSections, setOpenSections] = React.useState<string[]>(['frontMatter', 'mainContent', 'backMatter']);
+
   // Group sections by type
   const frontMatterSections = sections.filter(section => 
-    ['title', 'abstract', 'acknowledgments'].includes(section.type)
+    ['title', 'abstract', 'acknowledgments'].includes(section.type || '')
   );
   
   const mainContentSections = sections.filter(section =>
-    ['introduction', 'literature-review', 'methodology', 'results', 'discussion', 'conclusion'].includes(section.type)
+    !['title', 'abstract', 'acknowledgments', 'references', 'appendix'].includes(section.type || '')
   );
   
   const backMatterSections = sections.filter(section =>
-    ['references', 'appendix'].includes(section.type)
+    ['references', 'appendix'].includes(section.type || '')
   );
 
-  const [openSections, setOpenSections] = React.useState<string[]>(['frontMatter', 'mainContent', 'backMatter']);
+  console.log('TableOfContents sections:', {
+    total: sections.length,
+    frontMatter: frontMatterSections.length,
+    mainContent: mainContentSections.length,
+    backMatter: backMatterSections.length,
+    active: activeSection
+  });
 
   const toggleSection = (section: string) => {
     setOpenSections(prev =>
@@ -42,14 +50,6 @@ export const TableOfContents = ({
         : [...prev, section]
     );
   };
-
-  console.log('TableOfContents rendering:', {
-    totalSections: sections.length,
-    frontMatter: frontMatterSections.length,
-    mainContent: mainContentSections.length,
-    backMatter: backMatterSections.length,
-    activeSection
-  });
 
   const renderSectionItem = (section: Section) => (
     <button
@@ -70,7 +70,7 @@ export const TableOfContents = ({
 
   const renderCollapsibleSection = (
     title: string,
-    sections: Section[],
+    sectionsList: Section[],
     sectionKey: string
   ) => (
     <Collapsible
@@ -89,14 +89,14 @@ export const TableOfContents = ({
         {title}
       </CollapsibleTrigger>
       <CollapsibleContent className="pl-4 space-y-1">
-        {sections.map(renderSectionItem)}
+        {sectionsList.map(renderSectionItem)}
       </CollapsibleContent>
     </Collapsible>
   );
 
   return (
     <ScrollArea className="h-[calc(100vh-4rem)]">
-      <div className="p-4 space-y-4">
+      <div className="space-y-4">
         {frontMatterSections.length > 0 && (
           renderCollapsibleSection('Front Matter', frontMatterSections, 'frontMatter')
         )}
