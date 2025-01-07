@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from '@/hooks/use-toast';
 
 interface CollaboratorPresence {
@@ -20,48 +20,48 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
   const [activeCollaborators, setActiveCollaborators] = useState<CollaboratorPresence[]>([]);
   const { toast } = useToast();
   
-  useEffect(() => {
-    const fetchCollaborators = async () => {
-      try {
-        console.log('Fetching collaborators for thesis:', thesisId);
-        
-        const { data: collaborators, error } = await supabase
-          .from('thesis_collaborators')
-          .select(`
-            id,
-            user_id,
-            profiles (
-              email
-            )
-          `)
-          .eq('thesis_id', thesisId);
+  const fetchCollaborators = async () => {
+    try {
+      console.log('Fetching collaborators for thesis:', thesisId);
+      
+      const { data: collaborators, error } = await supabase
+        .from('thesis_collaborators')
+        .select(`
+          id,
+          user_id,
+          profiles (
+            email
+          )
+        `)
+        .eq('thesis_id', thesisId);
 
-        if (error) {
-          console.error('Error fetching collaborators:', error);
-          throw error;
-        }
-
-        // Transform the data to include email from profiles
-        const transformedCollaborators = collaborators.map(collab => ({
-          id: collab.id,
-          user_id: collab.user_id,
-          thesis_id: thesisId,
-          last_seen: new Date().toISOString(),
-          email: collab.profiles?.email
-        }));
-
-        console.log('Active collaborators:', transformedCollaborators);
-        setActiveCollaborators(transformedCollaborators);
-      } catch (error: any) {
-        console.error('Error in CollaboratorPresence:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load collaborators",
-          variant: "destructive",
-        });
+      if (error) {
+        console.error('Error fetching collaborators:', error);
+        throw error;
       }
-    };
 
+      // Transform the data to include email from profiles
+      const transformedCollaborators = collaborators.map(collab => ({
+        id: collab.id,
+        user_id: collab.user_id,
+        thesis_id: thesisId,
+        last_seen: new Date().toISOString(),
+        email: collab.profiles?.email
+      }));
+
+      console.log('Active collaborators:', transformedCollaborators);
+      setActiveCollaborators(transformedCollaborators);
+    } catch (error: any) {
+      console.error('Error in CollaboratorPresence:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load collaborators",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
     // Initial fetch
     fetchCollaborators();
     
@@ -88,7 +88,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
 
     setupPresence();
 
-    // Subscribe to presence changes
+    // Subscribe to presence changes and thesis_collaborators changes
     channel
       .on('presence', { event: 'sync' }, () => {
         console.log('Presence sync event received');
@@ -105,10 +105,29 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
         fetchCollaborators();
       });
 
+    // Subscribe to thesis_collaborators changes
+    const collaboratorsChannel = supabase
+      .channel('thesis_collaborators_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'thesis_collaborators',
+          filter: `thesis_id=eq.${thesisId}`
+        },
+        (payload) => {
+          console.log('Thesis collaborators changed:', payload);
+          fetchCollaborators();
+        }
+      )
+      .subscribe();
+
     // Cleanup
     return () => {
       console.log('Cleaning up presence subscription');
       channel.unsubscribe();
+      collaboratorsChannel.unsubscribe();
     };
   }, [thesisId, toast]);
 
