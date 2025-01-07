@@ -36,26 +36,36 @@ export const CollaboratorInviteForm = ({
         .from('profiles')
         .select('id, email')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
-      if (profileError || !profiles) {
+      if (profileError) {
+        console.error('Error checking profile:', profileError);
+        throw new Error('Error checking user profile');
+      }
+
+      if (!profiles) {
         throw new Error('User not found. Please make sure they have an account.');
       }
 
       // Check if user is already a collaborator
-      const { data: existingCollaborator } = await supabase
+      const { data: existingCollaborator, error: collaboratorError } = await supabase
         .from('thesis_collaborators')
         .select('id')
         .eq('thesis_id', thesisId)
         .eq('user_id', profiles.id)
-        .single();
+        .maybeSingle();
+
+      if (collaboratorError) {
+        console.error('Error checking existing collaborator:', collaboratorError);
+        throw new Error('Error checking existing collaborator');
+      }
 
       if (existingCollaborator) {
         throw new Error('This user is already a collaborator.');
       }
 
       // Add collaborator
-      const { error: collaboratorError } = await supabase
+      const { error: insertError } = await supabase
         .from('thesis_collaborators')
         .insert({
           thesis_id: thesisId,
@@ -63,8 +73,8 @@ export const CollaboratorInviteForm = ({
           role: role
         });
 
-      if (collaboratorError) {
-        console.error('Error adding collaborator:', collaboratorError);
+      if (insertError) {
+        console.error('Error adding collaborator:', insertError);
         throw new Error('Failed to add collaborator. Please try again.');
       }
 

@@ -65,41 +65,38 @@ serve(async (req) => {
     // Create SMTP client
     const client = new SmtpClient();
 
-    try {
-      await client.connectTLS({
-        hostname: SMTP_HOST,
-        port: SMTP_PORT,
-        username: SMTP_USERNAME,
-        password: SMTP_PASSWORD,
-      });
+    await client.connectTLS({
+      hostname: SMTP_HOST,
+      port: SMTP_PORT,
+      username: SMTP_USERNAME,
+      password: SMTP_PASSWORD,
+    });
 
-      await client.send({
-        from: SENDER_EMAIL,
-        to: safeEmail,
-        subject: `Invitation to collaborate on thesis: ${safeTitle}`,
-        content: emailHtml,
-        html: emailHtml,
-      });
+    await client.send({
+      from: SENDER_EMAIL,
+      to: safeEmail,
+      subject: `Invitation to collaborate on thesis: ${safeTitle}`,
+      content: emailHtml,
+      html: emailHtml,
+    });
 
-      await client.close();
+    await client.close();
 
-      console.log('Email sent successfully');
-      return new Response(
-        JSON.stringify({ success: true }),
-        {
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-          },
-          status: 200,
-        }
-      );
-    } catch (error) {
-      console.error('SMTP error:', error);
-      throw error;
-    }
+    console.log('Email sent successfully');
+    
+    return new Response(
+      JSON.stringify({ success: true }),
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+        status: 200,
+      }
+    );
   } catch (error) {
-    console.error('General error:', error);
+    console.error('Error:', error);
+    
     return new Response(
       JSON.stringify({
         error: error.message || 'Internal server error',
