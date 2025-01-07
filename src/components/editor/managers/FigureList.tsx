@@ -18,7 +18,7 @@ export const FigureList = ({ figures, onRemove, onUpdate, onPreview }: FigureLis
 
   const handleInputChange = (
     figureId: string,
-    field: 'caption' | 'altText',
+    field: 'title' | 'caption' | 'altText',
     value: string
   ) => {
     const figure = figures.find(f => f.id === figureId);
@@ -69,6 +69,14 @@ export const FigureList = ({ figures, onRemove, onUpdate, onPreview }: FigureLis
               />
             )}
             <div className="space-y-3">
+              <div className="space-y-2">
+                <Label>Title</Label>
+                <Input
+                  placeholder="Enter title"
+                  value={figure.title || ''}
+                  onChange={(e) => handleInputChange(figure.id, 'title', e.target.value)}
+                />
+              </div>
               <div className="space-y-2">
                 <Label>Caption</Label>
                 <Input

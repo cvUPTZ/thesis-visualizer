@@ -65,6 +65,7 @@ export interface Section {
 export interface Figure {
   id: string;
   imageUrl: string;
+  title: string; // Added title field
   caption: string;
   altText: string;
   number: number;

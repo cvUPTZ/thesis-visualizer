@@ -44,6 +44,7 @@ export const FigureManager = ({
           const newFigure: Figure = {
             id: Date.now().toString(),
             imageUrl,
+            title: '', // Initialize empty title
             caption: '',
             altText: '',
             number: (figures?.length || 0) + 1,
