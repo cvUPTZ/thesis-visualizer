@@ -8,14 +8,8 @@ import {
   CheckSquare,
   Square,
   Clock,
-  Award,
-  FileText,
-  GitBranch,
-  MessageSquare
 } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 interface ThesisProgressMapProps {
   stats: {
@@ -39,23 +33,23 @@ export const ThesisProgressMap = ({ stats }: ThesisProgressMapProps) => {
   ];
 
   const getPositionOnCircle = (index: number, total: number, radius: number) => {
-    const angle = (index * 360) / total + 90; // +90 to start from top
+    const angle = (index * 360) / total + 90;
     const x = Math.cos((angle * Math.PI) / 180) * radius;
     const y = Math.sin((angle * Math.PI) / 180) * radius;
     return { x, y };
   };
 
   return (
-    <div className="relative w-full h-[600px] bg-gradient-to-b from-background/5 to-background/10 rounded-3xl overflow-hidden backdrop-blur-sm border border-white/10">
+    <div className="relative w-full h-[600px] bg-white rounded-3xl overflow-hidden shadow-lg">
       {/* Background Elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.1),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.03),transparent_50%)]" />
       <motion.div
         className="absolute inset-0"
         initial={false}
         animate={{
           background: [
-            'radial-gradient(600px circle at 50% 50%, rgba(79,70,229,0.05), transparent 80%)',
-            'radial-gradient(800px circle at 50% 50%, rgba(79,70,229,0.08), transparent 80%)'
+            'radial-gradient(600px circle at 50% 50%, rgba(79,70,229,0.02), transparent 80%)',
+            'radial-gradient(800px circle at 50% 50%, rgba(79,70,229,0.04), transparent 80%)'
           ],
         }}
         transition={{ duration: 3, repeat: Infinity, repeatType: 'reverse' }}
@@ -72,14 +66,14 @@ export const ThesisProgressMap = ({ stats }: ThesisProgressMapProps) => {
         </motion.div>
         
         <motion.div
-          className="relative z-10 bg-white/10 backdrop-blur-md p-8 rounded-full shadow-xl"
+          className="relative z-10 bg-white p-8 rounded-full shadow-xl"
           whileHover={{ scale: 1.1 }}
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", duration: 1 }}
         >
           <motion.div
-            className="absolute inset-0 bg-primary/10 rounded-full"
+            className="absolute inset-0 bg-primary/5 rounded-full"
             animate={{
               scale: [1, 1.2, 1],
               opacity: [0.5, 0.2, 0.5],
@@ -129,7 +123,7 @@ export const ThesisProgressMap = ({ stats }: ThesisProgressMapProps) => {
             transition={{ delay: index * 0.2 }}
           >
             <motion.div
-              className={`bg-white/10 backdrop-blur-sm p-4 rounded-xl shadow-lg -translate-x-1/2 -translate-y-1/2 w-48 border border-primary/10
+              className={`bg-white/80 backdrop-blur-sm p-4 rounded-xl shadow-lg -translate-x-1/2 -translate-y-1/2 w-48 border border-primary/10
                          ${hoveredSection === section.id ? 'ring-2 ring-primary/20' : ''}`}
               whileHover={{ scale: 1.05, y: -5 }}
               onHoverStart={() => setHoveredSection(section.id)}
@@ -160,12 +154,13 @@ export const ThesisProgressMap = ({ stats }: ThesisProgressMapProps) => {
                 </div>
                 <div className="flex justify-between items-center text-xs text-muted-foreground">
                   <span>{section.progress}%</span>
-                  <Badge 
-                    variant="secondary" 
-                    className={section.complete ? 'bg-green-500/10 text-green-500' : 'bg-primary/10 text-primary'}
-                  >
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    section.complete 
+                      ? 'bg-green-500/10 text-green-500' 
+                      : 'bg-primary/10 text-primary'
+                  }`}>
                     {section.complete ? 'Completed' : 'In Progress'}
-                  </Badge>
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -173,35 +168,29 @@ export const ThesisProgressMap = ({ stats }: ThesisProgressMapProps) => {
         );
       })}
 
-      {/* Stats Cards */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-4">
-        <Card className="bg-white/10 backdrop-blur-sm border-primary/10 p-4">
-          <div className="flex items-center gap-2">
-            <ChartBar className="text-primary h-5 w-5" />
-            <div>
-              <p className="text-xs text-muted-foreground">Total Theses</p>
-              <p className="text-lg font-semibold text-primary">{stats.total}</p>
-            </div>
+      {/* Stats Display */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-8">
+        <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm p-4 rounded-xl shadow-lg">
+          <ChartBar className="text-primary h-5 w-5" />
+          <div>
+            <p className="text-xs text-muted-foreground">Total</p>
+            <p className="text-lg font-semibold text-primary">{stats.total}</p>
           </div>
-        </Card>
-        <Card className="bg-white/10 backdrop-blur-sm border-primary/10 p-4">
-          <div className="flex items-center gap-2">
-            <ChartLine className="text-primary h-5 w-5" />
-            <div>
-              <p className="text-xs text-muted-foreground">In Progress</p>
-              <p className="text-lg font-semibold text-primary">{stats.inProgress}</p>
-            </div>
+        </div>
+        <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm p-4 rounded-xl shadow-lg">
+          <ChartLine className="text-primary h-5 w-5" />
+          <div>
+            <p className="text-xs text-muted-foreground">In Progress</p>
+            <p className="text-lg font-semibold text-primary">{stats.inProgress}</p>
           </div>
-        </Card>
-        <Card className="bg-white/10 backdrop-blur-sm border-primary/10 p-4">
-          <div className="flex items-center gap-2">
-            <ChartPie className="text-primary h-5 w-5" />
-            <div>
-              <p className="text-xs text-muted-foreground">Completed</p>
-              <p className="text-lg font-semibold text-primary">{stats.completed}</p>
-            </div>
+        </div>
+        <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm p-4 rounded-xl shadow-lg">
+          <ChartPie className="text-primary h-5 w-5" />
+          <div>
+            <p className="text-xs text-muted-foreground">Completed</p>
+            <p className="text-lg font-semibold text-primary">{stats.completed}</p>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Floating Particles */}
@@ -209,7 +198,7 @@ export const ThesisProgressMap = ({ stats }: ThesisProgressMapProps) => {
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-primary/20 rounded-full"
+            className="absolute w-1 h-1 bg-primary/10 rounded-full"
             initial={{
               x: Math.random() * window.innerWidth,
               y: Math.random() * window.innerHeight,
