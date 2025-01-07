@@ -34,7 +34,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleAuthError = (error: AuthError, context: string) => {
     console.error(`❌ Auth error in ${context}:`, error);
     
-    // Don't show errors for expected cases
     if (error.message.includes('session_not_found') || 
         error.message.includes('refresh_token_not_found')) {
       return;
@@ -53,6 +52,63 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUserEmail(null);
   };
 
+  const handleSessionConflict = async () => {
+    console.log('🔄 Session conflict detected, logging out...');
+    await handleLogout();
+    toast({
+      title: "Session Conflict",
+      description: "Your account is already active in another browser. You've been logged out.",
+      variant: "destructive",
+    });
+  };
+
+  const manageActiveSession = async (sessionId: string, userId: string) => {
+    try {
+      console.log('🔄 Managing active session...');
+      
+      // Check for existing sessions
+      const { data: existingSessions, error: checkError } = await supabase
+        .from('active_sessions')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (checkError) throw checkError;
+
+      if (existingSessions && existingSessions.length > 0) {
+        const existingSession = existingSessions[0];
+        
+        // If different session exists, handle conflict
+        if (existingSession.session_id !== sessionId) {
+          console.log('❌ Session conflict detected');
+          await handleSessionConflict();
+          return false;
+        }
+
+        // Update last_seen for existing session
+        const { error: updateError } = await supabase
+          .from('active_sessions')
+          .update({ last_seen: new Date().toISOString() })
+          .eq('session_id', sessionId);
+
+        if (updateError) throw updateError;
+      } else {
+        // Create new session record
+        const { error: insertError } = await supabase
+          .from('active_sessions')
+          .insert([
+            { user_id: userId, session_id: sessionId }
+          ]);
+
+        if (insertError) throw insertError;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ Error managing active session:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     const initSession = async () => {
       try {
@@ -67,6 +123,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (session) {
           console.log('✅ Session found:', session.user.email);
+          
+          // Manage active session
+          const sessionValid = await manageActiveSession(session.id, session.user.id);
+          
+          if (!sessionValid) {
+            clearAuthState();
+            setLoading(false);
+            return;
+          }
+
           setIsAuthenticated(true);
           setUserId(session.user.id);
           setUserEmail(session.user.email);
@@ -94,6 +160,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('🔄 Auth state changed:', event, session?.user?.email);
       
       if (event === 'SIGNED_IN' && session) {
+        const sessionValid = await manageActiveSession(session.id, session.user.id);
+        
+        if (!sessionValid) {
+          clearAuthState();
+          return;
+        }
+
         setIsAuthenticated(true);
         setUserId(session.user.id);
         setUserEmail(session.user.email);
@@ -101,6 +174,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           navigate('/');
         }
       } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        // Clean up active session on sign out
+        if (userId) {
+          await supabase
+            .from('active_sessions')
+            .delete()
+            .eq('user_id', userId);
+        }
         clearAuthState();
         navigate('/auth');
       }
@@ -117,10 +197,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(true);
     
     try {
-      // First clear local state
+      if (userId) {
+        // Clean up active session
+        await supabase
+          .from('active_sessions')
+          .delete()
+          .eq('user_id', userId);
+      }
+      
+      // Clear local state
       clearAuthState();
       
-      // Then attempt to sign out from Supabase
+      // Sign out from Supabase
       const { error } = await supabase.auth.signOut();
       
       if (error) {
