@@ -77,27 +77,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
  }, [navigate]);
 
  const handleLogout = async () => {
+   console.log('🔄 Starting logout process...');
    setLoading(true);
+   
    try {
+     // First attempt to sign out from Supabase
+     const { error } = await supabase.auth.signOut({ scope: 'global' });
+     
+     if (error) {
+       console.error('❌ Error during signOut:', error);
+       if (!error.message.includes('session_not_found')) {
+         toast({
+           title: "Notice",
+           description: "There was an issue signing out from the server",
+           variant: "default",
+         });
+       }
+     }
+
+     // Then clear local state regardless of Supabase signout result
      setIsAuthenticated(false);
      setUserId(null);
      setUserEmail(null);
      
-     const { error } = await supabase.auth.signOut({ scope: 'global' });
+     console.log('✅ Logout successful');
+     toast({
+       title: "Success",
+       description: "You have been signed out successfully",
+     });
      
-     if (error && !error.message.includes('session_not_found')) {
-       toast({
-         title: "Notice",
-         description: "You have been signed out, but there was an issue with the server",
-         variant: "default",
-       });
-     } else {
-       toast({
-         title: "Success",
-         description: "You have been signed out successfully",
-       });
-     }
-   } catch (error) {
+   } catch (error: any) {
+     console.error('❌ Unexpected error during logout:', error);
      toast({
        title: "Notice",
        description: "You have been signed out locally",
@@ -105,7 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
      });
    } finally {
      setLoading(false);
-     navigate('/');
+     navigate('/auth');
    }
  };
 
