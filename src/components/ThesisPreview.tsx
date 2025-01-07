@@ -57,18 +57,19 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
       
       <ScrollArea className="h-[calc(100vh-10rem)] rounded-md border p-4">
         <div ref={targetRef} className="thesis-preview space-y-8 text-black dark:text-black bg-white">
-          {language === 'en' ? (
-            <TitlePage metadata={thesis.metadata} titleSection={thesis.frontMatter[0]} />
-          ) : (
-            <FrenchTitlePage thesis={thesis} titleSection={thesis.frontMatter[0]} />
-          )}
+          <div className="page-break-before">
+            {language === 'en' ? (
+              <TitlePage metadata={thesis.metadata} titleSection={thesis.frontMatter[0]} />
+            ) : (
+              <FrenchTitlePage thesis={thesis} titleSection={thesis.frontMatter[0]} />
+            )}
+          </div>
           
           {thesis.frontMatter.map((section: any, index: number) => (
-            <React.Fragment key={section.id}>
-              {section.type === 'abstract' && (
+            <div key={section.id} className="page-break-before">
+              {section.type === 'abstract' ? (
                 <AbstractSection abstractSection={section} />
-              )}
-              {section.type !== 'abstract' && (
+              ) : (
                 <ContentSection 
                   section={section}
                   elementPositions={[]}
@@ -76,32 +77,34 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
                   onPositionChange={handlePositionChange}
                 />
               )}
-            </React.Fragment>
+            </div>
           ))}
           
           {thesis.chapters.map((chapter: any) => (
             <React.Fragment key={chapter.id}>
               {chapter.sections.map((section: any) => (
-                <ContentSection
-                  key={section.id}
-                  section={section}
-                  chapterTitle={chapter.title}
-                  elementPositions={[]}
-                  onElementClick={handleElementClick}
-                  onPositionChange={handlePositionChange}
-                />
+                <div key={section.id} className="page-break-before">
+                  <ContentSection
+                    section={section}
+                    chapterTitle={chapter.title}
+                    elementPositions={[]}
+                    onElementClick={handleElementClick}
+                    onPositionChange={handlePositionChange}
+                  />
+                </div>
               ))}
             </React.Fragment>
           ))}
           
           {thesis.backMatter.map((section: any) => (
-            <ContentSection
-              key={section.id}
-              section={section}
-              elementPositions={[]}
-              onElementClick={handleElementClick}
-              onPositionChange={handlePositionChange}
-            />
+            <div key={section.id} className="page-break-before">
+              <ContentSection
+                section={section}
+                elementPositions={[]}
+                onElementClick={handleElementClick}
+                onPositionChange={handlePositionChange}
+              />
+            </div>
           ))}
         </div>
       </ScrollArea>

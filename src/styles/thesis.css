@@ -90,3 +90,56 @@
   margin-bottom: 1em;
   line-height: 1.8;
 }
+
+/* Page break styles */
+.page-break-before {
+  page-break-before: always;
+  min-height: 297mm; /* A4 height */
+  padding: 20mm;
+  position: relative;
+  background: white;
+  margin-bottom: 8mm;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.page-break-before:first-child {
+  page-break-before: avoid;
+}
+
+/* Ensure content doesn't overflow */
+.thesis-preview {
+  max-width: 210mm; /* A4 width */
+  margin: 0 auto;
+}
+
+/* Prevent unwanted breaks */
+.page-break-inside-avoid {
+  page-break-inside: avoid;
+}
+
+/* Force page breaks */
+.page-break-after {
+  page-break-after: always;
+}
+
+/* Header and footer positioning */
+.thesis-header,
+.thesis-footer {
+  position: sticky;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 1rem;
+  z-index: 10;
+}
+
+.thesis-header {
+  top: 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.thesis-footer {
+  bottom: 0;
+  border-top: 1px solid #e5e7eb;
+}
