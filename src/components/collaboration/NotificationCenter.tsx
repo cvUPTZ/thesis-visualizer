@@ -26,6 +26,7 @@ export const NotificationCenter = () => {
 
   useEffect(() => {
     console.log('Setting up notifications');
+    let isMounted = true;
     
     const fetchNotifications = async () => {
       const { data, error } = await supabase
@@ -38,12 +39,25 @@ export const NotificationCenter = () => {
         return;
       }
 
-      setNotifications(data);
-      setUnreadCount(data.filter(n => !n.read).length);
+      if (isMounted) {
+        // Prevent duplicate notifications by checking IDs
+        const uniqueNotifications = data.filter(newNotif => 
+          !notifications.some(existingNotif => existingNotif.id === newNotif.id)
+        );
+        
+        setNotifications(prev => {
+          const combined = [...prev, ...uniqueNotifications];
+          // Remove duplicates and sort by creation date
+          return Array.from(new Map(combined.map(item => [item.id, item])).values())
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        });
+        setUnreadCount(data.filter(n => !n.read).length);
+      }
     };
 
     fetchNotifications();
 
+    // Set up realtime subscription
     const channel = supabase
       .channel('public:notifications')
       .on(
@@ -55,21 +69,30 @@ export const NotificationCenter = () => {
         },
         (payload) => {
           console.log('New notification received:', payload);
+          if (!isMounted) return;
+
           const newNotification = payload.new as Notification;
-          setNotifications(prev => [newNotification, ...prev]);
-          setUnreadCount(prev => prev + 1);
-          toast({
-            title: "New Notification",
-            description: newNotification.message,
-          });
+          
+          // Check if notification already exists
+          if (!notifications.some(n => n.id === newNotification.id)) {
+            setNotifications(prev => [newNotification, ...prev]);
+            setUnreadCount(prev => prev + 1);
+            toast({
+              title: "New Notification",
+              description: newNotification.message,
+            });
+          }
         }
       )
       .subscribe();
 
+    // Cleanup function
     return () => {
+      console.log('Cleaning up notifications subscription');
+      isMounted = false;
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, []); // Remove notifications from dependency array to prevent infinite loop
 
   const markAsRead = async (notificationId: string) => {
     const { error } = await supabase
