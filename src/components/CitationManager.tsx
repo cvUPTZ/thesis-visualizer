@@ -18,6 +18,8 @@ import { Card } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Search, Clock } from 'lucide-react';
 
+type CitationType = "article" | "book" | "conference" | "website" | "other" | "all";
+
 interface CitationManagerProps {
   citations: Citation[];
   onAddCitation: (citation: Citation) => void;
@@ -61,6 +63,11 @@ export const CitationManager = ({
     searchTerm,
     filterType
   });
+
+  // Type-safe handler for filter type changes
+  const handleFilterTypeChange = (value: string) => {
+    setFilterType(value as CitationType);
+  };
 
   return (
     <Card className="p-6 space-y-6 bg-white/50 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-xl">
@@ -126,7 +133,7 @@ export const CitationManager = ({
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
               filterType={filterType}
-              onFilterChange={setFilterType}
+              onFilterChange={handleFilterTypeChange}
               sortField={sortField}
               onSortFieldChange={setSortField}
               sortDirection={sortDirection}
