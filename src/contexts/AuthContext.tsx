@@ -60,6 +60,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
    initSession();
 
    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+     console.log('🔄 Auth state changed:', event, session?.user?.email);
      if (event === 'SIGNED_IN' && session) {
        setIsAuthenticated(true);
        setUserId(session.user.id);
@@ -78,7 +79,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
  const handleLogout = async () => {
    console.log('🔄 Starting logout process...');
-   setLoading(true);
    
    try {
      // First clear local state
@@ -87,7 +87,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
      setUserEmail(null);
      
      // Then attempt to sign out from Supabase
-     const { error } = await supabase.auth.signOut();
+     const { error } = await supabase.auth.signOut({
+       scope: 'local'  // Changed from 'global' to 'local'
+     });
      
      if (error) {
        console.error('❌ Error during signOut:', error);
@@ -114,6 +116,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
        variant: "default",
      });
    } finally {
+     // Always navigate to auth page after logout attempt
      setLoading(false);
      navigate('/auth');
    }
