@@ -14,6 +14,8 @@ export const ThesisEditorHeader: React.FC<ThesisEditorHeaderProps> = ({
   showPreview,
   onTogglePreview
 }) => {
+  console.log('🎯 Rendering ThesisEditorHeader with thesis:', thesis?.id);
+  
   return (
     <div className="flex justify-between items-center">
       <ThesisToolbar
@@ -22,7 +24,7 @@ export const ThesisEditorHeader: React.FC<ThesisEditorHeaderProps> = ({
         showPreview={showPreview}
         onTogglePreview={onTogglePreview}
       />
-      <NotificationCenter />
+      {thesis?.id && <NotificationCenter thesisId={thesis.id} />}
     </div>
   );
 };
