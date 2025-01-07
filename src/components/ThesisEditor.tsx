@@ -13,6 +13,7 @@ import { useThesisData } from '@/hooks/useThesisData';
 import { Skeleton } from './ui/skeleton';
 import { CollaboratorPresence } from './collaboration/CollaboratorPresence';
 import { NotificationCenter } from './collaboration/NotificationCenter';
+import { useToast } from '@/hooks/use-toast';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -21,6 +22,7 @@ interface ThesisEditorProps {
 export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => {
   const { thesisId: routeThesisId } = useParams();
   const currentThesisId = propsThesisId || routeThesisId;
+  const { toast } = useToast();
   
   const { thesis, setThesis, isLoading, error } = useThesisData(currentThesisId);
   const [activeSection, setActiveSection] = useState<string>('');
@@ -30,7 +32,15 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
   useThesisAutosave(thesis);
   useThesisInitialization(thesis);
 
+  console.log('ThesisEditor rendering:', { 
+    currentThesisId,
+    isLoading,
+    hasThesis: !!thesis,
+    error: error?.message 
+  });
+
   const handleThesisCreated = (thesisId: string, title: string) => {
+    console.log('Creating new thesis:', { thesisId, title });
     const newThesis: Thesis = {
       id: thesisId,
       title: title,
@@ -150,6 +160,12 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
   }
 
   if (error || (!thesis && currentThesisId)) {
+    console.error('Error loading thesis:', error);
+    toast({
+      title: "Error Loading Thesis",
+      description: error?.message || "Could not load thesis. Please try again.",
+      variant: "destructive",
+    });
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -161,6 +177,7 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
   }
 
   if (!thesis && !currentThesisId) {
+    console.log('No thesis loaded, showing creation modal');
     return (
       <div className="flex flex-col h-full">
         <div className="flex justify-between p-4 items-center">

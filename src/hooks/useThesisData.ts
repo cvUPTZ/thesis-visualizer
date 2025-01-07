@@ -35,6 +35,8 @@ export const useThesisData = (thesisId: string | undefined) => {
           throw new Error('Authentication required');
         }
 
+        console.log('👤 User authenticated:', session.session.user.email);
+
         const { data: fetchedThesis, error: fetchError } = await supabase
           .from('theses')
           .select(`
@@ -60,7 +62,11 @@ export const useThesisData = (thesisId: string | undefined) => {
           return null;
         }
 
-        console.log('✅ Thesis data loaded:', fetchedThesis);
+        console.log('✅ Thesis data loaded:', {
+          id: fetchedThesis.id,
+          title: fetchedThesis.title,
+          collaboratorsCount: fetchedThesis.thesis_collaborators?.length
+        });
 
         const parsedContent = typeof fetchedThesis.content === 'string'
           ? JSON.parse(fetchedThesis.content)
