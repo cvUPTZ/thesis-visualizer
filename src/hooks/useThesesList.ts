@@ -55,6 +55,7 @@ export const useThesesList = () => {
       }
 
       const thesisIds = collaborations.map(c => c.thesis_id);
+      console.log('📋 Found thesis IDs:', thesisIds);
 
       // Then fetch the actual theses
       const { data: thesesData, error: thesesError } = await supabase
@@ -74,7 +75,7 @@ export const useThesesList = () => {
         throw thesesError;
       }
 
-      console.log('✅ Theses loaded successfully:', thesesData);
+      console.log('✅ Theses loaded successfully:', thesesData?.length || 0, 'theses');
       setThesisList(thesesData || []);
 
     } catch (error: any) {

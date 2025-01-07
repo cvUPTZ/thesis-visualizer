@@ -23,6 +23,7 @@ export const ThesisList = () => {
       
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) {
+        console.error('❌ No authenticated user found');
         toast({
           title: "Authentication Error",
           description: "Please sign in to view this thesis",
@@ -36,7 +37,7 @@ export const ThesisList = () => {
         .select('role')
         .eq('thesis_id', thesisId)
         .eq('user_id', session.session.user.id)
-        .single();
+        .maybeSingle();
 
       if (collaboratorError) {
         console.error('❌ Error checking thesis access:', collaboratorError);
@@ -66,20 +67,18 @@ export const ThesisList = () => {
     }
   };
 
+  // Only fetch theses when the popover is opened
   const handleToggleOpen = useCallback(() => {
-    setOpen((prevOpen) => {
-      if (!prevOpen) {
-        fetchTheses();
-      }
-      return !prevOpen;
-    });
-  }, [fetchTheses]);
+    setOpen((prevOpen) => !prevOpen);
+  }, []);
 
+  // Only fetch theses once when the popover is opened
   useEffect(() => {
     if (open) {
+      console.log('🔄 Fetching theses list...');
       fetchTheses();
     }
-  }, [open, fetchTheses]);
+  }, [open]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
