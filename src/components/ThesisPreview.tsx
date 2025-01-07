@@ -15,7 +15,6 @@ interface ThesisPreviewProps {
 }
 
 export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language = 'en' }) => {
-  const previewRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { toPDF, targetRef } = usePDF({
     filename: `${thesis.frontMatter[0]?.title || 'thesis'}.pdf`,
