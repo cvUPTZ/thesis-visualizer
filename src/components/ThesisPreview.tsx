@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { ScrollArea } from './ui/scroll-area';
 import { TitlePage } from './thesis/preview/TitlePage';
 import { FrenchTitlePage } from './thesis/preview/FrenchTitlePage';
@@ -56,7 +56,7 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
       </div>
       
       <ScrollArea className="h-[calc(100vh-10rem)] rounded-md border p-4">
-        <div ref={targetRef} className="thesis-preview space-y-8">
+        <div ref={targetRef} className="thesis-preview space-y-8 text-black dark:text-black bg-white">
           {language === 'en' ? (
             <TitlePage metadata={thesis.metadata} titleSection={thesis.frontMatter[0]} />
           ) : (
