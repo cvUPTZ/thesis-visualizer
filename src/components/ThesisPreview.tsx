@@ -299,23 +299,23 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
   };
 
   return (
-    <ScrollArea className="h-full">
-      <div className="p-4 space-y-6">
-        <ElementPositionManager
-          figures={thesis.chapters.flatMap(chapter => 
-            chapter.sections.flatMap(section => section.figures || [])
-          )}
-          tables={thesis.chapters.flatMap(chapter => 
-            chapter.sections.flatMap(section => section.tables || [])
-          )}
-          citations={thesis.chapters.flatMap(chapter => 
-            chapter.sections.flatMap(section => section.citations || [])
-          )}
-          onUpdatePosition={handleUpdatePosition}
-        />
-        
-        <div className="thesis-preview-container">
-          <div className="thesis-preview">
+    <div className="h-full flex flex-col">
+      <ElementPositionManager
+        figures={thesis.chapters.flatMap(chapter => 
+          chapter.sections.flatMap(section => section.figures || [])
+        )}
+        tables={thesis.chapters.flatMap(chapter => 
+          chapter.sections.flatMap(section => section.tables || [])
+        )}
+        citations={thesis.chapters.flatMap(chapter => 
+          chapter.sections.flatMap(section => section.citations || [])
+        )}
+        onUpdatePosition={handleUpdatePosition}
+      />
+      
+      <ScrollArea className="flex-1 border rounded-md">
+        <div className="thesis-preview-container p-4">
+          <div className="thesis-preview space-y-6">
             {thesis.frontMatter.map((section) => renderSection(section))}
             {thesis.chapters.map((chapter) => (
               <div key={chapter.id} className="chapter-content">
@@ -327,7 +327,7 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
             {thesis.backMatter.map((section) => renderSection(section))}
           </div>
         </div>
-      </div>
-    </ScrollArea>
+      </ScrollArea>
+    </div>
   );
 };
