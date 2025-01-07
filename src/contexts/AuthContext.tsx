@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,6 +27,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
  const [userEmail, setUserEmail] = useState<string | null>(null);
  const [loading, setLoading] = useState(true);
  const navigate = useNavigate();
+ const location = useLocation();
  const { toast } = useToast();
 
  useEffect(() => {
@@ -44,11 +45,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
          setIsAuthenticated(true);
          setUserId(session.user.id);
          setUserEmail(session.user.email);
-         navigate('/');
+         // Only navigate to root if we're on the auth page
+         if (location.pathname === '/auth') {
+           navigate('/');
+         }
        } else {
          setIsAuthenticated(false);
          setUserId(null);
          setUserEmail(null);
+         // If not authenticated and not on auth page, redirect to auth
+         if (location.pathname !== '/auth' && location.pathname !== '/') {
+           navigate('/auth');
+         }
        }
        setLoading(false);
      } catch (error) {
@@ -65,17 +73,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
        setIsAuthenticated(true);
        setUserId(session.user.id);
        setUserEmail(session.user.email);
-       navigate('/');
+       // Only navigate to root if we're on the auth page
+       if (location.pathname === '/auth') {
+         navigate('/');
+       }
      } else if (event === 'SIGNED_OUT') {
        setIsAuthenticated(false);
        setUserId(null);
        setUserEmail(null);
-       navigate('/');
+       navigate('/auth');
      }
    });
 
    return () => subscription.unsubscribe();
- }, [navigate]);
+ }, [navigate, location.pathname]);
 
  const handleLogout = async () => {
    console.log('🔄 Starting logout process...');
@@ -88,12 +99,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
      
      // Then attempt to sign out from Supabase
      const { error } = await supabase.auth.signOut({
-       scope: 'local'  // Changed from 'global' to 'local'
+       scope: 'local'
      });
      
      if (error) {
        console.error('❌ Error during signOut:', error);
-       // Don't show error toast for session_not_found as it's expected in some cases
        if (!error.message.includes('session_not_found')) {
          toast({
            title: "Notice",
@@ -116,14 +126,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
        variant: "default",
      });
    } finally {
-     // Always navigate to auth page after logout attempt
      setLoading(false);
      navigate('/auth');
    }
  };
 
+ const value = {
+   isAuthenticated,
+   userId,
+   userEmail,
+   handleLogout,
+   loading
+ };
+
  return (
-   <AuthContext.Provider value={{ isAuthenticated, userId, userEmail, handleLogout, loading }}>
+   <AuthContext.Provider value={value}>
      {children}
    </AuthContext.Provider>
  );
