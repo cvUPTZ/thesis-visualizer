@@ -16,7 +16,6 @@ interface CollaboratorInviteFormProps {
   setIsInviting: (isInviting: boolean) => void;
 }
 
-// Define valid roles as a const array to ensure type safety
 const VALID_ROLES = ['owner', 'editor', 'viewer'] as const;
 type ValidRole = typeof VALID_ROLES[number];
 
@@ -97,7 +96,8 @@ export const CollaboratorInviteForm = ({
         const { error: updateError } = await supabase
           .from('thesis_collaborators')
           .update({ role })
-          .eq('id', existingCollaborator.id);
+          .eq('thesis_id', thesisId)
+          .eq('user_id', existingUser.id);
 
         if (updateError) {
           console.error('Error updating collaborator role:', updateError);
@@ -115,7 +115,7 @@ export const CollaboratorInviteForm = ({
           .insert({
             thesis_id: thesisId,
             user_id: existingUser.id,
-            role: role as ValidRole // Type assertion to ensure role is valid
+            role: role
           });
 
         if (insertError) {
