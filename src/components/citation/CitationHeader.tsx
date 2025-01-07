@@ -18,7 +18,7 @@ interface CitationHeaderProps {
   searchDialogOpen: boolean;
   setSearchDialogOpen: (open: boolean) => void;
   handleAddCitation: () => void;
-  handleSearchResult: (citation: Omit<Citation, 'thesis_id'>) => void;
+  handleSearchResult: (citation: Omit<Citation, "thesis_id">) => void;
 }
 
 export const CitationHeader = ({
@@ -42,7 +42,7 @@ export const CitationHeader = ({
             <DialogHeader>
               <DialogTitle>Search Citations</DialogTitle>
             </DialogHeader>
-            <CitationSearch onSelect={handleSearchResult} />
+            <CitationSearch onCitationSelect={handleSearchResult} />
           </DialogContent>
         </Dialog>
         <Button onClick={handleAddCitation} variant="outline" size="sm" className="gap-2">

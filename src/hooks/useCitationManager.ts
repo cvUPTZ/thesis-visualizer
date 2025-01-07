@@ -9,7 +9,7 @@ export const useCitationManager = (thesisId: string) => {
   const [selectedCitation, setSelectedCitation] = useState<Citation | null>(null);
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all');
+  const [filterType, setFilterType] = useState<'all' | Citation['type']>('all');
   const [sortField, setSortField] = useState<'year' | 'author' | 'title'>('year');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const { toast } = useToast();
@@ -34,7 +34,7 @@ export const useCitationManager = (thesisId: string) => {
 
       if (error) throw error;
 
-      setCitations(prev => [...prev, data]);
+      setCitations(prev => [...prev, data as Citation]);
       toast({
         title: "Success",
         description: "Citation added successfully",
@@ -114,7 +114,6 @@ export const useCitationManager = (thesisId: string) => {
   const getFilteredAndSortedCitations = (citationsToFilter: Citation[]) => {
     let filtered = [...citationsToFilter];
     
-    // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(citation => 
         citation.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -124,12 +123,10 @@ export const useCitationManager = (thesisId: string) => {
       );
     }
 
-    // Apply type filter
     if (filterType !== 'all') {
       filtered = filtered.filter(citation => citation.type === filterType);
     }
 
-    // Apply sorting
     filtered.sort((a, b) => {
       let comparison = 0;
       switch (sortField) {
