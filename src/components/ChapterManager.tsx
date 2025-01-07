@@ -1,4 +1,3 @@
-// File: src/components/ChapterManager.tsx
 import React from 'react';
 import { Chapter, Section } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { FigureManager } from './FigureManager';
 import { TableManager } from './TableManager';
 import { CitationManager } from './CitationManager';
-import { PlusCircle } from 'lucide-react';
+import { 
+  PlusCircle, 
+  BookOpen, 
+  ChevronDown, 
+  ChevronUp,
+  FileText,
+  MoveVertical
+} from 'lucide-react';
+import { 
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface ChapterManagerProps {
   chapters: Chapter[];
@@ -20,6 +31,16 @@ export const ChapterManager = ({
   onUpdateChapter,
   onAddChapter
 }: ChapterManagerProps) => {
+  const [openChapters, setOpenChapters] = React.useState<string[]>([]);
+
+  const toggleChapter = (chapterId: string) => {
+    setOpenChapters(prev => 
+      prev.includes(chapterId) 
+        ? prev.filter(id => id !== chapterId)
+        : [...prev, chapterId]
+    );
+  };
+
   const handleAddSection = (chapterId: string) => {
     const chapter = chapters.find((c) => c.id === chapterId);
     if (!chapter) return;
@@ -37,59 +58,86 @@ export const ChapterManager = ({
 
     onUpdateChapter({
       ...chapter,
-      sections: [...chapter.sections, newSection] // Just append
+      sections: [...chapter.sections, newSection]
     });
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-serif font-semibold">Chapters</h2>
-        <Button onClick={onAddChapter} className="flex items-center gap-2">
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex justify-between items-center bg-editor-bg p-4 rounded-lg shadow-sm">
+        <div className="flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-primary" />
+          <h2 className="text-2xl font-serif font-semibold">Chapters</h2>
+        </div>
+        <Button 
+          onClick={onAddChapter} 
+          className="flex items-center gap-2 bg-editor-accent hover:bg-editor-accent-hover transition-colors"
+        >
           <PlusCircle className="w-4 h-4" />
           Add Chapter
         </Button>
       </div>
-      {chapters.map((chapter) => (
-        <div key={chapter.id} className="border rounded-lg p-6 space-y-6">
-          <Input
-            value={chapter.title}
-            onChange={(e) =>
-              onUpdateChapter({ ...chapter, title: e.target.value })
-            }
-            className="text-xl font-serif"
-            placeholder="Chapter Title"
-          />
-          <div className="space-y-6">
-             {chapter.sections.map((section, index) => {
-                  return (
-                  <div key={section.id} className="border-t pt-6 space-y-4">
+
+      <div className="space-y-4">
+        {chapters.map((chapter) => (
+          <Collapsible
+            key={chapter.id}
+            open={openChapters.includes(chapter.id)}
+            onOpenChange={() => toggleChapter(chapter.id)}
+            className="border rounded-lg bg-white shadow-sm transition-all duration-200 hover:shadow-md"
+          >
+            <CollapsibleTrigger className="w-full p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <MoveVertical className="w-4 h-4 text-editor-text opacity-50" />
+                <Input
+                  value={chapter.title}
+                  onChange={(e) => onUpdateChapter({ ...chapter, title: e.target.value })}
+                  className="text-xl font-serif border-none bg-transparent px-0 focus-visible:ring-0 w-full"
+                  placeholder="Chapter Title"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+              {openChapters.includes(chapter.id) ? (
+                <ChevronUp className="w-5 h-5 text-editor-text" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-editor-text" />
+              )}
+            </CollapsibleTrigger>
+
+            <CollapsibleContent className="p-4 pt-0 space-y-4">
+              {chapter.sections.map((section, index) => (
+                <div 
+                  key={section.id} 
+                  className="border rounded-lg p-4 space-y-4 bg-editor-bg-accent transition-all duration-200 hover:shadow-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-editor-text opacity-50" />
                     <Input
                       value={section.title}
                       onChange={(e) => {
                         const updatedSections = chapter.sections.map((s) =>
-                          s.id === section.id
-                            ? { ...s, title: e.target.value }
-                            : s
+                          s.id === section.id ? { ...s, title: e.target.value } : s
                         );
                         onUpdateChapter({ ...chapter, sections: updatedSections });
                       }}
                       className="text-lg font-medium"
                       placeholder="Section Title"
                     />
-                    <Textarea
-                      value={section.content}
-                      onChange={(e) => {
-                        const updatedSections = chapter.sections.map((s) =>
-                          s.id === section.id
-                            ? { ...s, content: e.target.value }
-                            : s
-                        );
-                        onUpdateChapter({ ...chapter, sections: updatedSections });
-                      }}
-                      className="min-h-[200px]"
-                      placeholder="Section Content"
-                    />
+                  </div>
+
+                  <Textarea
+                    value={section.content}
+                    onChange={(e) => {
+                      const updatedSections = chapter.sections.map((s) =>
+                        s.id === section.id ? { ...s, content: e.target.value } : s
+                      );
+                      onUpdateChapter({ ...chapter, sections: updatedSections });
+                    }}
+                    className="min-h-[200px] bg-white"
+                    placeholder="Section Content"
+                  />
+
+                  <div className="space-y-6 pt-4">
                     <FigureManager
                       figures={section.figures}
                       onAddFigure={(figure) => {
@@ -198,18 +246,20 @@ export const ChapterManager = ({
                       }}
                     />
                   </div>
-                 )
-              })}
-            <Button
-              onClick={() => handleAddSection(chapter.id)}
-              variant="outline"
-              className="mt-4"
-            >
-              Add Section
-            </Button>
-          </div>
-        </div>
-      ))}
+                </div>
+              ))}
+              <Button
+                onClick={() => handleAddSection(chapter.id)}
+                variant="outline"
+                className="w-full mt-4 flex items-center justify-center gap-2 hover:bg-editor-hover"
+              >
+                <PlusCircle className="w-4 h-4" />
+                Add Section
+              </Button>
+            </CollapsibleContent>
+          </Collapsible>
+        ))}
+      </div>
     </div>
   );
 };
