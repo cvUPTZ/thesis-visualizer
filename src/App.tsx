@@ -41,13 +41,13 @@ function App() {
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <LanguageProvider>
-            <ErrorBoundary>
+        <ErrorBoundary>
+          <AuthProvider>
+            <LanguageProvider>
               <AppContent />
-            </ErrorBoundary>
-          </LanguageProvider>
-        </AuthProvider>
+            </LanguageProvider>
+          </AuthProvider>
+        </ErrorBoundary>
       </QueryClientProvider>
     </BrowserRouter>
   );
