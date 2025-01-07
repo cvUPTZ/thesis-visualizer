@@ -55,7 +55,7 @@ export const CollaboratorInviteForm = ({
         .eq('user_id', profiles.id)
         .maybeSingle();
 
-      if (collaboratorError) {
+      if (collaboratorError && collaboratorError.code !== 'PGRST116') {
         console.error('Error checking existing collaborator:', collaboratorError);
         throw new Error('Error checking existing collaborator');
       }
@@ -64,13 +64,15 @@ export const CollaboratorInviteForm = ({
         throw new Error('This user is already a collaborator.');
       }
 
-      // Add collaborator
+      // Add collaborator with unique constraint handling
       const { error: insertError } = await supabase
         .from('thesis_collaborators')
-        .insert({
+        .upsert({
           thesis_id: thesisId,
           user_id: profiles.id,
           role: role
+        }, {
+          onConflict: 'thesis_id,user_id'
         });
 
       if (insertError) {
@@ -100,7 +102,6 @@ export const CollaboratorInviteForm = ({
 
       if (emailError) {
         console.error('Error sending invite email:', emailError);
-        // Don't throw here, as the collaboration was already created
         toast({
           title: "Notice",
           description: "Collaborator added but email notification failed to send.",

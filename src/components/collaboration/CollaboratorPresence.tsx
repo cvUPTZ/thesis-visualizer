@@ -66,26 +66,27 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
     fetchCollaborators();
     
     // Set up presence channel
-    const channel = supabase.channel(`presence:${thesisId}`, {
-      config: {
-        presence: {
-          key: supabase.auth.getUser().then(({ data }) => data.user?.id || ''),
-        },
-      },
-    });
+    const channel = supabase.channel(`presence:${thesisId}`);
+    let userId = '';
 
-    // Track presence state
-    const trackPresence = async () => {
+    // Get user ID first
+    const setupPresence = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      userId = user.id;
 
-      const presenceState = {
-        user_id: user.id,
-        online_at: new Date().toISOString(),
-      };
-
-      await channel.track(presenceState);
+      channel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to presence channel');
+          await channel.track({
+            user_id: userId,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
     };
+
+    setupPresence();
 
     // Subscribe to presence changes
     channel
@@ -102,12 +103,6 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
       .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
         console.log('User left:', key, leftPresences);
         fetchCollaborators();
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to presence channel');
-          await trackPresence();
-        }
       });
 
     // Cleanup
