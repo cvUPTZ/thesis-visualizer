@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Thesis } from '@/types/thesis';
 import { useToast } from './use-toast';
+import { debounce } from 'lodash';
 
 export const useThesisRealtime = (
   thesisId: string | undefined,
@@ -14,6 +15,16 @@ export const useThesisRealtime = (
     if (!thesisId || !currentThesis) return;
 
     console.log('Setting up realtime subscription for thesis:', thesisId);
+
+    // Create a debounced version of the notification toast
+    const showUpdateNotification = debounce(() => {
+      toast({
+        title: "Thesis Updated",
+        description: "Changes from another collaborator have been applied",
+      });
+    }, 2000); // Show notification at most once every 2 seconds
+
+    let lastUpdateTime = new Date().toISOString();
 
     const channel = supabase
       .channel('thesis_changes')
@@ -28,14 +39,25 @@ export const useThesisRealtime = (
         (payload) => {
           console.log('Received thesis update:', payload);
           
-          // Skip if we're the ones who made the change
+          // Skip if we're the ones who made the change by comparing timestamps
           if (payload.new.updated_at === currentThesis.updated_at) {
             console.log('Skipping own update');
             return;
           }
 
+          // Skip if this update is too close to the last one we processed
+          if (payload.new.updated_at <= lastUpdateTime) {
+            console.log('Skipping duplicate/old update');
+            return;
+          }
+
+          lastUpdateTime = payload.new.updated_at;
           const newContent = payload.new.content;
-          if (!newContent) return;
+          
+          if (!newContent) {
+            console.log('Update contained no content, skipping');
+            return;
+          }
 
           setThesis({
             ...currentThesis,
@@ -46,16 +68,16 @@ export const useThesisRealtime = (
             backMatter: newContent.backMatter || currentThesis.backMatter,
           });
 
-          toast({
-            title: "Thesis Updated",
-            description: "Changes from another user have been applied",
-          });
+          // Show notification about the update
+          showUpdateNotification();
         }
       )
       .subscribe();
 
+    // Cleanup
     return () => {
       console.log('Cleaning up realtime subscription');
+      showUpdateNotification.cancel(); // Cancel any pending notifications
       supabase.removeChannel(channel);
     };
   }, [thesisId, currentThesis?.id]);
