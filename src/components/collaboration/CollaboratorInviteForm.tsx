@@ -115,13 +115,18 @@ export const CollaboratorInviteForm = ({
           .insert({
             thesis_id: thesisId,
             user_id: existingUser.id,
-            role: role
+            role: role as ValidRole // Type assertion to ensure role is valid
           });
 
         if (insertError) {
           console.error('Error adding collaborator:', insertError);
           throw new Error('Failed to add collaborator. Please try again.');
         }
+
+        toast({
+          title: "Success",
+          description: "Collaborator added successfully",
+        });
       }
 
       setEmail('');
@@ -129,6 +134,11 @@ export const CollaboratorInviteForm = ({
     } catch (error: any) {
       console.error('Error inviting collaborator:', error);
       onInviteError(error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to invite collaborator",
+        variant: "destructive",
+      });
     } finally {
       setIsInviting(false);
     }
