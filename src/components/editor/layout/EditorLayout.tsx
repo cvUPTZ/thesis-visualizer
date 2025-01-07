@@ -25,8 +25,10 @@ export const EditorLayout = ({
       <ResizablePanelGroup direction="horizontal">
         {sidebar && (
           <>
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-              {sidebar}
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-screen">
+              <ScrollArea className="h-full">
+                {sidebar}
+              </ScrollArea>
             </ResizablePanel>
             <ResizableHandle withHandle />
           </>
@@ -35,8 +37,9 @@ export const EditorLayout = ({
         <ResizablePanel 
           defaultSize={showPreview ? 40 : 60} 
           minSize={30}
+          className="h-screen"
         >
-          <ScrollArea className="h-screen">
+          <ScrollArea className="h-full">
             <div className="p-6">
               {content}
             </div>
@@ -46,8 +49,8 @@ export const EditorLayout = ({
         {showPreview && preview && (
           <>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={20} minSize={20}>
-              <ScrollArea className="h-screen">
+            <ResizablePanel defaultSize={20} minSize={20} className="h-screen">
+              <ScrollArea className="h-full">
                 <div className="p-6">
                   {preview}
                 </div>
@@ -59,8 +62,8 @@ export const EditorLayout = ({
         {reviewPanel && (
           <>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-              <ScrollArea className="h-screen">
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="h-screen">
+              <ScrollArea className="h-full">
                 <div className="p-6">
                   {reviewPanel}
                 </div>
