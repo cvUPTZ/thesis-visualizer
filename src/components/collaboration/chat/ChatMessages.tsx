@@ -70,8 +70,8 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
   }
 
   return (
-    <div className="flex flex-col h-[400px] bg-background border rounded-lg shadow-sm">
-      <div className="p-3 border-b">
+    <div className="fixed bottom-4 right-4 w-[400px] h-[500px] bg-background border rounded-lg shadow-lg z-50 flex flex-col">
+      <div className="p-3 border-b bg-primary/5 rounded-t-lg">
         <h3 className="font-semibold">Chat</h3>
       </div>
       
