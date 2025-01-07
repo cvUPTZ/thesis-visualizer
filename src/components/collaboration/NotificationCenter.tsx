@@ -24,25 +24,36 @@ export const NotificationCenter = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const { toast } = useToast();
   const notificationIds = useRef(new Set<string>());
+  const subscriptionRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  // Memoize the toast function to prevent unnecessary re-renders
+  const showToast = useCallback((message: string) => {
+    toast({
+      title: "New Notification",
+      description: message,
+    });
+  }, [toast]);
 
   const fetchNotifications = useCallback(async () => {
     console.log('Fetching notifications');
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
+      if (error) throw error;
+
+      if (data) {
+        // Update our ref with existing notification IDs
+        notificationIds.current = new Set(data.map(n => n.id));
+        setNotifications(data);
+        setUnreadCount(data.filter(n => !n.read).length);
+      }
+    } catch (error) {
       console.error('Error fetching notifications:', error);
-      return;
     }
-
-    // Update our ref with existing notification IDs
-    notificationIds.current = new Set(data.map(n => n.id));
-    
-    setNotifications(data);
-    setUnreadCount(data.filter(n => !n.read).length);
-  }, []);
+  }, []); // No dependencies needed as supabase client is stable
 
   const handleNewNotification = useCallback((newNotification: Notification) => {
     console.log('Processing new notification:', newNotification.id);
@@ -56,25 +67,20 @@ export const NotificationCenter = () => {
     // Add to our tracking set
     notificationIds.current.add(newNotification.id);
 
-    setNotifications(prev => {
-      // Double check in case of race conditions
-      if (prev.some(n => n.id === newNotification.id)) {
-        return prev;
-      }
-      return [newNotification, ...prev];
-    });
-
+    setNotifications(prev => [newNotification, ...prev]);
     setUnreadCount(prev => prev + 1);
-    
-    toast({
-      title: "New Notification",
-      description: newNotification.message,
-    });
-  }, [toast]);
+    showToast(newNotification.message);
+  }, [showToast]); // Only depend on the memoized showToast
 
   useEffect(() => {
     console.log('Setting up notifications subscription');
     
+    // Clean up any existing subscription
+    if (subscriptionRef.current) {
+      console.log('Cleaning up existing subscription');
+      supabase.removeChannel(subscriptionRef.current);
+    }
+
     // Initial fetch
     fetchNotifications();
 
@@ -95,11 +101,16 @@ export const NotificationCenter = () => {
       )
       .subscribe();
 
+    // Store the subscription reference
+    subscriptionRef.current = channel;
+
     return () => {
       console.log('Cleaning up notifications subscription');
-      supabase.removeChannel(channel);
+      if (subscriptionRef.current) {
+        supabase.removeChannel(subscriptionRef.current);
+      }
     };
-  }, [fetchNotifications, handleNewNotification]);
+  }, [fetchNotifications, handleNewNotification]); // Stable dependencies
 
   const markAsRead = async (notificationId: string) => {
     const { error } = await supabase
