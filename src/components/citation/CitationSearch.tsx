@@ -34,7 +34,6 @@ export const CitationSearch = ({ onSelect }: CitationSearchProps) => {
   });
 
   const formatCitation = (result: any): Citation => {
-    const now = new Date().toISOString();
     // Format the API response into a Citation object
     return {
       id: crypto.randomUUID(),
@@ -44,15 +43,12 @@ export const CitationSearch = ({ onSelect }: CitationSearchProps) => {
       year: result.published?.['date-parts']?.[0]?.[0]?.toString() || '',
       type: result.type === 'journal-article' ? 'article' : 'book',
       doi: result.DOI,
-      url: result.URL,
       journal: result['container-title']?.[0],
       volume: result.volume,
       issue: result.issue,
       pages: result.page,
       publisher: result.publisher,
-      thesis_id: '', // This will be set by the parent component
-      created_at: now,
-      updated_at: now
+      thesis_id: '' // This will be set by the parent component
     };
   };
 
