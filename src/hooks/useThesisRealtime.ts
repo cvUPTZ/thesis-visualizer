@@ -22,9 +22,10 @@ export const useThesisRealtime = (
         title: "Thesis Updated",
         description: "Changes from another collaborator have been applied",
       });
-    }, 2000); // Show notification at most once every 2 seconds
+    }, 5000); // Show notification at most once every 5 seconds
 
     let lastUpdateTime = new Date().toISOString();
+    let lastProcessedContent = JSON.stringify(currentThesis);
 
     const channel = supabase
       .channel('thesis_changes')
@@ -39,7 +40,7 @@ export const useThesisRealtime = (
         (payload) => {
           console.log('Received thesis update:', payload);
           
-          // Skip if we're the ones who made the change by comparing timestamps
+          // Skip if we're the ones who made the change
           if (payload.new.updated_at === currentThesis.updated_at) {
             console.log('Skipping own update');
             return;
@@ -51,7 +52,15 @@ export const useThesisRealtime = (
             return;
           }
 
+          // Skip if the content hasn't actually changed
+          const newContentStr = JSON.stringify(payload.new.content);
+          if (newContentStr === lastProcessedContent) {
+            console.log('Content unchanged, skipping update');
+            return;
+          }
+
           lastUpdateTime = payload.new.updated_at;
+          lastProcessedContent = newContentStr;
           const newContent = payload.new.content;
           
           if (!newContent) {

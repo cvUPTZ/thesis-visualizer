@@ -1,4 +1,3 @@
-// File: src/hooks/useThesisAutosave.ts
 import { useCallback, useEffect, useRef } from 'react';
 import { debounce } from 'lodash';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +8,8 @@ import { Json } from '@/integrations/supabase/types';
 export const useThesisAutosave = (thesis: Thesis | null) => {
   const { toast } = useToast();
   const lastSavedContent = useRef<string>(thesis ? JSON.stringify(thesis) : '');
+  const lastToastTime = useRef<number>(0);
+  const TOAST_COOLDOWN = 5000; // 5 seconds between toasts
 
   const saveThesis = useCallback(async (thesisData: Thesis) => {
     if (!thesisData) return;
@@ -16,7 +17,6 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
     try {
       console.log('Auto-saving thesis:', thesisData.id);
       
-      // Serialize the thesis content to ensure it matches the Json type
       const serializedContent = JSON.stringify({
         metadata: thesisData.metadata,
         frontMatter: thesisData.frontMatter,
@@ -37,10 +37,15 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
       lastSavedContent.current = JSON.stringify(thesisData);
       console.log('Auto-save successful');
       
-      toast({
-        title: "Auto-saved",
-        description: "Your thesis has been automatically saved.",
-      });
+      // Only show toast if enough time has passed since the last one
+      const now = Date.now();
+      if (now - lastToastTime.current >= TOAST_COOLDOWN) {
+        lastToastTime.current = now;
+        toast({
+          title: "Auto-saved",
+          description: "Your thesis has been automatically saved.",
+        });
+      }
     } catch (error) {
       console.error('Error auto-saving thesis:', error);
       toast({
