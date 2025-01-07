@@ -1,40 +1,31 @@
 import React from 'react';
-import { Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { NotificationList } from './notifications/NotificationList';
 import { useNotifications } from './notifications/useNotifications';
+import { NotificationList } from './notifications/NotificationList';
+import { Card } from '../ui/card';
+import { LoadingSkeleton } from '../loading/LoadingSkeleton';
 
-export const NotificationCenter = () => {
-  const { notifications, unreadCount, markAsRead } = useNotifications();
+interface NotificationCenterProps {
+  thesisId: string;
+}
+
+export const NotificationCenter: React.FC<NotificationCenterProps> = ({ thesisId }) => {
+  console.log('🎯 Rendering NotificationCenter for thesis:', thesisId);
+  
+  const { notifications, loading, markAsRead } = useNotifications(thesisId);
+
+  if (loading) {
+    return <LoadingSkeleton />;
+  }
 
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="ghost" className="relative">
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
-              {unreadCount}
-            </span>
-          )}
-        </Button>
-      </SheetTrigger>
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Notifications</SheetTitle>
-        </SheetHeader>
-        <NotificationList 
-          notifications={notifications}
-          onMarkAsRead={markAsRead}
-        />
-      </SheetContent>
-    </Sheet>
+    <Card className="w-full">
+      <div className="p-4 border-b">
+        <h3 className="font-semibold">Notifications</h3>
+      </div>
+      <NotificationList
+        notifications={notifications}
+        onMarkAsRead={markAsRead}
+      />
+    </Card>
   );
 };
