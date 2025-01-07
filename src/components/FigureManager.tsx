@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useToast } from '@/hooks/use-toast';
 
 interface FigureManagerProps {
   figures: Figure[];
@@ -27,34 +28,52 @@ export const FigureManager = ({
   const [isAddingFigure, setIsAddingFigure] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  console.log('Rendering FigureManager:', { figuresCount: figures.length });
+  console.log('Rendering FigureManager:', { figuresCount: figures?.length });
 
   const handleFileUpload = async (file: File) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const imageUrl = reader.result as string;
-      
-      // Create a temporary image to get dimensions
-      const img = new Image();
-      img.onload = () => {
-        const newFigure: Figure = {
-          id: Date.now().toString(),
-          imageUrl,
-          caption: '',
-          altText: '',
-          number: (figures?.length || 0) + 1,
-          dimensions: {
-            width: img.width,
-            height: img.height
-          }
+    try {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageUrl = reader.result as string;
+        
+        // Create a temporary image to get dimensions
+        const img = new Image();
+        img.onload = () => {
+          const newFigure: Figure = {
+            id: Date.now().toString(),
+            imageUrl,
+            caption: '',
+            altText: '',
+            number: (figures?.length || 0) + 1,
+            dimensions: {
+              width: img.width,
+              height: img.height
+            }
+          };
+          
+          console.log('Adding new figure:', newFigure);
+          onAddFigure(newFigure);
+          setIsAddingFigure(false);
+          
+          toast({
+            title: "Figure Added",
+            description: "New figure has been added successfully.",
+          });
         };
-        onAddFigure(newFigure);
-        setIsAddingFigure(false);
+        img.src = imageUrl;
+        setPreviewImage(imageUrl);
       };
-      img.src = imageUrl;
-    };
-    reader.readAsDataURL(file);
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading figure:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add figure. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePreview = (imageUrl: string) => {
@@ -105,7 +124,7 @@ export const FigureManager = ({
       </Dialog>
 
       <FigureList
-        figures={figures}
+        figures={figures || []}
         onRemove={onRemoveFigure}
         onUpdate={onUpdateFigure}
         onPreview={handlePreview}
