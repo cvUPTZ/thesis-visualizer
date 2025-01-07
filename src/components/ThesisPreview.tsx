@@ -7,7 +7,7 @@ import { ContentSection } from './thesis/preview/ContentSection';
 import { Button } from './ui/button';
 import { FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generatePdf } from 'react-to-pdf';
+import toPDF from 'react-to-pdf';
 
 interface ThesisPreviewProps {
   thesis: any;
@@ -22,10 +22,9 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
     if (!previewRef.current) return;
 
     try {
-      await generatePdf({
-        element: previewRef.current,
+      await toPDF(previewRef.current, {
         filename: `${thesis.frontMatter[0]?.title || 'thesis'}.pdf`,
-        options: {
+        page: {
           margin: 20,
         },
       });
