@@ -6,54 +6,76 @@ export const translations = {
       features: "Features",
       about: "About",
       getStarted: "Get Started",
-      home: "Home"
+      home: "Home",
+      save: "Save",
+      cancel: "Cancel",
+      delete: "Delete",
+      edit: "Edit",
+      preview: "Preview",
+      loading: "Loading...",
+      error: "Error",
+      success: "Success",
+      submit: "Submit",
+      required: "Required"
     },
-    landing: {
-      hero: {
-        title: "Write Your Thesis with Confidence",
-        subtitle: "A powerful platform for academic writing and collaboration",
-        cta: "Start Writing Now",
-        learnMore: "Learn More"
+    thesis: {
+      title: "Title",
+      abstract: "Abstract",
+      introduction: "Introduction",
+      methodology: "Methodology",
+      results: "Results",
+      discussion: "Discussion",
+      conclusion: "Conclusion",
+      references: "References",
+      appendices: "Appendices",
+      chapters: "Chapters",
+      sections: "Sections",
+      addChapter: "Add Chapter",
+      addSection: "Add Section",
+      chapterTitle: "Chapter Title",
+      sectionTitle: "Section Title",
+      lastEdited: "Last edited",
+      collaborators: "Collaborators",
+      comments: "Comments",
+      citations: "Citations",
+      figures: "Figures",
+      tables: "Tables"
+    },
+    editor: {
+      write: "Write",
+      preview: "Preview",
+      formatting: "Formatting",
+      bold: "Bold",
+      italic: "Italic",
+      underline: "Underline",
+      list: "List",
+      quote: "Quote",
+      code: "Code",
+      link: "Link",
+      image: "Image",
+      save: "Save Changes",
+      discard: "Discard Changes"
+    },
+    collaboration: {
+      invite: "Invite Collaborators",
+      role: {
+        owner: "Owner",
+        editor: "Editor",
+        viewer: "Viewer",
+        reviewer: "Reviewer"
       },
-      features: {
-        title: "Powerful Features for Academic Success",
-        subtitle: "Everything you need to write a professional thesis",
-        smartEditor: {
-          title: "Smart Editor",
-          description: "Write and format your thesis with our intelligent editor"
-        },
-        collaboration: {
-          title: "Real-time Collaboration",
-          description: "Work together with advisors and peers seamlessly"
-        },
-        versionControl: {
-          title: "Version Control",
-          description: "Track changes and manage different versions effortlessly"
-        },
-        aiPowered: {
-          title: "AI-Powered",
-          description: "Get intelligent suggestions and formatting assistance"
-        }
-      },
-      pricing: {
-        title: "Choose Your Plan",
-        subtitle: "Select the perfect plan for your academic journey",
-        basic: {
-          title: "Basic",
-          price: "0 DZD",
-          duration: "one thesis"
-        },
-        standard: {
-          title: "Standard",
-          price: "3,900 DZD",
-          duration: "per thesis"
-        },
-        research: {
-          title: "Research",
-          price: "13,900 DZD",
-          duration: "yearly"
-        }
+      status: {
+        online: "Online",
+        offline: "Offline",
+        away: "Away"
       }
+    },
+    notifications: {
+      newComment: "New Comment",
+      newCollaborator: "New Collaborator",
+      changes: "Changes Made",
+      review: "Review Request",
+      mention: "Mentioned You"
     }
   },
   fr: {
@@ -63,54 +85,76 @@ export const translations = {
       features: "Fonctionnalités",
       about: "À propos",
       getStarted: "Commencer",
-      home: "Accueil"
+      home: "Accueil",
+      save: "Enregistrer",
+      cancel: "Annuler",
+      delete: "Supprimer",
+      edit: "Modifier",
+      preview: "Aperçu",
+      loading: "Chargement...",
+      error: "Erreur",
+      success: "Succès",
+      submit: "Soumettre",
+      required: "Requis"
     },
-    landing: {
-      hero: {
-        title: "Rédigez votre thèse en toute confiance",
-        subtitle: "Une plateforme puissante pour la rédaction académique et la collaboration",
-        cta: "Commencer à écrire",
-        learnMore: "En savoir plus"
+    thesis: {
+      title: "Titre",
+      abstract: "Résumé",
+      introduction: "Introduction",
+      methodology: "Méthodologie",
+      results: "Résultats",
+      discussion: "Discussion",
+      conclusion: "Conclusion",
+      references: "Références",
+      appendices: "Annexes",
+      chapters: "Chapitres",
+      sections: "Sections",
+      addChapter: "Ajouter un chapitre",
+      addSection: "Ajouter une section",
+      chapterTitle: "Titre du chapitre",
+      sectionTitle: "Titre de la section",
+      lastEdited: "Dernière modification",
+      collaborators: "Collaborateurs",
+      comments: "Commentaires",
+      citations: "Citations",
+      figures: "Figures",
+      tables: "Tableaux"
+    },
+    editor: {
+      write: "Écrire",
+      preview: "Aperçu",
+      formatting: "Mise en forme",
+      bold: "Gras",
+      italic: "Italique",
+      underline: "Souligné",
+      list: "Liste",
+      quote: "Citation",
+      code: "Code",
+      link: "Lien",
+      image: "Image",
+      save: "Enregistrer les modifications",
+      discard: "Annuler les modifications"
+    },
+    collaboration: {
+      invite: "Inviter des collaborateurs",
+      role: {
+        owner: "Propriétaire",
+        editor: "Éditeur",
+        viewer: "Lecteur",
+        reviewer: "Relecteur"
       },
-      features: {
-        title: "Des fonctionnalités puissantes pour la réussite académique",
-        subtitle: "Tout ce dont vous avez besoin pour rédiger une thèse professionnelle",
-        smartEditor: {
-          title: "Éditeur intelligent",
-          description: "Rédigez et formatez votre thèse avec notre éditeur intelligent"
-        },
-        collaboration: {
-          title: "Collaboration en temps réel",
-          description: "Travaillez ensemble avec vos directeurs et pairs de manière transparente"
-        },
-        versionControl: {
-          title: "Contrôle de version",
-          description: "Suivez les modifications et gérez différentes versions sans effort"
-        },
-        aiPowered: {
-          title: "Propulsé par l'IA",
-          description: "Obtenez des suggestions intelligentes et une assistance au formatage"
-        }
-      },
-      pricing: {
-        title: "Choisissez votre forfait",
-        subtitle: "Sélectionnez le forfait parfait pour votre parcours académique",
-        basic: {
-          title: "Basique",
-          price: "0 DZD",
-          duration: "une thèse"
-        },
-        standard: {
-          title: "Standard",
-          price: "3 900 DZD",
-          duration: "par thèse"
-        },
-        research: {
-          title: "Recherche",
-          price: "13 900 DZD",
-          duration: "par an"
-        }
+      status: {
+        online: "En ligne",
+        offline: "Hors ligne",
+        away: "Absent"
       }
+    },
+    notifications: {
+      newComment: "Nouveau commentaire",
+      newCollaborator: "Nouveau collaborateur",
+      changes: "Modifications effectuées",
+      review: "Demande de relecture",
+      mention: "Vous a mentionné"
     }
   },
   ar: {
@@ -120,54 +164,76 @@ export const translations = {
       features: "المميزات",
       about: "حول",
       getStarted: "ابدأ الآن",
-      home: "الرئيسية"
+      home: "الرئيسية",
+      save: "حفظ",
+      cancel: "إلغاء",
+      delete: "حذف",
+      edit: "تعديل",
+      preview: "معاينة",
+      loading: "جاري التحميل...",
+      error: "خطأ",
+      success: "نجاح",
+      submit: "إرسال",
+      required: "مطلوب"
     },
-    landing: {
-      hero: {
-        title: "اكتب أطروحتك بثقة",
-        subtitle: "منصة قوية للكتابة الأكاديمية والتعاون",
-        cta: "ابدأ الكتابة الآن",
-        learnMore: "اعرف المزيد"
+    thesis: {
+      title: "العنوان",
+      abstract: "ملخص",
+      introduction: "مقدمة",
+      methodology: "المنهجية",
+      results: "النتائج",
+      discussion: "المناقشة",
+      conclusion: "الخاتمة",
+      references: "المراجع",
+      appendices: "الملاحق",
+      chapters: "الفصول",
+      sections: "الأقسام",
+      addChapter: "إضافة فصل",
+      addSection: "إضافة قسم",
+      chapterTitle: "عنوان الفصل",
+      sectionTitle: "عنوان القسم",
+      lastEdited: "آخر تعديل",
+      collaborators: "المتعاونون",
+      comments: "التعليقات",
+      citations: "الاقتباسات",
+      figures: "الأشكال",
+      tables: "الجداول"
+    },
+    editor: {
+      write: "كتابة",
+      preview: "معاينة",
+      formatting: "تنسيق",
+      bold: "عريض",
+      italic: "مائل",
+      underline: "تحته خط",
+      list: "قائمة",
+      quote: "اقتباس",
+      code: "كود",
+      link: "رابط",
+      image: "صورة",
+      save: "حفظ التغييرات",
+      discard: "إلغاء التغييرات"
+    },
+    collaboration: {
+      invite: "دعوة متعاونين",
+      role: {
+        owner: "مالك",
+        editor: "محرر",
+        viewer: "مشاهد",
+        reviewer: "مراجع"
       },
-      features: {
-        title: "ميزات قوية للنجاح الأكاديمي",
-        subtitle: "كل ما تحتاجه لكتابة أطروحة احترافية",
-        smartEditor: {
-          title: "محرر ذكي",
-          description: "اكتب ونسق أطروحتك مع محررنا الذكي"
-        },
-        collaboration: {
-          title: "تعاون في الوقت الفعلي",
-          description: "اعمل مع المشرفين والزملاء بسلاسة"
-        },
-        versionControl: {
-          title: "التحكم في الإصدارات",
-          description: "تتبع التغييرات وإدارة الإصدارات المختلفة بسهولة"
-        },
-        aiPowered: {
-          title: "مدعوم بالذكاء الاصطناعي",
-          description: "احصل على اقتراحات ذكية ومساعدة في التنسيق"
-        }
-      },
-      pricing: {
-        title: "اختر خطتك",
-        subtitle: "اختر الخطة المثالية لرحلتك الأكاديمية",
-        basic: {
-          title: "أساسي",
-          price: "0 دج",
-          duration: "أطروحة واحدة"
-        },
-        standard: {
-          title: "قياسي",
-          price: "3,900 دج",
-          duration: "لكل أطروحة"
-        },
-        research: {
-          title: "بحث",
-          price: "13,900 دج",
-          duration: "سنويا"
-        }
+      status: {
+        online: "متصل",
+        offline: "غير متصل",
+        away: "غائب"
       }
+    },
+    notifications: {
+      newComment: "تعليق جديد",
+      newCollaborator: "متعاون جديد",
+      changes: "تم إجراء تغييرات",
+      review: "طلب مراجعة",
+      mention: "أشار إليك"
     }
   }
 } as const;
