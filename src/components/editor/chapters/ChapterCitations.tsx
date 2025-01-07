@@ -16,12 +16,12 @@ export const ChapterCitations: React.FC<ChapterCitationsProps> = ({
 }) => {
   const { toast } = useToast();
 
-  const handleAddCitation = (citation: Citation) => {
+  const handleAddCitation = (citation: Omit<Citation, "thesis_id">) => {
     if (chapter.sections[0]) {
       const updatedSections = [...chapter.sections];
       updatedSections[0] = {
         ...updatedSections[0],
-        citations: [...(updatedSections[0].citations || []), citation]
+        citations: [...(updatedSections[0].citations || []), { ...citation, thesis_id: chapter.id }]
       };
 
       onUpdateChapter({
@@ -57,7 +57,7 @@ export const ChapterCitations: React.FC<ChapterCitationsProps> = ({
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-medium">Citations</h3>
-        <CitationSearch onSelect={handleAddCitation} />
+        <CitationSearch onCitationSelect={handleAddCitation} />
       </div>
       <div className="space-y-2">
         {chapter.sections[0]?.citations?.map((citation) => (

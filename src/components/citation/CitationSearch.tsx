@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 
 interface CitationSearchProps {
-  onCitationSelect: (citation: Citation) => void;
+  onCitationSelect: (citation: Omit<Citation, "thesis_id">) => void;
 }
 
 export const CitationSearch: React.FC<CitationSearchProps> = ({ onCitationSelect }) => {
@@ -41,7 +41,7 @@ export const CitationSearch: React.FC<CitationSearchProps> = ({ onCitationSelect
     }
   };
 
-  const formatCitation = (result: any): Citation => {
+  const formatCitation = (result: any): Omit<Citation, "thesis_id"> => {
     const now = new Date().toISOString();
     return {
       id: crypto.randomUUID(),
@@ -49,7 +49,7 @@ export const CitationSearch: React.FC<CitationSearchProps> = ({ onCitationSelect
       source: result.publisher || '',
       authors: result.author?.map((a: any) => `${a.given} ${a.family}`) || [],
       year: result.published?.['date-parts']?.[0]?.[0]?.toString() || '',
-      type: 'article',
+      type: 'article' as const,
       doi: result.DOI,
       url: result.URL,
       journal: result['container-title']?.[0],
@@ -57,7 +57,6 @@ export const CitationSearch: React.FC<CitationSearchProps> = ({ onCitationSelect
       issue: result.issue,
       pages: result.page,
       publisher: result.publisher,
-      thesis_id: '', // This will be set by the parent component
       created_at: now,
       updated_at: now
     };

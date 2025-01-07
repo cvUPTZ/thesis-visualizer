@@ -48,7 +48,7 @@ export const CitationManager = ({
     handleAddCitation,
     handleSearchResult,
     getFilteredAndSortedCitations
-  } = useCitationManager(thesisId);
+  } = useCitationManager(thesisId || '');
 
   const filteredAndSortedCitations = getFilteredAndSortedCitations(citations);
   const recentCitations = [...citations].sort((a, b) => 
@@ -74,8 +74,8 @@ export const CitationManager = ({
           onAddCitation={onAddCitation}
           searchDialogOpen={searchDialogOpen}
           setSearchDialogOpen={setSearchDialogOpen}
-          handleAddCitation={() => handleAddCitation(onAddCitation)}
-          handleSearchResult={(citation) => handleSearchResult(citation, onAddCitation)}
+          handleAddCitation={handleAddCitation}
+          handleSearchResult={handleSearchResult}
         />
       </motion.div>
 
