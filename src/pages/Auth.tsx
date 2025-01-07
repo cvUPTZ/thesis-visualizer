@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { EmailAuthForm } from '@/components/auth/EmailAuthForm';
 import { SocialAuth } from '@/components/auth/SocialAuth';
@@ -9,6 +9,7 @@ import LandingPage from './LandingPage';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AuthError, AuthApiError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useEffect } from 'react';
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -23,31 +24,6 @@ const Auth = () => {
   const toggleAuthMode = () => {
     setAuthMode(prev => prev === 'signin' ? 'signup' : 'signin');
     setErrorMessage(''); // Clear any existing errors when switching modes
-  };
-
-  // Error message handler
-  const getErrorMessage = (error: AuthError) => {
-    console.error('Authentication error:', error);
-    
-    if (error instanceof AuthApiError) {
-      switch (error.status) {
-        case 400:
-          if (error.message.includes('invalid_credentials')) {
-            return 'Invalid email or password. Please check your credentials and try again.';
-          }
-          if (error.message.includes('email not confirmed')) {
-            return 'Please verify your email address before signing in.';
-          }
-          return 'Invalid login attempt. Please check your credentials and try again.';
-        case 422:
-          return 'Invalid email format. Please enter a valid email address.';
-        case 429:
-          return 'Too many login attempts. Please try again later.';
-        default:
-          return error.message;
-      }
-    }
-    return 'An unexpected error occurred. Please try again.';
   };
 
   useEffect(() => {
@@ -73,6 +49,31 @@ const Auth = () => {
       subscription.unsubscribe();
     };
   }, [navigate]);
+
+  // Error message handler
+  const getErrorMessage = (error: AuthError) => {
+    console.error('Authentication error:', error);
+    
+    if (error instanceof AuthApiError) {
+      switch (error.status) {
+        case 400:
+          if (error.message.includes('invalid_credentials')) {
+            return 'Invalid email or password. Please check your credentials and try again.';
+          }
+          if (error.message.includes('email not confirmed')) {
+            return 'Please verify your email address before signing in.';
+          }
+          return 'Invalid login attempt. Please check your credentials and try again.';
+        case 422:
+          return 'Invalid email format. Please enter a valid email address.';
+        case 429:
+          return 'Too many login attempts. Please try again later.';
+        default:
+          return error.message;
+      }
+    }
+    return 'An unexpected error occurred. Please try again.';
+  };
 
   return (
     <div className="relative min-h-screen">
@@ -130,9 +131,7 @@ const Auth = () => {
             <EmailAuthForm 
               mode={authMode} 
               onModeChange={toggleAuthMode}
-              onError={(error) => setErrorMessage(getErrorMessage(error))}
-              isLoading={loading}
-              setLoading={setLoading}
+              onError={(error) => setErrorMessage(getErrorMessage(error))} 
             />
           </div>
 

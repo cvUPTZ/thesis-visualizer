@@ -9,35 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      active_sessions: {
-        Row: {
-          id: string
-          last_seen: string | null
-          session_id: string
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          last_seen?: string | null
-          session_id: string
-          user_id: string
-        }
-        Update: {
-          id?: string
-          last_seen?: string | null
-          session_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "active_sessions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       app_issues: {
         Row: {
           browser_info: string | null

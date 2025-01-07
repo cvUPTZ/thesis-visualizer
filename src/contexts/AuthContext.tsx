@@ -1,10 +1,8 @@
-import { createContext, useContext, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { AuthError } from '@supabase/supabase-js';
-import { useAuthState } from '@/hooks/useAuthState';
-import { useSessionManager } from '@/hooks/useSessionManager';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -25,7 +23,10 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const { authState, setters, clearAuthState } = useAuthState();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -33,6 +34,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleAuthError = (error: AuthError, context: string) => {
     console.error(`❌ Auth error in ${context}:`, error);
     
+    // Don't show errors for expected cases
     if (error.message.includes('session_not_found') || 
         error.message.includes('refresh_token_not_found')) {
       return;
@@ -45,17 +47,80 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
+  const clearAuthState = () => {
+    setIsAuthenticated(false);
+    setUserId(null);
+    setUserEmail(null);
+  };
+
+  useEffect(() => {
+    const initSession = async () => {
+      try {
+        console.log('🔄 Initializing session...');
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          handleAuthError(sessionError, 'session initialization');
+          setLoading(false);
+          return;
+        }
+
+        if (session) {
+          console.log('✅ Session found:', session.user.email);
+          setIsAuthenticated(true);
+          setUserId(session.user.id);
+          setUserEmail(session.user.email);
+          
+          if (location.pathname === '/auth') {
+            navigate('/');
+          }
+        } else {
+          console.log('ℹ️ No active session');
+          clearAuthState();
+          if (location.pathname !== '/auth' && location.pathname !== '/') {
+            navigate('/auth');
+          }
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error('❌ Error initializing session:', error);
+        setLoading(false);
+      }
+    };
+
+    initSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔄 Auth state changed:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_IN' && session) {
+        setIsAuthenticated(true);
+        setUserId(session.user.id);
+        setUserEmail(session.user.email);
+        if (location.pathname === '/auth') {
+          navigate('/');
+        }
+      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        clearAuthState();
+        navigate('/auth');
+      }
+    });
+
+    return () => {
+      console.log('🧹 Cleaning up auth subscriptions');
+      subscription.unsubscribe();
+    };
+  }, [navigate, location.pathname]);
+
   const handleLogout = async () => {
     console.log('🔄 Starting logout process...');
-    setters.setLoading(true);
+    setLoading(true);
     
     try {
-      if (authState.userId) {
-        await cleanupSession(authState.userId);
-      }
-      
+      // First clear local state
       clearAuthState();
       
+      // Then attempt to sign out from Supabase
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -71,109 +136,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('❌ Unexpected error during logout:', error);
       handleAuthError(error, 'logout');
     } finally {
-      setters.setLoading(false);
+      setLoading(false);
       navigate('/auth');
     }
   };
 
-  const { manageActiveSession, cleanupSession } = useSessionManager(handleLogout);
-
-  useEffect(() => {
-    let isMounted = true;  // Add mounted flag
-    
-    const initSession = async () => {
-      try {
-        console.log('🔄 Initializing session...');
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-        if (!isMounted) return;  // Check if component is still mounted
-
-        if (sessionError) {
-          handleAuthError(sessionError, 'session initialization');
-          setters.setLoading(false);
-          return;
-        }
-
-        if (session) {
-          console.log('✅ Session found:', session.user.email);
-          
-          const sessionValid = await manageActiveSession(session);
-          
-          if (!isMounted) return;  // Check if component is still mounted
-
-          if (!sessionValid) {
-            clearAuthState();
-            setters.setLoading(false);
-            return;
-          }
-
-          setters.setIsAuthenticated(true);
-          setters.setUserId(session.user.id);
-          setters.setUserEmail(session.user.email);
-          
-          if (location.pathname === '/auth') {
-            navigate('/');
-          }
-        } else {
-          console.log('ℹ️ No active session');
-          clearAuthState();
-          if (location.pathname !== '/auth' && location.pathname !== '/') {
-            navigate('/auth');
-          }
-        }
-        if (isMounted) {  // Only update loading if still mounted
-          setters.setLoading(false);
-        }
-      } catch (error) {
-        console.error('❌ Error initializing session:', error);
-        if (isMounted) {  // Only update loading if still mounted
-          setters.setLoading(false);
-        }
-      }
-    };
-
-    initSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth state changed:', event, session?.user?.email);
-      
-      if (event === 'SIGNED_IN' && session) {
-        const sessionValid = await manageActiveSession(session);
-        
-        if (!isMounted) return;  // Check if component is still mounted
-
-        if (!sessionValid) {
-          clearAuthState();
-          return;
-        }
-
-        setters.setIsAuthenticated(true);
-        setters.setUserId(session.user.id);
-        setters.setUserEmail(session.user.email);
-        setters.setLoading(false);  // Make sure to set loading to false after sign in
-        if (location.pathname === '/auth') {
-          navigate('/');
-        }
-      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        if (authState.userId) {
-          await cleanupSession(authState.userId);
-        }
-        clearAuthState();
-        setters.setLoading(false);  // Make sure to set loading to false after sign out
-        navigate('/auth');
-      }
-    });
-
-    return () => {
-      isMounted = false;  // Update mounted flag
-      console.log('🧹 Cleaning up auth subscriptions');
-      subscription.unsubscribe();
-    };
-  }, [navigate, location.pathname]);
-
   const value = {
-    ...authState,
-    handleLogout
+    isAuthenticated,
+    userId,
+    userEmail,
+    handleLogout,
+    loading
   };
 
   return (

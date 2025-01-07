@@ -9,19 +9,12 @@ interface EmailAuthFormProps {
   mode: 'signin' | 'signup';
   onModeChange: () => void;
   onError: (error: AuthError) => void;
-  isLoading: boolean;
-  setLoading: (loading: boolean) => void;
 }
 
-export const EmailAuthForm = ({ 
-  mode, 
-  onModeChange, 
-  onError,
-  isLoading,
-  setLoading 
-}: EmailAuthFormProps) => {
+export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +48,6 @@ export const EmailAuthForm = ({
           onChange={(e) => setEmail(e.target.value)}
           required
           className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-400"
-          disabled={isLoading}
         />
       </div>
       <div>
@@ -66,15 +58,14 @@ export const EmailAuthForm = ({
           onChange={(e) => setPassword(e.target.value)}
           required
           className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-400"
-          disabled={isLoading}
         />
       </div>
       <Button
         type="submit"
         className="w-full"
-        disabled={isLoading}
+        disabled={loading}
       >
-        {isLoading ? (
+        {loading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             {mode === 'signin' ? 'Signing in...' : 'Signing up...'}
@@ -89,7 +80,6 @@ export const EmailAuthForm = ({
           variant="link"
           className="text-[#9b87f5]"
           onClick={onModeChange}
-          disabled={isLoading}
         >
           {mode === 'signin'
             ? "Don't have an account? Sign up"
