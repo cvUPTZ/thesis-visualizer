@@ -5,6 +5,7 @@ import { Settings, Plus, LogOut } from 'lucide-react';
 import { ThesisList } from '@/components/thesis/ThesisList';
 import { GettingStartedWizard } from '@/components/onboarding/GettingStartedWizard';
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
+import { ThesisProgressMap } from '@/components/dashboard/ThesisProgressMap';
 import { UserProfile } from '@/components/dashboard/UserProfile';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -90,6 +91,9 @@ const Index = () => {
         
         {/* Stats Grid */}
         <StatsGrid stats={thesesStats || { total: 0, inProgress: 0, completed: 0 }} />
+
+        {/* Thesis Progress Map */}
+        <ThesisProgressMap stats={thesesStats || { total: 0, inProgress: 0, completed: 0 }} />
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
