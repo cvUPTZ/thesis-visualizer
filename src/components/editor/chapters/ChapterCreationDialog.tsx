@@ -35,6 +35,7 @@ export const ChapterCreationDialog: React.FC<ChapterCreationDialogProps> = ({
         figures: [],
         tables: [],
         citations: [],
+        references: [],
       },
     ]);
   };
@@ -61,14 +62,40 @@ export const ChapterCreationDialog: React.FC<ChapterCreationDialogProps> = ({
       return;
     }
 
+    // Create introduction section
+    const introductionSection: Section = {
+      id: `${Date.now()}-intro`,
+      title: 'Introduction',
+      content: introduction,
+      type: 'custom',
+      order: 0,
+      figures: [],
+      tables: [],
+      citations: [],
+      references: []
+    };
+
+    // Process other sections
+    const processedSections = sections.map((section, index) => ({
+      ...section,
+      id: section.id || Date.now().toString(),
+      order: index + 1,
+      type: 'custom',
+      figures: section.figures || [],
+      tables: section.tables || [],
+      citations: section.citations || [],
+      references: section.references || []
+    })) as Section[];
+
     const newChapter: Chapter = {
       id: Date.now().toString(),
       title: title.trim(),
       content: introduction,
-      order: 1,
-      sections: sections as Section[],
+      order: 0, // This will be handled by the parent component
+      sections: [introductionSection, ...processedSections],
     };
 
+    console.log('Creating new chapter:', newChapter);
     onChapterCreate(newChapter);
     onOpenChange(false);
     

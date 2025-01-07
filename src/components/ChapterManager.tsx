@@ -10,7 +10,7 @@ import { ChapterCreationDialog } from './editor/chapters/ChapterCreationDialog';
 interface ChapterManagerProps {
   chapters: Chapter[];
   onUpdateChapter: (chapter: Chapter) => void;
-  onAddChapter: () => void;
+  onAddChapter: (chapter: Chapter) => void;
 }
 
 export const ChapterManager: React.FC<ChapterManagerProps> = ({
@@ -31,7 +31,8 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
   };
 
   const handleCreateChapter = (chapter: Chapter) => {
-    onAddChapter();
+    console.log('Handling chapter creation:', chapter);
+    onAddChapter(chapter);
     toast({
       title: "Chapter Added",
       description: "New chapter has been created successfully",
