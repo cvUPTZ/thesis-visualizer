@@ -8,7 +8,6 @@ interface CollaboratorPresence {
   id: string;
   user_id: string;
   thesis_id: string;
-  last_seen: string;
   email?: string;
 }
 
@@ -24,13 +23,14 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
     try {
       console.log('Fetching collaborators for thesis:', thesisId);
       
+      // Query all collaborators for this thesis
       const { data: collaborators, error } = await supabase
         .from('thesis_collaborators')
         .select(`
           id,
           user_id,
           thesis_id,
-          profiles (
+          profiles!inner (
             email
           )
         `)
@@ -46,7 +46,6 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
         id: collab.id,
         user_id: collab.user_id,
         thesis_id: thesisId,
-        last_seen: new Date().toISOString(),
         email: collab.profiles?.email
       }));
 
@@ -68,27 +67,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
     
     // Set up presence channel
     const channel = supabase.channel(`presence:${thesisId}`);
-    let userId = '';
-
-    // Get user ID first
-    const setupPresence = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      userId = user.id;
-
-      channel.subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to presence channel');
-          await channel.track({
-            user_id: userId,
-            online_at: new Date().toISOString(),
-          });
-        }
-      });
-    };
-
-    setupPresence();
-
+    
     // Subscribe to presence changes and thesis_collaborators changes
     channel
       .on('presence', { event: 'sync' }, () => {
@@ -104,7 +83,8 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
       .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
         console.log('User left:', key, leftPresences);
         fetchCollaborators();
-      });
+      })
+      .subscribe();
 
     // Subscribe to thesis_collaborators changes
     const collaboratorsChannel = supabase
