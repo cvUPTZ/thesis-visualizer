@@ -65,7 +65,9 @@ export const ChapterCreationDialog: React.FC<ChapterCreationDialogProps> = ({
     const reader = new FileReader();
     reader.onloadend = () => {
       const imageUrl = reader.result as string;
-      const img = new Image();
+      
+      // Create an HTMLImageElement to get dimensions
+      const img = document.createElement('img');
       img.onload = () => {
         const newFigure: Figure = {
           id: Date.now().toString(),

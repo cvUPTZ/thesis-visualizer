@@ -7,7 +7,6 @@ import { AbstractSection } from './thesis/preview/AbstractSection';
 import { ContentSection } from './thesis/preview/ContentSection';
 import { Button } from './ui/button';
 import { FileDown } from 'lucide-react';
-import { generatePDF } from '@react-pdf/renderer';
 import { useToast } from '@/hooks/use-toast';
 
 interface ThesisPreviewProps {
@@ -50,8 +49,8 @@ export const ThesisPreview = ({ thesis }: ThesisPreviewProps) => {
     if (!previewRef.current) return;
 
     try {
-      const { toPDF } = await import('react-to-pdf');
-      await toPDF(previewRef, {
+      const { toPdf } = await import('react-to-pdf');
+      await toPdf(previewRef, {
         filename: `${thesis.frontMatter[0]?.title || 'thesis'}.pdf`,
         page: {
           margin: 20,
