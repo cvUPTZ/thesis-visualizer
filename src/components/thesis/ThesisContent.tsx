@@ -3,6 +3,7 @@ import { Chapter, Section } from '@/types/thesis';
 import { ChapterManager } from '../ChapterManager';
 import { Input } from '@/components/ui/input';
 import { MarkdownEditor } from '../MarkdownEditor';
+import { ChatMessages } from '../collaboration/ChatMessages';
 
 interface ThesisContentProps {
   frontMatter: Section[];
@@ -13,6 +14,7 @@ interface ThesisContentProps {
   onTitleChange: (id: string, title: string) => void;
   onUpdateChapter: (chapter: Chapter) => void;
   onAddChapter: (chapter: Chapter) => void;
+  thesisId: string;
 }
 
 export const ThesisContent = ({
@@ -23,7 +25,8 @@ export const ThesisContent = ({
   onContentChange,
   onTitleChange,
   onUpdateChapter,
-  onAddChapter
+  onAddChapter,
+  thesisId
 }: ThesisContentProps) => {
   const renderSectionContent = (section: Section) => {
     const isActive = activeSection === section.id;
@@ -52,15 +55,23 @@ export const ThesisContent = ({
 
   return (
     <div className="space-y-6">
-      {frontMatter.map(section => renderSectionContent(section))}
-      
-      <ChapterManager
-        chapters={chapters}
-        onUpdateChapter={onUpdateChapter}
-        onAddChapter={onAddChapter}
-      />
-      
-      {backMatter.map(section => renderSectionContent(section))}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          {frontMatter.map(section => renderSectionContent(section))}
+          
+          <ChapterManager
+            chapters={chapters}
+            onUpdateChapter={onUpdateChapter}
+            onAddChapter={onAddChapter}
+          />
+          
+          {backMatter.map(section => renderSectionContent(section))}
+        </div>
+        
+        <div className="lg:col-span-1">
+          <ChatMessages thesisId={thesisId} />
+        </div>
+      </div>
     </div>
   );
 };
