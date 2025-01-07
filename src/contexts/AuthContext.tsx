@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
          setIsAuthenticated(true);
          setUserId(session.user.id);
          setUserEmail(session.user.email);
-         navigate('/dashboard');
+         navigate('/');
        } else {
          setIsAuthenticated(false);
          setUserId(null);
@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
        setIsAuthenticated(true);
        setUserId(session.user.id);
        setUserEmail(session.user.email);
-       navigate('/dashboard');
+       navigate('/');
      } else if (event === 'SIGNED_OUT') {
        setIsAuthenticated(false);
        setUserId(null);
@@ -81,11 +81,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
    setLoading(true);
    
    try {
-     // First attempt to sign out from Supabase
-     const { error } = await supabase.auth.signOut({ scope: 'global' });
+     // First clear local state
+     setIsAuthenticated(false);
+     setUserId(null);
+     setUserEmail(null);
+     
+     // Then attempt to sign out from Supabase
+     const { error } = await supabase.auth.signOut();
      
      if (error) {
        console.error('❌ Error during signOut:', error);
+       // Don't show error toast for session_not_found as it's expected in some cases
        if (!error.message.includes('session_not_found')) {
          toast({
            title: "Notice",
@@ -93,19 +99,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
            variant: "default",
          });
        }
+     } else {
+       console.log('✅ Logout successful');
+       toast({
+         title: "Success",
+         description: "You have been signed out successfully",
+       });
      }
-
-     // Then clear local state regardless of Supabase signout result
-     setIsAuthenticated(false);
-     setUserId(null);
-     setUserEmail(null);
-     
-     console.log('✅ Logout successful');
-     toast({
-       title: "Success",
-       description: "You have been signed out successfully",
-     });
-     
    } catch (error: any) {
      console.error('❌ Unexpected error during logout:', error);
      toast({
