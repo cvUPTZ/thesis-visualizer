@@ -1,9 +1,10 @@
 import React from 'react';
 import { Chapter } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
-import { BookOpen, PlusCircle } from 'lucide-react';
+import { BookOpen, PlusCircle, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import { ChapterItem } from './editor/chapters/ChapterItem';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface ChapterManagerProps {
   chapters: Chapter[];
@@ -27,35 +28,36 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
     );
   };
 
-  console.log('ChapterManager rendering with chapters:', chapters.length);
-
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center bg-editor-bg p-4 rounded-lg shadow-sm">
-        <div className="flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-primary" />
-          <h2 className="text-2xl font-serif font-semibold">Chapters</h2>
+      <div className="flex justify-between items-center bg-editor-bg p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-full">
+            <BookOpen className="w-6 h-6 text-primary" />
+          </div>
+          <h2 className="text-2xl font-serif font-semibold text-editor-text">Chapters</h2>
         </div>
         <Button 
           onClick={() => {
             onAddChapter();
             toast({
               title: "Chapter Added",
-              description: "New chapter has been created",
+              description: "New chapter has been created successfully",
             });
           }} 
-          className="flex items-center gap-2 bg-editor-accent hover:bg-editor-accent-hover transition-colors"
+          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white transition-colors duration-200 px-6 py-2 rounded-lg shadow-sm hover:shadow-md"
         >
-          <PlusCircle className="w-4 h-4" />
+          <PlusCircle className="w-5 h-5" />
           Add Chapter
         </Button>
       </div>
 
       <div className="space-y-4">
-        {chapters.map((chapter) => (
+        {chapters.map((chapter, index) => (
           <ChapterItem
             key={chapter.id}
             chapter={chapter}
+            chapterNumber={index + 1}
             isOpen={openChapters.includes(chapter.id)}
             onToggle={() => toggleChapter(chapter.id)}
             onUpdateChapter={onUpdateChapter}

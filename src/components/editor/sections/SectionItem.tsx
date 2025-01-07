@@ -2,109 +2,53 @@ import React from 'react';
 import { Section } from '@/types/thesis';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { FileText } from 'lucide-react';
-import { FigureManager } from '@/components/FigureManager';
-import { TableManager } from '@/components/TableManager';
-import { CitationManager } from '@/components/CitationManager';
+import { FileText, GripVertical } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface SectionItemProps {
   section: Section;
+  sectionNumber: number;
   onUpdateSection: (updatedSection: Section) => void;
 }
 
 export const SectionItem: React.FC<SectionItemProps> = ({
   section,
+  sectionNumber,
   onUpdateSection,
 }) => {
   return (
-    <div className="border rounded-lg p-4 space-y-4 bg-editor-bg-accent transition-all duration-200 hover:shadow-sm">
-      <div className="flex items-center gap-2">
-        <FileText className="w-4 h-4 text-editor-text opacity-50" />
-        <Input
-          value={section.title}
-          onChange={(e) => onUpdateSection({ ...section, title: e.target.value })}
-          className="text-lg font-medium"
-          placeholder="Section Title"
-        />
+    <div className={cn(
+      "border rounded-lg p-4 space-y-4 bg-gray-50/50 mb-4",
+      "hover:shadow-sm transition-all duration-200",
+      "group"
+    )}>
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-white rounded-lg group-hover:bg-gray-100 transition-colors">
+          <GripVertical className="w-4 h-4 text-gray-500" />
+        </div>
+        <div className="flex items-center gap-2 flex-1">
+          <div className="bg-gray-200 text-gray-700 font-medium px-2 py-1 rounded text-sm">
+            {sectionNumber}
+          </div>
+          <Input
+            value={section.title}
+            onChange={(e) => onUpdateSection({ ...section, title: e.target.value })}
+            className="text-lg font-medium bg-transparent border-none focus-visible:ring-1 focus-visible:ring-primary/20 px-2"
+            placeholder="Section Title"
+          />
+        </div>
       </div>
 
       <Textarea
         value={section.content}
         onChange={(e) => onUpdateSection({ ...section, content: e.target.value })}
-        className="min-h-[200px] bg-white"
-        placeholder="Section Content"
+        className="min-h-[100px] bg-white border focus-visible:ring-1 focus-visible:ring-primary/20"
+        placeholder="Start writing your section content..."
       />
 
-      <div className="space-y-6 pt-4">
-        <FigureManager
-          figures={section.figures}
-          onAddFigure={(figure) => {
-            onUpdateSection({
-              ...section,
-              figures: [...section.figures, figure],
-            });
-          }}
-          onRemoveFigure={(figureId) => {
-            onUpdateSection({
-              ...section,
-              figures: section.figures.filter((f) => f.id !== figureId),
-            });
-          }}
-          onUpdateFigure={(figure) => {
-            onUpdateSection({
-              ...section,
-              figures: section.figures.map((f) =>
-                f.id === figure.id ? figure : f
-              ),
-            });
-          }}
-        />
-        <TableManager
-          tables={section.tables}
-          onAddTable={(table) => {
-            onUpdateSection({
-              ...section,
-              tables: [...section.tables, table],
-            });
-          }}
-          onRemoveTable={(tableId) => {
-            onUpdateSection({
-              ...section,
-              tables: section.tables.filter((t) => t.id !== tableId),
-            });
-          }}
-          onUpdateTable={(table) => {
-            onUpdateSection({
-              ...section,
-              tables: section.tables.map((t) =>
-                t.id === table.id ? table : t
-              ),
-            });
-          }}
-        />
-        <CitationManager
-          citations={section.citations}
-          onAddCitation={(citation) => {
-            onUpdateSection({
-              ...section,
-              citations: [...section.citations, citation],
-            });
-          }}
-          onRemoveCitation={(citationId) => {
-            onUpdateSection({
-              ...section,
-              citations: section.citations.filter((c) => c.id !== citationId),
-            });
-          }}
-          onUpdateCitation={(citation) => {
-            onUpdateSection({
-              ...section,
-              citations: section.citations.map((c) =>
-                c.id === citation.id ? citation : c
-              ),
-            });
-          }}
-        />
+      <div className="flex items-center gap-2 text-sm text-gray-500">
+        <FileText className="w-4 h-4" />
+        <span>{section.content.length} characters</span>
       </div>
     </div>
   );
