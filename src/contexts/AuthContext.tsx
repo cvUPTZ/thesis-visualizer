@@ -62,15 +62,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
-  const manageActiveSession = async (sessionId: string, userId: string) => {
+  const manageActiveSession = async (session: any) => {
     try {
       console.log('🔄 Managing active session...');
       
+      if (!session?.access_token || !session?.user?.id) {
+        console.error('❌ Invalid session data');
+        return false;
+      }
+
       // Check for existing sessions
       const { data: existingSessions, error: checkError } = await supabase
         .from('active_sessions')
         .select('*')
-        .eq('user_id', userId);
+        .eq('user_id', session.user.id);
 
       if (checkError) throw checkError;
 
@@ -78,7 +83,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const existingSession = existingSessions[0];
         
         // If different session exists, handle conflict
-        if (existingSession.session_id !== sessionId) {
+        if (existingSession.session_id !== session.access_token) {
           console.log('❌ Session conflict detected');
           await handleSessionConflict();
           return false;
@@ -88,7 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const { error: updateError } = await supabase
           .from('active_sessions')
           .update({ last_seen: new Date().toISOString() })
-          .eq('session_id', sessionId);
+          .eq('session_id', session.access_token);
 
         if (updateError) throw updateError;
       } else {
@@ -96,7 +101,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const { error: insertError } = await supabase
           .from('active_sessions')
           .insert([
-            { user_id: userId, session_id: sessionId }
+            { 
+              user_id: session.user.id, 
+              session_id: session.access_token 
+            }
           ]);
 
         if (insertError) throw insertError;
@@ -125,7 +133,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           console.log('✅ Session found:', session.user.email);
           
           // Manage active session
-          const sessionValid = await manageActiveSession(session.id, session.user.id);
+          const sessionValid = await manageActiveSession(session);
           
           if (!sessionValid) {
             clearAuthState();
@@ -160,7 +168,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('🔄 Auth state changed:', event, session?.user?.email);
       
       if (event === 'SIGNED_IN' && session) {
-        const sessionValid = await manageActiveSession(session.id, session.user.id);
+        const sessionValid = await manageActiveSession(session);
         
         if (!sessionValid) {
           clearAuthState();
