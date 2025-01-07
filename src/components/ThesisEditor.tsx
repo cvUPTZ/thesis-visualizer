@@ -142,18 +142,31 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
   };
 
   const handleAddChapter = () => {
-      if (!thesis) return;
+    if (!thesis) return;
 
-      const newChapter: Chapter = {
-          id: Date.now().toString(),
-          title: 'New Chapter',
-          order: thesis.chapters.length + 1,
-          sections: []
-      };
-      setThesis(prevThesis => ({
-          ...prevThesis!,
-          chapters: [...prevThesis!.chapters, newChapter]
-      }));
+    const newChapter: Chapter = {
+      id: Date.now().toString(),
+      title: 'New Chapter',
+      order: 1, // Set order to 1 for the new chapter
+      sections: []
+    };
+
+    // Update orders of existing chapters
+    const updatedChapters = thesis.chapters.map(chapter => ({
+      ...chapter,
+      order: chapter.order + 1 // Increment order of existing chapters
+    }));
+
+    // Add the new chapter at the beginning
+    setThesis(prevThesis => ({
+      ...prevThesis!,
+      chapters: [newChapter, ...updatedChapters]
+    }));
+
+    toast({
+      title: "Chapter Added",
+      description: "New chapter has been added at the beginning",
+    });
   };
 
   const handleUpdateChapter = (updatedChapter: Chapter) => {
