@@ -25,6 +25,13 @@ export const CollaboratorSection = ({
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
 
+  console.log('CollaboratorSection props:', {
+    collaboratorsCount: collaborators.length,
+    thesisId,
+    canManageCollaborators,
+    isAdmin
+  });
+
   const handleInviteSuccess = () => {
     toast({
       title: "Success",
@@ -43,9 +50,12 @@ export const CollaboratorSection = ({
     setIsInviting(false);
   };
 
+  // Show the button for editors, owners, and admins
+  const shouldShowAddButton = canManageCollaborators || isAdmin;
+
   return (
     <div className="flex items-center gap-2">
-      {canManageCollaborators && (
+      {shouldShowAddButton && (
         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
           <PopoverTrigger asChild>
             <Button
