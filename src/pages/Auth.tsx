@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { EmailAuthForm } from '@/components/auth/EmailAuthForm';
 import { SocialAuth } from '@/components/auth/SocialAuth';
@@ -9,7 +9,6 @@ import LandingPage from './LandingPage';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AuthError, AuthApiError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -25,30 +24,6 @@ const Auth = () => {
     setAuthMode(prev => prev === 'signin' ? 'signup' : 'signin');
     setErrorMessage(''); // Clear any existing errors when switching modes
   };
-
-  useEffect(() => {
-    // Check if user is already logged in
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
-      }
-    };
-    checkSession();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-      
-      if (event === 'SIGNED_IN' && session) {
-        navigate('/');
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
 
   // Error message handler
   const getErrorMessage = (error: AuthError) => {
@@ -74,6 +49,30 @@ const Auth = () => {
     }
     return 'An unexpected error occurred. Please try again.';
   };
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/');
+      }
+    };
+    checkSession();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_IN' && session) {
+        navigate('/');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   return (
     <div className="relative min-h-screen">
@@ -131,7 +130,9 @@ const Auth = () => {
             <EmailAuthForm 
               mode={authMode} 
               onModeChange={toggleAuthMode}
-              onError={(error) => setErrorMessage(getErrorMessage(error))} 
+              onError={(error) => setErrorMessage(getErrorMessage(error))}
+              isLoading={loading}
+              setLoading={setLoading}
             />
           </div>
 
