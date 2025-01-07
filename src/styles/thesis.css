@@ -3,17 +3,15 @@
   position: relative;
   margin: 2rem auto;
   padding: 2.5rem;
-  background: #F6F6F7;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  width: 210mm;
-  min-height: 297mm;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 210mm; /* A4 width */
+  min-height: 297mm; /* A4 height */
   box-sizing: border-box;
   page-break-after: always;
   border-radius: 4px;
   transition: all 0.3s ease;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  border: 2px solid #D1D5DB;
-  counter-increment: page;
+  font-family: 'Times New Roman', serif;
 }
 
 /* Header and Footer styles */
@@ -22,12 +20,10 @@
   text-align: center;
   margin-bottom: 2rem;
   padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #e5e7eb;
   font-size: 1.1rem;
   font-weight: 600;
-  font-family: 'Merriweather', serif;
-  color: #FFFFFF;
-  letter-spacing: 0.03em;
+  color: #111827;
 }
 
 .thesis-footer {
@@ -37,37 +33,22 @@
   right: 0;
   text-align: center;
   font-size: 0.9rem;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color: #C8C8C9;
+  color: #6b7280;
   padding: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid #e5e7eb;
 }
 
 .thesis-footer .page-number::before {
   content: counter(page);
 }
 
-/* Page border styles */
+/* Content styles */
 .thesis-content {
   position: relative;
   margin: 0 auto;
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 3px;
-  line-height: 1.6;
-  color: #FFFFFF;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Dark mode specific styles */
-.dark .thesis-page {
-  background: #1A1F2C;
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark .thesis-content {
-  color: #FFFFFF;
+  line-height: 1.8;
+  color: #111827;
 }
 
 /* Typography styles */
@@ -77,40 +58,38 @@
 .thesis-content h4,
 .thesis-content h5,
 .thesis-content h6 {
-  font-family: 'Merriweather', serif;
-  color: inherit;
+  font-family: 'Times New Roman', serif;
+  color: #111827;
   margin-top: 1.5em;
   margin-bottom: 0.5em;
+  line-height: 1.4;
 }
 
 .thesis-content p,
 .thesis-content ul,
 .thesis-content ol {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   margin-bottom: 1em;
   line-height: 1.8;
+  text-align: justify;
 }
 
 /* Page break styles */
 .page-break-before {
   page-break-before: always;
-  min-height: 297mm; /* A4 height */
-  padding: 20mm;
   position: relative;
   background: white;
-  margin-bottom: 8mm;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
+  margin-bottom: 2rem;
 }
 
 .page-break-before:first-child {
   page-break-before: avoid;
 }
 
-/* Ensure content doesn't overflow */
+/* Content organization */
 .thesis-preview {
   max-width: 210mm; /* A4 width */
   margin: 0 auto;
+  counter-reset: page;
 }
 
 /* Prevent unwanted breaks */
@@ -123,23 +102,60 @@
   page-break-after: always;
 }
 
-/* Header and footer positioning */
-.thesis-header,
-.thesis-footer {
-  position: sticky;
-  left: 0;
-  right: 0;
-  background: white;
-  padding: 1rem;
-  z-index: 10;
+/* Tables */
+.thesis-content table {
+  width: 100%;
+  margin: 1.5rem 0;
+  border-collapse: collapse;
 }
 
-.thesis-header {
-  top: 0;
-  border-bottom: 1px solid #e5e7eb;
+.thesis-content th,
+.thesis-content td {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  text-align: left;
 }
 
-.thesis-footer {
-  bottom: 0;
-  border-top: 1px solid #e5e7eb;
+/* Figures */
+.thesis-content figure {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.thesis-content figure img {
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.thesis-content figcaption {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Citations */
+.thesis-content .citation {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0.5rem 0;
+}
+
+/* Print styles */
+@media print {
+  .thesis-page {
+    margin: 0;
+    padding: 20mm;
+    box-shadow: none;
+    border: none;
+  }
+
+  .thesis-content {
+    padding: 0;
+  }
+
+  .page-break-before {
+    margin: 0;
+  }
 }

@@ -8,6 +8,7 @@ import { Button } from './ui/button';
 import { FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { usePDF } from 'react-to-pdf';
+import { cn } from '@/lib/utils';
 
 interface ThesisPreviewProps {
   thesis: any;
@@ -18,7 +19,10 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
   const { toast } = useToast();
   const { toPDF, targetRef } = usePDF({
     filename: `${thesis.frontMatter[0]?.title || 'thesis'}.pdf`,
-    page: { margin: 20 }
+    page: { 
+      margin: 20,
+      format: 'a4',
+    }
   });
 
   const handleExport = async () => {
@@ -56,7 +60,14 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
       </div>
       
       <ScrollArea className="h-[calc(100vh-10rem)] rounded-md border p-4">
-        <div ref={targetRef} className="thesis-preview space-y-8 text-black dark:text-black bg-white">
+        <div 
+          ref={targetRef} 
+          className={cn(
+            "thesis-preview space-y-8 text-black dark:text-black bg-white",
+            "max-w-[210mm] mx-auto" // A4 width
+          )}
+        >
+          {/* Title Page */}
           <div className="page-break-before">
             {language === 'en' ? (
               <TitlePage metadata={thesis.metadata} titleSection={thesis.frontMatter[0]} />
@@ -65,8 +76,17 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
             )}
           </div>
           
+          {/* Front Matter */}
           {thesis.frontMatter.map((section: any, index: number) => (
-            <div key={section.id} className="page-break-before">
+            <div 
+              key={section.id} 
+              className={cn(
+                "page-break-before",
+                "min-h-[297mm]", // A4 height
+                "p-[20mm]", // Standard margins
+                "relative bg-white"
+              )}
+            >
               {section.type === 'abstract' ? (
                 <AbstractSection abstractSection={section} />
               ) : (
@@ -80,10 +100,20 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
             </div>
           ))}
           
+          {/* Chapters */}
           {thesis.chapters.map((chapter: any) => (
             <React.Fragment key={chapter.id}>
               {chapter.sections.map((section: any) => (
-                <div key={section.id} className="page-break-before">
+                <div 
+                  key={section.id} 
+                  className={cn(
+                    "page-break-before",
+                    "min-h-[297mm]", // A4 height
+                    "p-[20mm]", // Standard margins
+                    "relative bg-white",
+                    "shadow-sm"
+                  )}
+                >
                   <ContentSection
                     section={section}
                     chapterTitle={chapter.title}
@@ -96,8 +126,18 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
             </React.Fragment>
           ))}
           
+          {/* Back Matter */}
           {thesis.backMatter.map((section: any) => (
-            <div key={section.id} className="page-break-before">
+            <div 
+              key={section.id} 
+              className={cn(
+                "page-break-before",
+                "min-h-[297mm]", // A4 height
+                "p-[20mm]", // Standard margins
+                "relative bg-white",
+                "shadow-sm"
+              )}
+            >
               <ContentSection
                 section={section}
                 elementPositions={[]}
