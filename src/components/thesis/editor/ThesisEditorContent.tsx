@@ -26,6 +26,11 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
 }) => {
   const { thesisId } = useParams<{ thesisId: string }>();
 
+  if (!thesisId) {
+    console.error('No thesis ID found in URL params');
+    return null;
+  }
+
   return (
     <ThesisContent
       frontMatter={frontMatter}
@@ -36,7 +41,7 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
       onTitleChange={onTitleChange}
       onUpdateChapter={onUpdateChapter}
       onAddChapter={onAddChapter}
-      thesisId={thesisId || ''}
+      thesisId={thesisId}
     />
   );
 };
