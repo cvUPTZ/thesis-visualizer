@@ -14,6 +14,10 @@ interface CollaboratorInviteFormProps {
   setIsInviting: (isInviting: boolean) => void;
 }
 
+// Valid roles that match the database constraint
+const VALID_ROLES = ['owner', 'editor', 'viewer'] as const;
+type ValidRole = typeof VALID_ROLES[number];
+
 export const CollaboratorInviteForm = ({
   thesisId,
   thesisTitle,
@@ -23,7 +27,7 @@ export const CollaboratorInviteForm = ({
   setIsInviting
 }: CollaboratorInviteFormProps) => {
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<string>('viewer');
+  const [role, setRole] = useState<ValidRole>('viewer');
   const { toast } = useToast();
 
   const handleInvite = async (e: React.FormEvent) => {
@@ -177,7 +181,7 @@ export const CollaboratorInviteForm = ({
         />
       </div>
       <div className="space-y-2">
-        <Select value={role} onValueChange={setRole}>
+        <Select value={role} onValueChange={(value) => setRole(value as ValidRole)}>
           <SelectTrigger>
             <SelectValue placeholder="Select role" />
           </SelectTrigger>
