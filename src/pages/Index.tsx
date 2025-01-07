@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardData } from '@/hooks/useDashboardData';
 
 const Index = () => {
+  console.log('📊 Dashboard page rendering');
   const navigate = useNavigate();
   const { toast } = useToast();
   const { handleLogout, userId } = useAuth();
@@ -25,6 +26,22 @@ const Index = () => {
       description: "You're being redirected to create a new thesis.",
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#1A1F2C] text-gray-100 flex items-center justify-center">
+        <p>Loading dashboard data...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#1A1F2C] text-gray-100 flex items-center justify-center">
+        <p>Error loading dashboard: {error.message}</p>
+      </div>
+    );
+  }
 
   const isAdmin = userProfile?.roles?.name === 'admin';
 

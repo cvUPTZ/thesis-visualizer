@@ -15,9 +15,11 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
   
+  const shouldShowBackButton = location.pathname !== '/' && location.pathname !== '/dashboard';
+  
   return (
     <>
-      {location.pathname !== '/' && (
+      {shouldShowBackButton && (
         <Button
           variant="ghost"
           size="icon"
