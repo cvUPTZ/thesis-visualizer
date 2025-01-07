@@ -79,10 +79,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { manageActiveSession, cleanupSession } = useSessionManager(handleLogout);
 
   useEffect(() => {
+    let isMounted = true;  // Add mounted flag
+    
     const initSession = async () => {
       try {
         console.log('🔄 Initializing session...');
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (!isMounted) return;  // Check if component is still mounted
 
         if (sessionError) {
           handleAuthError(sessionError, 'session initialization');
@@ -95,6 +99,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           const sessionValid = await manageActiveSession(session);
           
+          if (!isMounted) return;  // Check if component is still mounted
+
           if (!sessionValid) {
             clearAuthState();
             setters.setLoading(false);
@@ -115,10 +121,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             navigate('/auth');
           }
         }
-        setters.setLoading(false);
+        if (isMounted) {  // Only update loading if still mounted
+          setters.setLoading(false);
+        }
       } catch (error) {
         console.error('❌ Error initializing session:', error);
-        setters.setLoading(false);
+        if (isMounted) {  // Only update loading if still mounted
+          setters.setLoading(false);
+        }
       }
     };
 
@@ -130,6 +140,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (event === 'SIGNED_IN' && session) {
         const sessionValid = await manageActiveSession(session);
         
+        if (!isMounted) return;  // Check if component is still mounted
+
         if (!sessionValid) {
           clearAuthState();
           return;
@@ -138,6 +150,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setters.setIsAuthenticated(true);
         setters.setUserId(session.user.id);
         setters.setUserEmail(session.user.email);
+        setters.setLoading(false);  // Make sure to set loading to false after sign in
         if (location.pathname === '/auth') {
           navigate('/');
         }
@@ -146,11 +159,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           await cleanupSession(authState.userId);
         }
         clearAuthState();
+        setters.setLoading(false);  // Make sure to set loading to false after sign out
         navigate('/auth');
       }
     });
 
     return () => {
+      isMounted = false;  // Update mounted flag
       console.log('🧹 Cleaning up auth subscriptions');
       subscription.unsubscribe();
     };
