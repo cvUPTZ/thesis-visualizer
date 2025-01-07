@@ -1,35 +1,44 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Citation } from '@/types/thesis';
+import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Loader2 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Search } from 'lucide-react';
 
 interface CitationSearchProps {
-  onSelect: (citation: Citation) => void;
+  onCitationSelect: (citation: Citation) => void;
 }
 
-export const CitationSearch = ({ onSelect }: CitationSearchProps) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchType, setSearchType] = useState<'doi' | 'title'>('doi');
+export const CitationSearch: React.FC<CitationSearchProps> = ({ onCitationSelect }) => {
+  const [query, setQuery] = React.useState('');
+  const { toast } = useToast();
 
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ['citation', searchTerm, searchType],
-    queryFn: async () => {
-      if (!searchTerm) return null;
-      
-      const response = await fetch(
-        searchType === 'doi'
-          ? `https://api.crossref.org/works/${searchTerm}`
-          : `https://api.crossref.org/works?query=${searchTerm}`
-      );
-      
-      if (!response.ok) throw new Error('Failed to fetch citation');
-      
+  const searchCitations = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(query)}`);
       const data = await response.json();
-      return data;
-    },
-    enabled: false
+      
+      if (data.message?.items?.length > 0) {
+        const citation = formatCitation(data.message.items[0]);
+        onCitationSelect(citation);
+        setQuery('');
+      } else {
+        toast({
+          title: "No Results",
+          description: "No citations found for your search query.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error searching citations:', error);
+      toast({
+        title: "Error",
+        description: "Failed to search citations. Please try again.",
+        variant: "destructive",
+      });
+    }
   });
 
   const formatCitation = (result: any): Citation => {
@@ -37,12 +46,13 @@ export const CitationSearch = ({ onSelect }: CitationSearchProps) => {
     // Format the API response into a Citation object
     return {
       id: crypto.randomUUID(),
-      text: result.title[0],
-      source: result.publisher,
-      authors: result.author?.map((a: any) => `${a.given} ${a.family}`) || [''],
+      text: result.title?.[0] || '',
+      source: result.publisher || '',
+      authors: result.author?.map((a: any) => `${a.given} ${a.family}`) || [],
       year: result.published?.['date-parts']?.[0]?.[0]?.toString() || '',
-      type: result.type === 'journal-article' ? 'article' : 'book',
+      type: 'article',
       doi: result.DOI,
+      url: result.URL,
       journal: result['container-title']?.[0],
       volume: result.volume,
       issue: result.issue,
@@ -54,71 +64,18 @@ export const CitationSearch = ({ onSelect }: CitationSearchProps) => {
     };
   };
 
-  const handleSearch = () => {
-    if (searchTerm) {
-      refetch();
-    }
-  };
-
   return (
-    <div className="space-y-4">
-      <div className="flex gap-4">
-        <Input
-          placeholder={searchType === 'doi' ? 'Enter DOI...' : 'Search by title...'}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <Button
-          variant="outline"
-          onClick={() => setSearchType(searchType === 'doi' ? 'title' : 'doi')}
-        >
-          Search by {searchType === 'doi' ? 'Title' : 'DOI'}
-        </Button>
-        <Button onClick={handleSearch} disabled={isLoading}>
-          {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Search className="w-4 h-4" />
-          )}
-          Search
-        </Button>
-      </div>
-
-      {data?.message && (
-        <div className="space-y-2">
-          <h4 className="font-medium">Search Results</h4>
-          {Array.isArray(data.message.items) ? (
-            data.message.items.map((item: any) => (
-              <div
-                key={item.DOI}
-                className="p-4 border rounded-lg hover:bg-accent cursor-pointer"
-                onClick={() => onSelect(formatCitation(item))}
-              >
-                <p className="font-medium">{item.title?.[0]}</p>
-                <p className="text-sm text-muted-foreground">
-                  {item.author?.map((a: any) => `${a.given} ${a.family}`).join(', ')}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {item['container-title']?.[0]} ({item.published?.['date-parts']?.[0]?.[0]})
-                </p>
-              </div>
-            ))
-          ) : (
-            <div
-              className="p-4 border rounded-lg hover:bg-accent cursor-pointer"
-              onClick={() => onSelect(formatCitation(data.message))}
-            >
-              <p className="font-medium">{data.message.title?.[0]}</p>
-              <p className="text-sm text-muted-foreground">
-                {data.message.author?.map((a: any) => `${a.given} ${a.family}`).join(', ')}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {data.message['container-title']?.[0]} ({data.message.published?.['date-parts']?.[0]?.[0]})
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+    <form onSubmit={searchCitations} className="flex gap-2">
+      <Input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search for citations..."
+        className="flex-1"
+      />
+      <Button type="submit" variant="outline">
+        <Search className="h-4 w-4" />
+      </Button>
+    </form>
   );
 };

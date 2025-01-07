@@ -1,158 +1,105 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Citation } from '@/types/thesis';
-import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-export const useCitationManager = (thesisId: string | undefined) => {
-  const [selectedCitation, setSelectedCitation] = useState<Citation | null>(null);
-  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<string>('all');
-  const [sortField, setSortField] = useState<'year' | 'author' | 'title'>('year');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+export const useCitationManager = (thesisId: string) => {
+  const [citations, setCitations] = useState<Citation[]>([]);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleAddCitation = async (onAddCitation: (citation: Citation) => void) => {
+  const addCitation = async (citation: Omit<Citation, 'thesis_id'>) => {
     try {
-      if (!thesisId) {
-        throw new Error('No thesis ID provided');
-      }
-
+      setLoading(true);
       const now = new Date().toISOString();
       const newCitation: Citation = {
-        id: crypto.randomUUID(),
-        text: '',
-        source: '',
-        authors: [''],
-        year: '',
-        type: 'article',
-        doi: '',
-        url: '',
-        journal: '',
-        volume: '',
-        issue: '',
-        pages: '',
-        publisher: '',
+        ...citation,
         thesis_id: thesisId,
         created_at: now,
         updated_at: now
       };
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('citations')
-        .insert([newCitation]);
+        .insert([newCitation])
+        .select()
+        .single();
 
       if (error) throw error;
 
-      onAddCitation(newCitation);
+      setCitations(prev => [...prev, data]);
       toast({
         title: "Success",
         description: "Citation added successfully",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error adding citation:', error);
       toast({
         title: "Error",
-        description: "Failed to add citation: " + error.message,
+        description: "Failed to add citation",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSearchResult = async (
-    citation: Omit<Citation, 'thesis_id'>,
-    onAddCitation: (citation: Citation) => void
-  ) => {
+  const fetchCitations = async () => {
     try {
-      if (!thesisId) {
-        throw new Error('No thesis ID provided');
-      }
-
-      const citationWithThesisId: Citation = {
-        ...citation,
-        thesis_id: thesisId
-      };
-
-      const { error } = await supabase
+      setLoading(true);
+      const { data, error } = await supabase
         .from('citations')
-        .insert([citationWithThesisId]);
+        .select('*')
+        .eq('thesis_id', thesisId)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      onAddCitation(citationWithThesisId);
-      setSearchDialogOpen(false);
-      toast({
-        title: "Success",
-        description: "Citation added successfully",
-      });
-    } catch (error: any) {
-      console.error('Error adding citation from search:', error);
+      setCitations(data);
+    } catch (error) {
+      console.error('Error fetching citations:', error);
       toast({
         title: "Error",
-        description: "Failed to add citation: " + error.message,
+        description: "Failed to fetch citations",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getFilteredAndSortedCitations = (citations: Citation[]) => {
-    console.log('Filtering and sorting citations:', {
-      total: citations.length,
-      filterType,
-      sortField,
-      sortDirection
-    });
+  const deleteCitation = async (id: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('citations')
+        .delete()
+        .eq('id', id);
 
-    let filtered = citations;
+      if (error) throw error;
 
-    if (filterType !== 'all') {
-      filtered = filtered.filter(citation => citation.type === filterType);
+      setCitations(prev => prev.filter(citation => citation.id !== id));
+      toast({
+        title: "Success",
+        description: "Citation deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting citation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete citation",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(citation => 
-        citation.text.toLowerCase().includes(searchLower) ||
-        citation.authors.some(author => author.toLowerCase().includes(searchLower)) ||
-        citation.journal?.toLowerCase().includes(searchLower) ||
-        citation.year.includes(searchTerm)
-      );
-    }
-
-    return filtered.sort((a, b) => {
-      let comparison = 0;
-      
-      switch (sortField) {
-        case 'year':
-          comparison = (b.year || '').localeCompare(a.year || '');
-          break;
-        case 'author':
-          comparison = (a.authors[0] || '').localeCompare(b.authors[0] || '');
-          break;
-        case 'title':
-          comparison = a.text.localeCompare(b.text);
-          break;
-      }
-
-      return sortDirection === 'asc' ? comparison : -comparison;
-    });
   };
 
   return {
-    selectedCitation,
-    setSelectedCitation,
-    searchDialogOpen,
-    setSearchDialogOpen,
-    searchTerm,
-    setSearchTerm,
-    filterType,
-    setFilterType,
-    sortField,
-    setSortField,
-    sortDirection,
-    setSortDirection,
-    handleAddCitation,
-    handleSearchResult,
-    getFilteredAndSortedCitations
+    citations,
+    loading,
+    addCitation,
+    fetchCitations,
+    deleteCitation
   };
 };
