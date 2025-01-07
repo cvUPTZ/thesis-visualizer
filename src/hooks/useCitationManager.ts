@@ -18,6 +18,7 @@ export const useCitationManager = (thesisId: string | undefined) => {
         throw new Error('No thesis ID provided');
       }
 
+      const now = new Date().toISOString();
       const newCitation: Citation = {
         id: crypto.randomUUID(),
         text: '',
@@ -32,7 +33,9 @@ export const useCitationManager = (thesisId: string | undefined) => {
         issue: '',
         pages: '',
         publisher: '',
-        thesis_id: thesisId
+        thesis_id: thesisId,
+        created_at: now,
+        updated_at: now
       };
 
       const { error } = await supabase
