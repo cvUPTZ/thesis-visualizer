@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowUp, ArrowDown, Move, Maximize2, Minimize2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface ElementControlsProps {
   elementId: string;
@@ -33,6 +34,23 @@ export const ElementControls = ({
   onUpdateSize,
   onClose
 }: ElementControlsProps) => {
+  const { toast } = useToast();
+
+  const handlePositionChange = (newPosition: string) => {
+    console.log('Updating element position:', { elementId, newPosition });
+    onUpdatePosition(newPosition);
+    
+    toast({
+      title: "Position Updated",
+      description: `${type.charAt(0).toUpperCase() + type.slice(1)} position updated successfully`,
+    });
+  };
+
+  const handleCoordinateChange = (newX: number, newY: number) => {
+    console.log('Updating element coordinates:', { elementId, x: newX, y: newY });
+    onUpdateCoordinates(newX, newY);
+  };
+
   return (
     <Card className="fixed z-50 p-4 space-y-4 shadow-lg w-64 bg-background/95 backdrop-blur">
       <div className="flex justify-between items-center">
@@ -45,7 +63,7 @@ export const ElementControls = ({
       <div className="space-y-4">
         <div className="space-y-2">
           <Label>Position</Label>
-          <Select value={position} onValueChange={onUpdatePosition}>
+          <Select value={position} onValueChange={handlePositionChange}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -62,19 +80,23 @@ export const ElementControls = ({
           <>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label>X Position</Label>
+                <Label>X Position (px)</Label>
                 <Input
                   type="number"
                   value={x}
-                  onChange={(e) => onUpdateCoordinates(Number(e.target.value), y)}
+                  onChange={(e) => handleCoordinateChange(Number(e.target.value), y)}
+                  min={0}
+                  step={1}
                 />
               </div>
               <div className="space-y-1">
-                <Label>Y Position</Label>
+                <Label>Y Position (px)</Label>
                 <Input
                   type="number"
                   value={y}
-                  onChange={(e) => onUpdateCoordinates(x, Number(e.target.value))}
+                  onChange={(e) => handleCoordinateChange(x, Number(e.target.value))}
+                  min={0}
+                  step={1}
                 />
               </div>
             </div>
@@ -82,52 +104,41 @@ export const ElementControls = ({
             {(type === 'figure' || type === 'table') && (
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <Label>Width</Label>
+                  <Label>Width (px)</Label>
                   <Input
                     type="number"
                     value={width}
                     onChange={(e) => onUpdateSize(Number(e.target.value), height || 0)}
+                    min={0}
+                    step={1}
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label>Height</Label>
+                  <Label>Height (px)</Label>
                   <Input
                     type="number"
                     value={height}
                     onChange={(e) => onUpdateSize(width || 0, Number(e.target.value))}
+                    min={0}
+                    step={1}
                   />
                 </div>
               </div>
             )}
+
+            <div className="flex gap-2 justify-center pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePositionChange('inline')}
+                className="gap-1"
+              >
+                <Move className="w-4 h-4" />
+                Reset Position
+              </Button>
+            </div>
           </>
         )}
-
-        <div className="flex gap-2 justify-center">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onUpdatePosition('top')}
-          >
-            <ArrowUp className="w-4 h-4 mr-1" />
-            Top
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onUpdatePosition('bottom')}
-          >
-            <ArrowDown className="w-4 h-4 mr-1" />
-            Bottom
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onUpdatePosition('custom')}
-          >
-            <Move className="w-4 h-4 mr-1" />
-            Move
-          </Button>
-        </div>
       </div>
     </Card>
   );
