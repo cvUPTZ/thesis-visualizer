@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 interface CollaboratorInviteFormProps {
   thesisId: string;
@@ -14,7 +16,7 @@ interface CollaboratorInviteFormProps {
   setIsInviting: (isInviting: boolean) => void;
 }
 
-// Valid roles that match the database constraint
+// Define valid roles as a const array to ensure type safety
 const VALID_ROLES = ['owner', 'editor', 'viewer'] as const;
 type ValidRole = typeof VALID_ROLES[number];
 
@@ -32,45 +34,66 @@ export const CollaboratorInviteForm = ({
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsInviting(true);
+    
+    if (!email.trim() || !role || !thesisId) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate role
+    if (!VALID_ROLES.includes(role)) {
+      toast({
+        title: "Error",
+        description: "Invalid role selected",
+        variant: "destructive",
+      });
+      return;
+    }
+
     console.log('Starting invite process for:', { email, role, thesisId });
+    setIsInviting(true);
 
     try {
-      // First check if user exists
-      const { data: profiles, error: profileError } = await supabase
+      // First check if the user exists
+      const { data: existingUser, error: userError } = await supabase
         .from('profiles')
         .select('id, email')
-        .eq('email', email)
+        .eq('email', email.toLowerCase())
         .maybeSingle();
 
-      if (profileError) {
-        console.error('Error checking profile:', profileError);
-        throw new Error('Error checking user profile');
+      if (userError) {
+        console.error('Error checking user:', userError);
+        throw new Error('Error checking user existence');
       }
 
-      if (!profiles) {
-        throw new Error('User not found. Please make sure they have an account.');
+      if (!existingUser) {
+        throw new Error('User not found. Please ensure the email is correct.');
       }
 
       // Check if user is already a collaborator
       const { data: existingCollaborator, error: collaboratorError } = await supabase
         .from('thesis_collaborators')
-        .select('id, role')
+        .select('*')
         .eq('thesis_id', thesisId)
-        .eq('user_id', profiles.id)
+        .eq('user_id', existingUser.id)
         .maybeSingle();
 
-      if (collaboratorError && collaboratorError.code !== 'PGRST116') {
+      if (collaboratorError) {
         console.error('Error checking existing collaborator:', collaboratorError);
         throw new Error('Error checking existing collaborator');
       }
 
       if (existingCollaborator) {
+        // If collaborator exists with same role, show error
         if (existingCollaborator.role === role) {
-          throw new Error(`This user is already a collaborator with role: ${role}`);
+          throw new Error('User is already a collaborator with this role');
         }
-        
-        // Update existing collaborator's role if different
+
+        // If collaborator exists with different role, update role
         const { error: updateError } = await supabase
           .from('thesis_collaborators')
           .update({ role })
@@ -83,83 +106,25 @@ export const CollaboratorInviteForm = ({
 
         toast({
           title: "Success",
-          description: `Collaborator role updated to ${role}`,
+          description: "Collaborator role updated successfully",
         });
-        
-        setEmail('');
-        setRole('viewer');
-        onInviteSuccess();
-        return;
-      }
+      } else {
+        // Add new collaborator
+        const { error: insertError } = await supabase
+          .from('thesis_collaborators')
+          .insert({
+            thesis_id: thesisId,
+            user_id: existingUser.id,
+            role: role
+          });
 
-      // Get current user's role for this thesis
-      const { data: currentUserRole, error: roleError } = await supabase
-        .from('thesis_collaborators')
-        .select('role')
-        .eq('thesis_id', thesisId)
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (roleError) {
-        console.error('Error checking user role:', roleError);
-        throw new Error('Error checking user permissions');
-      }
-
-      // Verify permissions
-      if (!isAdmin && currentUserRole.role !== 'owner' && currentUserRole.role !== 'editor') {
-        throw new Error('You do not have permission to add collaborators.');
-      }
-
-      // Add collaborator
-      const { error: insertError } = await supabase
-        .from('thesis_collaborators')
-        .insert({
-          thesis_id: thesisId,
-          user_id: profiles.id,
-          role: role
-        });
-
-      if (insertError) {
-        console.error('Error adding collaborator:', insertError);
-        throw new Error('Failed to add collaborator. Please try again.');
-      }
-
-      // Create notification
-      await supabase
-        .from('notifications')
-        .insert({
-          user_id: profiles.id,
-          thesis_id: thesisId,
-          type: 'invitation',
-          message: `You have been invited to collaborate on thesis: ${thesisTitle}`
-        });
-
-      // Send invite email using edge function
-      const { error: emailError } = await supabase.functions.invoke('send-invite-email', {
-        body: {
-          to: email,
-          thesisTitle,
-          inviteLink: `${window.location.origin}/thesis/${thesisId}`,
-          role
+        if (insertError) {
+          console.error('Error adding collaborator:', insertError);
+          throw new Error('Failed to add collaborator. Please try again.');
         }
-      });
-
-      if (emailError) {
-        console.error('Error sending invite email:', emailError);
-        toast({
-          title: "Notice",
-          description: "Collaborator added but email notification failed to send.",
-          variant: "default",
-        });
       }
 
-      toast({
-        title: "Success",
-        description: "Collaborator has been invited successfully.",
-      });
-      
       setEmail('');
-      setRole('viewer');
       onInviteSuccess();
     } catch (error: any) {
       console.error('Error inviting collaborator:', error);
@@ -172,23 +137,28 @@ export const CollaboratorInviteForm = ({
   return (
     <form onSubmit={handleInvite} className="space-y-4">
       <div className="space-y-2">
+        <Label htmlFor="email">Email address</Label>
         <Input
+          id="email"
           type="email"
-          placeholder="Enter email address"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter collaborator's email"
           required
         />
       </div>
       <div className="space-y-2">
+        <Label>Role</Label>
         <Select value={role} onValueChange={(value) => setRole(value as ValidRole)}>
           <SelectTrigger>
             <SelectValue placeholder="Select role" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="viewer">Viewer</SelectItem>
-            <SelectItem value="editor">Editor</SelectItem>
-            {isAdmin && <SelectItem value="owner">Owner</SelectItem>}
+            {VALID_ROLES.map((validRole) => (
+              <SelectItem key={validRole} value={validRole}>
+                {validRole.charAt(0).toUpperCase() + validRole.slice(1)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
