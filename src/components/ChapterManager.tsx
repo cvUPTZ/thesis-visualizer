@@ -1,25 +1,38 @@
 import React from 'react';
 import { Chapter } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
-import { BookOpen, PlusCircle } from 'lucide-react';
+import { BookOpen, PlusCircle, Trash2 } from 'lucide-react';
 import { ChapterItem } from './editor/chapters/ChapterItem';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ChapterCreationDialog } from './editor/chapters/ChapterCreationDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ChapterManagerProps {
   chapters: Chapter[];
   onUpdateChapter: (chapter: Chapter) => void;
   onAddChapter: (chapter: Chapter) => void;
+  onRemoveChapter?: (chapterId: string) => void;
 }
 
 export const ChapterManager: React.FC<ChapterManagerProps> = ({
   chapters,
   onUpdateChapter,
-  onAddChapter
+  onAddChapter,
+  onRemoveChapter
 }) => {
   const [openChapters, setOpenChapters] = React.useState<string[]>([]);
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
+  const [chapterToDelete, setChapterToDelete] = React.useState<string | null>(null);
   const { toast } = useToast();
 
   const toggleChapter = (chapterId: string) => {
@@ -37,6 +50,17 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
       title: "Chapter Added",
       description: "New chapter has been created successfully",
     });
+  };
+
+  const handleDeleteChapter = (chapterId: string) => {
+    if (onRemoveChapter) {
+      onRemoveChapter(chapterId);
+      setChapterToDelete(null);
+      toast({
+        title: "Chapter Deleted",
+        description: "Chapter has been removed successfully",
+      });
+    }
   };
 
   return (
@@ -66,6 +90,7 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
             isOpen={openChapters.includes(chapter.id)}
             onToggle={() => toggleChapter(chapter.id)}
             onUpdateChapter={onUpdateChapter}
+            onDeleteChapter={() => setChapterToDelete(chapter.id)}
           />
         ))}
       </div>
@@ -75,6 +100,26 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
         onOpenChange={setShowCreateDialog}
         onChapterCreate={handleCreateChapter}
       />
+
+      <AlertDialog open={!!chapterToDelete} onOpenChange={() => setChapterToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the chapter and all its contents.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => chapterToDelete && handleDeleteChapter(chapterToDelete)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
