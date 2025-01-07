@@ -47,6 +47,7 @@ export interface Chapter {
   content?: string;
   order: number;
   sections: Section[];
+  figures: Figure[]; // Added this line
 }
 
 export interface Section {

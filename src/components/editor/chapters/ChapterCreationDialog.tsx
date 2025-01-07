@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog } from '@/components/ui/dialog';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Figure } from '@/types/thesis';
 
 interface ChapterCreationDialogProps {
@@ -24,7 +30,7 @@ export const ChapterCreationDialog: React.FC<ChapterCreationDialogProps> = ({
       imageUrl: URL.createObjectURL(file),
       caption: '',
       altText: '',
-      title: '', // Add the title field
+      title: '',
       number: figures.length + 1 || 1,
       dimensions: {
         width: 0,
@@ -37,9 +43,11 @@ export const ChapterCreationDialog: React.FC<ChapterCreationDialogProps> = ({
 
   const handleCreateChapter = () => {
     const newChapter = {
+      id: Date.now().toString(),
       title,
       figures,
-      sections: []
+      sections: [],
+      order: 1
     };
     onChapterCreate(newChapter);
     setTitle('');
@@ -49,28 +57,36 @@ export const ChapterCreationDialog: React.FC<ChapterCreationDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content>
-        <Dialog.Title>Create New Chapter</Dialog.Title>
-        <Dialog.Description>
-          <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Chapter Title"
-          />
-        </Dialog.Description>
-        <div>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              if (e.target.files) {
-                Array.from(e.target.files).forEach(handleAddFigure);
-              }
-            }}
-          />
-        </div>
-        <Button onClick={handleCreateChapter}>Create Chapter</Button>
-      </Dialog.Content>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Chapter</DialogTitle>
+          <DialogDescription>
+            <div className="space-y-4">
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Chapter Title"
+                className="w-full"
+              />
+              <div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      Array.from(e.target.files).forEach(handleAddFigure);
+                    }
+                  }}
+                  className="w-full"
+                />
+              </div>
+              <Button onClick={handleCreateChapter} className="w-full">
+                Create Chapter
+              </Button>
+            </div>
+          </DialogDescription>
+        </DialogHeader>
+      </DialogContent>
     </Dialog>
   );
 };
