@@ -39,7 +39,7 @@ export const CitationSearch: React.FC<CitationSearchProps> = ({ onCitationSelect
         variant: "destructive",
       });
     }
-  });
+  };
 
   const formatCitation = (result: any): Citation => {
     const now = new Date().toISOString();
