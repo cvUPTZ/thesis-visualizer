@@ -29,6 +29,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
         .select(`
           id,
           user_id,
+          thesis_id,
           profiles (
             email
           )
@@ -132,33 +133,29 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
   }, [thesisId, toast]);
 
   return (
-    <div className="fixed bottom-4 right-4 flex flex-col items-end space-y-2">
-      <div className="bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg">
-        <AnimatePresence>
-          <div className="flex -space-x-2">
-            {activeCollaborators.map((collaborator) => (
-              <motion.div
-                key={collaborator.user_id}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.5 }}
-                className="relative"
-              >
-                <Avatar className="h-8 w-8 border-2 border-background">
-                  <AvatarImage 
-                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${collaborator.email}`} 
-                    alt={collaborator.email} 
-                  />
-                  <AvatarFallback>
-                    {collaborator.email?.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-green-500 border border-background" />
-              </motion.div>
-            ))}
-          </div>
-        </AnimatePresence>
-      </div>
+    <div className="flex -space-x-2 overflow-hidden p-2">
+      <AnimatePresence>
+        {activeCollaborators.map((collaborator) => (
+          <motion.div
+            key={collaborator.user_id}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            className="relative inline-block"
+          >
+            <Avatar className="h-8 w-8 border-2 border-background">
+              <AvatarImage 
+                src={`https://api.dicebear.com/7.x/initials/svg?seed=${collaborator.email}`} 
+                alt={collaborator.email} 
+              />
+              <AvatarFallback>
+                {collaborator.email?.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-green-500 border border-background" />
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 };
