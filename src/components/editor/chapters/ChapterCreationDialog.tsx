@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { Chapter, Section, Figure, Table, Citation, Reference } from '@/types/thesis';
-import { PlusCircle, Trash2, Table2, Image, Quote, BookOpen } from 'lucide-react';
+import { PlusCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { FigureUpload } from '../managers/FigureUpload';
 import { TableDialog } from '../../table/TableDialog';
