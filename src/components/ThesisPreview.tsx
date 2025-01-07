@@ -7,6 +7,7 @@ import { ContentSection } from './thesis/preview/ContentSection';
 import { Button } from './ui/button';
 import { FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { toPDF } from 'react-to-pdf';
 
 interface ThesisPreviewProps {
   thesis: any;
@@ -21,8 +22,7 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
     if (!previewRef.current) return;
 
     try {
-      const { generatePdf } = await import('react-to-pdf');
-      await generatePdf(previewRef, {
+      await toPDF(previewRef, {
         filename: `${thesis.frontMatter[0]?.title || 'thesis'}.pdf`,
         page: {
           margin: 20,
@@ -41,6 +41,14 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
         variant: "destructive",
       });
     }
+  };
+
+  const handleElementClick = (id: string, type: 'figure' | 'table' | 'citation') => {
+    console.log('Element clicked:', { id, type });
+  };
+
+  const handlePositionChange = (elementId: string, position: { x: number; y: number }) => {
+    console.log('Position changed:', { elementId, position });
   };
 
   return (
@@ -68,6 +76,8 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
                 <ContentSection 
                   section={section}
                   elementPositions={[]}
+                  onElementClick={handleElementClick}
+                  onPositionChange={handlePositionChange}
                 />
               )}
             </React.Fragment>
@@ -81,6 +91,8 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
                   section={section}
                   chapterTitle={chapter.title}
                   elementPositions={[]}
+                  onElementClick={handleElementClick}
+                  onPositionChange={handlePositionChange}
                 />
               ))}
             </React.Fragment>
@@ -91,6 +103,8 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
               key={section.id}
               section={section}
               elementPositions={[]}
+              onElementClick={handleElementClick}
+              onPositionChange={handlePositionChange}
             />
           ))}
         </div>

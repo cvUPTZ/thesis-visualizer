@@ -16,9 +16,17 @@ interface ContentSectionProps {
       y: number;
     };
   }>;
+  onElementClick: (id: string, type: 'figure' | 'table' | 'citation') => void;
+  onPositionChange: (elementId: string, position: { x: number; y: number }) => void;
 }
 
-export const ContentSection = ({ section, chapterTitle, elementPositions }: ContentSectionProps) => {
+export const ContentSection = ({ 
+  section, 
+  chapterTitle, 
+  elementPositions,
+  onElementClick,
+  onPositionChange 
+}: ContentSectionProps) => {
   const isSpecialSection = section.type === 'references' || section.type === 'table-of-contents';
 
   return (
@@ -47,6 +55,8 @@ export const ContentSection = ({ section, chapterTitle, elementPositions }: Cont
               tables={section.tables}
               citations={section.citations}
               elementPositions={elementPositions}
+              onElementClick={onElementClick}
+              onPositionChange={onPositionChange}
             />
           </>
         )}
