@@ -62,20 +62,58 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
       }
     };
 
+    // Initial fetch
     fetchCollaborators();
     
+    // Set up presence channel
+    const channel = supabase.channel(`presence:${thesisId}`, {
+      config: {
+        presence: {
+          key: supabase.auth.getUser().then(({ data }) => data.user?.id || ''),
+        },
+      },
+    });
+
+    // Track presence state
+    const trackPresence = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const presenceState = {
+        user_id: user.id,
+        online_at: new Date().toISOString(),
+      };
+
+      await channel.track(presenceState);
+    };
+
     // Subscribe to presence changes
-    const presenceChannel = supabase.channel(`presence:${thesisId}`);
-    
-    presenceChannel
+    channel
       .on('presence', { event: 'sync' }, () => {
         console.log('Presence sync event received');
+        const state = channel.presenceState();
+        console.log('Current presence state:', state);
+        fetchCollaborators(); // Refresh collaborators list
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        console.log('User joined:', key, newPresences);
         fetchCollaborators();
       })
-      .subscribe();
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        console.log('User left:', key, leftPresences);
+        fetchCollaborators();
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to presence channel');
+          await trackPresence();
+        }
+      });
 
+    // Cleanup
     return () => {
-      presenceChannel.unsubscribe();
+      console.log('Cleaning up presence subscription');
+      channel.unsubscribe();
     };
   }, [thesisId, toast]);
 
@@ -86,7 +124,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
           <div className="flex -space-x-2">
             {activeCollaborators.map((collaborator) => (
               <motion.div
-                key={`${collaborator.user_id}-${collaborator.last_seen}`}
+                key={collaborator.user_id}
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.5 }}
