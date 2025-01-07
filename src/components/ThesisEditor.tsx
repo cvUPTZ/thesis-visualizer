@@ -1,10 +1,6 @@
-// File: src/components/ThesisEditor.tsx
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
-import { ThesisPreview } from './ThesisPreview';
-import { ThesisContent } from './thesis/ThesisContent';
-import { ThesisToolbar } from './thesis/ThesisToolbar';
-import { Chapter, Section, Thesis } from '@/types/thesis';
+import { Chapter, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
 import { useParams } from 'react-router-dom';
@@ -13,14 +9,17 @@ import { ThesisList } from './thesis/ThesisList';
 import { useThesisData } from '@/hooks/useThesisData';
 import { Skeleton } from './ui/skeleton';
 import { CollaboratorPresence } from './collaboration/CollaboratorPresence';
-import { NotificationCenter } from './collaboration/NotificationCenter';
 import { useToast } from '@/hooks/use-toast';
+import { ThesisEditorHeader } from './thesis/editor/ThesisEditorHeader';
+import { ThesisEditorContent } from './thesis/editor/ThesisEditorContent';
+import { ThesisEditorPreview } from './thesis/editor/ThesisEditorPreview';
+import { useThesisRealtime } from '@/hooks/useThesisRealtime';
 
 interface ThesisEditorProps {
   thesisId?: string;
 }
 
-export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => {
+export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesisId }) => {
   const { thesisId: routeThesisId } = useParams();
   const currentThesisId = propsThesisId || routeThesisId;
   const { toast } = useToast();
@@ -32,6 +31,7 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
 
   useThesisAutosave(thesis);
   useThesisInitialization(thesis);
+  useThesisRealtime(currentThesisId, thesis, setThesis);
 
   console.log('ThesisEditor rendering:', { 
     currentThesisId,
@@ -40,144 +40,55 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
     error: error?.message 
   });
 
-  const getAllThesisSections = useCallback(() => {
-    if (!thesis) return [];
-    
-    console.log('Getting all thesis sections:', { 
-      frontMatterCount: thesis.frontMatter?.length,
-      chaptersCount: thesis.chapters?.length,
-      backMatterCount: thesis.backMatter?.length
-    });
-    
-    const allSections = [
-      ...(thesis.frontMatter || []),
-      ...(thesis.chapters || []).flatMap(chapter => {
-        console.log('Processing chapter:', { 
-          id: chapter.id, 
-          title: chapter.title,
-          sectionsCount: chapter.sections?.length 
-        });
-        
-        return chapter.sections.map(section => ({
-          ...section,
-          title: `${chapter.title} - ${section.title}`,
-          chapterId: chapter.id // Add chapter ID for reference
-        }));
-      }),
-      ...(thesis.backMatter || [])
-    ];
-
-    console.log('All sections processed:', {
-      totalSections: allSections.length,
-      sections: allSections.map(s => ({ id: s.id, title: s.title }))
-    });
-
-    return allSections.sort((a, b) => a.order - b.order);
-  }, [thesis]);
-
-  const handleThesisCreated = (thesisId: string, title: string) => {
-    console.log('Creating new thesis:', { thesisId, title });
-    const newThesis: Thesis = {
-      id: thesisId,
-      title: title,
-      content: {},
-      metadata: {
-        description: '',
-        keywords: [],
-        createdAt: new Date().toISOString(),
-        universityName: '',
-        departmentName: '',
-        authorName: '',
-        thesisDate: '',
-        committeeMembers: []
-      },
-      frontMatter: [],
-      chapters: [],
-      backMatter: [],
-      user_id: '',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    setThesis(newThesis);
-  };
-
-  const handleContentChange = (id: string, newContent: string) => {
+  const handleContentChange = (id: string, content: string) => {
     if (!thesis) return;
     
     setThesis(prevThesis => ({
       ...prevThesis!,
       frontMatter: prevThesis!.frontMatter.map(section =>
-        section.id === id ? { ...section, content: newContent } : section
+        section.id === id ? { ...section, content } : section
       ),
       chapters: prevThesis!.chapters.map(chapter => ({
-            ...chapter,
-            sections: chapter.sections.map(section => (
-                section.id === id ? { ...section, content: newContent } : section
-            ))
-        })),
+        ...chapter,
+        sections: chapter.sections.map(section =>
+          section.id === id ? { ...section, content } : section
+        )
+      })),
       backMatter: prevThesis!.backMatter.map(section =>
-        section.id === id ? { ...section, content: newContent } : section
+        section.id === id ? { ...section, content } : section
       )
     }));
   };
 
-  const handleTitleChange = (id: string, newTitle: string) => {
-      if (!thesis) return;
-
-      setThesis(prevThesis => ({
-          ...prevThesis!,
-          frontMatter: prevThesis!.frontMatter.map(section =>
-              section.id === id ? { ...section, title: newTitle } : section
-          ),
-        chapters: prevThesis!.chapters.map(chapter => ({
-              ...chapter,
-              sections: chapter.sections.map(section => (
-                  section.id === id ? { ...section, title: newTitle } : section
-              ))
-          })),
-          backMatter: prevThesis!.backMatter.map(section =>
-              section.id === id ? { ...section, title: newTitle } : section
-          )
-      }));
-  };
-
-  const handleAddChapter = () => {
+  const handleTitleChange = (id: string, title: string) => {
     if (!thesis) return;
 
-    const newChapter: Chapter = {
-      id: Date.now().toString(),
-      title: 'New Chapter',
-      order: 1, // Set order to 1 for the new chapter
-      sections: []
-    };
-
-    // Update orders of existing chapters
-    const updatedChapters = thesis.chapters.map(chapter => ({
-      ...chapter,
-      order: chapter.order + 1 // Increment order of existing chapters
-    }));
-
-    // Add the new chapter at the beginning
     setThesis(prevThesis => ({
       ...prevThesis!,
-      chapters: [newChapter, ...updatedChapters]
+      frontMatter: prevThesis!.frontMatter.map(section =>
+        section.id === id ? { ...section, title } : section
+      ),
+      chapters: prevThesis!.chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.map(section =>
+          section.id === id ? { ...section, title } : section
+        )
+      })),
+      backMatter: prevThesis!.backMatter.map(section =>
+        section.id === id ? { ...section, title } : section
+      )
     }));
-
-    toast({
-      title: "Chapter Added",
-      description: "New chapter has been added at the beginning",
-    });
   };
 
   const handleUpdateChapter = (updatedChapter: Chapter) => {
-      if (!thesis) return;
-      
-      setThesis(prevThesis => ({
-          ...prevThesis!,
-          chapters: prevThesis!.chapters.map(chapter =>
-              chapter.id === updatedChapter.id ? updatedChapter : chapter
-          )
-      }));
+    if (!thesis) return;
+    
+    setThesis(prevThesis => ({
+      ...prevThesis!,
+      chapters: prevThesis!.chapters.map(chapter =>
+        chapter.id === updatedChapter.id ? updatedChapter : chapter
+      )
+    }));
   };
 
   if (isLoading) {
@@ -214,7 +125,7 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
     return (
       <div className="flex flex-col h-full">
         <div className="flex justify-between p-4 items-center">
-          <ThesisCreationModal onThesisCreated={handleThesisCreated} />
+          <ThesisCreationModal onThesisCreated={() => {}} />
           <ThesisList />
         </div>
         <div className="flex flex-1 items-center justify-center">
@@ -224,28 +135,26 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
     );
   }
 
-  const sections = getAllThesisSections();
-
   return (
     <div className="min-h-screen bg-background flex">
       <ThesisSidebar
-        sections={sections}
+        sections={[
+          ...(thesis?.frontMatter || []),
+          ...(thesis?.chapters || []).flatMap(chapter => chapter.sections),
+          ...(thesis?.backMatter || [])
+        ]}
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
       />
       <main className="flex-1 p-8 flex">
         <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
           <div className="max-w-4xl mx-auto space-y-6">
-            <div className="flex justify-between items-center">
-              <ThesisToolbar
-                thesisId={thesis?.id || ''}
-                thesisData={thesis!}
-                showPreview={showPreview}
-                onTogglePreview={() => setShowPreview(!showPreview)}
-              />
-              <NotificationCenter />
-            </div>
-            <ThesisContent
+            <ThesisEditorHeader
+              thesis={thesis}
+              showPreview={showPreview}
+              onTogglePreview={() => setShowPreview(!showPreview)}
+            />
+            <ThesisEditorContent
               frontMatter={thesis?.frontMatter || []}
               chapters={thesis?.chapters || []}
               backMatter={thesis?.backMatter || []}
@@ -253,15 +162,18 @@ export const ThesisEditor = ({ thesisId: propsThesisId }: ThesisEditorProps) => 
               onContentChange={handleContentChange}
               onTitleChange={handleTitleChange}
               onUpdateChapter={handleUpdateChapter}
-              onAddChapter={handleAddChapter}
+              onAddChapter={(chapter) => {
+                setThesis(prev => ({
+                  ...prev!,
+                  chapters: [...(prev?.chapters || []), chapter]
+                }));
+              }}
             />
           </div>
         </div>
         {showPreview && thesis && (
           <div className="w-1/2 pl-8 border-l">
-            <div ref={previewRef}>
-              <ThesisPreview thesis={thesis} />
-            </div>
+            <ThesisEditorPreview thesis={thesis} previewRef={previewRef} />
           </div>
         )}
       </main>
