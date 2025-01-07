@@ -43,7 +43,6 @@ export const CitationSearch: React.FC<CitationSearchProps> = ({ onCitationSelect
 
   const formatCitation = (result: any): Citation => {
     const now = new Date().toISOString();
-    // Format the API response into a Citation object
     return {
       id: crypto.randomUUID(),
       text: result.title?.[0] || '',

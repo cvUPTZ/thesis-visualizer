@@ -6,6 +6,12 @@ import { useToast } from '@/hooks/use-toast';
 export const useCitationManager = (thesisId: string) => {
   const [citations, setCitations] = useState<Citation[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedCitation, setSelectedCitation] = useState<Citation | null>(null);
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('all');
+  const [sortField, setSortField] = useState<'year' | 'author' | 'title'>('year');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const { toast } = useToast();
 
   const addCitation = async (citation: Omit<Citation, 'thesis_id'>) => {
@@ -15,6 +21,7 @@ export const useCitationManager = (thesisId: string) => {
       const newCitation: Citation = {
         ...citation,
         thesis_id: thesisId,
+        type: citation.type || 'article',
         created_at: now,
         updated_at: now
       };
@@ -55,7 +62,7 @@ export const useCitationManager = (thesisId: string) => {
 
       if (error) throw error;
 
-      setCitations(data);
+      setCitations(data as Citation[]);
     } catch (error) {
       console.error('Error fetching citations:', error);
       toast({
@@ -95,11 +102,73 @@ export const useCitationManager = (thesisId: string) => {
     }
   };
 
+  const handleAddCitation = () => {
+    setSearchDialogOpen(true);
+  };
+
+  const handleSearchResult = (citation: Omit<Citation, 'thesis_id'>) => {
+    addCitation(citation);
+    setSearchDialogOpen(false);
+  };
+
+  const getFilteredAndSortedCitations = (citationsToFilter: Citation[]) => {
+    let filtered = [...citationsToFilter];
+    
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(citation => 
+        citation.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        citation.authors.some(author => 
+          author.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+
+    // Apply type filter
+    if (filterType !== 'all') {
+      filtered = filtered.filter(citation => citation.type === filterType);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case 'year':
+          comparison = a.year.localeCompare(b.year);
+          break;
+        case 'author':
+          comparison = (a.authors[0] || '').localeCompare(b.authors[0] || '');
+          break;
+        case 'title':
+          comparison = a.text.localeCompare(b.text);
+          break;
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  };
+
   return {
     citations,
     loading,
+    selectedCitation,
+    setSelectedCitation,
+    searchDialogOpen,
+    setSearchDialogOpen,
+    searchTerm,
+    setSearchTerm,
+    filterType,
+    setFilterType,
+    sortField,
+    setSortField,
+    sortDirection,
+    setSortDirection,
     addCitation,
     fetchCitations,
-    deleteCitation
+    deleteCitation,
+    handleAddCitation,
+    handleSearchResult,
+    getFilteredAndSortedCitations
   };
 };
