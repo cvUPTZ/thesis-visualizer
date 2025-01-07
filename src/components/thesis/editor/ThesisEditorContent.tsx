@@ -26,6 +26,8 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
 }) => {
   const { thesisId } = useParams<{ thesisId: string }>();
 
+  console.log('ThesisEditorContent rendering with thesisId:', thesisId);
+
   if (!thesisId) {
     console.error('No thesis ID found in URL params');
     return null;
