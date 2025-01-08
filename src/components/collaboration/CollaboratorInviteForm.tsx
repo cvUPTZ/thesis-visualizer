@@ -113,6 +113,21 @@ export const CollaboratorInviteForm = ({
           throw new Error('Failed to add collaborator. Please try again.');
         }
 
+        // Create a notification for the invited user
+        const { error: notificationError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: existingUser.id,
+            thesis_id: thesisId,
+            type: 'invitation',
+            message: `You have been invited to collaborate on "${thesisTitle}" as a ${role}`
+          });
+
+        if (notificationError) {
+          console.error('Error creating notification:', notificationError);
+          // Don't throw here as the collaboration was successful
+        }
+
         toast({
           title: "Success",
           description: "Collaborator added successfully",
