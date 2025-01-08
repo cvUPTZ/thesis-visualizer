@@ -1,23 +1,16 @@
-import { Section, Citation, Reference } from './thesis';
-
-export interface SectionProps {
-  section: Section;
-  isActive: boolean;
-  onContentChange: (id: string, content: string) => void;
-  onTitleChange: (id: string, title: string) => void;
-}
+import { Reference, Citation } from './thesis';
 
 export interface EditorProps {
-  content: string;
-  onChange: (content: string) => void;
+  value: string;
+  onChange: (value: string) => void;
   placeholder?: string;
 }
 
 export interface ReferenceManagerProps {
-  references: Reference[];
-  onAddReference: (reference: Reference) => void;
-  onRemoveReference: (id: string) => void;
-  onUpdateReference: (reference: Reference) => void;
+  items: Reference[];
+  onAdd: (reference: Reference) => void;
+  onRemove: (id: string) => void;
+  onUpdate: (reference: Reference) => void;
 }
 
 export interface CitationManagerProps {
@@ -25,4 +18,12 @@ export interface CitationManagerProps {
   onAddCitation: (citation: Citation) => void;
   onRemoveCitation: (id: string) => void;
   onUpdateCitation: (citation: Citation) => void;
+  thesisId: string;
+}
+
+export interface SectionProps {
+  section: any;
+  isActive: boolean;
+  onContentChange: (content: string) => void;
+  onTitleChange: (title: string) => void;
 }

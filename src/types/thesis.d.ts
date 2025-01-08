@@ -34,3 +34,19 @@ export interface CitationPreviewProps {
   onEdit: (citation: Citation) => void;
   onDelete: (citation: Citation) => void;
 }
+
+export interface ThesisMetadata {
+  description: string;
+  keywords: string[];
+  createdAt: string;
+  shortTitle?: string;
+  institution?: string;
+  author?: string;
+  degree?: string;
+  date?: string;
+  universityName?: string;
+  departmentName?: string;
+  authorName?: string;
+  thesisDate?: string;
+  committeeMembers?: string[];
+}

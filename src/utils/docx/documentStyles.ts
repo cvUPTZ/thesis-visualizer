@@ -1,16 +1,13 @@
 import { IStylesOptions, convertInchesToTwip } from 'docx';
 
-const defaultFont = "Times New Roman";
-const defaultFontSize = 24; // 12pt
-
 export const documentStyles: IStylesOptions = {
   paragraphStyles: [
     {
       id: "Normal",
       name: "Normal",
       run: {
-        font: defaultFont,
-        size: defaultFontSize,
+        font: "Times New Roman",
+        size: 24,
       },
       paragraph: {
         spacing: { before: 240, after: 240 }
@@ -22,7 +19,6 @@ export const documentStyles: IStylesOptions = {
       basedOn: "Normal",
       next: "Normal",
       run: {
-        font: defaultFont,
         size: 32,
         bold: true
       },
@@ -37,7 +33,6 @@ export const documentStyles: IStylesOptions = {
       basedOn: "Normal",
       next: "Normal",
       run: {
-        font: defaultFont,
         size: 28,
         bold: true
       },
@@ -54,6 +49,6 @@ export const pageSettings = {
     top: convertInchesToTwip(1),
     right: convertInchesToTwip(1),
     bottom: convertInchesToTwip(1),
-    left: convertInchesToTwip(1.5) // Extra margin for binding
+    left: convertInchesToTwip(1.5)
   }
 };

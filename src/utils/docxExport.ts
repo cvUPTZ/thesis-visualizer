@@ -1,7 +1,7 @@
-import { Document, Paragraph, TextRun, PageBreak, Header, Footer, AlignmentType, LevelFormat, HeadingLevel, PageNumber, Table as DocxTable, TableRow, TableCell, VerticalAlign, WidthType, ImageRun, convertInchesToTwip, BorderStyle } from "docx";
+import { Document, Paragraph, TextRun, PageBreak, Header, Footer, AlignmentType, PageNumber, BorderStyle } from "docx";
 import { MarkdownToDocx } from './markdownToDocx';
 import { documentStyles, pageSettings } from './documentStyles';
-import { Thesis, Section, Chapter, Figure, Table, Reference, Citation } from '@/types/thesis';
+import { Thesis } from '@/types/thesis';
 
 const defaultFont = "Times New Roman";
 const defaultFontSize = 24; // 12pt
@@ -159,7 +159,7 @@ const createAbstract = (thesis: Thesis) => {
           text: `Keywords: ${thesis.metadata?.keywords?.join(', ')}`,
           font: defaultFont,
           size: defaultFontSize,
-          italic: true
+          italics: true
         }),
       ],
     }),
@@ -213,43 +213,42 @@ const createSectionContent = (section: Section) => {
   return paragraphs;
 };
 
-export const generateThesisDocx = (thesis: Thesis): Document => {
+export const generateThesisDocx = (thesis: Thesis) => {
   const doc = new Document({
     styles: documentStyles,
-    sections: [
-      {
-        properties: {
-          page: pageSettings
-        },
-        headers: { default: createHeader(thesis) },
-        footers: { default: createFooter() },
-        children: [
-          ...createTitlePage(thesis),
-          ...createAbstract(thesis),
-          ...thesis.chapters.flatMap(chapter => createChapterContentWithSections(chapter))
-        ]
-      }
-    ]
+    sections: [{
+      properties: {
+        page: pageSettings
+      },
+      headers: {
+        default: createHeader(thesis)
+      },
+      footers: {
+        default: createFooter()
+      },
+      children: [
+        ...createTitlePage(thesis),
+        ...createAbstract(thesis),
+        ...thesis.chapters.flatMap(chapter => createChapterContentWithSections(chapter))
+      ]
+    }]
   });
-
   return doc;
 };
 
 export const generatePreviewDocx = (thesis: Thesis) => {
   const doc = new Document({
     styles: documentStyles,
-    sections: [
-      {
-        properties: {
-          page: pageSettings
-        },
-        children: [
-          ...createTitlePage(thesis),
-          ...createAbstract(thesis),
-          ...thesis.chapters.flatMap(chapter => createChapterContentWithSections(chapter))
-        ]
-      }
-    ]
+    sections: [{
+      properties: {
+        page: pageSettings
+      },
+      children: [
+        ...createTitlePage(thesis),
+        ...createAbstract(thesis),
+        ...thesis.chapters.flatMap(chapter => createChapterContentWithSections(chapter))
+      ]
+    }]
   });
   return doc;
 };
