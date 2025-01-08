@@ -2,9 +2,9 @@
 .thesis-preview {
   position: relative;
   background: white;
-  width: 210mm; /* A4 width */
   margin: 0 auto;
   counter-reset: page;
+  transition: width 0.3s ease;
 }
 
 .thesis-page {
@@ -13,7 +13,6 @@
   padding: 2.5rem;
   background: white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  width: 210mm; /* A4 width */
   min-height: 297mm; /* A4 height */
   box-sizing: border-box;
   page-break-after: always;
