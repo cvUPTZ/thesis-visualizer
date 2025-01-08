@@ -10,9 +10,17 @@ import {
 
 interface CitationPreviewProps {
   citation: Citation;
+  onEdit?: (citation: Citation) => void;
+  onDelete?: (citation: Citation) => void;
+  onClose?: () => void;
 }
 
-export const CitationPreview = ({ citation }: CitationPreviewProps) => {
+export const CitationPreview: React.FC<CitationPreviewProps> = ({ 
+  citation,
+  onEdit,
+  onDelete,
+  onClose
+}) => {
   const formatAPA = () => {
     const authors = citation.authors
       .map((author, index) => {

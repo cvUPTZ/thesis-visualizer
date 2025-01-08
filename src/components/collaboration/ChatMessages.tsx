@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ChatMessageList } from './chat/ChatMessageList';
 import { ChatMessageInput } from './chat/ChatMessageInput';
 import { useChatMessages } from './chat/useChatMessages';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '../ThemeProvider';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import { Button } from '../ui/button';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface ChatMessagesProps {
   thesisId: string;
@@ -13,6 +16,7 @@ interface ChatMessagesProps {
 export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
   const [newMessage, setNewMessage] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
+  const [showChat, setShowChat] = useState(true);
   const { toast } = useToast();
   const { messages } = useChatMessages(thesisId);
   const { theme } = useTheme();
@@ -60,34 +64,55 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
   }
 
   return (
-    <div className={`
-      fixed bottom-4 right-4 w-[400px] h-[500px] 
-      border rounded-lg shadow-lg z-50 
-      flex flex-col overflow-hidden
-      backdrop-blur-sm
-      ${theme === 'dark' 
-        ? 'bg-dark-bg/95 border-dark-border shadow-2xl' 
-        : 'bg-background/95 border-border'
-      }
-    `}>
-      <div className={`
-        p-3 border-b backdrop-blur-sm
-        ${theme === 'dark' 
-          ? 'bg-dark-card/90 border-dark-border' 
-          : 'bg-editor-bg-accent/90 border-editor-border'
-        }
-      `}>
-        <h3 className="font-semibold">Chat</h3>
-      </div>
-      
-      <ChatMessageList messages={messages} />
+    <Collapsible
+      open={showChat}
+      onOpenChange={setShowChat}
+      className="fixed bottom-4 right-4 w-[400px] z-50"
+    >
+      <CollapsibleTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="absolute -top-10 right-0 bg-background shadow-md"
+        >
+          {showChat ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronUp className="h-4 w-4" />
+          )}
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className={`
+          w-full h-[500px] 
+          border rounded-lg shadow-lg
+          flex flex-col overflow-hidden
+          backdrop-blur-sm
+          ${theme === 'dark' 
+            ? 'bg-dark-bg/95 border-dark-border shadow-2xl' 
+            : 'bg-background/95 border-border'
+          }
+        `}>
+          <div className={`
+            p-3 border-b backdrop-blur-sm
+            ${theme === 'dark' 
+              ? 'bg-dark-card/90 border-dark-border' 
+              : 'bg-editor-bg-accent/90 border-editor-border'
+            }
+          `}>
+            <h3 className="font-semibold">Chat</h3>
+          </div>
+          
+          <ChatMessageList messages={messages} />
 
-      <ChatMessageInput
-        value={newMessage}
-        onChange={setNewMessage}
-        onSubmit={handleSendMessage}
-        isLoading={isLoading}
-      />
-    </div>
+          <ChatMessageInput
+            value={newMessage}
+            onChange={setNewMessage}
+            onSubmit={handleSendMessage}
+            isLoading={isLoading}
+          />
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 };
