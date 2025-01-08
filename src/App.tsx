@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes } from './Routes';
+import Routes from './Routes';
 import { ThemeProvider } from './components/ThemeProvider';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { PlatformPresentation } from './components/onboarding/PlatformPresentation';
