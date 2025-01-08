@@ -59,7 +59,6 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
 
     fetchMessages();
 
-    // Subscribe to new messages
     const channel = supabase
       .channel('chat_messages')
       .on(
@@ -73,13 +72,11 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
         async (payload) => {
           console.log('New message received:', payload);
           
-          // Skip if we've already processed this message
           if (processedMessageIds.current.has(payload.new.id)) {
             console.log('Message already processed, skipping:', payload.new.id);
             return;
           }
 
-          // Skip if this is our own message (we've already added it to the UI)
           if (payload.new.sender_id === currentUserRef.current) {
             console.log('Own message, already in UI, skipping:', payload.new.id);
             processedMessageIds.current.add(payload.new.id);
@@ -119,10 +116,16 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
   }
 
   return (
-    <div className="h-[500px] bg-background border rounded-lg shadow-lg flex flex-col">
-      <ChatHeader />
-      <ChatMessageList messages={messages} />
-      <ChatInput thesisId={thesisId} onMessageSent={fetchMessages} />
+    <div className="h-[500px] bg-background border rounded-lg shadow-lg flex flex-col overflow-hidden">
+      <div className="bg-editor-bg-accent border-b border-editor-border">
+        <ChatHeader />
+      </div>
+      <div className="flex-1 overflow-y-auto bg-white/50 backdrop-blur-sm">
+        <ChatMessageList messages={messages} />
+      </div>
+      <div className="border-t border-editor-border bg-editor-bg-accent p-4">
+        <ChatInput thesisId={thesisId} onMessageSent={fetchMessages} />
+      </div>
     </div>
   );
 };
