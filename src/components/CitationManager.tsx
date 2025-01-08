@@ -12,7 +12,7 @@ type CitationType = "article" | "book" | "conference" | "website" | "other" | "a
 
 interface CitationManagerProps {
   citations: Citation[];
-  onCitationSelect?: (citation: Citation) => void;
+  onCitationSelect?: (citation: Citation | null) => void;
   selectedCitation?: Citation | null;
   onCitationCreate?: (citation: Citation) => void;
   onCitationUpdate?: (citation: Citation) => void;
@@ -55,12 +55,13 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
     return 0;
   });
 
-  const handleRemove = (citation: Citation) => {
-    onCitationDelete?.(citation);
-  };
-
-  const handleUpdate = (citation: Citation) => {
-    onCitationUpdate?.(citation);
+  const handleCitationCreate = (citation: Omit<Citation, 'thesis_id'>) => {
+    if (onCitationCreate) {
+      onCitationCreate({
+        ...citation,
+        thesis_id: thesisId
+      });
+    }
   };
 
   return (
@@ -89,8 +90,11 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
           <TabsContent value="all">
             <CitationList
               citations={sortedCitations}
-              onRemove={handleRemove}
-              onUpdate={handleUpdate}
+              onRemove={(id) => {
+                const citation = citations.find(c => c.id === id);
+                if (citation && onCitationDelete) onCitationDelete(citation);
+              }}
+              onUpdate={onCitationUpdate}
               onPreview={onCitationSelect}
             />
           </TabsContent>
@@ -98,8 +102,11 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
           <TabsContent value="recent">
             <CitationList
               citations={sortedCitations.slice(0, 5)}
-              onRemove={handleRemove}
-              onUpdate={handleUpdate}
+              onRemove={(id) => {
+                const citation = citations.find(c => c.id === id);
+                if (citation && onCitationDelete) onCitationDelete(citation);
+              }}
+              onUpdate={onCitationUpdate}
               onPreview={onCitationSelect}
             />
           </TabsContent>
@@ -107,12 +114,15 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
           <TabsContent value="search">
             <div className="space-y-4">
               <CitationSearch
-                onCitationSelect={(citation) => onCitationCreate?.(citation)}
+                onCitationSelect={handleCitationCreate}
               />
               <CitationList
                 citations={sortedCitations}
-                onRemove={handleRemove}
-                onUpdate={handleUpdate}
+                onRemove={(id) => {
+                  const citation = citations.find(c => c.id === id);
+                  if (citation && onCitationDelete) onCitationDelete(citation);
+                }}
+                onUpdate={onCitationUpdate}
                 onPreview={onCitationSelect}
               />
             </div>
@@ -123,6 +133,7 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
       {selectedCitation && (
         <CitationPreview
           citation={selectedCitation}
+          onEdit={onCitationUpdate}
           onDelete={onCitationDelete}
           onClose={() => onCitationSelect?.(null)}
         />
