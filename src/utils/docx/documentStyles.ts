@@ -1,6 +1,6 @@
-import { StylesOptions, convertInchesToTwip } from 'docx';
+import { IStylesOptions, convertInchesToTwip } from 'docx';
 
-export const documentStyles: StylesOptions = {
+export const documentStyles: IStylesOptions = {
   default: {
     document: {
       run: {
@@ -30,39 +30,6 @@ export const documentStyles: StylesOptions = {
       },
       paragraph: {
         spacing: { before: 360, after: 240 },
-      },
-    },
-    title: {
-      run: {
-        font: "Times New Roman",
-        size: 36,
-        bold: true,
-      },
-      paragraph: {
-        spacing: { before: 720, after: 480 },
-        alignment: 'center',
-      },
-    },
-    subtitle: {
-      run: {
-        font: "Times New Roman",
-        size: 28,
-        italics: true,
-      },
-      paragraph: {
-        spacing: { before: 240, after: 480 },
-        alignment: 'center',
-      },
-    },
-    caption: {
-      run: {
-        font: "Times New Roman",
-        size: 20,
-        italics: true,
-      },
-      paragraph: {
-        spacing: { before: 120, after: 240 },
-        alignment: 'center',
       },
     },
   },

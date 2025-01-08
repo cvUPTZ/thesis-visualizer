@@ -1,4 +1,3 @@
-// src/utils/docxExport.ts
 import {
   Document,
   Paragraph,
@@ -26,6 +25,8 @@ import {
 } from "docx";
 import { Thesis, Section, Chapter, Figure, Table, Reference, Citation } from "@/types/thesis";
 import { MarkdownToDocx } from './markdownToDocx';
+import { documentStyles, pageSettings } from './documentStyles';
+import { DocxGenerationOptions } from './types';
 
 const defaultFont = "Times New Roman";
 const defaultFontSize = 24; //12pt
@@ -63,7 +64,6 @@ const createFooter = () => {
     ],
   });
 };
-
 
 const createTitlePage = (thesis: Thesis) => {
     const titleSection = thesis.frontMatter.find(section => section.type === 'title');
@@ -135,7 +135,6 @@ const createTableOfContents = () => {
   ];
 };
 
-
 const createFigures = (figures: Figure[]) => {
     return figures.flatMap((figure, index) => {
       const paragraphs = [];
@@ -184,7 +183,6 @@ const createFigures = (figures: Figure[]) => {
         return paragraphs;
     })
 }
-
 
 const createTables = (tables: Table[]) => {
   return tables.map(table => {
@@ -259,7 +257,6 @@ const createTables = (tables: Table[]) => {
   })
 }
 
-
 const createCitations = (citations: Citation[]) => {
   return citations.map(citation => new Paragraph({
         children: [
@@ -271,7 +268,6 @@ const createCitations = (citations: Citation[]) => {
         ],
      }));
 };
-
 
 const createReferences = (references: Reference[]) => {
   const paragraphs = [
@@ -343,7 +339,7 @@ const createSectionContent = (section: Section) => {
     }
 
     return paragraphs;
-  };
+};
 
 const createChapterContentWithSections = (chapter: Chapter) => {
     const paragraphs: Paragraph[] = [];
@@ -368,7 +364,6 @@ const createChapterContentWithSections = (chapter: Chapter) => {
 
     return paragraphs;
 }
-
 
 export const generateThesisDocx = (thesis: Thesis): Document => {
   const doc = new Document({
@@ -473,6 +468,24 @@ export const generateThesisDocx = (thesis: Thesis): Document => {
         },
       ],
     },
+  });
+
+  return doc;
+};
+
+export const generatePreviewDocx = (thesis: Thesis): Document => {
+  const doc = new Document({
+    styles: documentStyles,
+    sections: [{
+      properties: {
+        page: pageSettings,
+      },
+      children: [
+        ...createTitlePage(thesis),
+        ...createAbstract(thesis),
+        ...thesis.chapters.flatMap(chapter => createChapterContentWithSections(chapter)),
+      ],
+    }],
   });
 
   return doc;
