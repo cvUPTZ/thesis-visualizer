@@ -10,6 +10,11 @@ const TITLE_FONT_SIZE = 36; // 18pt
 const LINE_SPACING = 480; // Double spacing (240 = single space)
 const PARAGRAPH_SPACING = 240; // 12pt
 
+// Border and color constants
+const BORDER_COLOR = '222222'; // Charcoal Gray
+const HEADER_COLOR = '7E69AB'; // Secondary Purple
+const BORDER_SIZE = 12; // 1pt
+
 export const defaultStyles: IStylesOptions = {
   default: {
     document: {
@@ -23,6 +28,12 @@ export const defaultStyles: IStylesOptions = {
           before: PARAGRAPH_SPACING,
           after: PARAGRAPH_SPACING,
         },
+        border: {
+          top: { color: BORDER_COLOR, size: BORDER_SIZE, space: 1 },
+          right: { color: BORDER_COLOR, size: BORDER_SIZE, space: 1 },
+          bottom: { color: BORDER_COLOR, size: BORDER_SIZE, space: 1 },
+          left: { color: BORDER_COLOR, size: BORDER_SIZE, space: 1 },
+        },
       },
     },
     heading1: {
@@ -30,6 +41,7 @@ export const defaultStyles: IStylesOptions = {
         size: HEADING1_FONT_SIZE,
         bold: true,
         font: FONT_FAMILY,
+        color: HEADER_COLOR,
       },
       paragraph: {
         spacing: { 
@@ -46,6 +58,7 @@ export const defaultStyles: IStylesOptions = {
         size: HEADING2_FONT_SIZE,
         bold: true,
         font: FONT_FAMILY,
+        color: HEADER_COLOR,
       },
       paragraph: {
         spacing: { 
@@ -60,40 +73,6 @@ export const defaultStyles: IStylesOptions = {
   },
   paragraphStyles: [
     {
-      id: 'header',
-      name: 'Header',
-      basedOn: 'Normal',
-      next: 'Normal',
-      run: {
-        size: NORMAL_FONT_SIZE - 2,
-        font: FONT_FAMILY,
-      },
-      paragraph: {
-        spacing: { 
-          line: 240,
-          before: 0,
-          after: 0,
-        },
-      },
-    },
-    {
-      id: 'footer',
-      name: 'Footer',
-      basedOn: 'Normal',
-      next: 'Normal',
-      run: {
-        size: NORMAL_FONT_SIZE - 2,
-        font: FONT_FAMILY,
-      },
-      paragraph: {
-        spacing: { 
-          line: 240,
-          before: 0,
-          after: 0,
-        },
-      },
-    },
-    {
       id: 'title',
       name: 'Title',
       basedOn: 'Normal',
@@ -102,6 +81,7 @@ export const defaultStyles: IStylesOptions = {
         size: TITLE_FONT_SIZE,
         bold: true,
         font: FONT_FAMILY,
+        color: HEADER_COLOR,
       },
       paragraph: {
         spacing: { 
@@ -110,24 +90,47 @@ export const defaultStyles: IStylesOptions = {
           line: LINE_SPACING,
         },
         alignment: 'center',
+        border: {
+          top: { color: BORDER_COLOR, size: BORDER_SIZE * 2, space: 1 },
+          right: { color: BORDER_COLOR, size: BORDER_SIZE * 2, space: 1 },
+          bottom: { color: BORDER_COLOR, size: BORDER_SIZE * 2, space: 1 },
+          left: { color: BORDER_COLOR, size: BORDER_SIZE * 2, space: 1 },
+        },
       },
     },
     {
-      id: 'subtitle',
-      name: 'Subtitle',
+      id: 'header',
+      name: 'Header',
       basedOn: 'Normal',
       next: 'Normal',
       run: {
-        size: HEADING1_FONT_SIZE,
-        bold: false,
+        size: NORMAL_FONT_SIZE,
         font: FONT_FAMILY,
-        italics: true,
+        color: HEADER_COLOR,
       },
       paragraph: {
         spacing: { 
-          before: PARAGRAPH_SPACING,
-          after: PARAGRAPH_SPACING * 2,
           line: LINE_SPACING,
+          before: PARAGRAPH_SPACING,
+          after: PARAGRAPH_SPACING,
+        },
+        alignment: 'center',
+      },
+    },
+    {
+      id: 'footer',
+      name: 'Footer',
+      basedOn: 'Normal',
+      next: 'Normal',
+      run: {
+        size: NORMAL_FONT_SIZE,
+        font: FONT_FAMILY,
+      },
+      paragraph: {
+        spacing: { 
+          line: LINE_SPACING,
+          before: PARAGRAPH_SPACING,
+          after: PARAGRAPH_SPACING,
         },
         alignment: 'center',
       },
