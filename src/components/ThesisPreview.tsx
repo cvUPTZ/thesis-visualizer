@@ -5,7 +5,7 @@ import { FrenchTitlePage } from './thesis/preview/FrenchTitlePage';
 import { AbstractSection } from './thesis/preview/AbstractSection';
 import { ContentSection } from './thesis/preview/ContentSection';
 import { Button } from './ui/button';
-import { FileDown } from 'lucide-react';
+import { FileDown, Maximize2, Minimize2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { usePDF } from 'react-to-pdf';
 import { cn } from '@/lib/utils';
@@ -24,6 +24,7 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
       format: 'a4',
     }
   });
+  const [isFullScreen, setIsFullScreen] = React.useState(false);
 
   const handleExport = async () => {
     try {
@@ -42,12 +43,40 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
     }
   };
 
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+      });
+      setIsFullScreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullScreen(false);
+    }
+  };
+
+  React.useEffect(() => {
+    const handleFullScreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullScreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
+  }, []);
+
   return (
     <div className="relative bg-background min-h-screen">
-      <div className="sticky top-0 z-10 bg-background p-4 border-b shadow-sm">
+      <div className="sticky top-0 z-10 bg-background p-4 border-b shadow-sm flex justify-between items-center">
         <Button onClick={handleExport} className="w-full sm:w-auto">
           <FileDown className="w-4 h-4 mr-2" />
           Export to PDF
+        </Button>
+        <Button onClick={toggleFullScreen} variant="outline" size="icon">
+          {isFullScreen ? (
+            <Minimize2 className="h-4 w-4" />
+          ) : (
+            <Maximize2 className="h-4 w-4" />
+          )}
         </Button>
       </div>
       
