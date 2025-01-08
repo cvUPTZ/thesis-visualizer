@@ -20,9 +20,16 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) =>
     getCurrentUser();
   }, []);
 
+  // Sort messages by created_at in descending order (newest first)
+  const sortedMessages = [...messages].sort((a, b) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
+  // Scroll to bottom when new messages arrive
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      const scrollElement = scrollRef.current;
+      scrollElement.scrollTop = 0; // Scroll to top since messages are in reverse order
     }
   }, [messages]);
 
@@ -31,8 +38,8 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) =>
       className="flex-1 p-4 overflow-y-auto" 
       ref={scrollRef}
     >
-      <div className="space-y-4">
-        {messages.map((message) => (
+      <div className="space-y-4 flex flex-col-reverse"> {/* Reverse the flex direction */}
+        {sortedMessages.map((message) => (
           <ChatMessageItem 
             key={message.id} 
             message={message} 
