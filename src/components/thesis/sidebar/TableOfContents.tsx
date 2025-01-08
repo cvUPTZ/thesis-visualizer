@@ -2,6 +2,8 @@ import React from 'react';
 import { ChevronDown, ChevronRight, FileText, BookOpen, Image, Table } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Section } from '@/types/thesis';
+import { CollaboratorLocation } from '@/components/collaboration/CollaboratorLocation';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Collapsible,
   CollapsibleContent,
@@ -13,14 +15,75 @@ interface TableOfContentsProps {
   sections: Section[];
   activeSection: string;
   onSectionSelect: (id: string) => void;
+  thesisId: string;
 }
 
 export const TableOfContents = ({ 
   sections = [], 
   activeSection, 
-  onSectionSelect 
+  onSectionSelect,
+  thesisId
 }: TableOfContentsProps) => {
   const [openSections, setOpenSections] = React.useState<string[]>(['frontMatter', 'mainContent', 'backMatter', 'figures', 'tables']);
+  const [collaboratorLocations, setCollaboratorLocations] = React.useState<Record<string, any>>({});
+  const presenceChannel = React.useRef<any>(null);
+
+  React.useEffect(() => {
+    if (!thesisId) return;
+
+    // Set up presence channel
+    presenceChannel.current = supabase.channel(`thesis:${thesisId}`);
+    
+    presenceChannel.current
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.current?.presenceState() || {};
+        console.log('Presence state updated:', state);
+        setCollaboratorLocations(state);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        console.log('User joined:', key, newPresences);
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        console.log('User left:', key, leftPresences);
+      })
+      .subscribe(async (status: string) => {
+        if (status === 'SUBSCRIBED') {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+
+          // Track user's current section
+          await presenceChannel.current?.track({
+            user_id: user.id,
+            email: user.email,
+            section_id: activeSection,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    return () => {
+      if (presenceChannel.current) {
+        supabase.removeChannel(presenceChannel.current);
+      }
+    };
+  }, [thesisId]);
+
+  // Update presence when active section changes
+  React.useEffect(() => {
+    const updatePresence = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !presenceChannel.current) return;
+
+      await presenceChannel.current?.track({
+        user_id: user.id,
+        email: user.email,
+        section_id: activeSection,
+        online_at: new Date().toISOString(),
+      });
+    };
+
+    updatePresence();
+  }, [activeSection]);
 
   // Group sections by type
   const frontMatterSections = sections.filter(section => 
@@ -35,33 +98,6 @@ export const TableOfContents = ({
     ['references', 'appendix'].includes(section.type || '')
   );
 
-  // Extract figures and tables from all sections
-  const allFigures = sections.flatMap(section => 
-    section.figures?.map(figure => ({
-      id: figure.id,
-      title: `Figure ${figure.number}: ${figure.caption}`,
-      parentSection: section.title
-    })) || []
-  );
-
-  const allTables = sections.flatMap(section => 
-    section.tables?.map(table => ({
-      id: table.id,
-      title: table.title || 'Untitled Table',
-      parentSection: section.title
-    })) || []
-  );
-
-  console.log('TableOfContents sections:', {
-    total: sections.length,
-    frontMatter: frontMatterSections.length,
-    mainContent: mainContentSections.length,
-    backMatter: backMatterSections.length,
-    figures: allFigures.length,
-    tables: allTables.length,
-    active: activeSection
-  });
-
   const toggleSection = (section: string) => {
     setOpenSections(prev =>
       prev.includes(section)
@@ -70,22 +106,44 @@ export const TableOfContents = ({
     );
   };
 
-  const renderSectionItem = (section: Section) => (
-    <button
-      key={section.id}
-      onClick={() => onSectionSelect(section.id)}
-      className={cn(
-        "w-full text-left px-3 py-2 rounded-md text-sm",
-        "hover:bg-editor-hover transition-colors duration-200",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-editor-accent",
-        "flex items-center gap-2 group",
-        activeSection === section.id && "bg-editor-active text-editor-accent font-medium"
-      )}
-    >
-      <FileText className="w-4 h-4 text-editor-text group-hover:text-editor-accent transition-colors" />
-      <span className="truncate">{section.title || 'Untitled Section'}</span>
-    </button>
-  );
+  const getCollaboratorsInSection = (sectionId: string) => {
+    return Object.values(collaboratorLocations)
+      .flat()
+      .filter((presence: any) => presence.section_id === sectionId);
+  };
+
+  const renderSectionItem = (section: Section) => {
+    const collaborators = getCollaboratorsInSection(section.id);
+
+    return (
+      <button
+        key={section.id}
+        onClick={() => onSectionSelect(section.id)}
+        className={cn(
+          "w-full text-left px-3 py-2 rounded-md text-sm",
+          "hover:bg-editor-hover transition-colors duration-200",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-editor-accent",
+          "flex items-center justify-between group",
+          activeSection === section.id && "bg-editor-active text-editor-accent font-medium"
+        )}
+      >
+        <div className="flex items-center gap-2">
+          <FileText className="w-4 h-4 text-editor-text group-hover:text-editor-accent transition-colors" />
+          <span className="truncate">{section.title || 'Untitled Section'}</span>
+        </div>
+        {collaborators.length > 0 && (
+          <div className="flex -space-x-2">
+            {collaborators.map((collaborator: any) => (
+              <CollaboratorLocation 
+                key={collaborator.user_id} 
+                collaborator={collaborator}
+              />
+            ))}
+          </div>
+        )}
+      </button>
+    );
+  };
 
   const renderCollapsibleSection = (
     title: string,
@@ -183,22 +241,6 @@ export const TableOfContents = ({
             backMatterSections,
             'backMatter',
             <BookOpen className="w-4 h-4 mr-2" />
-          )
-        )}
-        {allFigures.length > 0 && (
-          renderElementsList(
-            'Figures',
-            allFigures,
-            'figures',
-            <Image className="w-4 h-4 mr-2" />
-          )
-        )}
-        {allTables.length > 0 && (
-          renderElementsList(
-            'Tables',
-            allTables,
-            'tables',
-            <Table className="w-4 h-4 mr-2" />
           )
         )}
       </div>

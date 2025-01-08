@@ -7,12 +7,14 @@ interface ThesisSidebarProps {
   sections: Section[];
   activeSection: string;
   onSectionSelect: (id: string) => void;
+  thesisId: string;
 }
 
 export const ThesisSidebar = ({ 
   sections = [], 
   activeSection, 
-  onSectionSelect 
+  onSectionSelect,
+  thesisId
 }: ThesisSidebarProps) => {
   console.log('Rendering ThesisSidebar:', { 
     activeSection, 
@@ -20,7 +22,6 @@ export const ThesisSidebar = ({
     sections: sections?.map(s => ({ id: s.id, title: s.title }))
   });
   
-  // Ensure sections is always an array and filter out any invalid sections
   const validSections = Array.isArray(sections) ? sections.filter(section => 
     section && typeof section === 'object' && 'id' in section && 'title' in section
   ) : [];
@@ -35,6 +36,7 @@ export const ThesisSidebar = ({
           sections={validSections}
           activeSection={activeSection}
           onSectionSelect={onSectionSelect}
+          thesisId={thesisId}
         />
       </div>
     </aside>
