@@ -1,4 +1,12 @@
 /* Base styles */
+.thesis-preview {
+  position: relative;
+  background: white;
+  width: 210mm; /* A4 width */
+  margin: 0 auto;
+  counter-reset: page;
+}
+
 .thesis-page {
   position: relative;
   margin: 2rem auto;
@@ -49,6 +57,7 @@
   padding: 1.5rem;
   line-height: 1.8;
   color: #111827;
+  max-width: 160mm; /* Consistent content width */
 }
 
 /* Typography styles */
@@ -83,13 +92,6 @@
 
 .page-break-before:first-child {
   page-break-before: avoid;
-}
-
-/* Content organization */
-.thesis-preview {
-  max-width: 210mm; /* A4 width */
-  margin: 0 auto;
-  counter-reset: page;
 }
 
 /* Prevent unwanted breaks */
@@ -135,15 +137,14 @@
   font-style: italic;
 }
 
-/* Citations */
-.thesis-content .citation {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0.5rem 0;
-}
-
 /* Print styles */
 @media print {
+  .thesis-preview {
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
   .thesis-page {
     margin: 0;
     padding: 20mm;

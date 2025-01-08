@@ -51,24 +51,25 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
   };
 
   return (
-    <div className="relative">
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-950 p-2 border-b">
+    <div className="relative bg-background">
+      <div className="sticky top-0 z-10 bg-background p-4 border-b">
         <Button onClick={handleExport} className="w-full sm:w-auto">
           <FileDown className="w-4 h-4 mr-2" />
           Export to PDF
         </Button>
       </div>
       
-      <ScrollArea className="h-[calc(100vh-10rem)] rounded-md border p-4">
+      <ScrollArea className="h-[calc(100vh-10rem)]">
         <div 
           ref={targetRef} 
           className={cn(
-            "thesis-preview space-y-8 text-black dark:text-black bg-white",
-            "max-w-[210mm] mx-auto" // A4 width
+            "thesis-preview space-y-8",
+            "max-w-[210mm] mx-auto py-8 px-4", // A4 width with consistent padding
+            "bg-white shadow-sm"
           )}
         >
           {/* Title Page */}
-          <div className="page-break-before">
+          <div className="page-break-before bg-white rounded-lg overflow-hidden">
             {language === 'en' ? (
               <TitlePage metadata={thesis.metadata} titleSection={thesis.frontMatter[0]} />
             ) : (
@@ -84,7 +85,8 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
                 "page-break-before",
                 "min-h-[297mm]", // A4 height
                 "p-[20mm]", // Standard margins
-                "relative bg-white"
+                "bg-white rounded-lg shadow-sm",
+                "relative"
               )}
             >
               {section.type === 'abstract' ? (
@@ -110,8 +112,8 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
                     "page-break-before",
                     "min-h-[297mm]", // A4 height
                     "p-[20mm]", // Standard margins
-                    "relative bg-white",
-                    "shadow-sm"
+                    "bg-white rounded-lg shadow-sm",
+                    "relative"
                   )}
                 >
                   <ContentSection
@@ -134,8 +136,8 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
                 "page-break-before",
                 "min-h-[297mm]", // A4 height
                 "p-[20mm]", // Standard margins
-                "relative bg-white",
-                "shadow-sm"
+                "bg-white rounded-lg shadow-sm",
+                "relative"
               )}
             >
               <ContentSection
