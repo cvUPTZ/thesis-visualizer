@@ -96,9 +96,10 @@ export const SectionManagers = ({ section, onSectionUpdate }: SectionManagersPro
           </div>
           <CitationManager
             citations={section.citations}
-            onAddCitation={(citation) => handleCitationUpdate([...section.citations, citation])}
-            onRemoveCitation={(id) => handleCitationUpdate(section.citations.filter(c => c.id !== id))}
-            onUpdateCitation={(citation) => handleCitationUpdate(section.citations.map(c => c.id === citation.id ? citation : c))}
+            onCitationCreate={(citation) => handleCitationUpdate([...section.citations, citation])}
+            onCitationUpdate={(citation) => handleCitationUpdate(section.citations.map(c => c.id === citation.id ? citation : c))}
+            onCitationDelete={(citation) => handleCitationUpdate(section.citations.filter(c => c.id !== citation.id))}
+            thesisId={section.id}
           />
         </div>
 
