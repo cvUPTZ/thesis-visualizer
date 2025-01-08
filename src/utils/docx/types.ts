@@ -1,70 +1,33 @@
-import { IStylesOptions } from 'docx';
-import { Thesis } from '@/types/thesis';
+import { IStylesOptions, ITableOptions, TableProperties } from 'docx';
 
 export interface DocxGenerationOptions {
-  thesis: Thesis;
-  includeTableOfContents?: boolean;
-  includeTitlePage?: boolean;
-  isPreview?: boolean;
+  font: string;
+  fontSize: number;
+  margins: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
 }
 
-export interface ContentGenerationOptions {
-  thesis: Thesis;
-  isPreview?: boolean;
+export interface TitlePageOptions {
+  title: string;
+  author: string;
+  date: string;
 }
 
 export interface ImageOptions {
   data: Buffer;
-  transformation: {
-    width: number;
-    height: number;
-  };
-  type?: string;
-  fallback?: string;
+  width: number;
+  height: number;
+  caption?: string;
 }
 
 export interface DocPropertiesOptions {
-  name: string;
-  description: string;
-  title: string;
-}
-
-export interface TitlePageOptions {
-  thesis: Thesis;
-}
-
-export interface TableContent {
-  headers: string[];
-  rows: string[][];
-}
-
-export interface StyleConfig extends IStylesOptions {
-  heading1?: {
-    run?: {
-      size?: number;
-      bold?: boolean;
-      color?: string;
-    };
-    paragraph?: {
-      spacing?: {
-        before?: number;
-        after?: number;
-      };
-      alignment?: string;
-    };
-  };
-  heading2?: {
-    run?: {
-      size?: number;
-      bold?: boolean;
-      color?: string;
-    };
-    paragraph?: {
-      spacing?: {
-        before?: number;
-        after?: number;
-      };
-      alignment?: string;
-    };
-  };
+  title?: string;
+  subject?: string;
+  creator?: string;
+  keywords?: string[];
+  description?: string;
 }

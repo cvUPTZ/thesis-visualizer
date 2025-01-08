@@ -12,18 +12,18 @@ import {
   Table as DocxTable,
   TableRow,
   TableCell,
-  TableProperties,
   VerticalAlign,
   WidthType,
   ImageRun,
   convertInchesToTwip,
   BorderStyle,
-  ITableOptions,
 } from "docx";
-import { Thesis, Table } from '@/types/thesis';
 import { MarkdownToDocx } from './markdownToDocx';
 import { documentStyles, pageSettings } from './documentStyles';
-import { TableContent } from './types';
+import { createImage } from './imageUtils';
+import { createParagraph, createHeading } from './contentGenerators';
+import { generateTitlePage } from './titlePageGenerator';
+import { Thesis } from '@/types/thesis';
 
 const defaultFont = "Times New Roman";
 const defaultFontSize = 24; //12pt
@@ -60,27 +60,6 @@ const createFooter = () => {
       }),
     ],
   });
-};
-
-const createTitlePage = (thesis: Thesis) => {
-  const titleSection = thesis.frontMatter.find(section => section.type === 'title');
-  return [
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 1440, after: 1440 }, // 1 inch margins
-      children: [
-        new TextRun({
-          text: titleSection?.title || "Untitled Thesis",
-          bold: true,
-          font: defaultFont,
-          size: 40,
-        }),
-      ],
-    }),
-    new Paragraph({
-      children: [new PageBreak()],
-    }),
-  ];
 };
 
 const createAbstract = (thesis: Thesis) => {
@@ -241,7 +220,7 @@ const createTables = (tables: Table[]) => {
       properties: {
         style: 'TableGrid',
         layout: "autofit",
-      } as TableProperties,
+      },
       margins: {
         top: 720,
         bottom: 720,
@@ -427,7 +406,7 @@ export const generateThesisDocx = (thesis: Thesis): Document => {
               top: convertInchesToTwip(1),
               right: convertInchesToTwip(1),
               bottom: convertInchesToTwip(1),
-              left: convertInchesToTwip(1),
+              left: convertInchesToTwip(1.5),
             },
           },
         },
@@ -438,7 +417,7 @@ export const generateThesisDocx = (thesis: Thesis): Document => {
           default: createFooter(),
         },
         children: [
-          ...createTitlePage(thesis),
+          ...generateTitlePage(thesis),
           ...createAbstract(thesis),
           ...createTableOfContents(),
           ...thesis.chapters.flatMap(chapter => createChapterContentWithSections(chapter)),
@@ -474,7 +453,7 @@ export const generatePreviewDocx = (thesis: Thesis): Document => {
         page: pageSettings,
       },
       children: [
-        ...createTitlePage(thesis),
+        ...generateTitlePage(thesis),
         ...createAbstract(thesis),
         ...thesis.chapters.flatMap(chapter => createChapterContentWithSections(chapter)),
       ],
