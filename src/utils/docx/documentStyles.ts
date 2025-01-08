@@ -1,47 +1,59 @@
-import { convertInchesToTwip, IStylesOptions } from 'docx';
+import { IStylesOptions, convertInchesToTwip } from 'docx';
+
+const defaultFont = "Times New Roman";
+const defaultFontSize = 24; // 12pt
 
 export const documentStyles: IStylesOptions = {
-  default: {
-    document: {
+  paragraphStyles: [
+    {
+      id: "Normal",
+      name: "Normal",
       run: {
-        font: "Times New Roman",
-        size: 24,
+        font: defaultFont,
+        size: defaultFontSize,
       },
       paragraph: {
-        spacing: { before: 240, after: 240 },
-      },
+        spacing: { before: 240, after: 240 }
+      }
     },
-    heading1: {
+    {
+      id: "Heading1",
+      name: "Heading 1",
+      basedOn: "Normal",
+      next: "Normal",
       run: {
-        font: "Times New Roman",
+        font: defaultFont,
         size: 32,
-        bold: true,
+        bold: true
       },
       paragraph: {
         spacing: { before: 480, after: 240 },
-        alignment: 'center',
-      },
+        outlineLevel: 0
+      }
     },
-    heading2: {
+    {
+      id: "Heading2",
+      name: "Heading 2",
+      basedOn: "Normal",
+      next: "Normal",
       run: {
-        font: "Times New Roman",
+        font: defaultFont,
         size: 28,
-        bold: true,
+        bold: true
       },
       paragraph: {
         spacing: { before: 360, after: 240 },
-      },
-    },
-  },
+        outlineLevel: 1
+      }
+    }
+  ]
 };
 
 export const pageSettings = {
-  width: convertInchesToTwip(8.5),
-  height: convertInchesToTwip(11),
-  margins: {
+  margin: {
     top: convertInchesToTwip(1),
     right: convertInchesToTwip(1),
     bottom: convertInchesToTwip(1),
-    left: convertInchesToTwip(1.5),
-  },
+    left: convertInchesToTwip(1.5) // Extra margin for binding
+  }
 };
