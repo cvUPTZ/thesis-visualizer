@@ -25,7 +25,7 @@ export const TrialSettingsDialog = ({
   currentTrialDays,
   onUpdate
 }: TrialSettingsDialogProps) => {
-  const [trialDays, setTrialDays] = React.useState<string>(currentTrialDays.toString());
+  const [trialDays, setTrialDays] = React.useState(currentTrialDays.toString());
   const [isUpdating, setIsUpdating] = React.useState(false);
   const { toast } = useToast();
 

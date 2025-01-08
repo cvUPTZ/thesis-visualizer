@@ -1,4 +1,48 @@
-import { Thesis } from '@/types/thesis';
+import { IStylesOptions } from 'docx';
+
+export interface StyleConfig extends IStylesOptions {
+  heading1?: {
+    run?: {
+      size?: number;
+      bold?: boolean;
+      color?: string;
+    };
+    paragraph?: {
+      spacing?: {
+        before?: number;
+        after?: number;
+      };
+      alignment?: string;
+    };
+  };
+  heading2?: {
+    run?: {
+      size?: number;
+      bold?: boolean;
+      color?: string;
+    };
+    paragraph?: {
+      spacing?: {
+        before?: number;
+        after?: number;
+      };
+      alignment?: string;
+    };
+  };
+  normal?: {
+    run?: {
+      size?: number;
+      color?: string;
+    };
+    paragraph?: {
+      spacing?: {
+        before?: number;
+        after?: number;
+      };
+      alignment?: string;
+    };
+  };
+}
 
 export interface ImageOptions {
   width?: number;
@@ -13,18 +57,18 @@ export interface DocPropertiesOptions {
 }
 
 export interface DocxGenerationOptions {
-  thesis: Thesis;
+  thesis: any;
   includeTableOfContents?: boolean;
   includeTitlePage?: boolean;
 }
 
 export interface TitlePageOptions {
-  thesis: Thesis;
+  thesis: any;
   language?: 'en' | 'fr' | 'ar';
 }
 
 export interface ContentGenerationOptions {
-  thesis: Thesis;
+  thesis: any;
   includeTableOfContents?: boolean;
   isPreview?: boolean;
 }
