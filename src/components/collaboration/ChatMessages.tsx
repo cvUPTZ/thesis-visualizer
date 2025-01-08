@@ -13,7 +13,7 @@ interface ChatMessagesProps {
 export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const { toast } = useToast();
-  const processedMessages = new Set<string>();
+  const processedMessageIds = React.useRef(new Set<string>());
 
   const fetchMessages = async () => {
     try {
@@ -35,7 +35,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
       }
 
       console.log('Fetched messages:', data);
-      data?.forEach(message => processedMessages.add(message.id));
+      data?.forEach(message => processedMessageIds.current.add(message.id));
       setMessages(data || []);
     } catch (error: any) {
       console.error('Error in fetchMessages:', error);
@@ -70,7 +70,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
           console.log('New message received:', payload);
           
           // Check if we've already processed this message
-          if (processedMessages.has(payload.new.id)) {
+          if (processedMessageIds.current.has(payload.new.id)) {
             console.log('Message already processed, skipping:', payload.new.id);
             return;
           }
@@ -91,7 +91,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
             return;
           }
 
-          processedMessages.add(messageWithProfile.id);
+          processedMessageIds.current.add(messageWithProfile.id);
           setMessages(prev => [...prev, messageWithProfile]);
         }
       )
@@ -108,7 +108,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
   }
 
   return (
-    <div className="flex flex-col h-[400px] bg-background border rounded-lg shadow-sm">
+    <div className="fixed bottom-4 right-4 w-[400px] h-[500px] bg-background border rounded-lg shadow-lg z-50 flex flex-col animate-slide-in-right">
       <ChatHeader />
       <ChatMessageList messages={messages} />
       <ChatInput thesisId={thesisId} onMessageSent={fetchMessages} />

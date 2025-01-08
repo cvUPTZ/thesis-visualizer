@@ -28,15 +28,21 @@ export interface CitationProps extends BaseProps {
 
 export interface CitationManagerProps extends BaseProps {
   citations: Citation[];
-  onAddCitation: (citation: Citation) => void;
-  onRemoveCitation: (id: string) => void;
-  onUpdateCitation: (citation: Citation) => void;
+  onCitationSelect?: (citation: Citation) => void;
+  selectedCitation?: Citation | null;
+  onCitationCreate?: (citation: Citation) => void;
+  onCitationUpdate?: (citation: Citation) => void;
+  onCitationDelete?: (citation: Citation) => void;
+  thesisId: string;
 }
 
 export interface CitationListProps extends BaseProps {
   citations: Citation[];
-  selectedCitation: Citation;
-  onCitationSelect: (citation: Citation) => void;
+  onCitationSelect?: (citation: Citation) => void;
+  selectedCitation?: Citation | null;
+  onRemove?: (id: string) => void;
+  onUpdate?: (citation: Citation) => void;
+  onPreview?: (citation: Citation) => void;
 }
 
 export interface CitationSearchProps extends BaseProps {
@@ -52,8 +58,9 @@ export interface CitationSearchProps extends BaseProps {
 
 export interface CitationPreviewProps extends BaseProps {
   citation: Citation;
-  onUpdate: (citation: Citation) => void;
-  onDelete: (citation: Citation) => void;
+  onUpdate?: (citation: Citation) => void;
+  onDelete?: (citation: Citation) => void;
+  onClose?: () => void;
 }
 
 export interface FigureProps extends BaseProps {
