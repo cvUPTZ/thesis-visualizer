@@ -16,7 +16,10 @@ import { ThesisEditorPreview } from './thesis/editor/ThesisEditorPreview';
 import { ThesisTracker } from './thesis/tracker/ThesisTracker';
 import { useThesisRealtime } from '@/hooks/useThesisRealtime';
 import { Card } from './ui/card';
-import { Users } from 'lucide-react';
+import { Users, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { Button } from './ui/button';
+import { ChatMessages } from './collaboration/ChatMessages';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -30,18 +33,31 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   const { thesis, setThesis, isLoading, error } = useThesisData(currentThesisId);
   const [activeSection, setActiveSection] = useState<string>('');
   const [showPreview, setShowPreview] = useState(false);
+  const [showChat, setShowChat] = useState(true);
+  const [showTracker, setShowTracker] = useState(true);
   const previewRef = useRef<HTMLDivElement>(null);
 
   useThesisAutosave(thesis);
   useThesisInitialization(thesis);
   useThesisRealtime(currentThesisId, thesis, setThesis);
 
-  console.log('ThesisEditor rendering:', { 
-    currentThesisId,
-    isLoading,
-    hasThesis: !!thesis,
-    error: error?.message 
-  });
+  // Calculate progress
+  const calculateProgress = () => {
+    if (!thesis) return 0;
+    const allSections = [
+      ...thesis.frontMatter,
+      ...thesis.chapters.flatMap(chapter => chapter.sections),
+      ...thesis.backMatter
+    ];
+    
+    const completedSections = allSections.filter(section => 
+      section.content && section.content.trim().length > 0
+    ).length;
+    
+    return Math.round((completedSections / allSections.length) * 100);
+  };
+
+  const progress = calculateProgress();
 
   const handleContentChange = (id: string, content: string) => {
     if (!thesis) return;
@@ -124,7 +140,6 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   }
 
   if (!thesis && !currentThesisId) {
-    console.log('No thesis loaded, showing creation modal');
     return (
       <div className="flex flex-col h-full">
         <div className="flex justify-between p-4 items-center">
@@ -158,7 +173,27 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
               onTogglePreview={() => setShowPreview(!showPreview)}
             />
             
-            {thesis && <ThesisTracker thesis={thesis} />}
+            <Collapsible open={showTracker} onOpenChange={setShowTracker}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">Auto-updating</span>
+                  <span className="text-sm font-medium">{progress}% Complete</span>
+                </div>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    {showTracker ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+              <CollapsibleContent>
+                {thesis && <ThesisTracker thesis={thesis} />}
+              </CollapsibleContent>
+            </Collapsible>
             
             <Card className="p-4 mb-4 bg-white/50 backdrop-blur-sm border border-primary/10">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -191,6 +226,29 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
           </div>
         )}
       </main>
+      
+      <Collapsible
+        open={showChat}
+        onOpenChange={setShowChat}
+        className="fixed bottom-4 right-4 w-[400px] z-50"
+      >
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="absolute -top-10 right-0 bg-background shadow-md"
+          >
+            {showChat ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronUp className="h-4 w-4" />
+            )}
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          {currentThesisId && <ChatMessages thesisId={currentThesisId} />}
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 };

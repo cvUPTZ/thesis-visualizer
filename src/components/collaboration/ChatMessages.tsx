@@ -119,7 +119,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 w-[400px] h-[500px] bg-background border rounded-lg shadow-lg z-50 flex flex-col animate-slide-in-right">
+    <div className="h-[500px] bg-background border rounded-lg shadow-lg flex flex-col">
       <ChatHeader />
       <ChatMessageList messages={messages} />
       <ChatInput thesisId={thesisId} onMessageSent={fetchMessages} />
