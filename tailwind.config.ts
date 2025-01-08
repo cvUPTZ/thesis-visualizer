@@ -126,6 +126,15 @@ module.exports = {
           800: '#991B1B',
           900: '#7F1D1D',
         },
+        dark: {
+          bg: '#1A1F2C',
+          card: '#2A2F3C',
+          text: '#E2E8F0',
+          'text-muted': '#94A3B8',
+          border: '#2D3748',
+          accent: '#6366F1',
+          'accent-hover': '#4F46E5',
+        },
       },
       backgroundImage: {
         'editor-gradient': 'linear-gradient(to right, #E2E8F0, #F8FAFC)',
