@@ -14,10 +14,14 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const { toast } = useToast();
   const processedMessageIds = React.useRef(new Set<string>());
+  const currentUserRef = React.useRef<string | null>(null);
 
   const fetchMessages = async () => {
     try {
       console.log('Fetching messages for thesis:', thesisId);
+      const { data: { user } } = await supabase.auth.getUser();
+      currentUserRef.current = user?.id || null;
+
       const { data, error } = await supabase
         .from('chat_messages')
         .select(`
@@ -69,9 +73,16 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
         async (payload) => {
           console.log('New message received:', payload);
           
-          // Check if we've already processed this message
+          // Skip if we've already processed this message
           if (processedMessageIds.current.has(payload.new.id)) {
             console.log('Message already processed, skipping:', payload.new.id);
+            return;
+          }
+
+          // Skip if this is our own message (we've already added it to the UI)
+          if (payload.new.sender_id === currentUserRef.current) {
+            console.log('Own message, already in UI, skipping:', payload.new.id);
+            processedMessageIds.current.add(payload.new.id);
             return;
           }
 
