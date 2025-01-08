@@ -26,6 +26,36 @@ export interface CitationProps extends BaseProps {
   onPreview?: () => void;
 }
 
+export interface CitationManagerProps extends BaseProps {
+  citations: Citation[];
+  onAddCitation: (citation: Citation) => void;
+  onRemoveCitation: (id: string) => void;
+  onUpdateCitation: (citation: Citation) => void;
+}
+
+export interface CitationListProps extends BaseProps {
+  citations: Citation[];
+  selectedCitation: Citation;
+  onCitationSelect: (citation: Citation) => void;
+}
+
+export interface CitationSearchProps extends BaseProps {
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  filterType: string;
+  onFilterChange: (value: string) => void;
+  sortField: keyof Citation;
+  onSortFieldChange: (value: keyof Citation) => void;
+  sortDirection: 'asc' | 'desc';
+  onSortDirectionChange: (value: 'asc' | 'desc') => void;
+}
+
+export interface CitationPreviewProps extends BaseProps {
+  citation: Citation;
+  onUpdate: (citation: Citation) => void;
+  onDelete: (citation: Citation) => void;
+}
+
 export interface FigureProps extends BaseProps {
   figure: Figure;
   onRemove: (id: string) => void;
