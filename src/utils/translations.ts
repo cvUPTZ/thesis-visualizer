@@ -54,16 +54,6 @@ export const translations = {
           duration: "yearly"
         }
       }
-    },
-    presentation: {
-      title: "Welcome to Our Platform",
-      subtitle: "Let's take a quick tour of the main features",
-      welcome: "Welcome to Your Thesis Journey",
-      welcomeDesc: "A powerful platform designed to help you write and manage your academic thesis with ease",
-      editor: "Smart Editor",
-      editorDesc: "Write and format your thesis with our intelligent editor, featuring real-time collaboration",
-      collaboration: "Collaboration Tools",
-      collaborationDesc: "Work seamlessly with your advisors and peers, share feedback, and track changes"
     }
   },
   fr: {
@@ -120,82 +110,62 @@ export const translations = {
           price: "13 900 DZD",
           duration: "par an"
         }
-      },
-      presentation: {
-        title: "Bienvenue sur Notre Plateforme",
-        subtitle: "Faisons un tour rapide des principales fonctionnalités",
-        welcome: "Bienvenue dans Votre Parcours de Thèse",
-        welcomeDesc: "Une plateforme puissante conçue pour vous aider à rédiger et gérer votre thèse académique facilement",
-        editor: "Éditeur Intelligent",
-        editorDesc: "Rédigez et formatez votre thèse avec notre éditeur intelligent, avec collaboration en temps réel",
-        collaboration: "Outils de Collaboration",
-        collaborationDesc: "Travaillez en toute transparence avec vos directeurs et pairs, partagez des commentaires et suivez les modifications"
       }
+    }
+  },
+  ar: {
+    common: {
+      login: "تسجيل الدخول",
+      signup: "إنشاء حساب",
+      features: "المميزات",
+      about: "حول",
+      getStarted: "ابدأ الآن",
+      home: "الرئيسية"
     },
-    ar: {
-      common: {
-        login: "تسجيل الدخول",
-        signup: "إنشاء حساب",
-        features: "المميزات",
-        about: "حول",
-        getStarted: "ابدأ الآن",
-        home: "الرئيسية"
+    landing: {
+      hero: {
+        title: "اكتب أطروحتك بثقة",
+        subtitle: "منصة قوية للكتابة الأكاديمية والتعاون",
+        cta: "ابدأ الكتابة الآن",
+        learnMore: "اعرف المزيد"
       },
-      landing: {
-        hero: {
-          title: "اكتب أطروحتك بثقة",
-          subtitle: "منصة قوية للكتابة الأكاديمية والتعاون",
-          cta: "ابدأ الكتابة الآن",
-          learnMore: "اعرف المزيد"
+      features: {
+        title: "ميزات قوية للنجاح الأكاديمي",
+        subtitle: "كل ما تحتاجه لكتابة أطروحة احترافية",
+        smartEditor: {
+          title: "محرر ذكي",
+          description: "اكتب ونسق أطروحتك مع محررنا الذكي"
         },
-        features: {
-          title: "ميزات قوية للنجاح الأكاديمي",
-          subtitle: "كل ما تحتاجه لكتابة أطروحة احترافية",
-          smartEditor: {
-            title: "محرر ذكي",
-            description: "اكتب ونسق أطروحتك مع محررنا الذكي"
-          },
-          collaboration: {
-            title: "تعاون في الوقت الفعلي",
-            description: "اعمل مع المشرفين والزملاء بسلاسة"
-          },
-          versionControl: {
-            title: "التحكم في الإصدارات",
-            description: "تتبع التغييرات وإدارة الإصدارات المختلفة بسهولة"
-          },
-          aiPowered: {
-            title: "مدعوم بالذكاء الاصطناعي",
-            description: "احصل على اقتراحات ذكية ومساعدة في التنسيق"
-          }
+        collaboration: {
+          title: "تعاون في الوقت الفعلي",
+          description: "اعمل مع المشرفين والزملاء بسلاسة"
         },
-        pricing: {
-          title: "اختر خطتك",
-          subtitle: "اختر الخطة المثالية لرحلتك الأكاديمية",
-          basic: {
-            title: "أساسي",
-            price: "0 دج",
-            duration: "أطروحة واحدة"
-          },
-          standard: {
-            title: "قياسي",
-            price: "3,900 دج",
-            duration: "لكل أطروحة"
-          },
-          research: {
-            title: "بحث",
-            price: "13,900 دج",
-            duration: "سنويا"
-          }
+        versionControl: {
+          title: "التحكم في الإصدارات",
+          description: "تتبع التغييرات وإدارة الإصدارات المختلفة بسهولة"
         },
-        presentation: {
-          title: "مرحباً بك في منصتنا",
-          subtitle: "دعنا نأخذ جولة سريعة على الميزات الرئيسية",
-          welcome: "مرحباً بك في رحلة أطروحتك",
-          welcomeDesc: "منصة قوية مصممة لمساعدتك في كتابة وإدارة أطروحتك الأكاديمية بسهولة",
-          editor: "محرر ذكي",
-          editorDesc: "اكتب ونسق أطروحتك باستخدام محررنا الذكي، مع ميزة التعاون في الوقت الفعلي",
-          collaboration: "أدوات التعاون",
-          collaborationDesc: "اعمل بسلاسة مع مشرفيك وزملائك، شارك الملاحظات وتتبع التغييرات"
+        aiPowered: {
+          title: "مدعوم بالذكاء الاصطناعي",
+          description: "احصل على اقتراحات ذكية ومساعدة في التنسيق"
+        }
+      },
+      pricing: {
+        title: "اختر خطتك",
+        subtitle: "اختر الخطة المثالية لرحلتك الأكاديمية",
+        basic: {
+          title: "أساسي",
+          price: "0 دج",
+          duration: "أطروحة واحدة"
+        },
+        standard: {
+          title: "قياسي",
+          price: "3,900 دج",
+          duration: "لكل أطروحة"
+        },
+        research: {
+          title: "بحث",
+          price: "13,900 دج",
+          duration: "سنويا"
         }
       }
     }

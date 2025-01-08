@@ -11,7 +11,9 @@ const LINE_SPACING = 480; // Double spacing (240 = single space)
 const PARAGRAPH_SPACING = 240; // 12pt
 
 // Border and color constants
+const BORDER_COLOR = '222222'; // Charcoal Gray
 const HEADER_COLOR = '7E69AB'; // Secondary Purple
+const BORDER_SIZE = 12; // 1pt
 
 export const defaultStyles: IStylesOptions = {
   default: {
@@ -25,6 +27,12 @@ export const defaultStyles: IStylesOptions = {
           line: LINE_SPACING,
           before: PARAGRAPH_SPACING,
           after: PARAGRAPH_SPACING,
+        },
+        border: {
+          top: { color: BORDER_COLOR, size: BORDER_SIZE, space: 1 },
+          right: { color: BORDER_COLOR, size: BORDER_SIZE, space: 1 },
+          bottom: { color: BORDER_COLOR, size: BORDER_SIZE, space: 1 },
+          left: { color: BORDER_COLOR, size: BORDER_SIZE, space: 1 },
         },
       },
     },
@@ -82,6 +90,12 @@ export const defaultStyles: IStylesOptions = {
           line: LINE_SPACING,
         },
         alignment: 'center',
+        border: {
+          top: { color: BORDER_COLOR, size: BORDER_SIZE * 2, space: 1 },
+          right: { color: BORDER_COLOR, size: BORDER_SIZE * 2, space: 1 },
+          bottom: { color: BORDER_COLOR, size: BORDER_SIZE * 2, space: 1 },
+          left: { color: BORDER_COLOR, size: BORDER_SIZE * 2, space: 1 },
+        },
       },
     },
     {
