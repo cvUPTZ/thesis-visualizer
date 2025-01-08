@@ -1,17 +1,22 @@
-import { IImageOptions, IMediaData } from 'docx';
+import { IMediaData, IMediaTransformation } from 'docx';
 
-interface ImageTransformation {
-  width: number;
-  height: number;
-}
+export const createImageRun = (imageData: Buffer | Uint8Array, width: number, height: number) => {
+  const transformation: IMediaTransformation = {
+    width,
+    height,
+    pixels: {
+      x: width,
+      y: height
+    },
+    emus: {
+      x: width * 9525,
+      y: height * 9525
+    }
+  };
 
-export const createImageRun = (imageData: Buffer | Uint8Array, transformation: ImageTransformation): IImageOptions & IMediaData => {
   return {
     data: imageData,
-    transformation: {
-      width: transformation.width,
-      height: transformation.height,
-    },
-    type: 'image',
+    transformation,
+    format: 'png' as const
   };
 };
