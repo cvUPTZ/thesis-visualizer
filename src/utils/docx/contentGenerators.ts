@@ -1,4 +1,4 @@
-import { Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
+import { Paragraph, TextRun, HeadingLevel } from 'docx';
 import { DocxGenerationOptions } from './types';
 
 export const createParagraph = (text: string, options: DocxGenerationOptions): Paragraph => {
@@ -15,7 +15,7 @@ export const createParagraph = (text: string, options: DocxGenerationOptions): P
 
 export const createHeading = (
   text: string, 
-  level: typeof HeadingLevel, 
+  level: HeadingLevel, 
   options: DocxGenerationOptions
 ): Paragraph => {
   return new Paragraph({

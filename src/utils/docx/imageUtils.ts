@@ -1,18 +1,20 @@
-import { Paragraph, ImageRun, AlignmentType } from 'docx';
-import { ImageOptions } from './types';
+import { ImageRun, IImageOptions } from 'docx';
 
-export const createImage = (options: ImageOptions): Paragraph => {
-  return new Paragraph({
-    alignment: AlignmentType.CENTER,
-    children: [
-      new ImageRun({
-        data: options.data,
-        transformation: {
-          width: options.width,
-          height: options.height,
-        },
-        fallback: options.fallback,
-      }),
-    ],
-  });
+export interface ImageOptions {
+  data: Buffer | Uint8Array;
+  width: number;
+  height: number;
+  altText?: string;
+}
+
+export const createImage = (options: ImageOptions): ImageRun => {
+  const imageOptions: IImageOptions = {
+    data: options.data,
+    transformation: {
+      width: options.width,
+      height: options.height
+    }
+  };
+  
+  return new ImageRun(imageOptions);
 };

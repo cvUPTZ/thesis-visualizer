@@ -15,9 +15,10 @@ export interface ReferenceManagerProps {
 
 export interface CitationManagerProps {
   citations: Citation[];
-  onAddCitation: (citation: Citation) => void;
-  onRemoveCitation: (id: string) => void;
-  onUpdateCitation: (citation: Citation) => void;
+  onCitationCreate?: (citation: Citation) => void;
+  onCitationUpdate?: (citation: Citation) => void;
+  onCitationDelete?: (citation: Citation) => void;
+  thesisId: string;
 }
 
 export interface SectionProps {

@@ -1,87 +1,46 @@
-import { StyleConfig } from './types';
+import { IStylesOptions, BorderStyle } from 'docx';
 
-export const defaultStyles: StyleConfig = {
-  default: {
-    document: {
+export const styleConfig: IStylesOptions = {
+  paragraphStyles: [
+    {
+      id: "Normal",
+      name: "Normal",
       run: {
         font: "Times New Roman",
-        size: 24,
-      },
-      paragraph: {
-        spacing: {
-          before: 120,
-          after: 120,
-        },
-      },
+        size: 24
+      }
     },
-    heading1: {
+    {
+      id: "Heading1",
+      name: "Heading 1",
+      basedOn: "Normal",
+      next: "Normal",
       run: {
-        size: 36,
         bold: true,
-        color: "000000",
+        size: 32
       },
       paragraph: {
         spacing: {
           before: 240,
-          after: 120,
-        },
-      },
+          after: 120
+        }
+      }
     },
-    heading2: {
+    {
+      id: "Heading2",
+      name: "Heading 2",
+      basedOn: "Normal",
+      next: "Normal",
       run: {
-        size: 28,
         bold: true,
-        color: "000000",
+        size: 28
       },
       paragraph: {
         spacing: {
           before: 240,
-          after: 120,
-        },
-      },
-    },
-  },
-};
-
-export const previewStyles: StyleConfig = {
-  default: {
-    document: {
-      run: {
-        font: "Arial",
-        size: 24,
-      },
-      paragraph: {
-        spacing: {
-          before: 120,
-          after: 120,
-        },
-      },
-    },
-    heading1: {
-      run: {
-        size: 32,
-        bold: true,
-        color: "000000",
-      },
-      paragraph: {
-        spacing: {
-          before: 240,
-          after: 120,
-        },
-      },
-    },
-    heading2: {
-      run: {
-        size: 28,
-        bold: true,
-        color: "000000",
-      },
-      paragraph: {
-        spacing: {
-          before: 240,
-          after: 120,
-        },
-      },
-    },
-  },
+          after: 120
+        }
+      }
+    }
+  ]
 };
