@@ -1,56 +1,65 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-interface TrialSettingsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  currentTrialDays: number;
-  onUpdate: () => void;
+interface TrialSettings {
+  id: string;
+  trial_days: string;
 }
 
-export const TrialSettingsDialog = ({
-  open,
-  onOpenChange,
-  currentTrialDays,
-  onUpdate
-}: TrialSettingsDialogProps) => {
-  const [trialDays, setTrialDays] = React.useState(currentTrialDays.toString());
-  const [isUpdating, setIsUpdating] = React.useState(false);
+export function TrialSettingsDialog() {
+  const [open, setOpen] = useState(false);
+  const [settings, setSettings] = useState<TrialSettings | null>(null);
+  const [trialDays, setTrialDays] = useState<number>(0);
   const { toast } = useToast();
 
-  const handleUpdate = async () => {
-    try {
-      setIsUpdating(true);
-      const numericTrialDays = parseInt(trialDays, 10);
-      
-      if (isNaN(numericTrialDays) || numericTrialDays < 1) {
-        throw new Error('Please enter a valid number of days');
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const { data, error } = await supabase
+        .from('trial_settings')
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error fetching trial settings:', error);
+        return;
       }
 
+      setSettings(data);
+      setTrialDays(Number(data.trial_days));
+    };
+
+    fetchSettings();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
       const { error } = await supabase
         .from('trial_settings')
-        .update({ trial_days: numericTrialDays })
-        .eq('id', 1);
+        .update({ trial_days: String(trialDays) })
+        .eq('id', settings?.id);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Trial period settings updated successfully",
+        description: "Trial settings updated successfully",
       });
-      onUpdate();
-      onOpenChange(false);
+      
+      setOpen(false);
     } catch (error) {
       console.error('Error updating trial settings:', error);
       toast({
@@ -58,48 +67,41 @@ export const TrialSettingsDialog = ({
         description: "Failed to update trial settings",
         variant: "destructive",
       });
-    } finally {
-      setIsUpdating(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">Trial Settings</Button>
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Trial Period Settings</DialogTitle>
+          <DialogTitle>Trial Settings</DialogTitle>
           <DialogDescription>
-            Set the number of days for the free trial period
+            Configure the trial period settings for new users.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="trialDays">Trial Days</Label>
-            <Input
-              id="trialDays"
-              type="number"
-              value={trialDays}
-              onChange={(e) => setTrialDays(e.target.value)}
-              min={1}
-              max={365}
-            />
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="trial-days" className="text-right">
+                Trial Days
+              </Label>
+              <Input
+                id="trial-days"
+                type="number"
+                value={trialDays}
+                onChange={(e) => setTrialDays(Number(e.target.value))}
+                className="col-span-3"
+              />
+            </div>
           </div>
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleUpdate}
-            disabled={isUpdating || parseInt(trialDays) === currentTrialDays}
-          >
-            {isUpdating ? 'Updating...' : 'Update'}
-          </Button>
-        </div>
+          <DialogFooter>
+            <Button type="submit">Save changes</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
-};
+}

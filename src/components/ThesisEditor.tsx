@@ -148,6 +148,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
         ]}
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
+        thesisId={currentThesisId!}
       />
       
       <div className="flex-1 flex flex-col">
