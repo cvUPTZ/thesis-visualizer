@@ -1,127 +1,188 @@
-import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, convertInchesToTwip } from 'docx';
+import { Paragraph, TextRun, AlignmentType, convertInchesToTwip } from 'docx';
 import { TitlePageOptions } from './types';
-import { defaultStyles } from './styleConfig';
+import { pageSettings } from './documentStyles';
 
-export const generateTitlePage = ({ thesis, language = 'en' }: TitlePageOptions): Paragraph[] => {
+const generateUniversitySection = (universityName: string, departmentName: string): Paragraph[] => {
+  return [
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: universityName.toUpperCase(),
+          size: 32,
+          bold: true,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(0.5) },
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: departmentName,
+          size: 28,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(1) },
+    }),
+  ];
+};
+
+const generateThesisTitle = (title: string): Paragraph => {
+  return new Paragraph({
+    children: [
+      new TextRun({
+        text: title,
+        size: 36,
+        bold: true,
+      }),
+    ],
+    alignment: AlignmentType.CENTER,
+    spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(2) },
+  });
+};
+
+const generateDegreeStatement = (): Paragraph[] => {
+  return [
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'A thesis submitted in partial fulfillment',
+          size: 24,
+          italics: true,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(0.25) },
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'of the requirements for the degree of',
+          size: 24,
+          italics: true,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'Doctor of Philosophy',
+          size: 28,
+          bold: true,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(1) },
+    }),
+  ];
+};
+
+const generateAuthorSection = (authorName: string): Paragraph[] => {
+  return [
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'by',
+          size: 24,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.25) },
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: authorName,
+          size: 28,
+          bold: true,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(1) },
+    }),
+  ];
+};
+
+const generateCommitteeSection = (committeeMembers: string[]): Paragraph[] => {
+  const paragraphs: Paragraph[] = [
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'Thesis Committee',
+          size: 28,
+          bold: true,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.5) },
+    }),
+  ];
+
+  committeeMembers.forEach(member => {
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: member,
+            size: 24,
+          }),
+        ],
+        alignment: AlignmentType.CENTER,
+        spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
+      })
+    );
+  });
+
+  return paragraphs;
+};
+
+export const generateTitlePage = ({ thesis }: TitlePageOptions): Paragraph[] => {
   const { metadata } = thesis;
-  const paragraphs: Paragraph[] = [];
-
-  // Find title from frontMatter
   const titleSection = thesis.frontMatter.find(section => section.type === 'title');
   const titleText = titleSection?.content || 'Untitled Thesis';
 
-  // University Logo Space
-  paragraphs.push(
-    new Paragraph({
-      text: '',
-      spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.5) },
-    })
-  );
+  const paragraphs: Paragraph[] = [];
 
-  // University Name
-  if (metadata.universityName) {
-    paragraphs.push(
-      new Paragraph({
-        text: metadata.universityName.toUpperCase(),
-        alignment: AlignmentType.CENTER,
-        spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(0.25) },
-        style: 'title',
-      })
-    );
-  }
-
-  // Department
-  if (metadata.departmentName) {
-    paragraphs.push(
-      new Paragraph({
-        text: metadata.departmentName,
-        alignment: AlignmentType.CENTER,
-        spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(1) },
-        style: 'subtitle',
-      })
-    );
-  }
+  // University and Department
+  paragraphs.push(...generateUniversitySection(
+    metadata.universityName || 'University Name',
+    metadata.departmentName || 'Department Name'
+  ));
 
   // Thesis Title
-  paragraphs.push(
-    new Paragraph({
-      text: titleText,
-      style: 'title',
-      alignment: AlignmentType.CENTER,
-      spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(2) },
-    })
-  );
+  paragraphs.push(generateThesisTitle(titleText));
 
-  // Thesis Statement
-  paragraphs.push(
-    new Paragraph({
-      text: 'A thesis submitted in partial fulfillment of the requirements for the degree of',
-      alignment: AlignmentType.CENTER,
-      spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(0.25) },
-      style: 'subtitle',
-    }),
-    new Paragraph({
-      text: 'Doctor of Philosophy',
-      alignment: AlignmentType.CENTER,
-      spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(1) },
-      style: 'subtitle',
-    })
-  );
+  // Degree Statement
+  paragraphs.push(...generateDegreeStatement());
 
   // Author
-  if (metadata.authorName) {
-    paragraphs.push(
-      new Paragraph({
-        text: 'by',
-        alignment: AlignmentType.CENTER,
-        spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.25) },
-        style: 'Normal',
-      }),
-      new Paragraph({
-        text: metadata.authorName,
-        alignment: AlignmentType.CENTER,
-        spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(1) },
-        style: 'subtitle',
-      })
-    );
-  }
+  paragraphs.push(...generateAuthorSection(metadata.authorName || 'Author Name'));
 
   // Date
   if (metadata.thesisDate) {
     paragraphs.push(
       new Paragraph({
-        text: new Date(metadata.thesisDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
-          year: 'numeric',
-          month: 'long',
-        }),
+        children: [
+          new TextRun({
+            text: new Date(metadata.thesisDate).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+            }),
+            size: 24,
+          }),
+        ],
         alignment: AlignmentType.CENTER,
         spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(1) },
-        style: 'Normal',
       })
     );
   }
 
   // Committee Members
   if (metadata.committeeMembers && metadata.committeeMembers.length > 0) {
-    paragraphs.push(
-      new Paragraph({
-        text: 'Thesis Committee',
-        alignment: AlignmentType.CENTER,
-        spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.5) },
-        style: 'subtitle',
-      })
-    );
-
-    metadata.committeeMembers.forEach(member => {
-      paragraphs.push(
-        new Paragraph({
-          text: member,
-          alignment: AlignmentType.CENTER,
-          spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
-          style: 'Normal',
-        })
-      );
-    });
+    paragraphs.push(...generateCommitteeSection(metadata.committeeMembers));
   }
 
   return paragraphs;

@@ -1,43 +1,9 @@
-import { 
-  Document, 
-  TableOfContents,
-  convertInchesToTwip,
-  StyleLevel,
-  Paragraph,
-  TextRun,
-  HeadingLevel,
-  AlignmentType,
-  Header,
-  Footer,
-} from 'docx';
+import { Document, Header, Footer } from 'docx';
 import { Thesis } from '@/types/thesis';
 import { generateTitlePage } from './docx/titlePageGenerator';
 import { generateContent, generateTableOfContents } from './docx/contentGenerators';
-import { defaultStyles, previewStyles } from './docx/styleConfig';
-
-const PAGE_WIDTH = convertInchesToTwip(8.5);
-const PAGE_MARGINS = {
-  top: convertInchesToTwip(1),
-  right: convertInchesToTwip(1),
-  bottom: convertInchesToTwip(1),
-  left: convertInchesToTwip(1.5),
-};
-
-const createPageNumberParagraph = (): Paragraph => {
-  return new Paragraph({
-    children: [
-      new TextRun("Page "),
-      new TextRun({
-        children: ["PAGE"],
-      }),
-      new TextRun(" of "),
-      new TextRun({
-        children: ["NUMPAGES"],
-      }),
-    ],
-    alignment: AlignmentType.CENTER,
-  });
-};
+import { documentStyles, pageSettings } from './docx/documentStyles';
+import { createPageNumberParagraph } from './docx/pageNumbering';
 
 export const generateThesisDocx = async (thesis: Thesis) => {
   console.log('Generating academic DOCX with thesis data:', thesis);
@@ -48,10 +14,10 @@ export const generateThesisDocx = async (thesis: Thesis) => {
   sections.push({
     properties: {
       page: {
-        margin: PAGE_MARGINS,
+        margin: pageSettings.margins,
         size: {
-          width: PAGE_WIDTH,
-          height: convertInchesToTwip(11),
+          width: pageSettings.width,
+          height: pageSettings.height,
         },
       },
     },
@@ -79,7 +45,7 @@ export const generateThesisDocx = async (thesis: Thesis) => {
     sections.push({
       properties: {
         page: {
-          margin: PAGE_MARGINS,
+          margin: pageSettings.margins,
         },
       },
       headers: {
@@ -103,128 +69,7 @@ export const generateThesisDocx = async (thesis: Thesis) => {
 
   const doc = new Document({
     sections,
-    styles: defaultStyles,
-  });
-
-  return doc;
-};
-
-export const generatePreviewDocx = async (thesis: Thesis) => {
-  console.log('Generating preview-style DOCX with thesis data:', thesis);
-
-  const sections = [];
-
-  // Title Page with preview styling
-  sections.push({
-    properties: {
-      page: {
-        margin: {
-          top: convertInchesToTwip(1),
-          right: convertInchesToTwip(1),
-          bottom: convertInchesToTwip(1),
-          left: convertInchesToTwip(1),
-        },
-      },
-    },
-    children: [
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: thesis.frontMatter[0]?.title || "Untitled Thesis",
-            size: 36,
-            bold: true,
-            font: 'Arial',
-          }),
-        ],
-        alignment: AlignmentType.CENTER,
-        spacing: { before: 480, after: 240 },
-      }),
-      // Add preview-styled metadata
-      ...Object.entries(thesis.metadata || {}).map(([key, value]) => 
-        new Paragraph({
-          text: `${key}: ${value}`,
-          spacing: { before: 120, after: 120 },
-          alignment: AlignmentType.CENTER,
-          style: 'Normal',
-        })
-      ),
-    ],
-  });
-
-  // Table of Contents with preview styling
-  sections.push({
-    properties: {
-      page: {
-        margin: {
-          top: convertInchesToTwip(1),
-          right: convertInchesToTwip(1),
-          bottom: convertInchesToTwip(1),
-          left: convertInchesToTwip(1),
-        },
-      },
-    },
-    headers: {
-      default: new Header({
-        children: [
-          new Paragraph({
-            text: thesis.frontMatter[0]?.title || "Untitled Thesis",
-            alignment: AlignmentType.CENTER,
-          }),
-        ],
-      }),
-    },
-    footers: {
-      default: new Footer({
-        children: [
-          createPageNumberParagraph(),
-        ],
-      }),
-    },
-    children: [
-      new Paragraph({
-        text: "Table of Contents",
-        heading: HeadingLevel.HEADING_1,
-        spacing: { before: 240, after: 240 },
-      }),
-      generateTableOfContents(),
-    ],
-  });
-
-  // Content with preview styling
-  sections.push({
-    properties: {
-      page: {
-        margin: {
-          top: convertInchesToTwip(1),
-          right: convertInchesToTwip(1),
-          bottom: convertInchesToTwip(1),
-          left: convertInchesToTwip(1),
-        },
-      },
-    },
-    headers: {
-      default: new Header({
-        children: [
-          new Paragraph({
-            text: thesis.frontMatter[0]?.title || "Untitled Thesis",
-            alignment: AlignmentType.CENTER,
-          }),
-        ],
-      }),
-    },
-    footers: {
-      default: new Footer({
-        children: [
-          createPageNumberParagraph(),
-        ],
-      }),
-    },
-    children: generateContent({ thesis, isPreview: true }),
-  });
-
-  const doc = new Document({
-    sections,
-    styles: previewStyles,
+    styles: documentStyles,
   });
 
   return doc;
