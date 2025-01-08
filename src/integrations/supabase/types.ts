@@ -446,6 +446,36 @@ export type Database = {
           },
         ]
       }
+      thesis_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          language: string
+          name: string
+          structure: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language?: string
+          name: string
+          structure: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language?: string
+          name?: string
+          structure?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       thesis_versions: {
         Row: {
           content: Json

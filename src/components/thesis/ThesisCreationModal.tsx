@@ -1,220 +1,83 @@
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from 'react-router-dom';
-  import { useForm } from '@/hooks/useForm';
- import { ThesisMetadataFields } from '@/components/thesis/form/ThesisMetadataFields';
-import { useThesisCreation } from '@/components/thesis/form/useThesisCreation';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from "@/components/ui/input";
+import { Button } from '@/components/ui/button';
+import { ThesisTemplateSelector } from './ThesisTemplateSelector';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { PlusCircle } from 'lucide-react';
 
-interface ThesisCreationModalProps {
-    onThesisCreated: (thesisId: string, title: string) => void;
-}
+export const ThesisCreationModal = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [open, setOpen] = React.useState(false);
 
-export const ThesisCreationModal = ({ onThesisCreated }: ThesisCreationModalProps) => {
- const {
-    values,
-    errors,
-    isSubmitting,
-    handleChange,
-   handleSubmit,
-      handleArrayChange
-  } = useForm({
-    initialValues: {
-     title: '',
-        description: '',
-       keywords: '',
-        universityName: '',
-       departmentName: '',
-        authorName: '',
-        thesisDate: '',
-      committeeMembers: ['', '', ''],
-     },
-     validate: (values) => {
-       const err: any = {};
-        if (!values.title) {
-            err.title = "Title is required";
-         }
-
-         if (!values.description) {
-            err.description = "Description is required";
-          }
-
-          if (!values.keywords) {
-           err.keywords = "Keywords are required";
-         }
-
-        return err;
-     },
-    onSubmit: async (values) => {
-      const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user?.id) {
-            setError('You must be logged in to create a thesis');
-           return;
-         }
-
-           const metadata = {
-              ...values,
-                keywords: values.keywords
-           };
-         const result = await createThesis(metadata, session.user.id);
-
-           if (result?.thesisId) {
-            setOpen(false);
-            onThesisCreated(result.thesisId, values.title);
-            navigate(`/thesis/${result.thesisId}`);
-           }
+  const handleTemplateSelect = async (template: any) => {
+    try {
+      console.log('Creating new thesis from template:', template);
+      
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
+        throw new Error('User not authenticated');
       }
- });
 
-    const [error, setError] = useState<string | null>(null);
-      const { createThesis } = useThesisCreation();
-    const { toast } = useToast();
-    const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+      const { data: thesis, error } = await supabase
+        .from('theses')
+        .insert({
+          title: 'Untitled Thesis',
+          content: template.structure,
+          user_id: session.session.user.id,
+        })
+        .select()
+        .single();
 
-     const handleCommitteeMemberChange = (index: number, value: string) => {
-        handleArrayChange('committeeMembers', index, value)
-      };
+      if (error) throw error;
 
-   return (
+      if (!thesis) throw new Error('Failed to create thesis');
+
+      // Add the user as an owner collaborator
+      const { error: collabError } = await supabase
+        .from('thesis_collaborators')
+        .insert({
+          thesis_id: thesis.id,
+          user_id: session.session.user.id,
+          role: 'owner'
+        });
+
+      if (collabError) throw collabError;
+
+      console.log('Thesis created successfully:', thesis);
+      
+      toast({
+        title: "Success",
+        description: "New thesis created from template",
+      });
+
+      setOpen(false);
+      navigate(`/thesis/${thesis.id}`);
+    } catch (error: any) {
+      console.error('Error creating thesis:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create thesis",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Create New Thesis</Button>
+        <Button className="gap-2">
+          <PlusCircle className="w-4 h-4" />
+          New Thesis
+        </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl mx-auto p-6">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Create New Thesis</DialogTitle>
+          <DialogTitle>Choose a Template</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-                <Alert variant="destructive" className="mb-4">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium mb-1">
-                  Title
-                </label>
-              <Input
-                id="title"
-               name="title"
-                  value={values.title}
-                  onChange={handleChange}
-                placeholder="Enter thesis title"
-                required
-              />
-            </div>
-
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium mb-1">
-                    Description
-                  </label>
-                <Input
-                  id="description"
-                    name="description"
-                    value={values.description}
-                   onChange={handleChange}
-                   placeholder="Enter a brief description of your thesis"
-                 required
-                />
-               </div>
-
-             <div>
-               <label htmlFor="keywords" className="block text-sm font-medium mb-1">
-                  Keywords
-                 </label>
-                <Input
-                   id="keywords"
-                   name="keywords"
-                    value={values.keywords}
-                    onChange={handleChange}
-                 placeholder="Enter keywords separated by commas"
-                 required
-               />
-            </div>
-
-              <div>
-                <label htmlFor="universityName" className="block text-sm font-medium mb-1">
-                  University Name
-                  </label>
-               <Input
-                      id="universityName"
-                      name="universityName"
-                     value={values.universityName}
-                     onChange={handleChange}
-                     placeholder="Enter university name"
-                    required
-                />
-            </div>
-
-               <div>
-                  <label htmlFor="departmentName" className="block text-sm font-medium mb-1">
-                    Department Name
-                 </label>
-                   <Input
-                      id="departmentName"
-                     name="departmentName"
-                     value={values.departmentName}
-                     onChange={handleChange}
-                     placeholder="Enter department name"
-                    required
-                   />
-               </div>
-
-             <div>
-                <label htmlFor="authorName" className="block text-sm font-medium mb-1">
-                    Author Name
-                 </label>
-                <Input
-                    id="authorName"
-                   name="authorName"
-                   value={values.authorName}
-                     onChange={handleChange}
-                    placeholder="Enter author name"
-                     required
-               />
-              </div>
-
-                <div>
-                <label htmlFor="thesisDate" className="block text-sm font-medium mb-1">
-                   Thesis Date
-                   </label>
-                    <Input
-                        id="thesisDate"
-                      name="thesisDate"
-                      value={values.thesisDate}
-                        onChange={handleChange}
-                      placeholder="Enter date of thesis submission"
-                      required
-                  />
-                </div>
-
-             <div>
-               <label className="block text-sm font-medium mb-1">
-                   Committee Members
-                 </label>
-                {values.committeeMembers.map((member, index) => (
-                   <Input
-                     key={index}
-                     name={`committeeMembers[${index}]`}
-                       value={member}
-                     onChange={(e) => handleCommitteeMemberChange(index, e.target.value)}
-                     placeholder={`Committee Member ${index + 1}`}
-                      className="mb-2"
-                     />
-                    ))}
-                </div>
-
-            <Button type="submit" disabled={isSubmitting} className="mt-6">
-              {isSubmitting ? 'Creating...' : 'Create Thesis'}
-            </Button>
-        </form>
+        <ThesisTemplateSelector onSelect={handleTemplateSelect} />
       </DialogContent>
     </Dialog>
   );
