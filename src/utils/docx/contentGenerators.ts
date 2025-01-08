@@ -1,6 +1,6 @@
 import { HeadingLevel, Paragraph, TextRun } from 'docx';
 
-export const createHeading = (text: string, level: HeadingLevel) => {
+export const createHeading = (text: string, level: typeof HeadingLevel) => {
   return new Paragraph({
     text,
     heading: level,
@@ -13,7 +13,7 @@ export const createHeading = (text: string, level: HeadingLevel) => {
         text,
         size: 28,
         bold: true,
-        italics: false // Changed from italic to italics
+        italics: false
       })
     ]
   });
