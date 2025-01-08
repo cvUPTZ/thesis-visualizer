@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Chapter } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronDown, ChevronUp, GripVertical, PlusCircle, Trash2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChapterContent } from './ChapterContent';
 import { ChapterFigures } from './ChapterFigures';
@@ -18,7 +18,8 @@ interface ChapterItemProps {
   isOpen: boolean;
   onToggle: () => void;
   onUpdateChapter: (chapter: Chapter) => void;
-  onDeleteChapter?: () => void;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
 export const ChapterItem: React.FC<ChapterItemProps> = ({
@@ -27,9 +28,9 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
   isOpen,
   onToggle,
   onUpdateChapter,
-  onDeleteChapter
+  isSelected = false,
+  onSelect
 }) => {
-  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('content');
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,14 +44,17 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
     <div className={cn(
       "border rounded-xl bg-white shadow-sm transition-all duration-200",
       "hover:shadow-md",
-      isOpen && "ring-2 ring-primary/10"
+      isOpen && "ring-2 ring-primary/10",
+      isSelected && "ring-2 ring-primary"
     )}>
-      <div 
-        className="p-4 flex items-center justify-between group cursor-pointer"
-        onClick={onToggle}
-      >
+      <div className="p-4 flex items-center justify-between group">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-gray-200 transition-colors">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={() => onSelect?.()}
+            className="ml-2"
+          />
+          <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-gray-200 transition-colors cursor-move">
             <GripVertical className="w-4 h-4 text-gray-500" />
           </div>
           <div className="flex items-center gap-2">
@@ -62,32 +66,25 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
               onChange={handleTitleChange}
               className="text-xl font-serif border-none bg-transparent px-0 focus-visible:ring-0 w-full min-w-[300px]"
               placeholder="Chapter Title"
-              onClick={(e) => e.stopPropagation()}
             />
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {onDeleteChapter && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteChapter();
-              }}
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          )}
           <span className="text-sm text-gray-500">
             {chapter.sections.length} {chapter.sections.length === 1 ? 'section' : 'sections'}
           </span>
-          {isOpen ? (
-            <ChevronUp className="w-5 h-5 text-gray-500" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-500" />
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggle}
+            className="p-2"
+          >
+            {isOpen ? (
+              <ChevronUp className="w-5 h-5 text-gray-500" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-500" />
+            )}
+          </Button>
         </div>
       </div>
 
