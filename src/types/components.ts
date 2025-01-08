@@ -38,27 +38,27 @@ export interface CitationManagerProps extends BaseProps {
 
 export interface CitationListProps extends BaseProps {
   citations: Citation[];
-  onCitationSelect?: (citation: Citation) => void;
-  selectedCitation?: Citation | null;
-  onRemove?: (id: string) => void;
-  onUpdate?: (citation: Citation) => void;
-  onPreview?: (citation: Citation) => void;
+  onRemove: (id: string) => void;
+  onUpdate: (citation: Citation) => void;
+  onPreview: (citation: Citation) => void;
 }
 
-export interface CitationSearchProps extends BaseProps {
-  searchTerm: string;
-  onSearchChange: (value: string) => void;
-  filterType: string;
-  onFilterChange: (value: string) => void;
-  sortField: keyof Citation;
-  onSortFieldChange: (value: keyof Citation) => void;
-  sortDirection: 'asc' | 'desc';
-  onSortDirectionChange: (value: 'asc' | 'desc') => void;
+export interface CitationSearchProps {
+  onCitationSelect: (citation: Omit<Citation, "thesis_id">) => void;
+  onSearch?: (value: string) => void;
+  onFilterChange?: (value: string) => void;
+  onSortFieldChange?: (field: keyof Citation) => void;
+  onSortDirectionChange?: (direction: 'asc' | 'desc') => void;
+  currentFilter?: string;
+  currentSort?: keyof Citation;
+  currentDirection?: 'asc' | 'desc';
 }
 
-export interface CitationPreviewProps extends BaseProps {
+export interface CitationPreviewProps {
   citation: Citation;
+  onEdit?: (citation: Citation) => void;
   onUpdate?: (citation: Citation) => void;
+  onRemove?: (citation: Citation) => void;
   onDelete?: (citation: Citation) => void;
   onClose?: () => void;
 }

@@ -5,9 +5,9 @@ import CreateThesis from '@/pages/CreateThesis';
 import AdminPanel from '@/pages/AdminPanel';
 import LandingPage from '@/pages/LandingPage';
 import { useAuth } from '@/contexts/AuthContext';
-import { ThesisEditor } from '@/components/ThesisEditor';  // Import ThesisEditor
+import { ThesisEditor } from '@/components/ThesisEditor';
 
-const Routes = () => {
+export const Routes = () => {
   const { isAuthenticated, loading } = useAuth();
   
   console.log('🔐 Auth state:', { isAuthenticated, loading });
@@ -27,20 +27,18 @@ const Routes = () => {
           <Route path="/" element={<Index />} />
           <Route path="/create-thesis" element={<CreateThesis />} />
           <Route path="/admin" element={<AdminPanel />} />
-          {/* Add the thesis view route */}
           <Route path="/thesis/:thesisId" element={<ThesisEditor />} />
-          {/* Redirect any unknown routes to Index for authenticated users */}
           <Route path="*" element={<Index />} />
         </>
       ) : (
         <>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<Auth />} />
-          {/* Redirect any unknown routes to LandingPage for non-authenticated users */}
           <Route path="*" element={<LandingPage />} />
         </>
       )}
     </RouterRoutes>
   );
 };
+
 export default Routes;
