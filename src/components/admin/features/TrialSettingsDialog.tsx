@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 interface TrialSettings {
   id: string;
@@ -39,18 +38,25 @@ export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
           <DialogTitle>Update Trial Settings</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="trialDays">Trial Period (days)</Label>
+          <div>
+            <label htmlFor="trialDays" className="text-sm font-medium">
+              Trial Days
+            </label>
             <Input
               id="trialDays"
               type="number"
               value={trialDays}
-              onChange={(e) => setTrialDays(parseInt(e.target.value))}
+              onChange={(e) => setTrialDays(Number(e.target.value))}
               min={1}
               max={90}
             />
           </div>
-          <Button type="submit">Update Trial Settings</Button>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">Update</Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

@@ -1,91 +1,68 @@
-import { BaseProps } from './common';
-import { Chapter, Section, Citation, Figure, Table, Reference } from './thesis';
+import { Citation, Reference, Table, Figure } from './thesis';
 
-export interface EditorProps extends BaseProps {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-}
-
-export interface SectionProps extends BaseProps {
-  section: Section;
-  isActive: boolean;
-  onContentChange: (id: string, content: string) => void;
-  onTitleChange: (id: string, title: string) => void;
-}
-
-export interface ChapterProps extends BaseProps {
-  chapter: Chapter;
-  onUpdateChapter: (chapter: Chapter) => void;
-}
-
-export interface CitationProps extends BaseProps {
-  citation: Citation;
-  onRemove: (id: string) => void;
-  onUpdate: (citation: Citation) => void;
-  onPreview?: () => void;
-}
-
-export interface CitationManagerProps extends BaseProps {
+export interface CitationManagerProps {
   citations: Citation[];
-  onCitationSelect?: (citation: Citation) => void;
-  selectedCitation?: Citation | null;
-  onCitationCreate?: (citation: Citation) => void;
-  onCitationUpdate?: (citation: Citation) => void;
-  onCitationDelete?: (citation: Citation) => void;
-  thesisId: string;
-  onAddCitation?: (citation: any) => void;
-  onRemoveCitation?: (id: any) => void;
-  onUpdateCitation?: (citation: any) => void;
+  onAddCitation: (citation: Citation) => void;
+  onRemoveCitation: (id: string) => void;
+  onUpdateCitation: (citation: Citation) => void;
 }
 
-export interface CitationListProps extends BaseProps {
-  citations: Citation[];
-  onRemove: (id: string) => void;
-  onUpdate: (citation: Citation) => void;
-  onPreview: (citation: Citation) => void;
-}
-
-export interface CitationSearchProps {
-  onCitationSelect: (citation: Citation) => void;
-}
-
-export interface CitationPreviewProps {
-  citation: Citation;
-  onClose: () => void;
-  onEdit: (citation: Citation) => void;
-  onDelete: (citation: Citation) => void;
-}
-
-export interface FigureProps extends BaseProps {
-  figure: Figure;
-  onRemove: (id: string) => void;
-  onUpdate: (figure: Figure) => void;
-  onPreview?: () => void;
-}
-
-export interface TableProps extends BaseProps {
-  table: Table;
-  onRemove: (id: string) => void;
-  onUpdate: (table: Table) => void;
-}
-
-export interface ReferenceProps extends BaseProps {
-  reference: Reference;
-  onRemove: (id: string) => void;
-  onUpdate: (reference: Reference) => void;
-}
-
-export interface ReferenceManagerProps extends BaseProps {
+export interface ReferenceManagerProps {
   items: Reference[];
   onAdd: (reference: Reference) => void;
   onRemove: (id: string) => void;
   onUpdate: (reference: Reference) => void;
 }
 
-export interface ManagerProps<T> extends BaseProps {
-  items: T[];
-  onAdd: (item: T) => void;
-  onRemove: (id: string) => void;
-  onUpdate: (item: T) => void;
+export interface TableManagerProps {
+  tables: Table[];
+  onUpdateTable: (table: Table) => void;
+  onRemoveTable: (id: string) => void;
+  onAddTable: (table: Table) => void;
+}
+
+export interface EditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}
+
+export interface FigureManagerProps {
+  figures: Figure[];
+  onAddFigure: (figure: Figure) => void;
+  onRemoveFigure: (id: string) => void;
+  onUpdateFigure: (figure: Figure) => void;
+}
+
+export interface CollaboratorProps {
+  thesisId: string;
+  collaborators: any[];
+  canManageCollaborators: boolean;
+  isAdmin: boolean;
+  thesisTitle: string;
+}
+
+export interface NotificationProps {
+  notification: {
+    id: string;
+    message: string;
+    created_at: string;
+    read: boolean;
+  };
+  onMarkAsRead: (id: string) => void;
+}
+
+export interface CommentProps {
+  comment: {
+    id: string;
+    content: {
+      text: string;
+    };
+    created_at: string;
+    reviewer_id: string;
+    status: 'pending' | 'resolved';
+  };
+  onResolve: (id: string) => void;
+  onReply: (id: string, content: string) => void;
+  onDelete: (id: string) => void;
 }

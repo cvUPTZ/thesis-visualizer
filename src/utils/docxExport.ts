@@ -9,7 +9,6 @@ import {
   LevelFormat,
   HeadingLevel,
   PageNumber,
-  NumberFormat,
   Table as DocxTable,
   TableRow,
   TableCell,
@@ -18,15 +17,13 @@ import {
   WidthType,
   ImageRun,
   convertInchesToTwip,
-  Spacing,
-  Border,
   BorderStyle,
-  LineNumberType,
+  ITableOptions,
 } from "docx";
-import { Thesis, Section, Chapter, Figure, Table, Reference, Citation } from "@/types/thesis";
+import { Thesis, Table } from '@/types/thesis';
 import { MarkdownToDocx } from './markdownToDocx';
 import { documentStyles, pageSettings } from './documentStyles';
-import { DocxGenerationOptions } from './types';
+import { TableContent } from './types';
 
 const defaultFont = "Times New Roman";
 const defaultFontSize = 24; //12pt
@@ -66,24 +63,24 @@ const createFooter = () => {
 };
 
 const createTitlePage = (thesis: Thesis) => {
-    const titleSection = thesis.frontMatter.find(section => section.type === 'title');
-    return [
-        new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 1440, after: 1440 }, // 1 inch margins
-            children: [
-                new TextRun({
-                    text: titleSection?.title || "Untitled Thesis",
-                    bold: true,
-                    font: defaultFont,
-                    size: 40,
-                }),
-            ],
+  const titleSection = thesis.frontMatter.find(section => section.type === 'title');
+  return [
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 1440, after: 1440 }, // 1 inch margins
+      children: [
+        new TextRun({
+          text: titleSection?.title || "Untitled Thesis",
+          bold: true,
+          font: defaultFont,
+          size: 40,
         }),
-        new Paragraph({
-            children: [new PageBreak()],
-        }),
-    ];
+      ],
+    }),
+    new Paragraph({
+      children: [new PageBreak()],
+    }),
+  ];
 };
 
 const createAbstract = (thesis: Thesis) => {
@@ -102,11 +99,11 @@ const createAbstract = (thesis: Thesis) => {
     }),
     new Paragraph({
       children: [
-          new TextRun({
-              text: thesis.metadata?.description || "",
-              font: defaultFont,
-              size: defaultFontSize,
-          }),
+        new TextRun({
+          text: thesis.metadata?.description || "",
+          font: defaultFont,
+          size: defaultFontSize,
+        }),
       ],
     }),
     new Paragraph({
@@ -124,7 +121,7 @@ const createTableOfContents = () => {
         new TextRun({
           text: "Table of Contents",
           bold: true,
-            font: defaultFont,
+          font: defaultFont,
           size: 32,
         }),
       ],
@@ -136,73 +133,71 @@ const createTableOfContents = () => {
 };
 
 const createFigures = (figures: Figure[]) => {
-    return figures.flatMap((figure, index) => {
-      const paragraphs = [];
-      if (figure.imageUrl) {
-        try {
-            // Adjust the image width and height to fit within a document.
-          paragraphs.push(new Paragraph({
-            alignment: AlignmentType.CENTER,
-              children: [
-              new ImageRun({
-                  data:  Buffer.from(figure.imageUrl.split(',')[1], 'base64'),
-                  transformation: {
-                      width: convertInchesToTwip(5),
-                      height: convertInchesToTwip(3.75),
-                  },
-                }),
-              ],
-          }))
-
-          } catch (e) {
-            console.log(`Error loading image: ${figure.imageUrl}`);
-            paragraphs.push(new Paragraph({
-                children: [
-                  new TextRun({
-                    text: `Error loading image: ${figure.imageUrl}`,
-                    font: defaultFont,
-                    size: defaultFontSize,
-                  })
-                ],
-            }))
-          }
+  return figures.flatMap((figure) => {
+    const paragraphs = [];
+    if (figure.imageUrl) {
+      try {
+        paragraphs.push(new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [
+            new ImageRun({
+              data: Buffer.from(figure.imageUrl.split(',')[1], 'base64'),
+              transformation: {
+                width: convertInchesToTwip(5),
+                height: convertInchesToTwip(3.75),
+              },
+            }),
+          ],
+        }));
+      } catch (e) {
+        console.log(`Error loading image: ${figure.imageUrl}`);
+        paragraphs.push(new Paragraph({
+          children: [
+            new TextRun({
+              text: `Error loading image: ${figure.imageUrl}`,
+              font: defaultFont,
+              size: defaultFontSize,
+            }),
+          ],
+        }));
       }
-        paragraphs.push(
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [
-              new TextRun({
-                text: `Figure ${figure.number}. ${figure.caption}`,
-                italics: true,
-                font: defaultFont,
-                size: defaultFontSize,
-              }),
-            ],
-          })
-      )
-        return paragraphs;
-    })
-}
+    }
+    paragraphs.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [
+          new TextRun({
+            text: `Figure ${figure.number}. ${figure.caption}`,
+            italics: true,
+            font: defaultFont,
+            size: defaultFontSize,
+          }),
+        ],
+      })
+    );
+    return paragraphs;
+  });
+};
 
 const createTables = (tables: Table[]) => {
   return tables.map(table => {
     const headerRow = new TableRow({
       children: table.headers.map(header =>
         new TableCell({
-            children: [
-                new Paragraph({
-                    alignment: AlignmentType.CENTER,
-                    children: [
-                        new TextRun({
-                            text: header,
-                            bold: true,
-                           font: defaultFont,
-                            size: defaultFontSize,
-                        }),
-                    ],
+          children: [
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [
+                new TextRun({
+                  text: header,
+                  bold: true,
+                  font: defaultFont,
+                  size: defaultFontSize,
                 }),
-            ],
-            verticalAlign: VerticalAlign.CENTER,
+              ],
+            }),
+          ],
+          verticalAlign: VerticalAlign.CENTER,
           width: {
             size: 2400,
             type: WidthType.DXA,
@@ -210,63 +205,61 @@ const createTables = (tables: Table[]) => {
           shading: {
             fill: "EDEDED",
             color: "auto",
-            type: "solid"
-          }
+            type: "solid",
+          },
         })
-      )
+      ),
     });
 
     const dataRows = table.rows.map(row => new TableRow({
-        children: row.map(cell => new TableCell({
-                children: [
-                    new Paragraph({
-                        children: [
-                            new TextRun({
-                                text: cell,
-                                font: defaultFont,
-                                size: defaultFontSize,
-                            }),
-                        ],
-                    }),
-                ],
-                verticalAlign: VerticalAlign.CENTER,
-                width: {
-                   size: 2400,
-                   type: WidthType.DXA,
-                 },
-            })
-        )
-      })
-    );
+      children: row.map(cell => new TableCell({
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: cell,
+                font: defaultFont,
+                size: defaultFontSize,
+              }),
+            ],
+          }),
+        ],
+        verticalAlign: VerticalAlign.CENTER,
+        width: {
+          size: 2400,
+          type: WidthType.DXA,
+        },
+      })),
+    }));
 
-      return new DocxTable({
-            rows: [headerRow, ...dataRows],
-            width: {
-                size: 100,
-                type: WidthType.PERCENTAGE
-            },
-            properties: {
-              style: 'TableGrid',
-              layout: "autofit"
-            } as TableProperties,
-            margins: {
-              top: 720,
-              bottom: 720,
-            },
-      })
-  })
-}
+    return new DocxTable({
+      rows: [headerRow, ...dataRows],
+      width: {
+        size: 100,
+        type: WidthType.PERCENTAGE,
+      },
+      properties: {
+        style: 'TableGrid',
+        layout: "autofit",
+      } as TableProperties,
+      margins: {
+        top: 720,
+        bottom: 720,
+      },
+    });
+  });
+};
 
 const createCitations = (citations: Citation[]) => {
   return citations.map(citation => new Paragraph({
-        children: [
-            new TextRun({
-                text: `(${citation.authors.join(', ')}, ${citation.year}): ${citation.text}, ${citation.source}`,
-                font: defaultFont,
-                size: defaultFontSize,
-            }),
-        ],
-     }));
+    children: [
+      new TextRun({
+        text: `(${citation.authors.join(', ')}, ${citation.year}): ${citation.text}, ${citation.source}`,
+        font: defaultFont,
+        size: defaultFontSize,
+      }),
+    ],
+  }));
 };
 
 const createReferences = (references: Reference[]) => {
@@ -281,89 +274,89 @@ const createReferences = (references: Reference[]) => {
           size: 28,
         }),
       ],
-    })
+    }),
   ];
 
   references.forEach((reference) => {
-      let citationText = "";
+    let citationText = "";
 
-      if (reference.type === 'article') {
-        citationText = `${reference.authors.join(', ')}. (${reference.year}). ${reference.title}. ${reference.journal}, ${reference.volume}(${reference.issue}), ${reference.pages}. ${reference.doi ? `doi: ${reference.doi}` : ""}`;
-      } else if (reference.type === 'book') {
-        citationText = `${reference.authors.join(', ')}. (${reference.year}). ${reference.title}. ${reference.publisher}. ${reference.doi ? `doi: ${reference.doi}` : ""}`;
-      } else if (reference.type === 'website' || reference.type === 'other') {
-        citationText = `${reference.authors.join(', ')}. (${reference.year}). ${reference.title}. ${reference.url} ${reference.doi ? `doi: ${reference.doi}` : ""}`;
-      } else {
-          citationText = `${reference.authors.join(', ')}. (${reference.year}). ${reference.title}. ${reference.doi ? `doi: ${reference.doi}` : ""}`;
-      }
+    if (reference.type === 'article') {
+      citationText = `${reference.authors.join(', ')}. (${reference.year}). ${reference.title}. ${reference.journal}, ${reference.volume}(${reference.issue}), ${reference.pages}. ${reference.doi ? `doi: ${reference.doi}` : ""}`;
+    } else if (reference.type === 'book') {
+      citationText = `${reference.authors.join(', ')}. (${reference.year}). ${reference.title}. ${reference.publisher}. ${reference.doi ? `doi: ${reference.doi}` : ""}`;
+    } else if (reference.type === 'website' || reference.type === 'other') {
+      citationText = `${reference.authors.join(', ')}. (${reference.year}). ${reference.title}. ${reference.url} ${reference.doi ? `doi: ${reference.doi}` : ""}`;
+    } else {
+      citationText = `${reference.authors.join(', ')}. (${reference.year}). ${reference.title}. ${reference.doi ? `doi: ${reference.doi}` : ""}`;
+    }
 
-      paragraphs.push(new Paragraph({
-          children: [
-              new TextRun({
-                  text: citationText,
-                  font: defaultFont,
-                  size: defaultFontSize,
-              }),
-          ],
-      }))
+    paragraphs.push(new Paragraph({
+      children: [
+        new TextRun({
+          text: citationText,
+          font: defaultFont,
+          size: defaultFontSize,
+        }),
+      ],
+    }));
   });
 
   return paragraphs;
 };
 
 const createSectionContent = (section: Section) => {
-    const paragraphs: Paragraph[] = [];
-    paragraphs.push(
-      new Paragraph({
-        heading: HeadingLevel.HEADING_2,
-        children: [
-          new TextRun({
-            text: section.title,
-            bold: true,
-            font: defaultFont,
-            size: 28, // 14pt
-          }),
-        ],
-      })
-    );
+  const paragraphs: Paragraph[] = [];
+  paragraphs.push(
+    new Paragraph({
+      heading: HeadingLevel.HEADING_2,
+      children: [
+        new TextRun({
+          text: section.title,
+          bold: true,
+          font: defaultFont,
+          size: 28,
+        }),
+      ],
+    })
+  );
 
-    const markdown = new MarkdownToDocx();
-    const contentParagraphs = markdown.convert(section.content, defaultFont, defaultFontSize);
-    paragraphs.push(...contentParagraphs);
+  const markdown = new MarkdownToDocx();
+  const contentParagraphs = markdown.convert(section.content, defaultFont, defaultFontSize);
+  paragraphs.push(...contentParagraphs);
 
-    paragraphs.push(...createFigures(section.figures));
-    paragraphs.push(...createTables(section.tables));
-    paragraphs.push(...createCitations(section.citations));
-    if (section.type === 'references' && section.references) {
-      paragraphs.push(...createReferences(section.references));
-    }
+  paragraphs.push(...createFigures(section.figures));
+  paragraphs.push(...createTables(section.tables));
+  paragraphs.push(...createCitations(section.citations));
+  if (section.type === 'references' && section.references) {
+    paragraphs.push(...createReferences(section.references));
+  }
 
-    return paragraphs;
+  return paragraphs;
 };
 
 const createChapterContentWithSections = (chapter: Chapter) => {
-    const paragraphs: Paragraph[] = [];
+  const paragraphs: Paragraph[] = [];
 
-    paragraphs.push(
-        new Paragraph({
-            heading: HeadingLevel.HEADING_1,
-            children: [
-                new TextRun({
-                    text: chapter.title,
-                    bold: true,
-                    font: defaultFont,
-                    size: 32,
-                }),
-            ],
-        })
-    );
+  paragraphs.push(
+    new Paragraph({
+      heading: HeadingLevel.HEADING_1,
+      children: [
+        new TextRun({
+          text: chapter.title,
+          bold: true,
+          font: defaultFont,
+          size: 32,
+        }),
+      ],
+    })
+  );
 
-    chapter.sections.forEach((section) => {
-        paragraphs.push(...createSectionContent(section));
-    });
+  chapter.sections.forEach((section) => {
+    paragraphs.push(...createSectionContent(section));
+  });
 
-    return paragraphs;
-}
+  return paragraphs;
+};
 
 export const generateThesisDocx = (thesis: Thesis): Document => {
   const doc = new Document({
@@ -376,12 +369,12 @@ export const generateThesisDocx = (thesis: Thesis): Document => {
           next: "Normal",
           run: {
             bold: true,
-            size: 28, // 14pt
+            size: 28,
           },
           paragraph: {
             spacing: {
-              before: 120, // 6pt
-              after: 120, // 6pt
+              before: 120,
+              after: 120,
             },
             outlineLevel: 1,
           },
@@ -393,48 +386,48 @@ export const generateThesisDocx = (thesis: Thesis): Document => {
           next: "Normal",
           run: {
             bold: true,
-            size: 26, // 13pt
+            size: 26,
           },
-           paragraph: {
+          paragraph: {
             spacing: {
-              before: 100, // 5pt
-              after: 100, // 5pt
+              before: 100,
+              after: 100,
             },
             outlineLevel: 2,
-          }
-        },
-          {
-            id: "Normal",
-            name: "Normal",
-            run: {
-                font: defaultFont,
-                size: defaultFontSize,
-            }
           },
+        },
+        {
+          id: "Normal",
+          name: "Normal",
+          run: {
+            font: defaultFont,
+            size: defaultFontSize,
+          },
+        },
       ],
       tableStyles: [
         {
-           id: 'TableGrid',
-           name: 'Table Grid',
-            table: {
-                border: {
-                    size: 1,
-                    style: BorderStyle.SINGLE,
-                    color: '000000',
-                },
-            }
-       }
-      ]
+          id: 'TableGrid',
+          name: 'Table Grid',
+          table: {
+            border: {
+              size: 1,
+              style: BorderStyle.SINGLE,
+              color: '000000',
+            },
+          },
+        },
+      ],
     },
     sections: [
       {
         properties: {
           page: {
             margin: {
-                top: convertInchesToTwip(1),
-                right: convertInchesToTwip(1),
-                bottom: convertInchesToTwip(1),
-                left: convertInchesToTwip(1),
+              top: convertInchesToTwip(1),
+              right: convertInchesToTwip(1),
+              bottom: convertInchesToTwip(1),
+              left: convertInchesToTwip(1),
             },
           },
         },
@@ -449,7 +442,7 @@ export const generateThesisDocx = (thesis: Thesis): Document => {
           ...createAbstract(thesis),
           ...createTableOfContents(),
           ...thesis.chapters.flatMap(chapter => createChapterContentWithSections(chapter)),
-          ...thesis.backMatter.flatMap(section => createSectionContent(section))
+          ...thesis.backMatter.flatMap(section => createSectionContent(section)),
         ],
       },
     ],
