@@ -193,6 +193,7 @@ export type Database = {
           last_updated: string | null
           name: string
           parent_id: string | null
+          pricing_tier: string | null
           status: string
           usage_data: Json | null
         }
@@ -205,6 +206,7 @@ export type Database = {
           last_updated?: string | null
           name: string
           parent_id?: string | null
+          pricing_tier?: string | null
           status?: string
           usage_data?: Json | null
         }
@@ -217,6 +219,7 @@ export type Database = {
           last_updated?: string | null
           name?: string
           parent_id?: string | null
+          pricing_tier?: string | null
           status?: string
           usage_data?: Json | null
         }
@@ -523,6 +526,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      trial_settings: {
+        Row: {
+          created_at: string
+          id: string
+          trial_days: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          trial_days?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          trial_days?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_feedback: {
         Row: {

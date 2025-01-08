@@ -8,19 +8,23 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Settings, Loader2, Plus } from 'lucide-react';
+import { Settings, Loader2, Plus, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { FeatureDialog } from './features/FeatureDialog';
 import { FeatureRow } from './features/FeatureRow';
+import { FeaturePricingDialog } from './features/FeaturePricingDialog';
+import { TrialSettingsDialog } from './features/TrialSettingsDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const FeatureManagement = () => {
   const { toast } = useToast();
   const [selectedFeature, setSelectedFeature] = useState<any>(null);
+  const [selectedPricingFeature, setSelectedPricingFeature] = useState<any>(null);
+  const [isTrialDialogOpen, setIsTrialDialogOpen] = useState(false);
   const [expandedFeatures, setExpandedFeatures] = useState<Set<string>>(new Set());
 
-  const { data: features, isLoading, error, refetch } = useQuery({
+  const { data: features, isLoading: featuresLoading, error: featuresError, refetch: refetchFeatures } = useQuery({
     queryKey: ['features'],
     queryFn: async () => {
       console.log('Fetching features from Supabase...');
@@ -29,12 +33,20 @@ export const FeatureManagement = () => {
         .select('*')
         .order('name');
 
-      if (error) {
-        console.error('Error fetching features:', error);
-        throw error;
-      }
+      if (error) throw error;
+      return data;
+    }
+  });
 
-      console.log('Features fetched:', data);
+  const { data: trialSettings, isLoading: trialLoading, refetch: refetchTrial } = useQuery({
+    queryKey: ['trial-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('trial_settings')
+        .select('*')
+        .single();
+
+      if (error) throw error;
       return data;
     }
   });
@@ -52,7 +64,7 @@ export const FeatureManagement = () => {
 
       if (error) throw error;
 
-      await refetch();
+      await refetchFeatures();
       
       toast({
         title: "Feature Updated",
@@ -63,6 +75,34 @@ export const FeatureManagement = () => {
       toast({
         title: "Error",
         description: "Failed to update feature status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateFeaturePricing = async (featureId: string, pricingTier: string) => {
+    try {
+      const { error } = await supabase
+        .from('features')
+        .update({ 
+          pricing_tier: pricingTier,
+          last_updated: new Date().toISOString()
+        })
+        .eq('id', featureId);
+
+      if (error) throw error;
+
+      await refetchFeatures();
+      
+      toast({
+        title: "Feature Updated",
+        description: `Feature pricing tier has been updated to ${pricingTier}`,
+      });
+    } catch (error) {
+      console.error('Error updating feature pricing:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update feature pricing",
         variant: "destructive",
       });
     }
@@ -80,26 +120,18 @@ export const FeatureManagement = () => {
     });
   };
 
-  const addNewFeature = () => {
-    // This would open a dialog to add a new feature
-    toast({
-      title: "Coming Soon",
-      description: "Feature creation will be available soon",
-    });
-  };
-
-  if (isLoading) {
+  if (featuresLoading || trialLoading) {
     return (
       <Card className="w-full h-[400px] flex items-center justify-center">
         <CardContent className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading features...</p>
+          <p className="text-muted-foreground">Loading...</p>
         </CardContent>
       </Card>
     );
   }
 
-  if (error) {
+  if (featuresError) {
     return (
       <Card className="w-full">
         <CardHeader>
@@ -107,10 +139,10 @@ export const FeatureManagement = () => {
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            {error instanceof Error ? error.message : 'Failed to load features. Please try again.'}
+            {featuresError instanceof Error ? featuresError.message : 'Failed to load features'}
           </p>
           <Button 
-            onClick={() => refetch()} 
+            onClick={() => refetchFeatures()} 
             variant="outline" 
             className="mt-4"
           >
@@ -133,27 +165,6 @@ export const FeatureManagement = () => {
     return acc;
   }, { main: [], sub: {} });
 
-  if (!features?.length) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>No Features Found</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">No features have been added yet.</p>
-          <Button 
-            onClick={addNewFeature}
-            variant="outline" 
-            className="mt-4 gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Feature
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -162,10 +173,10 @@ export const FeatureManagement = () => {
           <Button 
             variant="outline" 
             className="gap-2 text-admin-accent-primary hover:text-admin-accent-secondary border-admin-accent-primary/20 hover:border-admin-accent-secondary/40"
-            onClick={addNewFeature}
+            onClick={() => setIsTrialDialogOpen(true)}
           >
-            <Plus className="w-4 h-4" />
-            Add Feature
+            <Clock className="w-4 h-4" />
+            Trial Settings ({trialSettings?.trial_days} days)
           </Button>
           <Button 
             variant="outline" 
@@ -197,6 +208,7 @@ export const FeatureManagement = () => {
                 subFeatures={organizedFeatures.sub[feature.id] || []}
                 onToggleFeature={toggleFeature}
                 onOpenDialog={setSelectedFeature}
+                onOpenPricingDialog={setSelectedPricingFeature}
                 expanded={expandedFeatures.has(feature.id)}
                 onToggleExpand={() => toggleExpand(feature.id)}
               />
@@ -210,6 +222,24 @@ export const FeatureManagement = () => {
           feature={selectedFeature}
           open={!!selectedFeature}
           onOpenChange={(open) => !open && setSelectedFeature(null)}
+        />
+      )}
+
+      {selectedPricingFeature && (
+        <FeaturePricingDialog
+          feature={selectedPricingFeature}
+          open={!!selectedPricingFeature}
+          onOpenChange={(open) => !open && setSelectedPricingFeature(null)}
+          onUpdatePricing={updateFeaturePricing}
+        />
+      )}
+
+      {isTrialDialogOpen && (
+        <TrialSettingsDialog
+          open={isTrialDialogOpen}
+          onOpenChange={setIsTrialDialogOpen}
+          currentTrialDays={trialSettings?.trial_days || 14}
+          onUpdate={() => refetchTrial()}
         />
       )}
     </div>

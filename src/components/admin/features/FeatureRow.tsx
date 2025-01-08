@@ -4,6 +4,7 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, ChevronRight, ChevronDown, Loader2 } from 'lucide-react';
 
+// Update the FeatureRowProps interface
 interface FeatureRowProps {
   feature: {
     id: string;
@@ -14,11 +15,13 @@ interface FeatureRowProps {
     usage_data: any;
     last_updated: string;
     is_sub_feature: boolean;
+    pricing_tier: string;
   };
   subFeatures: any[];
   level?: number;
   onToggleFeature: (featureId: string, currentStatus: string) => Promise<void>;
   onOpenDialog: (feature: any) => void;
+  onOpenPricingDialog: (feature: any) => void;
   expanded: boolean;
   onToggleExpand: () => void;
 }
@@ -29,6 +32,7 @@ export const FeatureRow = ({
   level = 0,
   onToggleFeature,
   onOpenDialog,
+  onOpenPricingDialog,
   expanded,
   onToggleExpand,
 }: FeatureRowProps) => {
@@ -115,18 +119,28 @@ export const FeatureRow = ({
         <TableCell>{formatUsageData(feature.usage_data)}</TableCell>
         <TableCell>{new Date(feature.last_updated).toLocaleDateString()}</TableCell>
         <TableCell>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleToggleFeature(feature.id, feature.status)}
-            disabled={isUpdating}
-            className="text-admin-accent-primary hover:text-admin-accent-secondary border-admin-accent-primary/20 hover:border-admin-accent-secondary/40"
-          >
-            {isUpdating ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : null}
-            Toggle Status
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleToggleFeature(feature.id, feature.status)}
+              disabled={isUpdating}
+              className="text-admin-accent-primary hover:text-admin-accent-secondary border-admin-accent-primary/20 hover:border-admin-accent-secondary/40"
+            >
+              {isUpdating ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
+              Toggle Status
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenPricingDialog(feature)}
+              className="text-admin-accent-primary hover:text-admin-accent-secondary border-admin-accent-primary/20 hover:border-admin-accent-secondary/40"
+            >
+              {feature.pricing_tier === 'paid' ? '💎 Paid' : '🆓 Free'}
+            </Button>
+          </div>
         </TableCell>
       </TableRow>
       {expanded && hasSubFeatures && subFeatures.map((subFeature) => (
@@ -137,6 +151,7 @@ export const FeatureRow = ({
           level={level + 1}
           onToggleFeature={onToggleFeature}
           onOpenDialog={onOpenDialog}
+          onOpenPricingDialog={onOpenPricingDialog}
           expanded={false}
           onToggleExpand={() => {}}
         />
