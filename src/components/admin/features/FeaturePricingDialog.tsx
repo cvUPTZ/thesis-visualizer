@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface FeaturePricingDialogProps {
   feature: {
@@ -50,6 +52,17 @@ export const FeaturePricingDialog = ({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          {selectedTier !== feature.pricing_tier && (
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Changing pricing tier will affect all users' access to this feature.
+                {selectedTier === 'paid' 
+                  ? " Users will need to upgrade their subscription."
+                  : " Feature will become available to all users."}
+              </AlertDescription>
+            </Alert>
+          )}
           <RadioGroup
             value={selectedTier}
             onValueChange={setSelectedTier}

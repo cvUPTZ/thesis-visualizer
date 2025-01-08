@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Settings, Loader2, Plus, Clock } from 'lucide-react';
+import { Settings, Loader2, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { FeatureDialog } from './features/FeatureDialog';
@@ -82,6 +82,8 @@ export const FeatureManagement = () => {
 
   const updateFeaturePricing = async (featureId: string, pricingTier: string) => {
     try {
+      console.log('Updating feature pricing:', { featureId, pricingTier });
+      
       const { error } = await supabase
         .from('features')
         .update({ 
@@ -96,7 +98,7 @@ export const FeatureManagement = () => {
       
       toast({
         title: "Feature Updated",
-        description: `Feature pricing tier has been updated to ${pricingTier}`,
+        description: `Feature pricing tier has been updated to ${pricingTier}. User access has been updated accordingly.`,
       });
     } catch (error) {
       console.error('Error updating feature pricing:', error);

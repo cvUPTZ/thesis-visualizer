@@ -548,6 +548,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_features: {
+        Row: {
+          access_type: string
+          created_at: string
+          expires_at: string | null
+          feature_id: string | null
+          id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          access_type: string
+          created_at?: string
+          expires_at?: string | null
+          feature_id?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          access_type?: string
+          created_at?: string
+          expires_at?: string | null
+          feature_id?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_features_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "features"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_features_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_feedback: {
         Row: {
           created_at: string
