@@ -29,7 +29,11 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) =>
   useEffect(() => {
     if (scrollRef.current) {
       const scrollElement = scrollRef.current;
-      scrollElement.scrollTop = 0; // Scroll to top since messages are in reverse order
+      const scrollHeight = scrollElement.scrollHeight;
+      scrollElement.scrollTo({
+        top: scrollHeight,
+        behavior: 'smooth'
+      });
     }
   }, [messages]);
 
