@@ -25,16 +25,22 @@ export const TrialSettingsDialog = ({
   currentTrialDays,
   onUpdate
 }: TrialSettingsDialogProps) => {
-  const [trialDays, setTrialDays] = React.useState(currentTrialDays);
+  const [trialDays, setTrialDays] = React.useState<string>(currentTrialDays.toString());
   const [isUpdating, setIsUpdating] = React.useState(false);
   const { toast } = useToast();
 
   const handleUpdate = async () => {
     try {
       setIsUpdating(true);
+      const numericTrialDays = parseInt(trialDays, 10);
+      
+      if (isNaN(numericTrialDays) || numericTrialDays < 1) {
+        throw new Error('Please enter a valid number of days');
+      }
+
       const { error } = await supabase
         .from('trial_settings')
-        .update({ trial_days: trialDays })
+        .update({ trial_days: numericTrialDays })
         .eq('id', 1);
 
       if (error) throw error;
@@ -73,7 +79,7 @@ export const TrialSettingsDialog = ({
               id="trialDays"
               type="number"
               value={trialDays}
-              onChange={(e) => setTrialDays(parseInt(e.target.value))}
+              onChange={(e) => setTrialDays(e.target.value)}
               min={1}
               max={365}
             />
@@ -88,7 +94,7 @@ export const TrialSettingsDialog = ({
           </Button>
           <Button
             onClick={handleUpdate}
-            disabled={isUpdating || trialDays === currentTrialDays}
+            disabled={isUpdating || parseInt(trialDays) === currentTrialDays}
           >
             {isUpdating ? 'Updating...' : 'Update'}
           </Button>
