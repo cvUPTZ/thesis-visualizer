@@ -8,18 +8,15 @@ import { ThesisCreationModal } from './thesis/ThesisCreationModal';
 import { ThesisList } from './thesis/ThesisList';
 import { useThesisData } from '@/hooks/useThesisData';
 import { Skeleton } from './ui/skeleton';
-import { CollaboratorPresence } from './collaboration/CollaboratorPresence';
 import { useToast } from '@/hooks/use-toast';
 import { ThesisEditorHeader } from './thesis/editor/ThesisEditorHeader';
-import { ThesisEditorContent } from './thesis/editor/ThesisEditorContent';
-import { ThesisEditorPreview } from './thesis/editor/ThesisEditorPreview';
-import { ThesisTracker } from './thesis/tracker/ThesisTracker';
+import { ThesisEditorMain } from './thesis/editor/ThesisEditorMain';
+import { ThesisEditorStatus } from './thesis/editor/ThesisEditorStatus';
 import { useThesisRealtime } from '@/hooks/useThesisRealtime';
-import { Card } from './ui/card';
-import { Users, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
-import { Button } from './ui/button';
 import { ChatMessages } from './collaboration/ChatMessages';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { Button } from './ui/button';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -41,7 +38,6 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   useThesisInitialization(thesis);
   useThesisRealtime(currentThesisId, thesis, setThesis);
 
-  // Calculate progress
   const calculateProgress = () => {
     if (!thesis) return 0;
     const allSections = [
@@ -95,17 +91,6 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
       })),
       backMatter: prevThesis!.backMatter.map(section =>
         section.id === id ? { ...section, title } : section
-      )
-    }));
-  };
-
-  const handleUpdateChapter = (updatedChapter: Chapter) => {
-    if (!thesis) return;
-    
-    setThesis(prevThesis => ({
-      ...prevThesis!,
-      chapters: prevThesis!.chapters.map(chapter =>
-        chapter.id === updatedChapter.id ? updatedChapter : chapter
       )
     }));
   };
@@ -164,69 +149,48 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
       />
-      <main className="flex-1 p-8 flex">
-        <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
-          <div className="max-w-4xl mx-auto space-y-6">
-            <ThesisEditorHeader
-              thesis={thesis}
-              showPreview={showPreview}
-              onTogglePreview={() => setShowPreview(!showPreview)}
-            />
-            
-            <Collapsible open={showTracker} onOpenChange={setShowTracker}>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 animate-spin text-primary" />
-                  <span className="text-sm text-muted-foreground">Auto-updating</span>
-                  <span className="text-sm font-medium">{progress}% Complete</span>
-                </div>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    {showTracker ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-              </div>
-              <CollapsibleContent>
-                {thesis && <ThesisTracker thesis={thesis} />}
-              </CollapsibleContent>
-            </Collapsible>
-            
-            <Card className="p-4 mb-4 bg-white/50 backdrop-blur-sm border border-primary/10">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="w-4 h-4" />
-                <span className="font-medium">Active Collaborators</span>
-              </div>
-              {currentThesisId && <CollaboratorPresence thesisId={currentThesisId} />}
-            </Card>
-            
-            <ThesisEditorContent
-              frontMatter={thesis?.frontMatter || []}
-              chapters={thesis?.chapters || []}
-              backMatter={thesis?.backMatter || []}
-              activeSection={activeSection}
-              onContentChange={handleContentChange}
-              onTitleChange={handleTitleChange}
-              onUpdateChapter={handleUpdateChapter}
-              onAddChapter={(chapter) => {
-                setThesis(prev => ({
-                  ...prev!,
-                  chapters: [...(prev?.chapters || []), chapter]
-                }));
-              }}
-            />
-          </div>
-        </div>
-        {showPreview && thesis && (
-          <div className="w-1/2 pl-8 border-l">
-            <ThesisEditorPreview thesis={thesis} previewRef={previewRef} />
-          </div>
-        )}
-      </main>
       
+      <div className="flex-1 flex flex-col">
+        <ThesisEditorHeader
+          thesis={thesis}
+          showPreview={showPreview}
+          onTogglePreview={() => setShowPreview(!showPreview)}
+        />
+        
+        <div className="px-8 py-4">
+          <ThesisEditorStatus
+            thesis={thesis}
+            thesisId={currentThesisId!}
+            progress={progress}
+            showTracker={showTracker}
+            setShowTracker={setShowTracker}
+          />
+        </div>
+
+        <ThesisEditorMain
+          thesis={thesis}
+          activeSection={activeSection}
+          showPreview={showPreview}
+          previewRef={previewRef}
+          onContentChange={handleContentChange}
+          onTitleChange={handleTitleChange}
+          onUpdateChapter={(chapter: Chapter) => {
+            setThesis(prev => ({
+              ...prev!,
+              chapters: prev!.chapters.map(c =>
+                c.id === chapter.id ? chapter : c
+              )
+            }));
+          }}
+          onAddChapter={(chapter) => {
+            setThesis(prev => ({
+              ...prev!,
+              chapters: [...(prev?.chapters || []), chapter]
+            }));
+          }}
+        />
+      </div>
+
       <Collapsible
         open={showChat}
         onOpenChange={setShowChat}
