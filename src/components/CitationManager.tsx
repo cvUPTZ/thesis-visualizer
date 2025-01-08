@@ -55,6 +55,14 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
     return 0;
   });
 
+  const handleRemove = (citation: Citation) => {
+    onCitationDelete?.(citation);
+  };
+
+  const handleUpdate = (citation: Citation) => {
+    onCitationUpdate?.(citation);
+  };
+
   return (
     <Card className="p-6 space-y-6 bg-white/50 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-xl">
       <motion.div
@@ -81,8 +89,8 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
           <TabsContent value="all">
             <CitationList
               citations={sortedCitations}
-              onRemove={onCitationDelete}
-              onUpdate={onCitationUpdate}
+              onRemove={handleRemove}
+              onUpdate={handleUpdate}
               onPreview={onCitationSelect}
             />
           </TabsContent>
@@ -90,8 +98,8 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
           <TabsContent value="recent">
             <CitationList
               citations={sortedCitations.slice(0, 5)}
-              onRemove={onCitationDelete}
-              onUpdate={onCitationUpdate}
+              onRemove={handleRemove}
+              onUpdate={handleUpdate}
               onPreview={onCitationSelect}
             />
           </TabsContent>
@@ -99,19 +107,18 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
           <TabsContent value="search">
             <div className="space-y-4">
               <CitationSearch
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                filterType={filterType}
+                onSearch={setSearchTerm}
                 onFilterChange={setFilterType}
-                sortField={sortField}
                 onSortFieldChange={setSortField}
-                sortDirection={sortDirection}
                 onSortDirectionChange={setSortDirection}
+                currentFilter={filterType}
+                currentSort={sortField}
+                currentDirection={sortDirection}
               />
               <CitationList
                 citations={sortedCitations}
-                onRemove={onCitationDelete}
-                onUpdate={onCitationUpdate}
+                onRemove={handleRemove}
+                onUpdate={handleUpdate}
                 onPreview={onCitationSelect}
               />
             </div>
@@ -122,8 +129,8 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
       {selectedCitation && (
         <CitationPreview
           citation={selectedCitation}
-          onUpdate={onCitationUpdate}
-          onDelete={onCitationDelete}
+          onEdit={onCitationUpdate}
+          onRemove={onCitationDelete}
           onClose={() => onCitationSelect?.(null)}
         />
       )}

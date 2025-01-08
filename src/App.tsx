@@ -1,17 +1,17 @@
-import { ThemeProvider } from './components/ThemeProvider';
-import Routes from './Routes';
-import { Toaster } from './components/ui/toaster';
-import { AuthProvider } from './contexts/AuthContext';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+import { Routes } from './Routes';
+import './App.css';
 
-// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 2,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retry: 1,
     },
   },
 });
@@ -19,14 +19,16 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
+      <AuthProvider>
+        <LanguageProvider>
           <ThemeProvider>
-            <Routes />
-            <Toaster />
+            <BrowserRouter>
+              <Routes />
+              <Toaster />
+            </BrowserRouter>
           </ThemeProvider>
-        </AuthProvider>
-      </BrowserRouter>
+        </LanguageProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
