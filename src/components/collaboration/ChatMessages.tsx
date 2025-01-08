@@ -13,6 +13,7 @@ interface ChatMessagesProps {
 export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const { toast } = useToast();
+  const processedMessages = new Set<string>();
 
   const fetchMessages = async () => {
     try {
@@ -34,6 +35,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
       }
 
       console.log('Fetched messages:', data);
+      data?.forEach(message => processedMessages.add(message.id));
       setMessages(data || []);
     } catch (error: any) {
       console.error('Error in fetchMessages:', error);
@@ -66,6 +68,13 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
         },
         async (payload) => {
           console.log('New message received:', payload);
+          
+          // Check if we've already processed this message
+          if (processedMessages.has(payload.new.id)) {
+            console.log('Message already processed, skipping:', payload.new.id);
+            return;
+          }
+
           const { data: messageWithProfile, error } = await supabase
             .from('chat_messages')
             .select(`
@@ -82,6 +91,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
             return;
           }
 
+          processedMessages.add(messageWithProfile.id);
           setMessages(prev => [...prev, messageWithProfile]);
         }
       )

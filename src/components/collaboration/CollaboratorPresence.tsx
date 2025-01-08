@@ -9,6 +9,7 @@ interface CollaboratorPresence {
   user_id: string;
   thesis_id: string;
   email?: string;
+  last_seen?: string;
 }
 
 interface CollaboratorPresenceProps {
@@ -23,6 +24,9 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
     try {
       console.log('Fetching collaborators for thesis:', thesisId);
       
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
       // Query all collaborators for this thesis
       const { data: collaborators, error } = await supabase
         .from('thesis_collaborators')
@@ -46,11 +50,24 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
         id: collab.id,
         user_id: collab.user_id,
         thesis_id: thesisId,
-        email: collab.profiles?.email
+        email: collab.profiles?.email,
+        last_seen: new Date().toISOString()
       }));
 
       console.log('Active collaborators:', transformedCollaborators);
       setActiveCollaborators(transformedCollaborators);
+
+      // Track presence for current user
+      const presenceChannel = supabase.channel(`presence:${thesisId}`);
+      await presenceChannel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({
+            user_id: user.id,
+            email: user.email,
+            online_at: new Date().toISOString()
+          });
+        }
+      });
     } catch (error: any) {
       console.error('Error in CollaboratorPresence:', error);
       toast({
@@ -74,7 +91,25 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
         console.log('Presence sync event received');
         const state = channel.presenceState();
         console.log('Current presence state:', state);
-        fetchCollaborators(); // Refresh collaborators list
+        
+        // Update active collaborators based on presence state
+        const presentUsers = Object.values(state).flat().map((presence: any) => ({
+          user_id: presence.user_id,
+          email: presence.email,
+          thesis_id: thesisId,
+          last_seen: presence.online_at
+        }));
+        
+        setActiveCollaborators(prev => {
+          const newCollaborators = [...prev];
+          presentUsers.forEach(user => {
+            const index = newCollaborators.findIndex(c => c.user_id === user.user_id);
+            if (index >= 0) {
+              newCollaborators[index] = { ...newCollaborators[index], ...user };
+            }
+          });
+          return newCollaborators;
+        });
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
         console.log('User joined:', key, newPresences);
@@ -92,7 +127,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          event: '*',
           schema: 'public',
           table: 'thesis_collaborators',
           filter: `thesis_id=eq.${thesisId}`
