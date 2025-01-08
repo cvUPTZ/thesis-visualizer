@@ -42,34 +42,26 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
     }
   };
 
-  const handleElementClick = (id: string, type: 'figure' | 'table' | 'citation') => {
-    console.log('Element clicked:', { id, type });
-  };
-
-  const handlePositionChange = (elementId: string, position: { x: number; y: number }) => {
-    console.log('Position changed:', { elementId, position });
-  };
-
   return (
-    <div className="relative bg-background">
-      <div className="sticky top-0 z-10 bg-background p-4 border-b">
+    <div className="relative bg-background min-h-screen">
+      <div className="sticky top-0 z-10 bg-background p-4 border-b shadow-sm">
         <Button onClick={handleExport} className="w-full sm:w-auto">
           <FileDown className="w-4 h-4 mr-2" />
           Export to PDF
         </Button>
       </div>
       
-      <ScrollArea className="h-[calc(100vh-10rem)]">
+      <ScrollArea className="h-[calc(100vh-5rem)]">
         <div 
           ref={targetRef} 
           className={cn(
-            "thesis-preview space-y-8",
-            "max-w-[210mm] mx-auto py-8 px-4", // A4 width with consistent padding
-            "bg-white shadow-sm"
+            "thesis-preview mx-auto py-8 px-4",
+            "max-w-[210mm]", // A4 width
+            "bg-white shadow-md"
           )}
         >
           {/* Title Page */}
-          <div className="page-break-before bg-white rounded-lg overflow-hidden">
+          <div className="mb-8 bg-white rounded-lg overflow-hidden">
             {language === 'en' ? (
               <TitlePage metadata={thesis.metadata} titleSection={thesis.frontMatter[0]} />
             ) : (
@@ -82,11 +74,10 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
             <div 
               key={section.id} 
               className={cn(
-                "page-break-before",
+                "mb-8",
                 "min-h-[297mm]", // A4 height
                 "p-[20mm]", // Standard margins
-                "bg-white rounded-lg shadow-sm",
-                "relative"
+                "bg-white rounded-lg shadow-sm"
               )}
             >
               {section.type === 'abstract' ? (
@@ -95,8 +86,8 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
                 <ContentSection 
                   section={section}
                   elementPositions={[]}
-                  onElementClick={handleElementClick}
-                  onPositionChange={handlePositionChange}
+                  onElementClick={() => {}}
+                  onPositionChange={() => {}}
                 />
               )}
             </div>
@@ -109,19 +100,18 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
                 <div 
                   key={section.id} 
                   className={cn(
-                    "page-break-before",
+                    "mb-8",
                     "min-h-[297mm]", // A4 height
                     "p-[20mm]", // Standard margins
-                    "bg-white rounded-lg shadow-sm",
-                    "relative"
+                    "bg-white rounded-lg shadow-sm"
                   )}
                 >
                   <ContentSection
                     section={section}
                     chapterTitle={chapter.title}
                     elementPositions={[]}
-                    onElementClick={handleElementClick}
-                    onPositionChange={handlePositionChange}
+                    onElementClick={() => {}}
+                    onPositionChange={() => {}}
                   />
                 </div>
               ))}
@@ -133,18 +123,17 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
             <div 
               key={section.id} 
               className={cn(
-                "page-break-before",
+                "mb-8",
                 "min-h-[297mm]", // A4 height
                 "p-[20mm]", // Standard margins
-                "bg-white rounded-lg shadow-sm",
-                "relative"
+                "bg-white rounded-lg shadow-sm"
               )}
             >
               <ContentSection
                 section={section}
                 elementPositions={[]}
-                onElementClick={handleElementClick}
-                onPositionChange={handlePositionChange}
+                onElementClick={() => {}}
+                onPositionChange={() => {}}
               />
             </div>
           ))}

@@ -19,7 +19,6 @@
   page-break-after: always;
   border-radius: 4px;
   transition: all 0.3s ease;
-  font-family: 'Times New Roman', serif;
 }
 
 /* Header and Footer styles */
@@ -85,21 +84,12 @@
 /* Page break styles */
 .page-break-before {
   page-break-before: always;
-  position: relative;
-  background: white;
-  margin-bottom: 2rem;
 }
 
-.page-break-before:first-child {
-  page-break-before: avoid;
-}
-
-/* Prevent unwanted breaks */
 .page-break-inside-avoid {
   page-break-inside: avoid;
 }
 
-/* Force page breaks */
 .page-break-after {
   page-break-after: always;
 }
