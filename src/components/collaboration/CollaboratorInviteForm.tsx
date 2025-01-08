@@ -16,7 +16,7 @@ interface CollaboratorInviteFormProps {
   setIsInviting: (isInviting: boolean) => void;
 }
 
-const VALID_ROLES = ['owner', 'editor', 'viewer'] as const;
+const VALID_ROLES = ['editor', 'viewer'] as const;
 type ValidRole = typeof VALID_ROLES[number];
 
 export const CollaboratorInviteForm = ({
@@ -38,16 +38,6 @@ export const CollaboratorInviteForm = ({
       toast({
         title: "Error",
         description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate role
-    if (!VALID_ROLES.includes(role)) {
-      toast({
-        title: "Error",
-        description: "Invalid role selected",
         variant: "destructive",
       });
       return;
