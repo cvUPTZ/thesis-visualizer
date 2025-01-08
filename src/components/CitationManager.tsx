@@ -107,13 +107,7 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
           <TabsContent value="search">
             <div className="space-y-4">
               <CitationSearch
-                onSearch={setSearchTerm}
-                onFilterChange={setFilterType}
-                onSortFieldChange={setSortField}
-                onSortDirectionChange={setSortDirection}
-                currentFilter={filterType}
-                currentSort={sortField}
-                currentDirection={sortDirection}
+                onCitationSelect={(citation) => onCitationCreate?.(citation)}
               />
               <CitationList
                 citations={sortedCitations}
@@ -129,8 +123,7 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
       {selectedCitation && (
         <CitationPreview
           citation={selectedCitation}
-          onEdit={onCitationUpdate}
-          onRemove={onCitationDelete}
+          onDelete={onCitationDelete}
           onClose={() => onCitationSelect?.(null)}
         />
       )}

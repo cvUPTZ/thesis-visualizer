@@ -7,7 +7,7 @@ import LandingPage from '@/pages/LandingPage';
 import { useAuth } from '@/contexts/AuthContext';
 import { ThesisEditor } from '@/components/ThesisEditor';
 
-export const Routes = () => {
+const Routes = () => {
   const { isAuthenticated, loading } = useAuth();
   
   console.log('🔐 Auth state:', { isAuthenticated, loading });
