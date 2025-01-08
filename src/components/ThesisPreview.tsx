@@ -90,7 +90,7 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
           )}
         >
           {/* Title Page */}
-          <div className="mb-8 bg-white rounded-lg overflow-hidden">
+          <div className="mb-8 bg-white rounded-lg overflow-hidden thesis-page">
             {language === 'en' ? (
               <TitlePage metadata={thesis.metadata} titleSection={thesis.frontMatter[0]} />
             ) : (
@@ -102,12 +102,7 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
           {thesis.frontMatter.map((section: any, index: number) => (
             <div 
               key={section.id} 
-              className={cn(
-                "mb-8",
-                "min-h-[297mm]", // A4 height
-                "p-[20mm]", // Standard margins
-                "bg-white rounded-lg shadow-sm"
-              )}
+              className="thesis-page"
             >
               {section.type === 'abstract' ? (
                 <AbstractSection abstractSection={section} />
@@ -128,12 +123,7 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
               {chapter.sections.map((section: any) => (
                 <div 
                   key={section.id} 
-                  className={cn(
-                    "mb-8",
-                    "min-h-[297mm]", // A4 height
-                    "p-[20mm]", // Standard margins
-                    "bg-white rounded-lg shadow-sm"
-                  )}
+                  className="thesis-page"
                 >
                   <ContentSection
                     section={section}
@@ -151,12 +141,7 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
           {thesis.backMatter.map((section: any) => (
             <div 
               key={section.id} 
-              className={cn(
-                "mb-8",
-                "min-h-[297mm]", // A4 height
-                "p-[20mm]", // Standard margins
-                "bg-white rounded-lg shadow-sm"
-              )}
+              className="thesis-page"
             >
               <ContentSection
                 section={section}
