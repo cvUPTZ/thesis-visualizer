@@ -1,20 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2, RefreshCcw } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { IssueTable } from './issues/IssueTable';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, RefreshCw } from 'lucide-react';
 
 export const IssueManagement = () => {
-  const [issues, setIssues] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const { toast } = useToast();
-
-  const fetchIssues = async () => {
-    try {
+  const { data: issues, isLoading, error, refetch } = useQuery({
+    queryKey: ['app-issues'],
+    queryFn: async () => {
       console.log('Fetching app issues...');
-      setLoading(true);
       const { data, error } = await supabase
         .from('app_issues')
         .select(`
@@ -26,79 +30,97 @@ export const IssueManagement = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      console.log('Fetched issues:', data);
-      setIssues(data || []);
-      setLastRefresh(new Date());
-    } catch (error: any) {
-      console.error('Error fetching issues:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch issues',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
+      return data;
     }
-  };
+  });
 
-  useEffect(() => {
-    fetchIssues();
-
-    const subscription = supabase
-      .channel('app_issues_changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'app_issues' 
-        }, 
-        () => {
-          console.log('Issues table changed, refreshing data...');
-          fetchIssues();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(subscription);
-    };
-  }, [toast]);
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
+      <Card className="w-full h-[400px] flex items-center justify-center">
+        <CardContent className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading issues...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-destructive">Error Loading Issues</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            {error instanceof Error ? error.message : 'Failed to load issues'}
+          </p>
+          <Button 
+            onClick={() => refetch()} 
+            variant="outline" 
+            className="mt-4"
+          >
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Application Issues</h2>
-          <p className="text-sm text-muted-foreground">
-            Showing {issues.length} total issues • Last updated {formatDate(lastRefresh.toISOString())}
-          </p>
-        </div>
-        <Button onClick={fetchIssues} variant="outline" className="gap-2">
-          <RefreshCcw className="w-4 h-4" />
+        <h2 className="text-2xl font-bold">Application Issues</h2>
+        <Button 
+          onClick={() => refetch()} 
+          variant="outline" 
+          className="gap-2"
+        >
+          <RefreshCw className="w-4 h-4" />
           Refresh
         </Button>
       </div>
 
-      <div className="border rounded-lg">
-        <IssueTable issues={issues} formatDate={formatDate} />
+      <div className="rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Component</TableHead>
+              <TableHead>Error Message</TableHead>
+              <TableHead>User</TableHead>
+              <TableHead>Browser</TableHead>
+              <TableHead>Created At</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {issues?.map((issue) => (
+              <TableRow key={issue.id}>
+                <TableCell>
+                  <Badge variant="outline">
+                    {issue.component_name || 'Unknown'}
+                  </Badge>
+                </TableCell>
+                <TableCell className="max-w-md truncate">
+                  {issue.error_message}
+                </TableCell>
+                <TableCell>{issue.profiles?.email || 'Anonymous'}</TableCell>
+                <TableCell className="max-w-xs truncate">
+                  {issue.browser_info}
+                </TableCell>
+                <TableCell>
+                  {new Date(issue.created_at).toLocaleString()}
+                </TableCell>
+              </TableRow>
+            ))}
+            {!issues?.length && (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  No issues found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

@@ -269,7 +269,7 @@ export const SystemTest = () => {
               <Badge
                 variant={
                   result.status === 'success'
-                    ? 'success'
+                    ? 'secondary'
                     : result.status === 'error'
                     ? 'destructive'
                     : 'default'
