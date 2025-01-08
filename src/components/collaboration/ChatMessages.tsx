@@ -60,10 +60,23 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
   }
 
   return (
-    <div className={`fixed bottom-4 right-4 w-[400px] h-[500px] border rounded-lg shadow-lg z-50 flex flex-col overflow-hidden
-      ${theme === 'dark' ? 'bg-dark-bg border-dark-border' : 'bg-background border-border'}`}
-    >
-      <div className={`border-b p-3 ${theme === 'dark' ? 'bg-dark-card border-dark-border' : 'bg-editor-bg-accent border-editor-border'}`}>
+    <div className={`
+      fixed bottom-4 right-4 w-[400px] h-[500px] 
+      border rounded-lg shadow-lg z-50 
+      flex flex-col overflow-hidden
+      backdrop-blur-sm
+      ${theme === 'dark' 
+        ? 'bg-dark-bg/95 border-dark-border shadow-2xl' 
+        : 'bg-background/95 border-border'
+      }
+    `}>
+      <div className={`
+        p-3 border-b backdrop-blur-sm
+        ${theme === 'dark' 
+          ? 'bg-dark-card/90 border-dark-border' 
+          : 'bg-editor-bg-accent/90 border-editor-border'
+        }
+      `}>
         <h3 className="font-semibold">Chat</h3>
       </div>
       
