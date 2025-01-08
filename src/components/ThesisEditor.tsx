@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ThesisEditorHeader } from './thesis/editor/ThesisEditorHeader';
 import { ThesisEditorContent } from './thesis/editor/ThesisEditorContent';
 import { ThesisEditorPreview } from './thesis/editor/ThesisEditorPreview';
+import { ThesisTracker } from './thesis/tracker/ThesisTracker';
 import { useThesisRealtime } from '@/hooks/useThesisRealtime';
 import { Card } from './ui/card';
 import { Users } from 'lucide-react';
@@ -156,6 +157,9 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
               showPreview={showPreview}
               onTogglePreview={() => setShowPreview(!showPreview)}
             />
+            
+            {thesis && <ThesisTracker thesis={thesis} />}
+            
             <Card className="p-4 mb-4 bg-white/50 backdrop-blur-sm border border-primary/10">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="w-4 h-4" />
@@ -163,6 +167,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
               </div>
               {currentThesisId && <CollaboratorPresence thesisId={currentThesisId} />}
             </Card>
+            
             <ThesisEditorContent
               frontMatter={thesis?.frontMatter || []}
               chapters={thesis?.chapters || []}
