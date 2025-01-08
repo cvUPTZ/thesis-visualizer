@@ -1,9 +1,9 @@
-import { IStylesOptions, ITableOptions, TableProperties } from 'docx';
+import { IStylesOptions } from 'docx';
 
 export interface DocxGenerationOptions {
   font: string;
   fontSize: number;
-  margins: {
+  margins?: {
     top: number;
     right: number;
     bottom: number;
@@ -11,23 +11,28 @@ export interface DocxGenerationOptions {
   };
 }
 
+export interface ImageOptions {
+  data: Buffer | Uint8Array;
+  width: number;
+  height: number;
+  type?: string;
+  fallback?: string;
+}
+
 export interface TitlePageOptions {
   title: string;
   author: string;
   date: string;
+  university?: string;
+  department?: string;
 }
 
-export interface ImageOptions {
-  data: Buffer;
-  width: number;
-  height: number;
-  caption?: string;
+export interface TableOptions {
+  headers: string[];
+  rows: string[][];
+  style?: string;
 }
 
-export interface DocPropertiesOptions {
-  title?: string;
-  subject?: string;
-  creator?: string;
-  keywords?: string[];
-  description?: string;
+export interface StyleConfig {
+  default: IStylesOptions;
 }

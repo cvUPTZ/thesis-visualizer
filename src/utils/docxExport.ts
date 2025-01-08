@@ -1,29 +1,10 @@
-import {
-  Document,
-  Paragraph,
-  TextRun,
-  PageBreak,
-  Header,
-  Footer,
-  AlignmentType,
-  LevelFormat,
-  HeadingLevel,
-  PageNumber,
-  Table as DocxTable,
-  TableRow,
-  TableCell,
-  VerticalAlign,
-  WidthType,
-  ImageRun,
-  convertInchesToTwip,
-  BorderStyle,
-} from "docx";
+import { Document, Paragraph, TextRun, PageBreak, Header, Footer, AlignmentType, LevelFormat, HeadingLevel, PageNumber, Table as DocxTable, TableRow, TableCell, VerticalAlign, WidthType, ImageRun, convertInchesToTwip, BorderStyle } from "docx";
 import { MarkdownToDocx } from './markdownToDocx';
 import { documentStyles, pageSettings } from './documentStyles';
 import { createImage } from './imageUtils';
 import { createParagraph, createHeading } from './contentGenerators';
 import { generateTitlePage } from './titlePageGenerator';
-import { Thesis } from '@/types/thesis';
+import { Figure, Table, Citation, Reference, Section, Chapter } from '@/types/thesis';
 
 const defaultFont = "Times New Roman";
 const defaultFontSize = 24; //12pt
@@ -62,7 +43,7 @@ const createFooter = () => {
   });
 };
 
-const createAbstract = (thesis: Thesis) => {
+const createAbstract = (thesis) => {
   return [
     new Paragraph({
       heading: HeadingLevel.HEADING_1,
@@ -113,31 +94,23 @@ const createTableOfContents = () => {
 
 const createFigures = (figures: Figure[]) => {
   return figures.flatMap((figure) => {
-    const paragraphs = [];
+    const paragraphs: Paragraph[] = [];
     if (figure.imageUrl) {
       try {
-        paragraphs.push(new Paragraph({
-          alignment: AlignmentType.CENTER,
-          children: [
-            new ImageRun({
-              data: Buffer.from(figure.imageUrl.split(',')[1], 'base64'),
-              transformation: {
-                width: convertInchesToTwip(5),
-                height: convertInchesToTwip(3.75),
-              },
-            }),
-          ],
-        }));
+        paragraphs.push(
+          createImage({
+            data: Buffer.from(figure.imageUrl.split(',')[1], 'base64'),
+            width: convertInchesToTwip(5),
+            height: convertInchesToTwip(3.75),
+            type: 'image/png',
+            fallback: 'Image'
+          })
+        );
       } catch (e) {
         console.log(`Error loading image: ${figure.imageUrl}`);
-        paragraphs.push(new Paragraph({
-          children: [
-            new TextRun({
-              text: `Error loading image: ${figure.imageUrl}`,
-              font: defaultFont,
-              size: defaultFontSize,
-            }),
-          ],
+        paragraphs.push(createParagraph(`Error loading image: ${figure.imageUrl}`, {
+          font: defaultFont,
+          fontSize: defaultFontSize
         }));
       }
     }
@@ -337,78 +310,13 @@ const createChapterContentWithSections = (chapter: Chapter) => {
   return paragraphs;
 };
 
-export const generateThesisDocx = (thesis: Thesis): Document => {
+export const generateThesisDocx = (thesis) => {
   const doc = new Document({
-    styles: {
-      paragraphStyles: [
-        {
-          id: "Heading1",
-          name: "Heading 1",
-          basedOn: "Normal",
-          next: "Normal",
-          run: {
-            bold: true,
-            size: 28,
-          },
-          paragraph: {
-            spacing: {
-              before: 120,
-              after: 120,
-            },
-            outlineLevel: 1,
-          },
-        },
-        {
-          id: "Heading2",
-          name: "Heading 2",
-          basedOn: "Normal",
-          next: "Normal",
-          run: {
-            bold: true,
-            size: 26,
-          },
-          paragraph: {
-            spacing: {
-              before: 100,
-              after: 100,
-            },
-            outlineLevel: 2,
-          },
-        },
-        {
-          id: "Normal",
-          name: "Normal",
-          run: {
-            font: defaultFont,
-            size: defaultFontSize,
-          },
-        },
-      ],
-      tableStyles: [
-        {
-          id: 'TableGrid',
-          name: 'Table Grid',
-          table: {
-            border: {
-              size: 1,
-              style: BorderStyle.SINGLE,
-              color: '000000',
-            },
-          },
-        },
-      ],
-    },
+    styles: documentStyles,
     sections: [
       {
         properties: {
-          page: {
-            margin: {
-              top: convertInchesToTwip(1),
-              right: convertInchesToTwip(1),
-              bottom: convertInchesToTwip(1),
-              left: convertInchesToTwip(1.5),
-            },
-          },
+          page: pageSettings,
         },
         headers: {
           default: createHeader(),
@@ -417,7 +325,13 @@ export const generateThesisDocx = (thesis: Thesis): Document => {
           default: createFooter(),
         },
         children: [
-          ...generateTitlePage(thesis),
+          ...generateTitlePage({
+            title: thesis.frontMatter[0]?.title || "Untitled Thesis",
+            author: thesis.metadata?.authorName || "Unknown Author",
+            date: thesis.metadata?.thesisDate || new Date().toLocaleDateString(),
+            university: thesis.metadata?.universityName,
+            department: thesis.metadata?.departmentName,
+          }),
           ...createAbstract(thesis),
           ...createTableOfContents(),
           ...thesis.chapters.flatMap(chapter => createChapterContentWithSections(chapter)),
@@ -425,27 +339,12 @@ export const generateThesisDocx = (thesis: Thesis): Document => {
         ],
       },
     ],
-    numbering: {
-      config: [
-        {
-          reference: "heading1",
-          levels: [
-            {
-              level: 0,
-              format: LevelFormat.DECIMAL,
-              text: "%1.",
-              alignment: AlignmentType.LEFT,
-            },
-          ],
-        },
-      ],
-    },
   });
 
   return doc;
 };
 
-export const generatePreviewDocx = (thesis: Thesis): Document => {
+export const generatePreviewDocx = (thesis) => {
   const doc = new Document({
     styles: documentStyles,
     sections: [{
@@ -453,7 +352,11 @@ export const generatePreviewDocx = (thesis: Thesis): Document => {
         page: pageSettings,
       },
       children: [
-        ...generateTitlePage(thesis),
+        ...generateTitlePage({
+          title: thesis.frontMatter[0]?.title || "Untitled Thesis",
+          author: thesis.metadata?.authorName || "Unknown Author",
+          date: thesis.metadata?.thesisDate || new Date().toLocaleDateString(),
+        }),
         ...createAbstract(thesis),
         ...thesis.chapters.flatMap(chapter => createChapterContentWithSections(chapter)),
       ],

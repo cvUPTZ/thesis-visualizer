@@ -11,6 +11,7 @@ export const createImage = (options: ImageOptions): Paragraph => {
           width: options.width,
           height: options.height,
         },
+        fallback: options.fallback,
       }),
     ],
   });

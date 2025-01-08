@@ -1,4 +1,4 @@
-import { IStylesOptions, convertInchesToTwip } from 'docx';
+import { convertInchesToTwip, IStylesOptions } from 'docx';
 
 export const documentStyles: IStylesOptions = {
   default: {
