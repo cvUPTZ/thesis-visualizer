@@ -1,4 +1,4 @@
-import { HeadingLevel, Paragraph, TextRun } from 'docx';
+import { Document, Paragraph, TextRun, HeadingLevel, IRunOptions, IParagraphOptions } from 'docx';
 
 export const createHeading = (text: string, level: typeof HeadingLevel) => {
   return new Paragraph({
@@ -7,25 +7,30 @@ export const createHeading = (text: string, level: typeof HeadingLevel) => {
     spacing: {
       before: 240,
       after: 120
-    },
-    children: [
-      new TextRun({
-        text,
-        size: 28,
-        bold: true,
-        italics: false
-      })
-    ]
+    }
   });
 };
 
-export const createParagraph = (text: string) => {
+export const createParagraph = (text: string, options?: IParagraphOptions) => {
   return new Paragraph({
     children: [
       new TextRun({
         text,
-      }),
+        italics: true // Fixed from 'italic' to 'italics'
+      })
     ],
+    ...options
+  });
+};
+
+// Remove sectionProperties from paragraph options as it's not a valid property
+export const createSection = (title: string) => {
+  return new Paragraph({
+    text: title,
+    spacing: {
+      before: 480,
+      after: 240
+    }
   });
 };
 
