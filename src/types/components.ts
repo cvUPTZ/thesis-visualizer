@@ -34,6 +34,9 @@ export interface CitationManagerProps extends BaseProps {
   onCitationUpdate?: (citation: Citation) => void;
   onCitationDelete?: (citation: Citation) => void;
   thesisId: string;
+  onAddCitation?: (citation: any) => void;
+  onRemoveCitation?: (id: any) => void;
+  onUpdateCitation?: (citation: any) => void;
 }
 
 export interface CitationListProps extends BaseProps {
@@ -44,23 +47,14 @@ export interface CitationListProps extends BaseProps {
 }
 
 export interface CitationSearchProps {
-  onCitationSelect: (citation: Omit<Citation, "thesis_id">) => void;
-  onSearch?: (value: string) => void;
-  onFilterChange?: (value: string) => void;
-  onSortFieldChange?: (field: keyof Citation) => void;
-  onSortDirectionChange?: (direction: 'asc' | 'desc') => void;
-  currentFilter?: string;
-  currentSort?: keyof Citation;
-  currentDirection?: 'asc' | 'desc';
+  onCitationSelect: (citation: Citation) => void;
 }
 
 export interface CitationPreviewProps {
   citation: Citation;
-  onEdit?: (citation: Citation) => void;
-  onUpdate?: (citation: Citation) => void;
-  onRemove?: (citation: Citation) => void;
-  onDelete?: (citation: Citation) => void;
-  onClose?: () => void;
+  onClose: () => void;
+  onEdit: (citation: Citation) => void;
+  onDelete: (citation: Citation) => void;
 }
 
 export interface FigureProps extends BaseProps {

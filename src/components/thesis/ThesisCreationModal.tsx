@@ -7,7 +7,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle } from 'lucide-react';
 
-export const ThesisCreationModal = () => {
+interface ThesisCreationModalProps {
+  onThesisCreated?: () => void;
+}
+
+export const ThesisCreationModal: React.FC<ThesisCreationModalProps> = ({ onThesisCreated }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [open, setOpen] = React.useState(false);
@@ -54,6 +58,9 @@ export const ThesisCreationModal = () => {
       });
 
       setOpen(false);
+      if (onThesisCreated) {
+        onThesisCreated();
+      }
       navigate(`/thesis/${thesis.id}`);
     } catch (error: any) {
       console.error('Error creating thesis:', error);
