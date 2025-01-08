@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Citation } from '@/types/thesis';
 import { CitationSearch } from './citation/CitationSearch';
 import { CitationList } from './citation/CitationList';
@@ -86,7 +86,7 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
           <TabsContent value="all">
             <CitationList
               citations={sortedCitations}
-              onCitationSelect={onCitationSelect}
+              onSelect={onCitationSelect}
               selectedCitation={selectedCitation}
             />
           </TabsContent>
@@ -94,7 +94,7 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
           <TabsContent value="recent">
             <CitationList
               citations={sortedCitations.slice(0, 5)}
-              onCitationSelect={onCitationSelect}
+              onSelect={onCitationSelect}
               selectedCitation={selectedCitation}
             />
           </TabsContent>
@@ -102,10 +102,10 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
           <TabsContent value="search">
             <div className="space-y-4">
               <CitationSearch
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                filterType={filterType}
-                onFilterChange={handleFilterTypeChange}
+                term={searchTerm}
+                onTermChange={setSearchTerm}
+                type={filterType}
+                onTypeChange={handleFilterTypeChange}
                 sortField={sortField}
                 onSortFieldChange={setSortField}
                 sortDirection={sortDirection}
@@ -113,7 +113,7 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
               />
               <CitationList
                 citations={sortedCitations}
-                onCitationSelect={onCitationSelect}
+                onSelect={onCitationSelect}
                 selectedCitation={selectedCitation}
               />
             </div>
@@ -124,8 +124,8 @@ export const CitationManager: React.FC<CitationManagerProps> = ({
       {selectedCitation && (
         <CitationPreview
           citation={selectedCitation}
-          onUpdate={onCitationUpdate}
-          onDelete={onCitationDelete}
+          onSave={onCitationUpdate}
+          onRemove={onCitationDelete}
         />
       )}
     </Card>

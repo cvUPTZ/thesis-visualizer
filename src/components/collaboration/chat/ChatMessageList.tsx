@@ -29,9 +29,8 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) =>
   useEffect(() => {
     if (scrollRef.current) {
       const scrollElement = scrollRef.current;
-      const scrollHeight = scrollElement.scrollHeight;
       scrollElement.scrollTo({
-        top: scrollHeight,
+        top: scrollElement.scrollHeight,
         behavior: 'smooth'
       });
     }
@@ -42,7 +41,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({ messages }) =>
       className="flex-1 p-4 overflow-y-auto" 
       ref={scrollRef}
     >
-      <div className="space-y-4 flex flex-col-reverse"> {/* Reverse the flex direction */}
+      <div className="space-y-4 flex flex-col"> {/* Remove reverse direction */}
         {sortedMessages.map((message) => (
           <ChatMessageItem 
             key={message.id} 
