@@ -55,16 +55,24 @@ export const ChatInput: React.FC<ChatInputProps> = ({ thesisId, onMessageSent })
   };
 
   return (
-    <form onSubmit={handleSendMessage} className="p-4 border-t flex gap-2">
-      <Input
-        value={newMessage}
-        onChange={(e) => setNewMessage(e.target.value)}
-        placeholder="Type a message..."
-        disabled={isLoading}
-      />
-      <Button type="submit" size="icon" disabled={isLoading}>
-        <Send className="h-4 w-4" />
-      </Button>
+    <form onSubmit={handleSendMessage} className="p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex items-center gap-2">
+        <Input
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          placeholder="Type a message..."
+          disabled={isLoading}
+          className="flex-1 bg-muted/50"
+        />
+        <Button 
+          type="submit" 
+          size="icon" 
+          disabled={isLoading}
+          className="shrink-0 transition-all duration-200 hover:scale-105"
+        >
+          <Send className="h-4 w-4" />
+        </Button>
+      </div>
     </form>
   );
 };
