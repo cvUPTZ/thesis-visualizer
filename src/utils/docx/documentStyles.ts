@@ -1,4 +1,4 @@
-import { IStylesOptions, convertInchesToTwip } from 'docx';
+import { IStylesOptions, convertInchesToTwip, BorderStyle } from "docx";
 
 export const documentStyles: IStylesOptions = {
   paragraphStyles: [
@@ -7,10 +7,7 @@ export const documentStyles: IStylesOptions = {
       name: "Normal",
       run: {
         font: "Times New Roman",
-        size: 24,
-      },
-      paragraph: {
-        spacing: { before: 240, after: 240 }
+        size: 24
       }
     },
     {
@@ -19,12 +16,14 @@ export const documentStyles: IStylesOptions = {
       basedOn: "Normal",
       next: "Normal",
       run: {
-        size: 32,
-        bold: true
+        bold: true,
+        size: 32
       },
       paragraph: {
-        spacing: { before: 480, after: 240 },
-        outlineLevel: 0
+        spacing: {
+          before: 240,
+          after: 120
+        }
       }
     },
     {
@@ -33,12 +32,14 @@ export const documentStyles: IStylesOptions = {
       basedOn: "Normal",
       next: "Normal",
       run: {
-        size: 28,
-        bold: true
+        bold: true,
+        size: 28
       },
       paragraph: {
-        spacing: { before: 360, after: 240 },
-        outlineLevel: 1
+        spacing: {
+          before: 240,
+          after: 120
+        }
       }
     }
   ]

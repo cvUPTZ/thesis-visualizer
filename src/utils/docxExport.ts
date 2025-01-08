@@ -1,7 +1,7 @@
 import { Document, Paragraph, TextRun, PageBreak, Header, Footer, AlignmentType, PageNumber, BorderStyle } from "docx";
 import { MarkdownToDocx } from './markdownToDocx';
-import { documentStyles, pageSettings } from './documentStyles';
-import { Thesis } from '@/types/thesis';
+import { documentStyles, pageSettings } from './docx/documentStyles';
+import { Thesis, Section, Chapter } from '@/types/thesis';
 
 const defaultFont = "Times New Roman";
 const defaultFontSize = 24; // 12pt
@@ -229,7 +229,7 @@ export const generateThesisDocx = (thesis: Thesis) => {
       children: [
         ...createTitlePage(thesis),
         ...createAbstract(thesis),
-        ...thesis.chapters.flatMap(chapter => createChapterContentWithSections(chapter))
+        ...thesis.chapters.flatMap((chapter) => createChapterContentWithSections(chapter))
       ]
     }]
   });
@@ -246,7 +246,7 @@ export const generatePreviewDocx = (thesis: Thesis) => {
       children: [
         ...createTitlePage(thesis),
         ...createAbstract(thesis),
-        ...thesis.chapters.flatMap(chapter => createChapterContentWithSections(chapter))
+        ...thesis.chapters.flatMap((chapter) => createChapterContentWithSections(chapter))
       ]
     }]
   });
