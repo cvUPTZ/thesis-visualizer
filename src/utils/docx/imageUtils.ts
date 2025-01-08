@@ -1,20 +1,17 @@
-import { ImageRun, IImageOptions } from 'docx';
+import { IImageOptions, IMediaData } from 'docx';
 
-export interface ImageOptions {
-  data: Buffer | Uint8Array;
+interface ImageTransformation {
   width: number;
   height: number;
-  altText?: string;
 }
 
-export const createImage = (options: ImageOptions): ImageRun => {
-  const imageOptions: IImageOptions = {
-    data: options.data,
+export const createImageRun = (imageData: Buffer | Uint8Array, transformation: ImageTransformation): IImageOptions & IMediaData => {
+  return {
+    data: imageData,
     transformation: {
-      width: options.width,
-      height: options.height
-    }
+      width: transformation.width,
+      height: transformation.height,
+    },
+    type: 'image',
   };
-  
-  return new ImageRun(imageOptions);
 };
