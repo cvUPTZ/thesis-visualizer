@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Figure } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
+import { Figure } from '@/types/thesis';
 
 interface ChapterFiguresProps {
   chapter: {
+    id?: string;
     figures?: Figure[];
   };
   onUpdateChapter: (updatedChapter: any) => void;
@@ -15,14 +16,19 @@ export const ChapterFigures: React.FC<ChapterFiguresProps> = ({
   chapter,
   onUpdateChapter
 }) => {
-  const { toast } = useToast();
-  const [activeSection, setActiveSection] = useState(0);
   const [newFigureFile, setNewFigureFile] = useState<File | null>(null);
+  const { toast } = useToast();
 
   console.log('ChapterFigures rendering with:', { 
     chapterId: chapter?.id,
     figuresCount: chapter?.figures?.length 
   });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setNewFigureFile(e.target.files[0]);
+    }
+  };
 
   const handleAddFigure = (file: File) => {
     const figures = chapter.figures || [];
@@ -47,17 +53,11 @@ export const ChapterFigures: React.FC<ChapterFiguresProps> = ({
     });
 
     toast({
-      title: "Figure Added",
-      description: "New figure has been added successfully",
+      title: "Success",
+      description: "Figure added successfully",
     });
-  };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setNewFigureFile(file);
-      handleAddFigure(file);
-    }
+    setNewFigureFile(null);
   };
 
   // Ensure figures is always an array

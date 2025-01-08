@@ -2,8 +2,8 @@ export interface Message {
   id: string;
   content: string;
   sender_id: string;
-  created_at: string;
-  profiles?: {
-    email?: string;
+  sender?: {
+    email: string;
   };
+  created_at: string;
 }

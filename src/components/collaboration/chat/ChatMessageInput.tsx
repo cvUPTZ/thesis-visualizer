@@ -1,7 +1,6 @@
 import React from 'react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ChatMessageInputProps {
   value: string;
@@ -17,17 +16,18 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
   isLoading
 }) => {
   return (
-    <form onSubmit={onSubmit} className="p-4 border-t flex gap-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <Input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Type a message..."
-        disabled={isLoading}
-        className="flex-1"
-      />
-      <Button type="submit" size="icon" disabled={isLoading} variant="secondary">
-        <Send className="h-4 w-4" />
-      </Button>
+    <form onSubmit={onSubmit} className="border-t p-4">
+      <div className="flex gap-2">
+        <Textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Type a message..."
+          className="min-h-[80px]"
+        />
+        <Button type="submit" disabled={isLoading}>
+          Send
+        </Button>
+      </div>
     </form>
   );
 };

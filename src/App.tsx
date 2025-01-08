@@ -1,5 +1,5 @@
 import { ThemeProvider } from './components/ThemeProvider';
-import { Routes } from './Routes';
+import Routes from './Routes';
 import { Toaster } from './components/ui/toaster';
 
 function App() {

@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
-import { ChatMessageList } from './ChatMessageList';
-import { ChatMessageInput } from './ChatMessageInput';
-import { useChatMessages } from './useChatMessages';
+import React from 'react';
+import { ChatMessageList } from './chat/ChatMessageList';
+import { ChatMessageInput } from './chat/ChatMessageInput';
+import { useChatMessages } from './chat/useChatMessages';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '../ThemeProvider';
@@ -63,7 +63,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
     <div className={`fixed bottom-4 right-4 w-[400px] h-[500px] border rounded-lg shadow-lg z-50 flex flex-col overflow-hidden
       ${theme === 'dark' ? 'bg-dark-bg border-dark-border' : 'bg-background border-border'}`}
     >
-      <div className={`border-b ${theme === 'dark' ? 'bg-dark-card border-dark-border' : 'bg-editor-bg-accent border-editor-border'}`}>
+      <div className={`border-b p-3 ${theme === 'dark' ? 'bg-dark-card border-dark-border' : 'bg-editor-bg-accent border-editor-border'}`}>
         <h3 className="font-semibold">Chat</h3>
       </div>
       
