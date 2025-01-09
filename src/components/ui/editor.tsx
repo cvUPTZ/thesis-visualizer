@@ -1,194 +1,181 @@
-import React from 'react';
-import { Chapter, Section } from '@/types/thesis';
-import { MarkdownEditor } from '../MarkdownEditor';
-import { FigureManager } from '../FigureManager';
-import { TableManager } from '../TableManager';
-import { CitationManager } from '../CitationManager';
-import { ReferenceManager } from '../ReferenceManager';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { PlusCircle } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Editor as TipTapEditor } from '@tiptap/react';
+import { EditorProps } from '@/types/components';
+import { Citation } from '@/types/thesis';
+import { CitationManager } from '@/components/CitationManager';
+import { useThesis } from '@/hooks/useThesis';
+import { Button } from './button';
+import { Toolbar } from './toolbar';
+import { EditorContent } from './editor-content';
+import { EditorProvider } from './editor-provider';
+import {
+  Bold,
+  Italic,
+  Underline,
+  Quote,
+  List,
+  ListOrdered,
+  Heading1,
+  Heading2,
+  Heading3,
+  Undo,
+  Redo,
+  Link,
+  Image,
+  Table,
+  Code,
+  FileText,
+} from 'lucide-react';
 
-interface ThesisContentProps {
-  frontMatter: Section[];
-  chapters: Chapter[];
-  backMatter: Section[];
-  activeSection: string;
-  onContentChange: (id: string, content: string) => void;
-  onTitleChange: (id: string, title: string) => void;
-  onUpdateChapter: (chapter: Chapter) => void;
-  onAddChapter: () => void;
-}
+export function Editor({ value, onChange }: EditorProps) {
+  const [citations, setCitations] = useState<Citation[]>([]);
+  const editorRef = useRef<TipTapEditor | null>(null);
+  const { thesisId } = useThesis();
 
-export const ThesisContent = ({
-    frontMatter,
-    chapters,
-    backMatter,
-    activeSection,
-    onContentChange,
-    onTitleChange,
-    onUpdateChapter,
-    onAddChapter
-}: ThesisContentProps) => {
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.commands.setContent(value);
+    }
+  }, [value]);
 
-    const handleAddSection = (chapterId: string) => {
-        const chapter = chapters.find((c) => c.id === chapterId);
-        if (!chapter) return;
-
-        const newSection: Section = {
-            id: Date.now().toString(),
-            title: 'New Section',
-            content: '',
-            type: 'custom',
-            order: chapter.sections.length + 1,
-            figures: [],
-            tables: [],
-            citations: [],
-            references: []
-        };
-        
-        const introductionSection: Section = {
-            id: Date.now().toString() + "-intro",
-            title: 'Introduction',
-            content: 'Introduction',
-             type: 'custom',
-             order: 1,
-             figures: [],
-             tables: [],
-             citations: [],
-             references: []
-        };
-        
-
-        onUpdateChapter({
-            ...chapter,
-            sections: [introductionSection, ...chapter.sections, newSection]
-        });
-    };
-  const renderSectionContent = (section: Section) => {
-    const isActive = activeSection === section.id;
-
-    if (!isActive) return null;
-      return (
-          <div key={section.id} className="editor-section space-y-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Input
-                value={section.title}
-                onChange={(e) => onTitleChange(section.id, e.target.value)}
-                className="text-xl font-serif border-none bg-transparent px-0 focus-visible:ring-0"
-              />
-            </div>
-            <div className="mb-6">
-              <MarkdownEditor
-                  value={section.content}
-                  onChange={(value) => onContentChange(section.id, value || '')}
-                  placeholder="Start writing..."
-              />
-            </div>
-            <div className="space-y-8">
-              <FigureManager
-                figures={section.figures}
-                onAddFigure={(figure) => {
-                    section.figures.push(figure);
-                    onContentChange(section.id, section.content);
-                }}
-                onRemoveFigure={(id) => {
-                    section.figures = section.figures.filter(f => f.id !== id);
-                  onContentChange(section.id, section.content);
-                }}
-                onUpdateFigure={(figure) => {
-                  section.figures = section.figures.map(f => f.id === figure.id ? figure : f);
-                  onContentChange(section.id, section.content);
-                }}
-              />
-              <TableManager
-                tables={section.tables}
-                onAddTable={(table) => {
-                    section.tables.push(table);
-                  onContentChange(section.id, section.content);
-                }}
-                onRemoveTable={(id) => {
-                    section.tables = section.tables.filter(t => t.id !== id);
-                  onContentChange(section.id, section.content);
-                }}
-                onUpdateTable={(table) => {
-                  section.tables = section.tables.map(t => t.id === table.id ? table : t);
-                  onContentChange(section.id, section.content);
-                }}
-              />
-              <CitationManager
-                  citations={section.citations}
-                  onAddCitation={(citation) => {
-                      section.citations.push(citation);
-                      onContentChange(section.id, section.content);
-                  }}
-                  onRemoveCitation={(id) => {
-                      section.citations = section.citations.filter(c => c.id !== id);
-                    onContentChange(section.id, section.content);
-                  }}
-                  onUpdateCitation={(citation) => {
-                      section.citations = section.citations.map(c => c.id === citation.id ? citation : c);
-                    onContentChange(section.id, section.content);
-                  }}
-              />
-              {section.type === 'references' && section.references && (
-                  <ReferenceManager
-                      items={section.references}
-                    onAdd={(reference) => {
-                      section.references = [...(section.references || []), reference];
-                        onContentChange(section.id, section.content);
-                    }}
-                    onRemove={(id) => {
-                      section.references = section.references?.filter(r => r.id !== id);
-                        onContentChange(section.id, section.content);
-                    }}
-                    onUpdate={(reference) => {
-                      section.references = section.references?.map(r => r.id === reference.id ? reference : r);
-                        onContentChange(section.id, section.content);
-                    }}
-                  />
-              )}
-            </div>
-          </div>
-      )
+  const handleUpdate = ({ editor }: { editor: TipTapEditor }) => {
+    const content = editor.getHTML();
+    onChange(content);
   };
 
+  const toolbarItems = [
+    {
+      icon: <Bold className="h-4 w-4" />,
+      title: 'Bold',
+      action: () => editorRef.current?.chain().focus().toggleBold().run(),
+    },
+    {
+      icon: <Italic className="h-4 w-4" />,
+      title: 'Italic',
+      action: () => editorRef.current?.chain().focus().toggleItalic().run(),
+    },
+    {
+      icon: <Underline className="h-4 w-4" />,
+      title: 'Underline',
+      action: () => editorRef.current?.chain().focus().toggleUnderline().run(),
+    },
+    {
+      icon: <Quote className="h-4 w-4" />,
+      title: 'Quote',
+      action: () => editorRef.current?.chain().focus().toggleBlockquote().run(),
+    },
+    {
+      icon: <List className="h-4 w-4" />,
+      title: 'Bullet List',
+      action: () => editorRef.current?.chain().focus().toggleBulletList().run(),
+    },
+    {
+      icon: <ListOrdered className="h-4 w-4" />,
+      title: 'Numbered List',
+      action: () => editorRef.current?.chain().focus().toggleOrderedList().run(),
+    },
+    {
+      icon: <Heading1 className="h-4 w-4" />,
+      title: 'Heading 1',
+      action: () => editorRef.current?.chain().focus().toggleHeading({ level: 1 }).run(),
+    },
+    {
+      icon: <Heading2 className="h-4 w-4" />,
+      title: 'Heading 2',
+      action: () => editorRef.current?.chain().focus().toggleHeading({ level: 2 }).run(),
+    },
+    {
+      icon: <Heading3 className="h-4 w-4" />,
+      title: 'Heading 3',
+      action: () => editorRef.current?.chain().focus().toggleHeading({ level: 3 }).run(),
+    },
+    {
+      icon: <Link className="h-4 w-4" />,
+      title: 'Link',
+      action: () => {
+        const url = window.prompt('Enter URL:');
+        if (url) {
+          editorRef.current?.chain().focus().setLink({ href: url }).run();
+        }
+      },
+    },
+    {
+      icon: <Image className="h-4 w-4" />,
+      title: 'Image',
+      action: () => {
+        const url = window.prompt('Enter image URL:');
+        if (url) {
+          editorRef.current?.chain().focus().setImage({ src: url }).run();
+        }
+      },
+    },
+    {
+      icon: <Table className="h-4 w-4" />,
+      title: 'Table',
+      action: () => editorRef.current?.chain().focus().insertTable().run(),
+    },
+    {
+      icon: <Code className="h-4 w-4" />,
+      title: 'Code Block',
+      action: () => editorRef.current?.chain().focus().toggleCodeBlock().run(),
+    },
+    {
+      icon: <FileText className="h-4 w-4" />,
+      title: 'Clear Format',
+      action: () => editorRef.current?.chain().focus().clearNodes().unsetAllMarks().run(),
+    },
+    {
+      icon: <Undo className="h-4 w-4" />,
+      title: 'Undo',
+      action: () => editorRef.current?.chain().focus().undo().run(),
+    },
+    {
+      icon: <Redo className="h-4 w-4" />,
+      title: 'Redo',
+      action: () => editorRef.current?.chain().focus().redo().run(),
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-          {frontMatter.map(section => renderSectionContent(section))}
-          <div className="space-y-6">
-          <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-serif font-semibold">Chapters</h2>
-              <Button onClick={onAddChapter} className="flex items-center gap-2">
-                  <PlusCircle className="w-4 h-4" />
-                  Add Chapter
+    <div className="relative">
+      <EditorProvider
+        onUpdate={handleUpdate}
+        editorRef={editorRef}
+        content={value}
+      >
+        <div className="border border-input rounded-lg">
+          <Toolbar>
+            {toolbarItems.map((item, index) => (
+              <Button
+                key={index}
+                variant="ghost"
+                size="sm"
+                onClick={item.action}
+                title={item.title}
+              >
+                {item.icon}
               </Button>
-          </div>
-            {chapters.map((chapter) => (
-              <div key={chapter.id} className="border rounded-lg p-6 space-y-6">
-                <Input
-                  value={chapter.title}
-                  onChange={(e) =>
-                    onUpdateChapter({ ...chapter, title: e.target.value })
-                  }
-                  className="text-xl font-serif"
-                  placeholder="Chapter Title"
-                />
-                <div className="space-y-6">
-                    {chapter.sections.map((section) => renderSectionContent(section))}
-                  <Button
-                    onClick={() => handleAddSection(chapter.id)}
-                    variant="outline"
-                    className="mt-4"
-                  >
-                    Add Section
-                  </Button>
-                </div>
-              </div>
             ))}
-          </div>
-          {backMatter.map(section => renderSectionContent(section))}
+          </Toolbar>
+          <EditorContent />
+        </div>
+      </EditorProvider>
+
+      <CitationManager
+        citations={citations}
+        onCitationCreate={(citation) => {
+          setCitations(prev => [...prev, citation]);
+        }}
+        onCitationUpdate={(citation) => {
+          setCitations(prev => 
+            prev.map(c => c.id === citation.id ? citation : c)
+          );
+        }}
+        onCitationDelete={(citation) => {
+          setCitations(prev => prev.filter(c => c.id !== citation.id));
+        }}
+        thesisId={thesisId}
+      />
     </div>
   );
-};
+}
