@@ -25,7 +25,7 @@ const LandingPage = () => {
                 Visualize Your Progress
               </h2>
               <p className="mt-4 text-lg leading-8 text-gray-600 max-w-2xl mx-auto">
-                Track your thesis development with our interactive visualization tool.
+                Track your thesis development with our _______________ visualization tool.
                 Monitor progress, collaborate with team members, and stay on top of deadlines.
               </p>
             </div>
