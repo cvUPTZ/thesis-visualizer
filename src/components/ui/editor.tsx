@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Editor as TipTapEditor, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -31,7 +31,7 @@ export function Editor({ value, onChange }: EditorProps) {
       Image,
       Table
     ],
-    content: value,
+    content: value || '', // Provide a default empty string
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     }
@@ -39,7 +39,7 @@ export function Editor({ value, onChange }: EditorProps) {
 
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value);
+      editor.commands.setContent(value || ''); // Provide a default empty string
     }
   }, [value, editor]);
 
