@@ -1,8 +1,17 @@
 #root {
   width: 100%;
-  margin: 0 auto;
-  padding: 2rem;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
   text-align: center;
+  overflow-x: hidden;
+}
+
+.app-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {
