@@ -22,6 +22,27 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      toast({
+        title: "Invalid Password",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Check if enough time has passed since last attempt (3 seconds)
     const now = Date.now();
     if (now - lastAttempt < 3000) {
@@ -37,7 +58,7 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
     setLoading(true);
 
     try {
-      console.log('🔐 Attempting auth:', mode);
+      console.log('🔐 Attempting auth:', mode, { email });
       const { error } = mode === 'signin'
         ? await supabase.auth.signInWithPassword({ email, password })
         : await supabase.auth.signUp({ email, password });
@@ -45,11 +66,19 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
       if (error) {
         console.error('❌ Auth error:', error);
         
-        // Handle rate limiting specifically
+        // Handle specific error cases
         if (error.message.includes('rate limit')) {
           toast({
             title: "Too many attempts",
             description: "Please wait a moment before trying again",
+            variant: "destructive",
+          });
+        } else if (error.message.includes('Invalid login credentials')) {
+          toast({
+            title: "Authentication Failed",
+            description: mode === 'signin' 
+              ? "Invalid email or password. Please check your credentials and try again."
+              : "Unable to create account. Please try again.",
             variant: "destructive",
           });
         } else {
