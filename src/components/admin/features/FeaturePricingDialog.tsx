@@ -9,8 +9,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
 
 interface FeaturePricingDialogProps {
   feature: {
@@ -20,7 +21,7 @@ interface FeaturePricingDialogProps {
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpdatePricing: (featureId: string, pricingTier: string) => Promise<void>;
+  onUpdatePricing: (featureId: string, pricingTier: string, trialDays?: number) => Promise<void>;
 }
 
 export const FeaturePricingDialog = ({ 
@@ -29,13 +30,14 @@ export const FeaturePricingDialog = ({
   onOpenChange,
   onUpdatePricing 
 }: FeaturePricingDialogProps) => {
-  const [selectedTier, setSelectedTier] = React.useState(feature.pricing_tier);
-  const [isUpdating, setIsUpdating] = React.useState(false);
+  const [selectedTier, setSelectedTier] = useState(feature.pricing_tier);
+  const [trialDays, setTrialDays] = useState<number>(14);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleUpdate = async () => {
     try {
       setIsUpdating(true);
-      await onUpdatePricing(feature.id, selectedTier);
+      await onUpdatePricing(feature.id, selectedTier, trialDays);
       onOpenChange(false);
     } finally {
       setIsUpdating(false);
@@ -76,7 +78,25 @@ export const FeaturePricingDialog = ({
               <RadioGroupItem value="paid" id="paid" />
               <Label htmlFor="paid">Paid Tier</Label>
             </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="trial" id="trial" />
+              <Label htmlFor="trial">Trial</Label>
+            </div>
           </RadioGroup>
+          
+          {selectedTier === 'trial' && (
+            <div className="space-y-2">
+              <Label htmlFor="trialDays">Trial Period (days)</Label>
+              <Input
+                id="trialDays"
+                type="number"
+                value={trialDays}
+                onChange={(e) => setTrialDays(parseInt(e.target.value))}
+                min={1}
+                max={90}
+              />
+            </div>
+          )}
         </div>
         <div className="flex justify-end gap-2">
           <Button
@@ -89,7 +109,14 @@ export const FeaturePricingDialog = ({
             onClick={handleUpdate}
             disabled={isUpdating || selectedTier === feature.pricing_tier}
           >
-            {isUpdating ? 'Updating...' : 'Update'}
+            {isUpdating ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Updating...
+              </>
+            ) : (
+              'Update'
+            )}
           </Button>
         </div>
       </DialogContent>

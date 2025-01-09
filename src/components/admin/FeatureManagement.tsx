@@ -80,14 +80,15 @@ export const FeatureManagement = () => {
     }
   };
 
-  const updateFeaturePricing = async (featureId: string, pricingTier: string) => {
+  const updateFeaturePricing = async (featureId: string, pricingTier: string, trialDays?: number) => {
     try {
-      console.log('Updating feature pricing:', { featureId, pricingTier });
+      console.log('Updating feature pricing:', { featureId, pricingTier, trialDays });
       
       const { error } = await supabase
         .from('features')
         .update({ 
           pricing_tier: pricingTier,
+          trial_days: trialDays,
           last_updated: new Date().toISOString()
         })
         .eq('id', featureId);
@@ -98,7 +99,7 @@ export const FeatureManagement = () => {
       
       toast({
         title: "Feature Updated",
-        description: `Feature pricing tier has been updated to ${pricingTier}. User access has been updated accordingly.`,
+        description: `Feature pricing tier has been updated to ${pricingTier}${trialDays ? ` with ${trialDays} days trial` : ''}`,
       });
     } catch (error) {
       console.error('Error updating feature pricing:', error);

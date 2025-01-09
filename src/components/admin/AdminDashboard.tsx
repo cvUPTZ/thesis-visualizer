@@ -5,8 +5,9 @@ import { FeatureManagement } from './FeatureManagement';
 import { UserManagement } from './UserManagement';
 import { ThesisManagement } from './ThesisManagement';
 import { IssueManagement } from './IssueManagement';
+import { FeedbackManagement } from './feedback/FeedbackManagement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, AlertTriangle, Users, FileText, Bug, Settings } from 'lucide-react';
+import { Activity, AlertTriangle, Users, FileText, Bug, Settings, MessageSquare } from 'lucide-react';
 
 export const AdminDashboard = () => {
   console.log('Rendering AdminDashboard');
@@ -18,7 +19,7 @@ export const AdminDashboard = () => {
       <SystemStats />
       
       <Tabs defaultValue="features" className="space-y-4">
-        <TabsList className="grid grid-cols-6 w-full">
+        <TabsList className="grid grid-cols-7 w-full">
           <TabsTrigger value="features" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Features
@@ -42,6 +43,10 @@ export const AdminDashboard = () => {
           <TabsTrigger value="activity" className="flex items-center gap-2">
             <Activity className="w-4 h-4" />
             Activity
+          </TabsTrigger>
+          <TabsTrigger value="feedback" className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" />
+            Feedback
           </TabsTrigger>
         </TabsList>
         
@@ -67,6 +72,10 @@ export const AdminDashboard = () => {
         
         <TabsContent value="activity">
           <ActivityLog />
+        </TabsContent>
+
+        <TabsContent value="feedback">
+          <FeedbackManagement />
         </TabsContent>
       </Tabs>
     </div>
