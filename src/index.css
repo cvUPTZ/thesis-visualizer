@@ -65,7 +65,7 @@
   }
   
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans min-h-screen w-full overflow-x-hidden;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
   
@@ -176,8 +176,12 @@
 
 @layer base {
   /* Division */
+  #root {
+    @apply min-h-screen w-full overflow-x-hidden;
+  }
+  
   #root > div {
-    @apply w-[118%] overflow-visible translate-x-[-109px] translate-y-[-35px];
+    @apply w-full overflow-visible;
   }
 }
 
@@ -192,4 +196,3 @@
     color: #000000;
   }
 }
-
