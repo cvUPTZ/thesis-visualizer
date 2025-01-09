@@ -3,15 +3,17 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { Footer } from "@/components/landing/Footer";
-import { FeedbackForm } from "@/components/landing/FeedbackForm";
 import EnhancedThesisViz from "@/components/landing/visualization/EnhancedThesisViz";
 import { Navbar } from "@/components/shared/Navbar";
+import { FeaturesComparison } from "@/components/landing/FeaturesComparison";
+import { TestimonialCarousel } from "@/components/landing/TestimonialCarousel";
+import { FeedbackForm } from "@/components/landing/FeedbackForm";
 
 const LandingPage = () => {
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <Navbar />
-      <div className="pt-16">
+      <div className="pt-16"> {/* Add padding-top to account for fixed navbar */}
         <HeroSection />
         <div className="relative py-32 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-white via-gray-50 to-white opacity-50" />
@@ -31,11 +33,10 @@ const LandingPage = () => {
           </div>
         </div>
         <FeaturesSection />
+        <FeaturesComparison />
         <PricingSection />
-        <div className="max-w-2xl mx-auto px-4 py-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Share Your Feedback</h2>
-          <FeedbackForm />
-        </div>
+        <TestimonialCarousel />
+        <FeedbackForm />
         <Footer />
       </div>
     </div>
