@@ -9,25 +9,25 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --background: 0, 0%, 100%;
+    --foreground: 222.2, 84%, 4.9%;
+    --card: 0, 0%, 100%;
+    --card-foreground: 222.2, 84%, 4.9%;
+    --popover: 0, 0%, 100%;
+    --popover-foreground: 222.2, 84%, 4.9%;
+    --primary: 222.2, 47.4%, 11.2%;
+    --primary-foreground: 210, 40%, 98%;
+    --secondary: 210, 40%, 96.1%;
+    --secondary-foreground: 222.2, 47.4%, 11.2%;
+    --muted: 210, 40%, 96.1%;
+    --muted-foreground: 215.4, 16.3%, 46.9%;
+    --accent: 210, 40%, 96.1%;
+    --accent-foreground: 222.2, 47.4%, 11.2%;
+    --destructive: 0, 84.2%, 60.2%;
+    --destructive-foreground: 210, 40%, 98%;
+    --border: 214.3, 31.8%, 91.4%;
+    --input: 214.3, 31.8%, 91.4%;
+    --ring: 222.2, 84%, 4.9%;
     --radius: 0.5rem;
   }
 
@@ -65,7 +65,7 @@
   }
   
   body {
-    @apply bg-background text-foreground font-sans min-h-screen w-full overflow-x-hidden;
+    @apply bg-background text-foreground font-sans;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
   
@@ -105,6 +105,16 @@
   small {
     @apply text-sm;
   }
+
+  /* Root and container setup */
+  #root {
+    @apply w-full max-w-[100vw] overflow-x-hidden;
+  }
+
+  .container {
+    @apply w-full mx-auto px-4 md:px-6 lg:px-8;
+    max-width: 1440px;
+  }
 }
 
 @layer utilities {
@@ -130,6 +140,11 @@
   
   .scale-in {
     @apply animate-scale-in;
+  }
+
+  .content-wrapper {
+    @apply w-full relative mx-auto;
+    max-width: min(100%, 1440px);
   }
 }
 
@@ -174,22 +189,13 @@
   @apply text-gray-500;
 }
 
-@layer base {
-  #root {
-    @apply min-h-screen w-full overflow-x-hidden;
-  }
-  
-  #root > div {
-    @apply w-full overflow-visible;
-  }
-}
-
 @layer components {
-  #root div .hover\:text-accent-foreground:nth-child(2) {
-    color: #000000;
+  /* Button hover states */
+  .btn-hover {
+    @apply transition-colors duration-200;
   }
 
-  #root div .hover\:text-accent-foreground:nth-child(3) {
-    color: #000000;
+  .btn-hover:hover {
+    @apply text-accent-foreground;
   }
 }
