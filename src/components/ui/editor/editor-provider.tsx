@@ -9,10 +9,16 @@ import Table from '@tiptap/extension-table';
 interface EditorProviderProps {
   children: React.ReactNode;
   content: string;
-  onUpdate: (content: string) => void;
+  onUpdate: () => void;
+  editorRef: React.MutableRefObject<Editor | null>;
 }
 
-export const EditorProvider: React.FC<EditorProviderProps> = ({ children, content, onUpdate }) => {
+export const EditorProvider: React.FC<EditorProviderProps> = ({ 
+  children, 
+  content, 
+  onUpdate,
+  editorRef 
+}) => {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -22,10 +28,12 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children, conten
       Table
     ],
     content,
-    onUpdate: ({ editor }) => {
-      onUpdate(editor.getHTML());
-    },
+    onUpdate,
   });
+
+  if (editor && editorRef) {
+    editorRef.current = editor;
+  }
 
   return (
     <div className="border rounded-md">

@@ -9,22 +9,9 @@ import { Toolbar } from './editor/toolbar';
 import { EditorContent } from './editor/editor-content';
 import { EditorProvider } from './editor/editor-provider';
 import {
-  Bold,
-  Italic,
-  Underline,
-  Quote,
-  List,
-  ListOrdered,
-  Heading1,
-  Heading2,
-  Heading3,
-  Undo,
-  Redo,
-  Link,
-  Image,
-  Table,
-  Code,
-  FileText,
+  Bold, Italic, Underline, Quote, List, ListOrdered,
+  Heading1, Heading2, Heading3, Undo, Redo, Link,
+  Image, Table, Code, FileText
 } from 'lucide-react';
 
 export function Editor({ value, onChange }: EditorProps) {
@@ -38,9 +25,11 @@ export function Editor({ value, onChange }: EditorProps) {
     }
   }, [value]);
 
-  const handleUpdate = ({ editor }: { editor: TipTapEditor }) => {
-    const content = editor.getHTML();
-    onChange(content);
+  const handleUpdate = () => {
+    if (editorRef.current) {
+      const content = editorRef.current.getHTML();
+      onChange(content);
+    }
   };
 
   const toolbarItems = [
@@ -141,6 +130,7 @@ export function Editor({ value, onChange }: EditorProps) {
       <EditorProvider
         onUpdate={handleUpdate}
         content={value}
+        editorRef={editorRef}
       >
         <div className="border border-input rounded-lg">
           <Toolbar editor={editorRef.current}>
