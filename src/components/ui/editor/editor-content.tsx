@@ -1,10 +1,18 @@
 import React from 'react';
-import { EditorContent as TiptapContent, Editor } from '@tiptap/react';
+import { Editor, EditorContent as TipTapEditorContent } from '@tiptap/react';
 
 interface EditorContentProps {
   editor: Editor | null;
 }
 
-export const EditorContent: React.FC<EditorContentProps> = ({ editor }) => {
-  return <TiptapContent editor={editor} className="p-4 prose prose-sm max-w-none" />;
-};
+export function EditorContent({ editor }: EditorContentProps) {
+  if (!editor) {
+    return null;
+  }
+
+  return (
+    <div className="editor-content p-4">
+      <TipTapEditorContent editor={editor} />
+    </div>
+  );
+}
