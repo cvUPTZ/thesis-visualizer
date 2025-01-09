@@ -4,6 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import tailwindcss from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
+import postcssNesting from 'postcss-nesting';
 
 export default defineConfig(({ mode }) => ({
   server: {
@@ -22,6 +23,7 @@ export default defineConfig(({ mode }) => ({
   css: {
     postcss: {
       plugins: [
+        postcssNesting(),
         tailwindcss,
         autoprefixer,
       ],
