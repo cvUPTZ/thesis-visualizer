@@ -7,7 +7,7 @@ interface ToolbarProps {
   children: React.ReactNode;
 }
 
-export const Toolbar = ({ editor, children }: ToolbarProps) => {
+export const Toolbar: React.FC<ToolbarProps> = ({ editor, children }) => {
   if (!editor) return null;
 
   return (

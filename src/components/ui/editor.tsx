@@ -5,9 +5,9 @@ import { Citation } from '@/types/thesis';
 import { CitationManager } from '@/components/CitationManager';
 import { useThesis } from '@/hooks/useThesis';
 import { Button } from './button';
-import { Toolbar } from './toolbar';
-import { EditorContent } from './editor-content';
-import { EditorProvider } from './editor-provider';
+import { Toolbar } from './editor/toolbar';
+import { EditorContent } from './editor/editor-content';
+import { EditorProvider } from './editor/editor-provider';
 import {
   Bold,
   Italic,
@@ -140,11 +140,10 @@ export function Editor({ value, onChange }: EditorProps) {
     <div className="relative">
       <EditorProvider
         onUpdate={handleUpdate}
-        editorRef={editorRef}
         content={value}
       >
         <div className="border border-input rounded-lg">
-          <Toolbar>
+          <Toolbar editor={editorRef.current}>
             {toolbarItems.map((item, index) => (
               <Button
                 key={index}
@@ -174,7 +173,7 @@ export function Editor({ value, onChange }: EditorProps) {
         onCitationDelete={(citation) => {
           setCitations(prev => prev.filter(c => c.id !== citation.id));
         }}
-        thesisId={thesis?.id}
+        thesisId={thesis?.id || ''}
       />
     </div>
   );
