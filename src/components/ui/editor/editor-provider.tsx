@@ -1,14 +1,26 @@
 import React from 'react';
-import { useEditor } from '@tiptap/react';
+import { useEditor, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
+import Table from '@tiptap/extension-table';
 
-export const EditorProvider = ({ children, content, onUpdate }: {
+interface EditorProviderProps {
   children: React.ReactNode;
   content: string;
   onUpdate: (content: string) => void;
-}) => {
+}
+
+export const EditorProvider = ({ children, content, onUpdate }: EditorProviderProps) => {
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [
+      StarterKit,
+      Underline,
+      Link,
+      Image,
+      Table
+    ],
     content,
     onUpdate: ({ editor }) => {
       onUpdate(editor.getHTML());

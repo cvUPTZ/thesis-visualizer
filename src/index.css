@@ -175,7 +175,6 @@
 }
 
 @layer base {
-  /* Division */
   #root {
     @apply min-h-screen w-full overflow-x-hidden;
   }
@@ -186,12 +185,10 @@
 }
 
 @layer components {
-  /* Hover */
   #root div .hover\:text-accent-foreground:nth-child(2) {
     color: #000000;
   }
 
-  /* Hover */
   #root div .hover\:text-accent-foreground:nth-child(3) {
     color: #000000;
   }
