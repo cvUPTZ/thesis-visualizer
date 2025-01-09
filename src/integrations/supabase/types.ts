@@ -328,6 +328,7 @@ export type Database = {
           created_at: string
           id: string
           language: string
+          supervisor_email: string | null
           title: string
           updated_at: string
           user_id: string
@@ -337,6 +338,7 @@ export type Database = {
           created_at?: string
           id?: string
           language?: string
+          supervisor_email?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -346,11 +348,60 @@ export type Database = {
           created_at?: string
           id?: string
           language?: string
+          supervisor_email?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      thesis_annotations: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          reviewer_id: string | null
+          section_id: string
+          thesis_id: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          id?: string
+          reviewer_id?: string | null
+          section_id: string
+          thesis_id?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          reviewer_id?: string | null
+          section_id?: string
+          thesis_id?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thesis_annotations_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thesis_annotations_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "theses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       thesis_collaborators: {
         Row: {
