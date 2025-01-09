@@ -26,6 +26,7 @@ export const ThesisCreationForm = () => {
       title: '',
       description: '',
       keywords: '',
+      supervisorEmail: '', // Added supervisorEmail
       universityName: '',
       departmentName: '',
       authorName: '',
@@ -43,6 +44,11 @@ export const ThesisCreationForm = () => {
       if (!values.keywords) {
         err.keywords = "Keywords are required";
       }
+      if (!values.supervisorEmail) {
+        err.supervisorEmail = "Supervisor email is required";
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.supervisorEmail)) {
+        err.supervisorEmail = "Invalid email address";
+      }
       return err;
     },
     onSubmit: async (values) => {
@@ -52,13 +58,33 @@ export const ThesisCreationForm = () => {
         return;
       }
 
+      // Create the thesis
       const metadata = {
         ...values,
         keywords: values.keywords
       };
       const result = await createThesis(metadata, session.user.id);
+
       if (result?.thesisId) {
-        navigate(`/thesis/${result.thesisId}`);
+        // Call the Supabase Edge Function to send the supervisor invitation
+        try {
+          const inviteResponse = await sendSupervisorInvitation({
+            to: values.supervisorEmail,
+            thesisTitle: values.title,
+            inviteLink: `${window.location.origin}/thesis/${result.thesisId}/supervisor-invite`,
+            studentName: values.authorName,
+          });
+
+          if (!inviteResponse.success) {
+            throw new Error('Failed to send supervisor invitation');
+          }
+
+          // Navigate to the thesis page
+          navigate(`/thesis/${result.thesisId}`);
+        } catch (error) {
+          console.error('Error sending supervisor invitation:', error);
+          setError('Failed to send supervisor invitation. Please try again.');
+        }
       }
     },
   });
@@ -91,6 +117,24 @@ export const ThesisCreationForm = () => {
 
   const handleCancel = () => {
     navigate(-1);
+  };
+
+  // Function to call the Supabase Edge Function
+  const sendSupervisorInvitation = async (inviteData: {
+    to: string;
+    thesisTitle: string;
+    inviteLink: string;
+    studentName: string;
+  }) => {
+    const { data, error } = await supabase.functions.invoke('send-supervisor-invite', {
+      body: JSON.stringify(inviteData),
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data;
   };
 
   return (
