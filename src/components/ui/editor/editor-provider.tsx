@@ -12,7 +12,7 @@ interface EditorProviderProps {
   onUpdate: (content: string) => void;
 }
 
-export const EditorProvider = ({ children, content, onUpdate }: EditorProviderProps) => {
+export const EditorProvider: React.FC<EditorProviderProps> = ({ children, content, onUpdate }) => {
   const editor = useEditor({
     extensions: [
       StarterKit,

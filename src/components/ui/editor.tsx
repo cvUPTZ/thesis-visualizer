@@ -30,7 +30,7 @@ import {
 export function Editor({ value, onChange }: EditorProps) {
   const [citations, setCitations] = useState<Citation[]>([]);
   const editorRef = useRef<TipTapEditor | null>(null);
-  const { thesisId } = useThesis();
+  const { thesis } = useThesis();
 
   useEffect(() => {
     if (editorRef.current) {
@@ -157,7 +157,7 @@ export function Editor({ value, onChange }: EditorProps) {
               </Button>
             ))}
           </Toolbar>
-          <EditorContent />
+          <EditorContent editor={editorRef.current} />
         </div>
       </EditorProvider>
 
@@ -174,7 +174,7 @@ export function Editor({ value, onChange }: EditorProps) {
         onCitationDelete={(citation) => {
           setCitations(prev => prev.filter(c => c.id !== citation.id));
         }}
-        thesisId={thesisId}
+        thesisId={thesis?.id}
       />
     </div>
   );
