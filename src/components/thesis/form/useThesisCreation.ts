@@ -8,7 +8,7 @@ interface ThesisMetadata {
   title: string;
   description: string;
   keywords: string;
-  supervisorEmail?: string; // Added supervisorEmail
+  supervisorEmail?: string;
   universityName?: string;
   departmentName?: string;
   authorName?: string;
@@ -22,7 +22,8 @@ export const useThesisCreation = () => {
 
   const createThesis = async (
     metadata: ThesisMetadata,
-    userId: string
+    userId: string,
+    supervisorId: string
   ) => {
     setIsSubmitting(true);
     try {
@@ -34,12 +35,10 @@ export const useThesisCreation = () => {
         ? metadata.keywords.split(',').map(k => k.trim()).filter(k => k)
         : [];
 
-      // Prepare thesis content with proper typing
       const thesisContent = {
         metadata: {
           description: metadata.description,
           keywords: keywordsArray,
-          supervisorEmail: metadata.supervisorEmail, // Added supervisorEmail
           createdAt: new Date().toISOString(),
           universityName: metadata.universityName,
           departmentName: metadata.departmentName,
@@ -97,7 +96,9 @@ export const useThesisCreation = () => {
           id: thesisId,
           title: metadata.title,
           content: thesisContent,
-          user_id: userId
+          user_id: userId,
+          supervisor_id: supervisorId,
+          supervisor_email: metadata.supervisorEmail
         });
 
       if (thesisError) {

@@ -113,6 +113,13 @@ export type Database = {
             foreignKeyName: "chat_messages_thesis_id_fkey"
             columns: ["thesis_id"]
             isOneToOne: false
+            referencedRelation: "supervisor_theses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
             referencedRelation: "theses"
             referencedColumns: ["id"]
           },
@@ -174,6 +181,13 @@ export type Database = {
           year?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "citations_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "supervisor_theses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "citations_thesis_id_fkey"
             columns: ["thesis_id"]
@@ -269,6 +283,13 @@ export type Database = {
             foreignKeyName: "notifications_thesis_id_fkey"
             columns: ["thesis_id"]
             isOneToOne: false
+            referencedRelation: "supervisor_theses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
             referencedRelation: "theses"
             referencedColumns: ["id"]
           },
@@ -332,6 +353,7 @@ export type Database = {
           id: string
           language: string
           supervisor_email: string | null
+          supervisor_id: string | null
           title: string
           updated_at: string
           user_id: string
@@ -342,6 +364,7 @@ export type Database = {
           id?: string
           language?: string
           supervisor_email?: string | null
+          supervisor_id?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -352,11 +375,20 @@ export type Database = {
           id?: string
           language?: string
           supervisor_email?: string | null
+          supervisor_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "theses_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       thesis_annotations: {
         Row: {
@@ -401,6 +433,13 @@ export type Database = {
             foreignKeyName: "thesis_annotations_thesis_id_fkey"
             columns: ["thesis_id"]
             isOneToOne: false
+            referencedRelation: "supervisor_theses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thesis_annotations_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
             referencedRelation: "theses"
             referencedColumns: ["id"]
           },
@@ -429,6 +468,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "thesis_collaborators_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "supervisor_theses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "thesis_collaborators_thesis_id_fkey"
             columns: ["thesis_id"]
@@ -492,6 +538,13 @@ export type Database = {
             columns: ["reviewer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thesis_reviews_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "supervisor_theses"
             referencedColumns: ["id"]
           },
           {
@@ -570,6 +623,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thesis_versions_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "supervisor_theses"
             referencedColumns: ["id"]
           },
           {
@@ -684,7 +744,29 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      supervisor_theses: {
+        Row: {
+          content: Json | null
+          created_at: string | null
+          id: string | null
+          language: string | null
+          student_email: string | null
+          supervisor_email: string | null
+          supervisor_id: string | null
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "theses_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       [_ in never]: never

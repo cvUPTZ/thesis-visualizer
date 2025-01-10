@@ -26,7 +26,7 @@ export const ThesisCreationForm = () => {
       title: '',
       description: '',
       keywords: '',
-      supervisorEmail: '', // Added supervisorEmail
+      supervisorEmail: '',
       universityName: '',
       departmentName: '',
       authorName: '',
@@ -58,33 +58,54 @@ export const ThesisCreationForm = () => {
         return;
       }
 
-      // Create the thesis
+      // First, look up the supervisor's profile
+      const { data: supervisorProfile, error: supervisorError } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('email', values.supervisorEmail.toLowerCase())
+        .maybeSingle();
+
+      if (supervisorError) {
+        console.error('Error looking up supervisor:', supervisorError);
+        setError('Failed to find supervisor profile');
+        return;
+      }
+
+      if (!supervisorProfile) {
+        setError('Supervisor not found. Please ensure the email is correct.');
+        return;
+      }
+
+      // Create the thesis with supervisor_id
       const metadata = {
         ...values,
         keywords: values.keywords
       };
-      const result = await createThesis(metadata, session.user.id);
+
+      const result = await createThesis(metadata, session.user.id, supervisorProfile.id);
 
       if (result?.thesisId) {
-        // Call the Supabase Edge Function to send the supervisor invitation
-        try {
-          const inviteResponse = await sendSupervisorInvitation({
-            to: values.supervisorEmail,
-            thesisTitle: values.title,
-            inviteLink: `${window.location.origin}/thesis/${result.thesisId}/supervisor-invite`,
-            studentName: values.authorName,
+        // Create a notification for the supervisor
+        const { error: notificationError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: supervisorProfile.id,
+            thesis_id: result.thesisId,
+            type: 'supervisor_request',
+            message: `You have been assigned as supervisor for thesis "${values.title}"`
           });
 
-          if (!inviteResponse.success) {
-            throw new Error('Failed to send supervisor invitation');
-          }
-
-          // Navigate to the thesis page
-          navigate(`/thesis/${result.thesisId}`);
-        } catch (error) {
-          console.error('Error sending supervisor invitation:', error);
-          setError('Failed to send supervisor invitation. Please try again.');
+        if (notificationError) {
+          console.error('Error creating notification:', notificationError);
+          toast({
+            title: "Warning",
+            description: "Thesis created but failed to notify supervisor",
+            variant: "destructive",
+          });
         }
+
+        // Navigate to the thesis page
+        navigate(`/thesis/${result.thesisId}`);
       }
     },
   });
@@ -111,30 +132,8 @@ export const ThesisCreationForm = () => {
     checkAuth();
   }, [navigate, toast]);
 
-  const handleCommitteeMemberChange = (index: number, value: string) => {
-    handleArrayChange('committeeMembers', index, value)
-  }
-
   const handleCancel = () => {
     navigate(-1);
-  };
-
-  // Function to call the Supabase Edge Function
-  const sendSupervisorInvitation = async (inviteData: {
-    to: string;
-    thesisTitle: string;
-    inviteLink: string;
-    studentName: string;
-  }) => {
-    const { data, error } = await supabase.functions.invoke('send-supervisor-invite', {
-      body: JSON.stringify(inviteData),
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return data;
   };
 
   return (
