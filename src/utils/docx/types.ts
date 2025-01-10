@@ -1,4 +1,4 @@
-import { IStylesOptions } from 'docx';
+import { IStylesOptions, PageNumberFormat } from 'docx';
 
 export interface DocxGenerationOptions {
   font: string;
@@ -9,6 +9,7 @@ export interface DocxGenerationOptions {
     bottom: number;
     left: number;
   };
+  pageNumberFormat?: PageNumberFormat;
 }
 
 export interface ImageOptions {
@@ -25,14 +26,23 @@ export interface TitlePageOptions {
   date: string;
   university?: string;
   department?: string;
+  degree?: string;
 }
 
 export interface TableOptions {
   headers: string[];
   rows: string[][];
   style?: string;
+  caption?: string;
+  label?: string;
 }
 
 export interface StyleConfig {
   default: IStylesOptions;
+  preliminary?: IStylesOptions;
+}
+
+export interface SectionNumbering {
+  format: 'decimal' | 'lowerRoman';
+  start: number;
 }
