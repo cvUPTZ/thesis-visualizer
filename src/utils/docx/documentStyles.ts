@@ -1,13 +1,59 @@
-import { IStylesOptions, convertInchesToTwip, NumberFormat } from "docx";
+import { convertInchesToTwip, IStylesOptions, HeadingLevel } from 'docx';
+
+// Standard margins (1.5 inches left, 1 inch others)
+export const pageSettings = {
+  margin: {
+    top: convertInchesToTwip(1),
+    right: convertInchesToTwip(1),
+    bottom: convertInchesToTwip(1),
+    left: convertInchesToTwip(1.5) // Increased for binding
+  }
+};
+
+// Preliminary pages with Roman numerals
+export const preliminaryPageSettings = {
+  ...pageSettings,
+  pageNumbers: {
+    start: 1,
+    formatType: 'lowerRoman'
+  }
+};
+
+// Main content pages with Arabic numerals
+export const mainPageSettings = {
+  ...pageSettings,
+  pageNumbers: {
+    start: 1,
+    formatType: 'decimal'
+  }
+};
 
 export const documentStyles: IStylesOptions = {
+  default: {
+    document: {
+      run: {
+        font: 'Times New Roman',
+        size: 24, // 12pt
+      },
+      paragraph: {
+        spacing: {
+          line: 360, // 1.5 spacing
+          before: 0,
+          after: 0
+        },
+        indent: {
+          firstLine: convertInchesToTwip(0.5)
+        }
+      }
+    }
+  },
   paragraphStyles: [
     {
-      id: "Normal",
-      name: "Normal",
+      id: 'Normal',
+      name: 'Normal',
       run: {
-        font: "Times New Roman",
-        size: 24, // 12pt
+        font: 'Times New Roman',
+        size: 24 // 12pt
       },
       paragraph: {
         spacing: { 
@@ -21,13 +67,14 @@ export const documentStyles: IStylesOptions = {
       }
     },
     {
-      id: "Heading1",
-      name: "Heading 1",
-      basedOn: "Normal",
-      next: "Normal",
+      id: 'Heading1',
+      name: 'Chapter Heading',
+      basedOn: 'Normal',
+      next: 'Normal',
       run: {
-        bold: true,
+        font: 'Times New Roman',
         size: 32, // 16pt
+        bold: true,
         allCaps: true
       },
       paragraph: {
@@ -35,44 +82,46 @@ export const documentStyles: IStylesOptions = {
           before: 480,
           after: 240
         },
-        alignment: "center"
+        alignment: 'center'
       }
     },
     {
-      id: "Heading2",
-      name: "Heading 2",
-      basedOn: "Normal",
-      next: "Normal",
+      id: 'Title',
+      name: 'Title',
+      basedOn: 'Normal',
       run: {
+        font: 'Times New Roman',
+        size: 32, // 16pt
         bold: true,
-        size: 28 // 14pt
+        allCaps: true
       },
       paragraph: {
         spacing: {
-          before: 360,
+          before: 720,
           after: 240
-        }
+        },
+        alignment: 'center'
       }
     },
     {
-      id: "Caption",
-      name: "Caption",
-      basedOn: "Normal",
+      id: 'Subtitle',
+      name: 'Subtitle',
+      basedOn: 'Normal',
       run: {
-        size: 20 // 10pt
+        size: 28, // 14pt
       },
       paragraph: {
-        spacing: { 
-          line: 240, // single spacing
-          before: 120,
-          after: 240
-        }
+        spacing: {
+          before: 240,
+          after: 480
+        },
+        alignment: 'center'
       }
     },
     {
-      id: "BlockQuote",
-      name: "Block Quote",
-      basedOn: "Normal",
+      id: 'BlockQuote',
+      name: 'Block Quote',
+      basedOn: 'Normal',
       run: {
         size: 24
       },
@@ -87,27 +136,55 @@ export const documentStyles: IStylesOptions = {
           right: convertInchesToTwip(0.5)
         }
       }
+    },
+    {
+      id: 'Caption',
+      name: 'Caption',
+      basedOn: 'Normal',
+      run: {
+        size: 20 // 10pt
+      },
+      paragraph: {
+        spacing: { 
+          line: 240, // single spacing
+          before: 120,
+          after: 120
+        },
+        alignment: 'center'
+      }
+    },
+    {
+      id: 'TableOfContents',
+      name: 'Table of Contents',
+      basedOn: 'Normal',
+      run: {
+        size: 24
+      },
+      paragraph: {
+        spacing: {
+          line: 480, // double spacing
+          before: 0,
+          after: 0
+        }
+      }
+    },
+    {
+      id: 'Abstract',
+      name: 'Abstract',
+      basedOn: 'Normal',
+      run: {
+        size: 24
+      },
+      paragraph: {
+        spacing: {
+          line: 240, // single spacing
+          before: 0,
+          after: 0
+        },
+        indent: {
+          firstLine: 0
+        }
+      }
     }
   ]
-};
-
-export const pageSettings = {
-  margin: {
-    top: convertInchesToTwip(1),
-    right: convertInchesToTwip(1),
-    bottom: convertInchesToTwip(1),
-    left: convertInchesToTwip(1.5) // Increased for binding
-  },
-  pageNumbers: {
-    start: 1,
-    formatType: NumberFormat.DECIMAL
-  }
-};
-
-export const preliminaryPageSettings = {
-  ...pageSettings,
-  pageNumbers: {
-    start: 1,
-    formatType: NumberFormat.LOWER_ROMAN
-  }
 };

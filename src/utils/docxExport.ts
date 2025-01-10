@@ -1,6 +1,6 @@
 import { Document, Header, Footer, PageBreak, Paragraph, TextRun, AlignmentType, BorderStyle, PageNumber } from "docx";
-import { documentStyles, pageSettings, preliminaryPageSettings } from './docx/documentStyles';
-import { generateTitlePage, generateAbstractSection, generateChapterContent } from './docx/sectionGenerators';
+import { documentStyles, pageSettings, preliminaryPageSettings, mainPageSettings } from './docx/documentStyles';
+import { generateTitlePage, generateAbstractSection, generateChapterContent, generateTableOfContents } from './docx/sectionGenerators';
 import { Thesis } from '@/types/thesis';
 import { MarkdownToDocx } from './markdownToDocx';
 
@@ -65,19 +65,24 @@ export const generateThesisDocx = (thesis: Thesis) => {
   const titleSection = thesis.frontMatter.find(section => section.type === 'title');
   const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
 
+  // Generate table of contents data
+  const tocSections = [
+    ...thesis.frontMatter.map(section => ({
+      title: section.title,
+      page: 0 // Page numbers will be auto-generated
+    })),
+    ...thesis.chapters.map((chapter, index) => ({
+      title: `Chapter ${index + 1}: ${chapter.title}`,
+      page: 0
+    }))
+  ];
+
   const doc = new Document({
     styles: documentStyles,
     sections: [
+      // Preliminary pages (Roman numerals)
       {
-        properties: {
-          page: preliminaryPageSettings
-        },
-        headers: {
-          default: createHeader(thesis)
-        },
-        footers: {
-          default: createFooter()
-        },
+        properties: preliminaryPageSettings,
         children: [
           ...generateTitlePage({
             title: titleSection?.title || thesis.title,
@@ -87,51 +92,15 @@ export const generateThesisDocx = (thesis: Thesis) => {
             department: thesis.metadata?.departmentName,
             degree: thesis.metadata?.degree
           }),
+          ...generateTableOfContents(tocSections),
           ...(abstractSection ? generateAbstractSection(abstractSection.content) : []),
         ]
       },
+      // Main content (Arabic numerals)
       {
-        properties: {
-          page: pageSettings
-        },
+        properties: mainPageSettings,
         children: [
           ...thesis.chapters.flatMap((chapter, index) => 
-            generateChapterContent(
-              index + 1,
-              chapter.title,
-              chapter.content || ''
-            )
-          )
-        ]
-      }
-    ]
-  });
-
-  return doc;
-};
-
-export const generatePreviewDocx = (thesis: Thesis) => {
-  const titleSection = thesis.frontMatter.find(section => section.type === 'title');
-  const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
-
-  const doc = new Document({
-    styles: documentStyles,
-    sections: [
-      {
-        properties: {
-          page: pageSettings
-        },
-        children: [
-          ...generateTitlePage({
-            title: titleSection?.title || thesis.title,
-            author: thesis.metadata?.authorName || '',
-            date: thesis.metadata?.thesisDate || new Date().getFullYear().toString(),
-            university: thesis.metadata?.universityName,
-            department: thesis.metadata?.departmentName,
-            degree: thesis.metadata?.degree
-          }),
-          ...(abstractSection ? generateAbstractSection(abstractSection.content) : []),
-          ...thesis.chapters.flatMap((chapter, index) =>
             generateChapterContent(
               index + 1,
               chapter.title,

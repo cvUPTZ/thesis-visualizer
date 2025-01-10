@@ -1,4 +1,4 @@
-import { NumberFormat, IStylesOptions } from 'docx';
+import { IStylesOptions, BorderStyle, INumberingOptions, convertInchesToTwip } from 'docx';
 
 export interface DocxGenerationOptions {
   font: string;
@@ -9,7 +9,7 @@ export interface DocxGenerationOptions {
     bottom: number;
     left: number;
   };
-  pageNumberFormat?: NumberFormat;
+  pageNumberFormat?: 'decimal' | 'lowerRoman' | 'upperRoman';
 }
 
 export interface ImageOptions {
@@ -37,12 +37,16 @@ export interface TableOptions {
   label?: string;
 }
 
-export interface StyleConfig {
-  default: IStylesOptions;
-  preliminary?: IStylesOptions;
+export interface SectionNumbering {
+  format: 'decimal' | 'lowerRoman' | 'upperRoman';
+  start: number;
 }
 
-export interface SectionNumbering {
-  format: NumberFormat;
-  start: number;
+export interface ThesisMetadata {
+  title: string;
+  author: string;
+  date: string;
+  university: string;
+  department: string;
+  degree: string;
 }

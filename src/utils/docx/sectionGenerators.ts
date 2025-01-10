@@ -1,36 +1,36 @@
-import { Document, Paragraph, TextRun, PageBreak, AlignmentType, convertInchesToTwip } from 'docx';
-import { TitlePageOptions } from './types';
-import { createParagraph, createHeading } from './contentGenerators';
+import { Document, Paragraph, TextRun, PageBreak, AlignmentType, HeadingLevel } from 'docx';
+import { TitlePageOptions, ThesisMetadata } from './types';
+import { convertInchesToTwip } from 'docx';
 
 export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
   new Paragraph({
+    style: 'Title',
     children: [
       new TextRun({
-        text: options.university || '',
-        font: 'Times New Roman',
-        size: 28,
-      }),
-    ],
-    spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(0.5) },
-    alignment: AlignmentType.CENTER,
-  }),
-  new Paragraph({
-    children: [
-      new TextRun({
-        text: options.title,
-        font: 'Times New Roman',
-        size: 32,
+        text: options.title.toUpperCase(),
         bold: true,
+        size: 32, // 16pt
       }),
     ],
     spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(1) },
     alignment: AlignmentType.CENTER,
   }),
   new Paragraph({
+    style: 'Subtitle',
     children: [
       new TextRun({
         text: `By\n${options.author}`,
-        font: 'Times New Roman',
+        size: 28, // 14pt
+      }),
+    ],
+    spacing: { before: convertInchesToTwip(1) },
+    alignment: AlignmentType.CENTER,
+  }),
+  new Paragraph({
+    style: 'Subtitle',
+    children: [
+      new TextRun({
+        text: options.university || '',
         size: 28,
       }),
     ],
@@ -38,25 +38,36 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
     alignment: AlignmentType.CENTER,
   }),
   new Paragraph({
+    style: 'Subtitle',
     children: [
       new TextRun({
-        text: `A thesis submitted in partial fulfillment\nof the requirements for the degree of\n${options.degree || ''}`,
-        font: 'Times New Roman',
-        size: 24,
+        text: options.department || '',
+        size: 28,
       }),
     ],
-    spacing: { before: convertInchesToTwip(4) },
+    spacing: { before: convertInchesToTwip(0.5) },
     alignment: AlignmentType.CENTER,
   }),
   new Paragraph({
+    style: 'Subtitle',
     children: [
       new TextRun({
-        text: options.date,
-        font: 'Times New Roman',
+        text: `A thesis submitted in partial fulfillment\nof the requirements for the degree of\n${options.degree || ''}`,
         size: 24,
       }),
     ],
-    spacing: { before: convertInchesToTwip(4) },
+    spacing: { before: convertInchesToTwip(1) },
+    alignment: AlignmentType.CENTER,
+  }),
+  new Paragraph({
+    style: 'Subtitle',
+    children: [
+      new TextRun({
+        text: options.date,
+        size: 24,
+      }),
+    ],
+    spacing: { before: convertInchesToTwip(1) },
     alignment: AlignmentType.CENTER,
   }),
   new Paragraph({ children: [new PageBreak()] }),
@@ -64,11 +75,10 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
 
 export const generateAbstractSection = (content: string): Paragraph[] => [
   new Paragraph({
+    style: 'Title',
     children: [
       new TextRun({
         text: 'ABSTRACT',
-        font: 'Times New Roman',
-        size: 32,
         bold: true,
       }),
     ],
@@ -77,15 +87,12 @@ export const generateAbstractSection = (content: string): Paragraph[] => [
   }),
   ...content.split('\n').map(paragraph => 
     new Paragraph({
+      style: 'Abstract',
       children: [
         new TextRun({
           text: paragraph,
-          font: 'Times New Roman',
-          size: 24,
         }),
       ],
-      spacing: { line: 360 }, // 1.5 spacing
-      indent: { firstLine: convertInchesToTwip(0.5) },
     })
   ),
   new Paragraph({ children: [new PageBreak()] }),
@@ -97,40 +104,62 @@ export const generateChapterContent = (
   content: string
 ): Paragraph[] => [
   new Paragraph({
+    style: 'Heading1',
     children: [
       new TextRun({
         text: `CHAPTER ${chapterNumber}`,
-        font: 'Times New Roman',
-        size: 32,
         bold: true,
       }),
     ],
-    spacing: { before: 720, after: 240 },
-    alignment: AlignmentType.CENTER,
   }),
   new Paragraph({
+    style: 'Heading1',
     children: [
       new TextRun({
         text: title,
-        font: 'Times New Roman',
-        size: 32,
         bold: true,
       }),
     ],
-    spacing: { before: 240, after: 480 },
-    alignment: AlignmentType.CENTER,
   }),
   ...content.split('\n').map(paragraph =>
     new Paragraph({
+      style: 'Normal',
       children: [
         new TextRun({
           text: paragraph,
-          font: 'Times New Roman',
-          size: 24,
         }),
       ],
-      spacing: { line: 360 }, // 1.5 spacing
-      indent: { firstLine: convertInchesToTwip(0.5) },
     })
   ),
+];
+
+export const generateTableOfContents = (sections: { title: string; page: number }[]): Paragraph[] => [
+  new Paragraph({
+    style: 'Title',
+    children: [
+      new TextRun({
+        text: 'TABLE OF CONTENTS',
+        bold: true,
+      }),
+    ],
+    spacing: { before: 720, after: 480 },
+    alignment: AlignmentType.CENTER,
+  }),
+  ...sections.map(section => 
+    new Paragraph({
+      style: 'TableOfContents',
+      children: [
+        new TextRun({
+          text: section.title,
+        }),
+        new TextRun({
+          text: `.`.repeat(50),
+        }),
+        new TextRun({
+          text: section.page.toString(),
+        }),
+      ],
+    })
+  ),
+  new Paragraph({ children: [new PageBreak()] }),
 ];
