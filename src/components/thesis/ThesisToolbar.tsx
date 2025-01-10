@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Eye, EyeOff, LogOut } from 'lucide-react';
 import { ThesisSaveButton } from './ThesisSaveButton';
 import { Thesis } from '@/types/thesis';
-import { generateThesisDocx, generatePreviewDocx } from '@/utils/docxExport';
+import { generateThesisDocx } from '@/utils/docxExport';
 import { Packer } from 'docx';
 import { useToast } from '@/hooks/use-toast';
 import { UserInfo } from './UserInfo';
@@ -42,12 +42,10 @@ export const ThesisToolbar = ({
     error,
   } = useCollaboratorPermissions(thesisId);
 
-  const handleExport = async (type: 'academic' | 'preview') => {
+  const handleExport = async (type: 'academic') => {
     try {
       console.log(`Starting ${type} DOCX export with thesis data:`, thesisData);
-      const doc = type === 'academic' 
-        ? await generateThesisDocx(thesisData)
-        : await generatePreviewDocx(thesisData);
+      const doc = await generateThesisDocx(thesisData);
       console.log('Document generated, converting to blob...');
       
       const blob = await Packer.toBlob(doc);
@@ -92,9 +90,6 @@ export const ThesisToolbar = ({
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => handleExport('academic')}>
               Academic Format
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleExport('preview')}>
-              Preview Format
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

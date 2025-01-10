@@ -1,8 +1,7 @@
-import { Document, Header, Footer, PageBreak, Paragraph, TextRun, AlignmentType, BorderStyle, PageNumber } from "docx";
-import { documentStyles, pageSettings, preliminaryPageSettings, mainPageSettings } from './docx/documentStyles';
+import { Document, Header, Footer, PageBreak, Paragraph, TextRun, AlignmentType, BorderStyle, PageNumber, ISectionPropertiesOptions } from "docx";
+import { documentStyles } from './docx/documentStyles';
 import { generateTitlePage, generateAbstractSection, generateChapterContent, generateTableOfContents } from './docx/sectionGenerators';
 import { Thesis } from '@/types/thesis';
-import { MarkdownToDocx } from './markdownToDocx';
 
 const createHeader = (thesis: Thesis) => {
   return new Header({
@@ -65,11 +64,10 @@ export const generateThesisDocx = (thesis: Thesis) => {
   const titleSection = thesis.frontMatter.find(section => section.type === 'title');
   const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
 
-  // Generate table of contents data
   const tocSections = [
     ...thesis.frontMatter.map(section => ({
       title: section.title,
-      page: 0 // Page numbers will be auto-generated
+      page: 0
     })),
     ...thesis.chapters.map((chapter, index) => ({
       title: `Chapter ${index + 1}: ${chapter.title}`,
@@ -77,10 +75,39 @@ export const generateThesisDocx = (thesis: Thesis) => {
     }))
   ];
 
+  const preliminaryPageSettings: ISectionPropertiesOptions = {
+    page: {
+      margin: {
+        top: 1440,
+        right: 1440,
+        bottom: 1440,
+        left: 1800
+      },
+      pageNumbers: {
+        start: 1,
+        formatType: 'lowerRoman'
+      }
+    }
+  };
+
+  const mainPageSettings: ISectionPropertiesOptions = {
+    page: {
+      margin: {
+        top: 1440,
+        right: 1440,
+        bottom: 1440,
+        left: 1800
+      },
+      pageNumbers: {
+        start: 1,
+        formatType: 'decimal'
+      }
+    }
+  };
+
   const doc = new Document({
     styles: documentStyles,
     sections: [
-      // Preliminary pages (Roman numerals)
       {
         properties: preliminaryPageSettings,
         children: [
@@ -96,7 +123,6 @@ export const generateThesisDocx = (thesis: Thesis) => {
           ...(abstractSection ? generateAbstractSection(abstractSection.content) : []),
         ]
       },
-      // Main content (Arabic numerals)
       {
         properties: mainPageSettings,
         children: [

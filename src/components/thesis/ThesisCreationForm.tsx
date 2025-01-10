@@ -136,6 +136,10 @@ export const ThesisCreationForm = () => {
     navigate(-1);
   };
 
+  const handleCommitteeMemberChange = (index: number, value: string) => {
+    handleArrayChange('committeeMembers', index, value);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto p-6 relative">
       <Button
