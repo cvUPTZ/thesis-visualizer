@@ -1,4 +1,4 @@
-import { IStylesOptions, PageNumberFormat } from 'docx';
+import { NumberFormat, IStylesOptions } from 'docx';
 
 export interface DocxGenerationOptions {
   font: string;
@@ -9,7 +9,7 @@ export interface DocxGenerationOptions {
     bottom: number;
     left: number;
   };
-  pageNumberFormat?: PageNumberFormat;
+  pageNumberFormat?: NumberFormat;
 }
 
 export interface ImageOptions {
@@ -43,6 +43,6 @@ export interface StyleConfig {
 }
 
 export interface SectionNumbering {
-  format: 'decimal' | 'lowerRoman';
+  format: NumberFormat;
   start: number;
 }

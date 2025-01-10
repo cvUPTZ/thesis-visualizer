@@ -1,6 +1,6 @@
-import { HeadingLevel, IParagraphOptions, IRunOptions, convertInchesToTwip, AlignmentType } from 'docx';
+import { HeadingLevel, IParagraphOptions, IRunOptions, convertInchesToTwip, AlignmentType, Paragraph, TextRun } from 'docx';
 
-export const createHeading = (text: string, level: typeof HeadingLevel, chapterNumber?: number) => ({
+export const createHeading = (text: string, level: HeadingLevel, chapterNumber?: number): IParagraphOptions => ({
   text: chapterNumber ? `CHAPTER ${chapterNumber}\n${text}` : text,
   heading: level,
   spacing: {
@@ -10,49 +10,58 @@ export const createHeading = (text: string, level: typeof HeadingLevel, chapterN
   alignment: AlignmentType.CENTER
 });
 
-export const createParagraph = (text: string, options?: IParagraphOptions) => ({
-  text,
+export const createParagraph = (text: string, options?: Partial<IParagraphOptions>): IParagraphOptions => ({
   ...options,
-  paragraph: {
-    ...options?.paragraph,
-    indent: {
-      firstLine: convertInchesToTwip(0.5)
-    },
-    spacing: {
-      line: 360,
-      ...options?.paragraph?.spacing
-    }
+  children: [
+    new TextRun({
+      text,
+      size: 24, // 12pt
+      font: "Times New Roman"
+    })
+  ],
+  spacing: {
+    line: 360, // 1.5 spacing
+    before: 0,
+    after: 0,
+    ...options?.spacing
+  },
+  indent: {
+    firstLine: convertInchesToTwip(0.5),
+    ...options?.indent
   }
 });
 
-export const createBlockQuote = (text: string) => ({
-  text,
-  style: "BlockQuote"
+export const createBlockQuote = (text: string): IParagraphOptions => ({
+  children: [
+    new TextRun({
+      text,
+      size: 24,
+      font: "Times New Roman"
+    })
+  ],
+  spacing: {
+    line: 240, // single spacing
+    before: 240,
+    after: 240
+  },
+  indent: {
+    left: convertInchesToTwip(0.5),
+    right: convertInchesToTwip(0.5)
+  }
 });
 
-export const createCaption = (text: string, type: 'figure' | 'table', number: string) => ({
-  text: `${type === 'figure' ? 'Figure' : 'Table'} ${number}: ${text}`,
-  style: "Caption",
+export const createCaption = (text: string, type: 'figure' | 'table', number: string): IParagraphOptions => ({
+  children: [
+    new TextRun({
+      text: `${type === 'figure' ? 'Figure' : 'Table'} ${number}: ${text}`,
+      size: 20, // 10pt
+      font: "Times New Roman"
+    })
+  ],
+  spacing: {
+    line: 240, // single spacing
+    before: 120,
+    after: 120
+  },
   alignment: AlignmentType.CENTER
-});
-
-export const createSection = (content: any[], options?: { 
-  pageNumberFormat?: 'decimal' | 'lowerRoman',
-  pageNumberStart?: number 
-}) => ({
-  children: content,
-  properties: {
-    page: {
-      margin: {
-        top: convertInchesToTwip(1),
-        right: convertInchesToTwip(1),
-        bottom: convertInchesToTwip(1),
-        left: convertInchesToTwip(1.5)
-      },
-      pageNumbers: options?.pageNumberFormat ? {
-        start: options.pageNumberStart || 1,
-        formatType: options.pageNumberFormat
-      } : undefined
-    }
-  }
 });

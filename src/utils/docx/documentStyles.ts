@@ -1,4 +1,4 @@
-import { IStylesOptions, convertInchesToTwip, BorderStyle } from "docx";
+import { IStylesOptions, convertInchesToTwip, NumberFormat } from "docx";
 
 export const documentStyles: IStylesOptions = {
   paragraphStyles: [
@@ -16,7 +16,7 @@ export const documentStyles: IStylesOptions = {
           after: 0
         },
         indent: {
-          firstLine: convertInchesToTwip(0.5) // 0.5 inch paragraph indent
+          firstLine: convertInchesToTwip(0.5)
         }
       }
     },
@@ -87,21 +87,6 @@ export const documentStyles: IStylesOptions = {
           right: convertInchesToTwip(0.5)
         }
       }
-    },
-    {
-      id: "TOC",
-      name: "Table of Contents",
-      basedOn: "Normal",
-      run: {
-        size: 24
-      },
-      paragraph: {
-        spacing: { 
-          line: 360, // 1.5 spacing
-          before: 120,
-          after: 120
-        }
-      }
     }
   ]
 };
@@ -115,7 +100,7 @@ export const pageSettings = {
   },
   pageNumbers: {
     start: 1,
-    formatType: 'decimal'
+    formatType: NumberFormat.DECIMAL
   }
 };
 
@@ -123,6 +108,6 @@ export const preliminaryPageSettings = {
   ...pageSettings,
   pageNumbers: {
     start: 1,
-    formatType: 'lowerRoman'
+    formatType: NumberFormat.LOWER_ROMAN
   }
 };

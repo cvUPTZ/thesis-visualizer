@@ -1,10 +1,8 @@
-import { Document, Paragraph, TextRun, PageBreak, Header, Footer, AlignmentType, PageNumber, BorderStyle } from "docx";
+import { Document, Header, Footer, PageBreak, Paragraph, TextRun, AlignmentType, BorderStyle, PageNumber } from "docx";
+import { documentStyles, pageSettings, preliminaryPageSettings } from './docx/documentStyles';
+import { generateTitlePage, generateAbstractSection, generateChapterContent } from './docx/sectionGenerators';
+import { Thesis } from '@/types/thesis';
 import { MarkdownToDocx } from './markdownToDocx';
-import { documentStyles, pageSettings } from './docx/documentStyles';
-import { Thesis, Section, Chapter } from '@/types/thesis';
-
-const defaultFont = "Times New Roman";
-const defaultFontSize = 24; // 12pt
 
 const createHeader = (thesis: Thesis) => {
   return new Header({
@@ -22,14 +20,14 @@ const createHeader = (thesis: Thesis) => {
         children: [
           new TextRun({
             text: thesis.metadata?.shortTitle || "Running head",
-            font: defaultFont,
-            size: defaultFontSize
+            font: "Times New Roman",
+            size: 24
           }),
-          new TextRun({ text: "\t", children: [new TextRun({ text: "" })] }),
+          new TextRun({ text: "\t" }),
           new TextRun({
             text: String(PageNumber.CURRENT),
-            font: defaultFont,
-            size: defaultFontSize
+            font: "Times New Roman",
+            size: 24
           })
         ],
       }),
@@ -54,8 +52,8 @@ const createFooter = () => {
         children: [
           new TextRun({
             text: String(PageNumber.CURRENT),
-            font: defaultFont,
-            size: defaultFontSize
+            font: "Times New Roman",
+            size: 24
           })
         ],
       }),
@@ -63,192 +61,87 @@ const createFooter = () => {
   });
 };
 
-const createTitlePage = (thesis: Thesis) => {
-  const titleSection = thesis.frontMatter.find(section => section.type === 'title');
-  return [
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 1440, after: 480 },
-      children: [
-        new TextRun({
-          text: thesis.metadata?.institution || "",
-          font: defaultFont,
-          size: 28
-        }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 1440, after: 720 },
-      children: [
-        new TextRun({
-          text: titleSection?.title || "Untitled Thesis",
-          font: defaultFont,
-          size: 40,
-          bold: true
-        }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 720 },
-      children: [
-        new TextRun({
-          text: `By\n${thesis.metadata?.author || ""}`,
-          font: defaultFont,
-          size: 28
-        }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 2880 },
-      children: [
-        new TextRun({
-          text: `A thesis submitted in partial fulfillment\nof the requirements for the degree of\n${thesis.metadata?.degree || ""}`,
-          font: defaultFont,
-          size: defaultFontSize
-        }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 2880 },
-      children: [
-        new TextRun({
-          text: thesis.metadata?.date || new Date().getFullYear().toString(),
-          font: defaultFont,
-          size: defaultFontSize
-        }),
-      ],
-    }),
-    new Paragraph({ children: [new PageBreak()] })
-  ];
-};
-
-const createAbstract = (thesis: Thesis) => {
-  return [
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 720, after: 480 },
-      children: [
-        new TextRun({
-          text: "ABSTRACT",
-          font: defaultFont,
-          size: 32,
-          bold: true
-        }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.LEFT,
-      spacing: { line: 480 },
-      children: [
-        new TextRun({
-          text: thesis.metadata?.description || "",
-          font: defaultFont,
-          size: defaultFontSize
-        }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.LEFT,
-      spacing: { before: 720 },
-      children: [
-        new TextRun({
-          text: `Keywords: ${thesis.metadata?.keywords?.join(', ')}`,
-          font: defaultFont,
-          size: defaultFontSize,
-          italics: true
-        }),
-      ],
-    }),
-    new Paragraph({ children: [new PageBreak()] })
-  ];
-};
-
-const createChapterContentWithSections = (chapter: Chapter) => {
-  const paragraphs: Paragraph[] = [
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 720, after: 480 },
-      children: [
-        new TextRun({
-          text: `CHAPTER ${chapter.order}. ${chapter.title}`,
-          font: defaultFont,
-          size: 32,
-          bold: true
-        }),
-      ],
-    })
-  ];
-
-  chapter.sections.forEach((section) => {
-    paragraphs.push(...createSectionContent(section));
-  });
-
-  return paragraphs;
-};
-
-const createSectionContent = (section: Section) => {
-  const paragraphs: Paragraph[] = [
-    new Paragraph({
-      alignment: AlignmentType.LEFT,
-      spacing: { before: 480, after: 240 },
-      children: [
-        new TextRun({
-          text: section.title,
-          font: defaultFont,
-          size: 28,
-          bold: true
-        }),
-      ],
-    })
-  ];
-
-  const markdown = new MarkdownToDocx();
-  const contentParagraphs = markdown.convert(section.content, defaultFont, defaultFontSize);
-  paragraphs.push(...contentParagraphs);
-
-  return paragraphs;
-};
-
 export const generateThesisDocx = (thesis: Thesis) => {
+  const titleSection = thesis.frontMatter.find(section => section.type === 'title');
+  const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
+
   const doc = new Document({
     styles: documentStyles,
-    sections: [{
-      properties: {
-        page: pageSettings
+    sections: [
+      {
+        properties: {
+          page: preliminaryPageSettings
+        },
+        headers: {
+          default: createHeader(thesis)
+        },
+        footers: {
+          default: createFooter()
+        },
+        children: [
+          ...generateTitlePage({
+            title: titleSection?.title || thesis.title,
+            author: thesis.metadata?.authorName || '',
+            date: thesis.metadata?.thesisDate || new Date().getFullYear().toString(),
+            university: thesis.metadata?.universityName,
+            department: thesis.metadata?.departmentName,
+            degree: thesis.metadata?.degree
+          }),
+          ...(abstractSection ? generateAbstractSection(abstractSection.content) : []),
+        ]
       },
-      headers: {
-        default: createHeader(thesis)
-      },
-      footers: {
-        default: createFooter()
-      },
-      children: [
-        ...createTitlePage(thesis),
-        ...createAbstract(thesis),
-        ...thesis.chapters.flatMap((chapter) => createChapterContentWithSections(chapter))
-      ]
-    }]
+      {
+        properties: {
+          page: pageSettings
+        },
+        children: [
+          ...thesis.chapters.flatMap((chapter, index) => 
+            generateChapterContent(
+              index + 1,
+              chapter.title,
+              chapter.content || ''
+            )
+          )
+        ]
+      }
+    ]
   });
+
   return doc;
 };
 
 export const generatePreviewDocx = (thesis: Thesis) => {
+  const titleSection = thesis.frontMatter.find(section => section.type === 'title');
+  const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
+
   const doc = new Document({
     styles: documentStyles,
-    sections: [{
-      properties: {
-        page: pageSettings
-      },
-      children: [
-        ...createTitlePage(thesis),
-        ...createAbstract(thesis),
-        ...thesis.chapters.flatMap((chapter) => createChapterContentWithSections(chapter))
-      ]
-    }]
+    sections: [
+      {
+        properties: {
+          page: pageSettings
+        },
+        children: [
+          ...generateTitlePage({
+            title: titleSection?.title || thesis.title,
+            author: thesis.metadata?.authorName || '',
+            date: thesis.metadata?.thesisDate || new Date().getFullYear().toString(),
+            university: thesis.metadata?.universityName,
+            department: thesis.metadata?.departmentName,
+            degree: thesis.metadata?.degree
+          }),
+          ...(abstractSection ? generateAbstractSection(abstractSection.content) : []),
+          ...thesis.chapters.flatMap((chapter, index) =>
+            generateChapterContent(
+              index + 1,
+              chapter.title,
+              chapter.content || ''
+            )
+          )
+        ]
+      }
+    ]
   });
+
   return doc;
 };
