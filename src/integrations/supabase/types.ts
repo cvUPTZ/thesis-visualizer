@@ -195,6 +195,7 @@ export type Database = {
           parent_id: string | null
           pricing_tier: string | null
           status: string
+          trial_days: number | null
           usage_data: Json | null
         }
         Insert: {
@@ -208,6 +209,7 @@ export type Database = {
           parent_id?: string | null
           pricing_tier?: string | null
           status?: string
+          trial_days?: number | null
           usage_data?: Json | null
         }
         Update: {
@@ -221,6 +223,7 @@ export type Database = {
           parent_id?: string | null
           pricing_tier?: string | null
           status?: string
+          trial_days?: number | null
           usage_data?: Json | null
         }
         Relationships: [

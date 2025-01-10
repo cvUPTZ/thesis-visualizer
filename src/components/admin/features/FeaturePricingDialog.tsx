@@ -18,6 +18,7 @@ interface FeaturePricingDialogProps {
     id: string;
     name: string;
     pricing_tier: string;
+    trial_days?: number;
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -31,13 +32,17 @@ export const FeaturePricingDialog = ({
   onUpdatePricing 
 }: FeaturePricingDialogProps) => {
   const [selectedTier, setSelectedTier] = useState(feature.pricing_tier);
-  const [trialDays, setTrialDays] = useState<number>(14);
+  const [trialDays, setTrialDays] = useState<number>(feature.trial_days || 14);
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleUpdate = async () => {
     try {
       setIsUpdating(true);
-      await onUpdatePricing(feature.id, selectedTier, trialDays);
+      await onUpdatePricing(
+        feature.id, 
+        selectedTier, 
+        selectedTier === 'trial' ? trialDays : undefined
+      );
       onOpenChange(false);
     } finally {
       setIsUpdating(false);
