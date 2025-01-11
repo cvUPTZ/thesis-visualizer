@@ -1,104 +1,106 @@
+// src/hooks/useCitationManager.ts
+
 import { useState } from 'react';
 import { Citation } from '@/types/thesis';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from './use-toast';
+import { useQuery } from '@tanstack/react-query';
 
 export const useCitationManager = (thesisId: string) => {
-  const [citations, setCitations] = useState<Citation[]>([]);
-  const [loading, setLoading] = useState(false);
+    const { toast } = useToast();
   const [selectedCitation, setSelectedCitation] = useState<Citation | null>(null);
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | Citation['type']>('all');
-  const [sortField, setSortField] = useState<'year' | 'author' | 'title'>('year');
+  const [sortField, setSortField] = useState<'year' | 'author' | 'text'>('year');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const { toast } = useToast();
 
-  const addCitation = async (citation: Omit<Citation, 'thesis_id'>) => {
-    try {
-      setLoading(true);
+    const {
+        data: citations,
+        isLoading,
+        error,
+        refetch
+    } = useQuery({
+      queryKey: ['citations', thesisId],
+        queryFn: async () => {
+          if(!thesisId){
+            throw new Error('Thesis ID is required to load citations');
+          }
+
+        const { data, error } = await supabase
+            .from('citations')
+            .select('*')
+            .eq('thesis_id', thesisId)
+            .order('created_at', { ascending: false });
+
+          if (error) {
+                console.error('Error fetching citations:', error);
+                throw error;
+            }
+
+            return data as Citation[];
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    });
+
+    const addCitation = async (citation: Omit<Citation, 'thesis_id'>) => {
+        try {
       const now = new Date().toISOString();
-      const newCitation: Citation = {
+        const newCitation: Citation = {
         ...citation,
         thesis_id: thesisId,
-        type: citation.type || 'article',
+          type: citation.type || 'article',
         created_at: now,
         updated_at: now
-      };
+        };
 
-      const { data, error } = await supabase
-        .from('citations')
-        .insert([newCitation])
-        .select()
-        .single();
+        const { error } = await supabase
+            .from('citations')
+            .insert([newCitation]);
 
-      if (error) throw error;
+          if (error) throw error;
 
-      setCitations(prev => [...prev, data as Citation]);
-      toast({
-        title: "Success",
-        description: "Citation added successfully",
-      });
-    } catch (error) {
-      console.error('Error adding citation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add citation",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+        toast({
+          title: "Success",
+          description: "Citation added successfully",
+          });
 
-  const fetchCitations = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('citations')
-        .select('*')
-        .eq('thesis_id', thesisId)
-        .order('created_at', { ascending: false });
+            await refetch()
+        } catch (error: any) {
+          console.error('Error adding citation:', error);
+            toast({
+                title: "Error",
+                description: "Failed to add citation",
+                variant: "destructive",
+            });
+        }
+    };
 
-      if (error) throw error;
-
-      setCitations(data as Citation[]);
-    } catch (error) {
-      console.error('Error fetching citations:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch citations",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const deleteCitation = async (id: string) => {
     try {
-      setLoading(true);
-      const { error } = await supabase
+        const { error } = await supabase
         .from('citations')
         .delete()
-        .eq('id', id);
-
+            .eq('id', id);
+            
       if (error) throw error;
 
-      setCitations(prev => prev.filter(citation => citation.id !== id));
-      toast({
-        title: "Success",
-        description: "Citation deleted successfully",
-      });
-    } catch (error) {
-      console.error('Error deleting citation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete citation",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+        toast({
+          title: "Success",
+            description: "Citation deleted successfully",
+        });
+
+          await refetch();
+        } catch (error) {
+        console.error('Error deleting citation:', error);
+          toast({
+                title: "Error",
+                description: "Failed to delete citation",
+              variant: "destructive",
+          });
     }
   };
 
@@ -111,8 +113,9 @@ export const useCitationManager = (thesisId: string) => {
     setSearchDialogOpen(false);
   };
 
-  const getFilteredAndSortedCitations = (citationsToFilter: Citation[]) => {
-    let filtered = [...citationsToFilter];
+  const getFilteredAndSortedCitations = () => {
+      if (!citations) return [];
+    let filtered = [...citations];
     
     if (searchTerm) {
       filtered = filtered.filter(citation => 
@@ -136,7 +139,7 @@ export const useCitationManager = (thesisId: string) => {
         case 'author':
           comparison = (a.authors[0] || '').localeCompare(b.authors[0] || '');
           break;
-        case 'title':
+        case 'text':
           comparison = a.text.localeCompare(b.text);
           break;
       }
@@ -147,8 +150,9 @@ export const useCitationManager = (thesisId: string) => {
   };
 
   return {
-    citations,
-    loading,
+    citations: citations || [],
+    isLoading,
+    error,
     selectedCitation,
     setSelectedCitation,
     searchDialogOpen,
@@ -162,10 +166,10 @@ export const useCitationManager = (thesisId: string) => {
     sortDirection,
     setSortDirection,
     addCitation,
-    fetchCitations,
     deleteCitation,
     handleAddCitation,
     handleSearchResult,
-    getFilteredAndSortedCitations
+      getFilteredAndSortedCitations,
+      refetch
   };
 };

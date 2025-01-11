@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Section } from '@/types/thesis';
-import { MarkdownEditor } from '../MarkdownEditor';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { TaskItem } from '@/components/ui/TaskInput'; // Import TaskItem
 import { Button } from '../ui/button';
 import { PlusCircle } from 'lucide-react';
@@ -19,7 +19,7 @@ export const SectionContent: React.FC<SectionContentProps> = ({
   onContentChange,
     onUpdateSectionData
 }) => {
-  const [showTasks, setShowTasks] = useState(false);
+  const [showTasks, setShowTasks] = React.useState(false);
 
   if (!isActive) return null;
 
@@ -29,7 +29,7 @@ export const SectionContent: React.FC<SectionContentProps> = ({
           description: 'New Task',
           status: 'pending' as const,
         };
-        onUpdateSectionData({...section, tasks: [...(section.tasks || []), newTask] })
+    onUpdateSectionData({...section, tasks: [...(section.tasks || []), newTask] })
     };
 
 
@@ -37,21 +37,21 @@ export const SectionContent: React.FC<SectionContentProps> = ({
         const updatedTasks = (section.tasks || []).map(task =>
             task.id === id ? {...task, status} : task
         );
-        onUpdateSectionData({...section, tasks: updatedTasks })
+      onUpdateSectionData({...section, tasks: updatedTasks })
   };
 
     const handleTaskDescription = (id: string, newDescription: string) => {
         const updatedTasks = (section.tasks || []).map(task =>
             task.id === id ? {...task, description: newDescription} : task
         );
-        onUpdateSectionData({...section, tasks: updatedTasks })
-    };
+      onUpdateSectionData({...section, tasks: updatedTasks })
+  };
   
 
   return (
-    <div className="editor-section">
+    <div className="editor-content">
         <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-medium">Tasks</h4>
+            <h3 className="text-lg font-medium">Tasks</h3>
             <Button size="sm" onClick={()=>setShowTasks(!showTasks)} variant="outline">
               {showTasks ? 'Hide tasks' : 'Show Tasks'}
             </Button>
@@ -64,7 +64,7 @@ export const SectionContent: React.FC<SectionContentProps> = ({
                 id={task.id}
                 description={task.description}
                 status={task.status}
-                  onToggleStatus={(status) => handleUpdateTaskStatus(task.id, status)}
+                onToggleStatus={(status) => handleUpdateTaskStatus(task.id, status)}
                 onChangeDescription={(newDescription) => handleTaskDescription(task.id, newDescription)}
               />
             ))}
@@ -80,6 +80,7 @@ export const SectionContent: React.FC<SectionContentProps> = ({
         </div>
       )}
       <MarkdownEditor
+          key={section.id} // Add key to force remount
         value={section.content}
         onChange={onContentChange}
         placeholder="Start writing..."
