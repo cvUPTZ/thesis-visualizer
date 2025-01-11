@@ -1,226 +1,58 @@
-import { AlignmentType, IStylesOptions } from 'docx';
+import { 
+  IStylesOptions, 
+  AlignmentType,
+  convertInchesToTwip,
+} from 'docx';
 
 export const documentStyles: IStylesOptions = {
   default: {
-    document: {
-      run: {
-        font: 'Times New Roman',
-        size: 24,
-      },
-      paragraph: {
-        alignment: AlignmentType.BOTH,
-        spacing: {
-          after: 200,
-          line: 276,
-          lineRule: 'auto',
-        },
-      },
-    },
     heading1: {
       run: {
-        font: 'Times New Roman',
-        size: 32,
+        size: 28,
         bold: true,
+        font: 'Times New Roman',
       },
       paragraph: {
-        alignment: AlignmentType.CENTER,
         spacing: {
-          before: 240,
-          after: 240,
+          after: 120,
         },
+        alignment: AlignmentType.CENTER,
       },
     },
     heading2: {
       run: {
-        font: 'Times New Roman',
-        size: 28,
-        bold: true,
-      },
-      paragraph: {
-        alignment: AlignmentType.START,
-        spacing: {
-          before: 240,
-          after: 120,
-        },
-      },
-    },
-    heading3: {
-      run: {
-        font: 'Times New Roman',
         size: 26,
         bold: true,
+        font: 'Times New Roman',
       },
       paragraph: {
-        alignment: AlignmentType.START,
         spacing: {
-          before: 240,
           after: 120,
         },
       },
     },
-    listParagraph: {
+    document: {
       run: {
-        font: 'Times New Roman',
         size: 24,
-      },
-      paragraph: {
-        alignment: AlignmentType.START,
-        indent: {
-          left: 720,
-        },
-        spacing: {
-          line: 276,
-          lineRule: 'auto',
-        },
-      },
-    },
-    footnote: {
-      run: {
         font: 'Times New Roman',
-        size: 20,
       },
       paragraph: {
         spacing: {
-          line: 240,
-          lineRule: 'auto',
-        },
-      },
-    },
-    caption: {
-      run: {
-        font: 'Times New Roman',
-        size: 22,
-        italic: true,
-      },
-      paragraph: {
-        alignment: AlignmentType.CENTER,
-        spacing: {
-          before: 120,
-          after: 120,
-        },
-      },
-    },
-    tableHeader: {
-      run: {
-        font: 'Times New Roman',
-        size: 24,
-        bold: true,
-      },
-      paragraph: {
-        alignment: AlignmentType.CENTER,
-        spacing: {
-          before: 100,
-          after: 100,
-        },
-      },
-    },
-    tableCell: {
-      run: {
-        font: 'Times New Roman',
-        size: 24,
-      },
-      paragraph: {
-        alignment: AlignmentType.START,
-        spacing: {
-          before: 100,
-          after: 100,
-        },
-      },
-    },
-    pageNumber: {
-      run: {
-        font: 'Times New Roman',
-        size: 24,
-      },
-      paragraph: {
-        alignment: AlignmentType.CENTER,
-      },
-    },
-    abstract: {
-      run: {
-        font: 'Times New Roman',
-        size: 24,
-      },
-      paragraph: {
-        alignment: AlignmentType.BOTH,
-        spacing: {
-          before: 240,
-          after: 240,
-          line: 276,
-          lineRule: 'auto',
-        },
-      },
-    },
-    bibliography: {
-      run: {
-        font: 'Times New Roman',
-        size: 24,
-      },
-      paragraph: {
-        alignment: AlignmentType.START,
-        indent: {
-          hanging: 720,
-        },
-        spacing: {
-          line: 276,
-          lineRule: 'auto',
-        },
-      },
-    },
-    appendix: {
-      run: {
-        font: 'Times New Roman',
-        size: 24,
-      },
-      paragraph: {
-        alignment: AlignmentType.START,
-        spacing: {
-          before: 240,
-          after: 240,
-          line: 276,
-          lineRule: 'auto',
+          line: 360,
+          after: 200,
         },
       },
     },
   },
-  paragraphStyles: [
-    {
-      id: 'Normal',
-      name: 'Normal',
-      basedOn: 'Normal',
-      next: 'Normal',
-      quickFormat: true,
-      run: {
-        font: 'Times New Roman',
-        size: 24,
-      },
-      paragraph: {
-        alignment: AlignmentType.BOTH,
-        spacing: {
-          after: 200,
-          line: 276,
-          lineRule: 'auto',
-        },
-      },
+};
+
+export const pageSettings = {
+  page: {
+    margin: {
+      top: convertInchesToTwip(1),
+      right: convertInchesToTwip(1),
+      bottom: convertInchesToTwip(1),
+      left: convertInchesToTwip(1),
     },
-    {
-      id: 'Title',
-      name: 'Title',
-      basedOn: 'Normal',
-      next: 'Normal',
-      quickFormat: true,
-      run: {
-        font: 'Times New Roman',
-        size: 36,
-        bold: true,
-      },
-      paragraph: {
-        alignment: AlignmentType.CENTER,
-        spacing: {
-          before: 240,
-          after: 240,
-        },
-      },
-    },
-  ],
+  },
 };

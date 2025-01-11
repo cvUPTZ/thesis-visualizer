@@ -80,13 +80,15 @@ export interface Section {
   tables: Table[];
   citations: Citation[];
   references?: Reference[];
-  tasks: {
-    id: string;
-    description: string;
-    status: 'pending' | 'in progress' | 'completed' | 'on hold';
-    dueDate?: string;
-    priority: 'high' | 'medium' | 'low';
-  }[];
+  tasks: Task[];
+}
+
+export interface Task {
+  id: string;
+  description: string;
+  status: 'pending' | 'in progress' | 'completed' | 'on hold';
+  dueDate?: string;
+  priority: 'high' | 'medium' | 'low';
 }
 
 export interface Figure {
@@ -116,16 +118,6 @@ export interface Citation {
   authors: string[];
   year: string;
   type: 'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other';
-  doi?: string;
-  url?: string;
-  journal?: string;
-  volume?: string;
-  issue?: string;
-  pages?: string;
-  publisher?: string;
-  thesis_id: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Reference {
@@ -136,13 +128,6 @@ export interface Reference {
   authors: string[];
   year: string;
   type: 'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other';
-  doi?: string;
-  url?: string;
-  journal?: string;
-  volume?: string;
-  issue?: string;
-  pages?: string;
-  publisher?: string;
 }
 
 export interface ThesisVersion {
@@ -153,4 +138,13 @@ export interface ThesisVersion {
     description?: string;
     created_at: string;
     created_by: string;
+}
+
+export interface CommentThread {
+  id: string;
+  content: string;
+  author: string;
+  created_at: string;
+  parent_id?: string;
+  replies?: CommentThread[];
 }

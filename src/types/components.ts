@@ -44,3 +44,10 @@ export interface Notification {
   user_id: string;
   created_at: string;
 }
+
+export interface SectionContentProps {
+  section: Section;
+  isActive: boolean;
+  onContentChange: (content: string) => void;
+  onUpdateSectionData: (section: Section) => void;
+}
