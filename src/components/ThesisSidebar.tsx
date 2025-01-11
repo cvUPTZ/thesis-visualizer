@@ -1,17 +1,10 @@
 import React from 'react';
 import { Section } from '@/types/thesis';
-import { TableOfContents } from './sidebar/TableOfContents';
+import { TableOfContents } from '@/components/thesis/sidebar/TableOfContents';
 import { cn } from '@/lib/utils';
-import { CollaboratorLocation } from '@/components/collaboration/CollaboratorLocation';
 import { supabase } from '@/integrations/supabase/client';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { ThesisPlan } from './sidebar/ThesisPlan';
-import { BookOpen, ChevronDown, ChevronRight, FileText } from 'lucide-react';
+import { Button } from './ui/button';
 
 interface ThesisSidebarProps {
   sections: Section[];
@@ -19,21 +12,21 @@ interface ThesisSidebarProps {
   onSectionSelect: (id: string) => void;
   thesisId: string;
   onUpdateSectionData: (section: Section) => void;
-    onAddSectionTask: (sectionId: string) => void;
-    onUpdateSectionTask: (sectionId: string, taskId: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => void;
-    onChangeSectionTaskDescription: (sectionId: string, taskId: string, newDescription: string) => void
+  onAddSectionTask: (sectionId: string) => void;
+  onUpdateSectionTask: (sectionId: string, taskId: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => void;
+  onChangeSectionTaskDescription: (sectionId: string, taskId: string, newDescription: string) => void;
 }
 
-export const ThesisSidebar = ({
+export const ThesisSidebar: React.FC<ThesisSidebarProps> = ({
   sections = [],
   activeSection,
   onSectionSelect,
   thesisId,
-    onUpdateSectionData,
-    onAddSectionTask,
-    onUpdateSectionTask,
-     onChangeSectionTaskDescription,
-}: ThesisSidebarProps) => {
+  onUpdateSectionData,
+  onAddSectionTask,
+  onUpdateSectionTask,
+  onChangeSectionTaskDescription,
+}) => {
   const [openSections, setOpenSections] = React.useState<string[]>(['frontMatter', 'mainContent', 'backMatter', 'figures', 'tables']);
   const [collaboratorLocations, setCollaboratorLocations] = React.useState<Record<string, any>>({});
     const [activeTab, setActiveTab] = React.useState('content');
@@ -100,18 +93,31 @@ export const ThesisSidebar = ({
   const validSections = Array.isArray(sections) ? sections.filter(section => 
     section && typeof section === 'object' && 'id' in section && 'title' in section
   ) : [];
-  
+
   return (
     <aside className="w-64 h-full bg-editor-bg border-r border-editor-border">
       <div className="sticky top-0 z-10 bg-editor-bg border-b border-editor-border p-4">
         <h2 className="text-lg font-serif font-medium text-editor-text">Contents</h2>
       </div>
       <div className="p-4 space-y-4">
-         <div className="flex gap-2">
-            <Button variant={activeTab === 'content' ? 'default' : 'outline'} size="sm" onClick={()=>setActiveTab('content')}>Contents</Button>
-            <Button variant={activeTab === 'plan' ? 'default' : 'outline'} size="sm" onClick={()=>setActiveTab('plan')}>Plan</Button>
-         </div>
-          {activeTab === 'content' && <TableOfContents
+        <div className="flex gap-2">
+          <Button 
+            variant={activeTab === 'content' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setActiveTab('content')}
+          >
+            Contents
+          </Button>
+          <Button 
+            variant={activeTab === 'plan' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setActiveTab('plan')}
+          >
+            Plan
+          </Button>
+        </div>
+        {activeTab === 'content' && (
+          <TableOfContents
             sections={validSections}
             activeSection={activeSection}
             onSectionSelect={onSectionSelect}
@@ -119,14 +125,17 @@ export const ThesisSidebar = ({
             onUpdateSectionData={onUpdateSectionData}
             onAddSectionTask={onAddSectionTask}
             onUpdateSectionTask={onUpdateSectionTask}
-             onChangeSectionTaskDescription={onChangeSectionTaskDescription}
-          /> }
-        {activeTab === 'plan' && <ThesisPlan
+            onChangeSectionTaskDescription={onChangeSectionTaskDescription}
+          />
+        )}
+        {activeTab === 'plan' && (
+          <ThesisPlan
             sections={validSections}
-          activeSection={activeSection}
-          onSectionSelect={onSectionSelect}
-           onUpdateSectionData={onUpdateSectionData}
-          />}
+            activeSection={activeSection}
+            onSectionSelect={onSectionSelect}
+            onUpdateSectionData={onUpdateSectionData}
+          />
+        )}
       </div>
     </aside>
   );
