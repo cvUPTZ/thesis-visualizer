@@ -76,32 +76,40 @@ export const generateThesisDocx = (thesis: Thesis) => {
   ];
 
   const preliminaryPageSettings: ISectionPropertiesOptions = {
-    page: {
-      margin: {
-        top: 1440,
-        right: 1440,
-        bottom: 1440,
-        left: 1800
+    properties: {
+      page: {
+        size: {
+          width: 12240, // 8.5"
+          height: 15840, // 11"
+        },
+        margin: {
+          top: 1440,
+          right: 1440,
+          bottom: 1440,
+          left: 1800
+        }
       },
-      pageNumbers: {
-        start: 1,
-        formatType: 'lowerRoman'
-      }
+      pageNumberStart: 1,
+      pageNumberFormatType: 'lowerRoman'
     }
   };
 
   const mainPageSettings: ISectionPropertiesOptions = {
-    page: {
-      margin: {
-        top: 1440,
-        right: 1440,
-        bottom: 1440,
-        left: 1800
+    properties: {
+      page: {
+        size: {
+          width: 12240, // 8.5"
+          height: 15840, // 11"
+        },
+        margin: {
+          top: 1440,
+          right: 1440,
+          bottom: 1440,
+          left: 1800
+        }
       },
-      pageNumbers: {
-        start: 1,
-        formatType: 'decimal'
-      }
+      pageNumberStart: 1,
+      pageNumberFormatType: 'decimal'
     }
   };
 
@@ -109,7 +117,7 @@ export const generateThesisDocx = (thesis: Thesis) => {
     styles: documentStyles,
     sections: [
       {
-        properties: preliminaryPageSettings,
+        properties: preliminaryPageSettings.properties,
         children: [
           ...generateTitlePage({
             title: titleSection?.title || thesis.title,
@@ -124,7 +132,7 @@ export const generateThesisDocx = (thesis: Thesis) => {
         ]
       },
       {
-        properties: mainPageSettings,
+        properties: mainPageSettings.properties,
         children: [
           ...thesis.chapters.flatMap((chapter, index) => 
             generateChapterContent(

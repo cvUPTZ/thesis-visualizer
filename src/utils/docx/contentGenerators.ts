@@ -1,8 +1,8 @@
-import { HeadingLevel as DocxHeadingLevel, IParagraphOptions, IRunOptions, convertInchesToTwip, AlignmentType, Paragraph, TextRun } from 'docx';
+import { HeadingLevel, IParagraphOptions, IRunOptions, convertInchesToTwip, AlignmentType, Paragraph, TextRun } from 'docx';
 
-export const createHeading = (text: string, level: typeof DocxHeadingLevel, chapterNumber?: number): IParagraphOptions => ({
+export const createHeading = (text: string, level: keyof typeof HeadingLevel, chapterNumber?: number): IParagraphOptions => ({
   text: chapterNumber ? `CHAPTER ${chapterNumber}\n${text}` : text,
-  heading: level,
+  heading: HeadingLevel[level],
   spacing: {
     before: 480,
     after: 240
