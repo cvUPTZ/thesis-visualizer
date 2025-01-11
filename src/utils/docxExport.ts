@@ -220,6 +220,9 @@
 
 
 
+
+
+
 import {
   Document,
   Header,
@@ -242,7 +245,6 @@ import { generateTitlePage, generateAbstractSection, generateChapterContent, gen
 import { Thesis } from '@/types/thesis';
 import { createImageRun } from './docx/imageUtils';
 
-// Helper function to create the header
 const createHeader = (thesis: Thesis) => {
   return new Header({
     children: [
@@ -274,7 +276,6 @@ const createHeader = (thesis: Thesis) => {
   });
 };
 
-// Helper function to create the footer
 const createFooter = () => {
   return new Footer({
     children: [
@@ -301,18 +302,14 @@ const createFooter = () => {
   });
 };
 
-// Main function to generate the thesis document
 export const generateThesisDocx = async (thesis: Thesis) => {
-  // Ensure Buffer is available in the browser environment
   if (typeof Buffer === 'undefined') {
     (window as any).Buffer = (await import('buffer')).Buffer;
   }
 
-  // Extract title and abstract sections from the front matter
   const titleSection = thesis.frontMatter.find(section => section.type === 'title');
   const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
 
-  // Generate table of contents sections
   const tocSections = [
     ...thesis.frontMatter.map(section => ({
       title: section.title,
@@ -324,7 +321,6 @@ export const generateThesisDocx = async (thesis: Thesis) => {
     }))
   ];
 
-  // Create the DOCX document
   const doc = new Document({
     styles: documentStyles,
     settings: {
@@ -359,7 +355,6 @@ export const generateThesisDocx = async (thesis: Thesis) => {
       },
     },
     sections: [
-      // Preliminary section (title page, table of contents, abstract)
       {
         properties: {
           ...preliminaryPageSettings.properties,
@@ -383,7 +378,6 @@ export const generateThesisDocx = async (thesis: Thesis) => {
           ...(abstractSection ? generateAbstractSection(abstractSection.content) : []),
         ]
       },
-      // Main content section (chapters)
       {
         properties: {
           ...mainPageSettings.properties,
