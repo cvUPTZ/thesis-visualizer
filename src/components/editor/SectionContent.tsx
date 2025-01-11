@@ -10,77 +10,76 @@ interface SectionContentProps {
   section: Section;
   isActive: boolean;
   onContentChange: (content: string) => void;
-    onUpdateSectionData: (section: Section) => void;
+  onUpdateSectionData: (section: Section) => void;
 }
 
 export const SectionContent: React.FC<SectionContentProps> = ({
   section,
   isActive,
   onContentChange,
-    onUpdateSectionData
+  onUpdateSectionData
 }) => {
   const [showTasks, setShowTasks] = React.useState(false);
 
   if (!isActive) return null;
 
   const handleAddSectionTask = () => {
-      const newTask = {
-          id: uuidv4(),
-          description: 'New Task',
-          status: 'pending' as const,
-        };
-    onUpdateSectionData({...section, tasks: [...(section.tasks || []), newTask] })
+    const newTask = {
+      id: uuidv4(),
+      description: 'New Task',
+      status: 'pending' as const,
+      priority: 'medium' as const
     };
-
+    onUpdateSectionData({ ...section, tasks: [...(section.tasks || []), newTask] });
+  };
 
   const handleUpdateTaskStatus = (id: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => {
-        const updatedTasks = (section.tasks || []).map(task =>
-            task.id === id ? {...task, status} : task
-        );
-      onUpdateSectionData({...section, tasks: updatedTasks })
+    const updatedTasks = (section.tasks || []).map(task =>
+      task.id === id ? { ...task, status } : task
+    );
+    onUpdateSectionData({ ...section, tasks: updatedTasks });
   };
 
-    const handleTaskDescription = (id: string, newDescription: string) => {
-        const updatedTasks = (section.tasks || []).map(task =>
-            task.id === id ? {...task, description: newDescription} : task
-        );
-      onUpdateSectionData({...section, tasks: updatedTasks })
+  const handleTaskDescription = (id: string, newDescription: string) => {
+    const updatedTasks = (section.tasks || []).map(task =>
+      task.id === id ? { ...task, description: newDescription } : task
+    );
+    onUpdateSectionData({ ...section, tasks: updatedTasks });
   };
-  
 
   return (
     <div className="editor-content">
-        <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium">Tasks</h3>
-            <Button size="sm" onClick={()=>setShowTasks(!showTasks)} variant="outline">
-              {showTasks ? 'Hide tasks' : 'Show Tasks'}
-            </Button>
-        </div>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-medium">Tasks</h3>
+        <Button size="sm" onClick={() => setShowTasks(!showTasks)} variant="outline">
+          {showTasks ? 'Hide tasks' : 'Show Tasks'}
+        </Button>
+      </div>
       {showTasks && (
         <div className="space-y-2 mb-4">
-            {(section.tasks || []).map((task) => (
-              <TaskItem
-                key={task.id}
-                id={task.id}
-                description={task.description}
-                status={task.status}
-                onToggleStatus={(status) => handleUpdateTaskStatus(task.id, status)}
-                onChangeDescription={(newDescription) => handleTaskDescription(task.id, newDescription)}
-              />
-            ))}
-             <Button
-                 variant="outline"
-                 size="sm"
-                 onClick={handleAddSectionTask}
-                 className="gap-2 bg-transparent"
-                 >
-                   <PlusCircle className="w-4 h-4" />
-                     Add Task
-             </Button>
+          {(section.tasks || []).map((task) => (
+            <TaskItem
+              key={task.id}
+              id={task.id}
+              description={task.description}
+              status={task.status}
+              onToggleStatus={(status) => handleUpdateTaskStatus(task.id, status)}
+              onChangeDescription={(newDescription) => handleTaskDescription(task.id, newDescription)}
+            />
+          ))}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAddSectionTask}
+            className="gap-2 bg-transparent"
+          >
+            <PlusCircle className="w-4 h-4" />
+            Add Task
+          </Button>
         </div>
       )}
       <MarkdownEditor
-          key={section.id} // Add key to force remount
+        key={section.id} // Add key to force remount
         value={section.content}
         onChange={onContentChange}
         placeholder="Start writing..."
