@@ -18,6 +18,7 @@ import { documentStyles, mainPageSettings, preliminaryPageSettings } from './doc
 import { generateTitlePage, generateAbstractSection, generateChapterContent, generateTableOfContents } from './docx/sectionGenerators';
 import { Thesis } from '@/types/thesis';
 import { createImageRun } from './docx/imageUtils';
+import { Buffer } from 'buffer'; // Import the Buffer polyfill
 
 const createHeader = (thesis: Thesis) => {
     return new Header({
