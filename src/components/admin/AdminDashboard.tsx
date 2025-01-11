@@ -6,6 +6,7 @@ import { UserManagement } from './UserManagement';
 import { ThesisManagement } from './ThesisManagement';
 import { IssueManagement } from './IssueManagement';
 import { FeedbackManagement } from './feedback/FeedbackManagement';
+import { ActivityLog } from './ActivityLog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Activity, AlertTriangle, Users, FileText, Bug, Settings, MessageSquare } from 'lucide-react';
 
@@ -78,16 +79,6 @@ export const AdminDashboard = () => {
           <FeedbackManagement />
         </TabsContent>
       </Tabs>
-    </div>
-  );
-};
-
-// New ActivityLog component for system activity monitoring
-const ActivityLog = () => {
-  return (
-    <div className="rounded-lg border p-6">
-      <h2 className="text-2xl font-bold mb-4">System Activity</h2>
-      <p className="text-muted-foreground">Activity monitoring coming soon...</p>
     </div>
   );
 };
