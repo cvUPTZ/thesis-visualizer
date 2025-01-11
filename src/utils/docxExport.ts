@@ -18,7 +18,6 @@ import { documentStyles, mainPageSettings, preliminaryPageSettings } from './doc
 import { generateTitlePage, generateAbstractSection, generateChapterContent, generateTableOfContents } from './docx/sectionGenerators';
 import { Thesis } from '@/types/thesis';
 import { createImageRun } from './docx/imageUtils';
-import { Buffer } from 'buffer'; // Import the Buffer polyfill
 
 const createHeader = (thesis: Thesis) => {
     return new Header({
@@ -76,8 +75,13 @@ const createHeader = (thesis: Thesis) => {
       ],
     });
   };
-  
+
 export const generateThesisDocx = async (thesis: Thesis) => {
+    // Check if Buffer is defined before using it
+    if (typeof Buffer === 'undefined') {
+      // Dynamically create buffer object for browser env
+      (window as any).Buffer = (await import('buffer')).Buffer;
+    }
   const titleSection = thesis.frontMatter.find(section => section.type === 'title');
   const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
   
