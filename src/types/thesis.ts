@@ -3,6 +3,8 @@ export interface Collaborator {
   name: string;
   email: string;
   permissions: string[];
+}
+
 export type ThesisSectionType =
   | 'title'
   | 'preface'
@@ -75,7 +77,7 @@ export interface Chapter {
   thesisId: string;
   order: number;
   sections: Section[];
-  figures: Figure[]; // Added this line
+  figures: Figure[];
 }
 
 export interface Section {
@@ -160,27 +162,3 @@ export interface ThesisVersion {
   created_at: string;
   created_by: string;
 }
-
-export type ThesisSectionType = 
-  | 'title'
-  | 'preface'
-  | 'acknowledgments'
-  | 'abstract'
-  | 'table-of-contents'
-  | 'list-of-figures'
-  | 'list-of-tables'
-  | 'abbreviations'
-  | 'glossary'
-  | 'introduction'
-  | 'theoretical-framework'
-  | 'methodology'
-  | 'empirical-study'
-  | 'results'
-  | 'discussion'
-  | 'conclusion'
-  | 'recommendations'
-  | 'postface'
-  | 'references'
-  | 'appendix'
-  | 'advice'
-  | 'custom';
