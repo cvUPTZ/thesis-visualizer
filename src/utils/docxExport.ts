@@ -239,7 +239,6 @@ import {
   PageBorderOffsetFrom,
   PageBorderDisplay,
   PageBorderZOrder,
-  SectionType,
 } from 'docx';
 import { documentStyles, mainPageSettings, preliminaryPageSettings } from './docx/documentStyles';
 import { generateTitlePage, generateAbstractSection, generateChapterContent, generateTableOfContents } from './docx/sectionGenerators';
@@ -304,9 +303,7 @@ const createFooter = () => {
 };
 
 export const generateThesisDocx = async (thesis: Thesis) => {
-  // Check if Buffer is defined before using it
   if (typeof Buffer === 'undefined') {
-    // Dynamically create buffer object for browser env
     (window as any).Buffer = (await import('buffer')).Buffer;
   }
 
@@ -326,42 +323,41 @@ export const generateThesisDocx = async (thesis: Thesis) => {
 
   const doc = new Document({
     styles: documentStyles,
+    settings: {
+      pageBorders: {
+        offsetFrom: PageBorderOffsetFrom.PAGE,
+        display: PageBorderDisplay.ALL_PAGES,
+        zOrder: PageBorderZOrder.FRONT,
+        top: {
+          style: BorderStyle.SINGLE,
+          size: 12,
+          color: "000000",
+          space: 24,
+        },
+        right: {
+          style: BorderStyle.SINGLE,
+          size: 12,
+          color: "000000",
+          space: 24,
+        },
+        bottom: {
+          style: BorderStyle.SINGLE,
+          size: 12,
+          color: "000000",
+          space: 24,
+        },
+        left: {
+          style: BorderStyle.SINGLE,
+          size: 12,
+          color: "000000",
+          space: 24,
+        },
+      },
+    },
     sections: [
       {
         properties: {
           ...preliminaryPageSettings.properties,
-          type: SectionType.NEXT_PAGE,
-          borders: {
-            pageBorders: {
-              offsetFrom: PageBorderOffsetFrom.PAGE,
-              display: PageBorderDisplay.ALL_PAGES,
-              zOrder: PageBorderZOrder.FRONT,
-              top: {
-                style: BorderStyle.SINGLE,
-                size: 12,
-                color: "000000",
-                space: 24,
-              },
-              right: {
-                style: BorderStyle.SINGLE,
-                size: 12,
-                color: "000000",
-                space: 24,
-              },
-              bottom: {
-                style: BorderStyle.SINGLE,
-                size: 12,
-                color: "000000",
-                space: 24,
-              },
-              left: {
-                style: BorderStyle.SINGLE,
-                size: 12,
-                color: "000000",
-                space: 24,
-              },
-            },
-          },
         },
         headers: {
           default: createHeader(thesis),
@@ -385,38 +381,6 @@ export const generateThesisDocx = async (thesis: Thesis) => {
       {
         properties: {
           ...mainPageSettings.properties,
-          type: SectionType.NEXT_PAGE,
-          borders: {
-            pageBorders: {
-              offsetFrom: PageBorderOffsetFrom.PAGE,
-              display: PageBorderDisplay.ALL_PAGES,
-              zOrder: PageBorderZOrder.FRONT,
-              top: {
-                style: BorderStyle.SINGLE,
-                size: 12,
-                color: "000000",
-                space: 24,
-              },
-              right: {
-                style: BorderStyle.SINGLE,
-                size: 12,
-                color: "000000",
-                space: 24,
-              },
-              bottom: {
-                style: BorderStyle.SINGLE,
-                size: 12,
-                color: "000000",
-                space: 24,
-              },
-              left: {
-                style: BorderStyle.SINGLE,
-                size: 12,
-                color: "000000",
-                space: 24,
-              },
-            },
-          },
         },
         headers: {
           default: createHeader(thesis),
