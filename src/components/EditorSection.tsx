@@ -21,14 +21,26 @@ export const EditorSection: React.FC<SectionProps> = ({
 
   if (!isActive) return null;
 
-  const handleSectionUpdate = (updatedSection: Section) => {
+    const handleSectionDataUpdate = (updatedSection: Section) => {
     console.log('Updating section:', updatedSection);
-    onContentChange(updatedSection.id, updatedSection.content);
-    
+      onContentChange(updatedSection.id, updatedSection.content)
+        onTitleChange(updatedSection.id, updatedSection.title)
+       
     toast({
       title: "Success",
       description: "Section updated successfully",
     });
+  };
+   
+    const handleSectionTaskUpdate = (updatedSection: Section) => {
+        console.log('Updating section:', updatedSection);
+       
+       
+        onContentChange(updatedSection.id, updatedSection.content)
+        toast({
+            title: "Success",
+            description: "Section updated successfully",
+        });
   };
 
   return (
@@ -43,11 +55,14 @@ export const EditorSection: React.FC<SectionProps> = ({
         <SectionContent
           content={section.content}
           onContentChange={(content) => onContentChange(section.id, content)}
+          section={section}
+            isActive={isActive}
+           onUpdateSectionData={handleSectionTaskUpdate}
         />
 
         <SectionManagers
           section={section}
-          onSectionUpdate={handleSectionUpdate}
+          onSectionUpdate={handleSectionDataUpdate}
         />
       </div>
     </div>

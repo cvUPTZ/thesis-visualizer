@@ -3,6 +3,46 @@ export interface Collaborator {
   name: string;
   email: string;
   permissions: string[];
+export type ThesisSectionType =
+  | 'title'
+  | 'preface'
+  | 'acknowledgments'
+  | 'abstract'
+  | 'table-of-contents'
+  | 'list-of-figures'
+  | 'list-of-tables'
+  | 'abbreviations'
+  | 'glossary'
+  | 'introduction'
+  | 'theoretical-framework'
+  | 'methodology'
+  | 'empirical-study'
+  | 'results'
+  | 'discussion'
+  | 'conclusion'
+  | 'recommendations'
+  | 'postface'
+  | 'references'
+  | 'appendix'
+  | 'advice'
+  | 'custom';
+
+export interface ThesisMetadata {
+  description: string;
+  keywords: string[];
+  createdAt: string;
+  shortTitle?: string;
+  institution?: string;
+  author?: string;
+  degree?: string;
+  date?: string;
+  universityName?: string;
+  departmentName?: string;
+  authorName?: string;
+  thesisDate?: string;
+  committeeMembers?: string[];
+  startDate?: string;
+  dueDate?: string;
 }
 
 export interface Thesis {
@@ -34,8 +74,8 @@ export interface Chapter {
   content: string;
   thesisId: string;
   order: number;
-  createdAt: Date;
-  updatedAt: Date;
+  sections: Section[];
+  figures: Figure[]; // Added this line
 }
 
 export interface Section {
@@ -44,8 +84,11 @@ export interface Section {
   content: string;
   chapterId: string;
   order: number;
-  createdAt: Date;
-  updatedAt: Date;
+  required?: boolean;
+  figures: Figure[];
+  tables: Table[];
+  citations: Citation[];
+  references?: Reference[];
 }
 
 export interface Figure {
@@ -75,31 +118,69 @@ export interface Table {
 
 export interface Citation {
   id: string;
-  author: string;
-  title: string;
-  publisher: string;
-  year: number;
-  thesisId: string;
-  page?: string;
+  text: string;
+  source: string;
+  authors: string[];
+  year: string;
+  type: 'article' | 'book' | 'conference' | 'website' | 'other';
+  doi?: string;
+  url?: string;
+  journal?: string;
   volume?: string;
   issue?: string;
-  url?: string;
-  accessed?: Date;
+  pages?: string;
+  publisher?: string;
+  thesis_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Reference {
   id: string;
   text: string;
-  thesisId: string;
+  source: string;
+  authors: string[];
+  year: string;
+  type: 'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other';
+  doi?: string;
+  url?: string;
+  journal?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  publisher?: string;
 }
 
-export interface Comment {
+export interface ThesisVersion {
   id: string;
-  authorId: string;
-  authorName: string;
-  text: string;
-  createdAt: Date;
-  updatedAt: Date;
-  parentId?: string; // For nested comments
-  context?: string; // To reference a specific part of the text
+  thesis_id: string;
+  content: any;
+  version_number: number;
+  description?: string;
+  created_at: string;
+  created_by: string;
 }
+
+export type ThesisSectionType = 
+  | 'title'
+  | 'preface'
+  | 'acknowledgments'
+  | 'abstract'
+  | 'table-of-contents'
+  | 'list-of-figures'
+  | 'list-of-tables'
+  | 'abbreviations'
+  | 'glossary'
+  | 'introduction'
+  | 'theoretical-framework'
+  | 'methodology'
+  | 'empirical-study'
+  | 'results'
+  | 'discussion'
+  | 'conclusion'
+  | 'recommendations'
+  | 'postface'
+  | 'references'
+  | 'appendix'
+  | 'advice'
+  | 'custom';
