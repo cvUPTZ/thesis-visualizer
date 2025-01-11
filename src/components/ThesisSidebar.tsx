@@ -1,6 +1,6 @@
 import React from 'react';
 import { Section } from '@/types/thesis';
-import { TableOfContents } from './thesis/sidebar/TableOfContents';
+import { TableOfContents } from './sidebar/TableOfContents';
 import { cn } from '@/lib/utils';
 
 interface ThesisSidebarProps {
@@ -8,13 +8,21 @@ interface ThesisSidebarProps {
   activeSection: string;
   onSectionSelect: (id: string) => void;
   thesisId: string;
+  onUpdateSectionData: (section: Section) => void;
+    onAddSectionTask: (sectionId: string) => void;
+    onUpdateSectionTask: (sectionId: string, taskId: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => void;
+  onChangeSectionTaskDescription: (sectionId: string, taskId: string, newDescription: string) => void
 }
 
 export const ThesisSidebar = ({ 
   sections = [], 
   activeSection, 
   onSectionSelect,
-  thesisId
+  thesisId,
+    onUpdateSectionData,
+    onAddSectionTask,
+    onUpdateSectionTask,
+    onChangeSectionTaskDescription,
 }: ThesisSidebarProps) => {
   console.log('Rendering ThesisSidebar:', { 
     activeSection, 
@@ -37,6 +45,10 @@ export const ThesisSidebar = ({
           activeSection={activeSection}
           onSectionSelect={onSectionSelect}
           thesisId={thesisId}
+            onUpdateSectionData={onUpdateSectionData}
+            onAddSectionTask={onAddSectionTask}
+            onUpdateSectionTask={onUpdateSectionTask}
+            onChangeSectionTaskDescription={onChangeSectionTaskDescription}
         />
       </div>
     </aside>

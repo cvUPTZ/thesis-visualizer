@@ -1,21 +1,26 @@
-export interface ThesisComment {
-  id: string;
-  thesis_id: string;
-  section_id: string;
-  reviewer_id: string;
-  content: {
-    text: string;
-  };
-  parent_id?: string;
-  status: 'pending' | 'resolved';
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CommentThread {
-  comment: ThesisComment;
-  replies: ThesisComment[];
-}
+export type ThesisSectionType =
+  | 'title'
+  | 'preface'
+  | 'acknowledgments'
+  | 'abstract'
+  | 'table-of-contents'
+  | 'list-of-figures'
+  | 'list-of-tables'
+  | 'abbreviations'
+  | 'glossary'
+  | 'introduction'
+  | 'theoretical-framework'
+  | 'methodology'
+  | 'empirical-study'
+  | 'results'
+  | 'discussion'
+  | 'conclusion'
+  | 'recommendations'
+  | 'postface'
+  | 'references'
+  | 'appendix'
+  | 'advice'
+  | 'custom';
 
 export interface ThesisMetadata {
   description: string;
@@ -31,6 +36,8 @@ export interface ThesisMetadata {
   authorName?: string;
   thesisDate?: string;
   committeeMembers?: string[];
+  startDate?: string;
+  dueDate?: string;
 }
 
 export interface Thesis {
@@ -52,7 +59,14 @@ export interface Chapter {
   content?: string;
   order: number;
   sections: Section[];
-  figures: Figure[]; // Added this line
+  figures: Figure[];
+  tasks: {
+      id: string;
+      description: string;
+      status: 'pending' | 'in progress' | 'completed' | 'on hold';
+      dueDate?: string;
+      priority: 'high' | 'medium' | 'low';
+   }[]
 }
 
 export interface Section {
@@ -66,12 +80,19 @@ export interface Section {
   tables: Table[];
   citations: Citation[];
   references?: Reference[];
+    tasks: {
+      id: string;
+      description: string;
+      status: 'pending' | 'in progress' | 'completed' | 'on hold';
+      dueDate?: string;
+      priority: 'high' | 'medium' | 'low'
+    }[]
 }
 
 export interface Figure {
   id: string;
   imageUrl: string;
-  title: string; // Added title field
+  title: string;
   caption: string;
   altText: string;
   number: number;
@@ -125,35 +146,11 @@ export interface Reference {
 }
 
 export interface ThesisVersion {
-  id: string;
-  thesis_id: string;
-  content: any;
-  version_number: number;
-  description?: string;
-  created_at: string;
-  created_by: string;
-}
-
-export type ThesisSectionType = 
-  | 'title'
-  | 'preface'
-  | 'acknowledgments'
-  | 'abstract'
-  | 'table-of-contents'
-  | 'list-of-figures'
-  | 'list-of-tables'
-  | 'abbreviations'
-  | 'glossary'
-  | 'introduction'
-  | 'theoretical-framework'
-  | 'methodology'
-  | 'empirical-study'
-  | 'results'
-  | 'discussion'
-  | 'conclusion'
-  | 'recommendations'
-  | 'postface'
-  | 'references'
-  | 'appendix'
-  | 'advice'
-  | 'custom';
+    id: string;
+    thesis_id: string;
+    content: any;
+    version_number: number;
+    description?: string;
+    created_at: string;
+    created_by: string;
+  }

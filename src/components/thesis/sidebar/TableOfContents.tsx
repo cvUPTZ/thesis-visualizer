@@ -1,7 +1,6 @@
 import React from 'react';
-import { ChevronDown, ChevronRight, FileText, BookOpen, Image, Table } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Section } from '@/types/thesis';
+import { cn } from '@/lib/utils';
 import { CollaboratorLocation } from '@/components/collaboration/CollaboratorLocation';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -10,19 +9,29 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { TaskList } from './TaskList';
+import { FileText, BookOpen, ChevronRight, ChevronDown } from 'lucide-react';
 
 interface TableOfContentsProps {
   sections: Section[];
   activeSection: string;
   onSectionSelect: (id: string) => void;
   thesisId: string;
+   onUpdateSectionData: (section: Section) => void;
+  onAddSectionTask: (sectionId: string) => void;
+  onUpdateSectionTask: (sectionId: string, taskId: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => void;
+    onChangeSectionTaskDescription: (sectionId: string, taskId: string, newDescription: string) => void
 }
 
-export const TableOfContents = ({ 
-  sections = [], 
-  activeSection, 
+export const TableOfContents = ({
+  sections = [],
+  activeSection,
   onSectionSelect,
-  thesisId
+  thesisId,
+    onUpdateSectionData,
+    onAddSectionTask,
+     onUpdateSectionTask,
+    onChangeSectionTaskDescription,
 }: TableOfContentsProps) => {
   const [openSections, setOpenSections] = React.useState<string[]>(['frontMatter', 'mainContent', 'backMatter', 'figures', 'tables']);
   const [collaboratorLocations, setCollaboratorLocations] = React.useState<Record<string, any>>({});
@@ -131,7 +140,7 @@ export const TableOfContents = ({
           <FileText className="w-4 h-4 text-editor-text group-hover:text-editor-accent transition-colors" />
           <span className="truncate">{section.title || 'Untitled Section'}</span>
         </div>
-        {collaborators.length > 0 && (
+         {collaborators.length > 0 && (
           <div className="flex -space-x-2">
             {collaborators.map((collaborator: any) => (
               <CollaboratorLocation 
@@ -167,7 +176,17 @@ export const TableOfContents = ({
         {title}
       </CollapsibleTrigger>
       <CollapsibleContent className="pl-4 space-y-1">
-        {sectionsList.map(renderSectionItem)}
+        {sectionsList.map(section => (
+          <div className="space-y-2">
+            {renderSectionItem(section)}
+            <TaskList
+                tasks={section.tasks}
+                onUpdateTask={(taskId, status) => onUpdateSectionTask(section.id, taskId, status)}
+                onAddTask={() => onAddSectionTask(section.id)}
+                onChangeTaskDescription={(taskId, newDescription)=> onChangeSectionTaskDescription(section.id, taskId, newDescription)}
+              />
+            </div>
+          ))}
       </CollapsibleContent>
     </Collapsible>
   );
