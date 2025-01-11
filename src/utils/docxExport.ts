@@ -223,8 +223,6 @@
 
 
 
-
-
 // File: src/utils/docxExport.ts
 
 import {
@@ -326,20 +324,20 @@ export const generateThesisDocx = async (thesis: Thesis) => {
 
   const doc = new Document({
     styles: documentStyles,
-      sections: [
+    sections: [
        {
-         properties: {
+           properties: {
            ...preliminaryPageSettings.properties,
-           page: {
-              ...preliminaryPageSettings.properties?.page,
-              borders: {
-                top: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
-                right: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
-                bottom: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
-                left: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
-              },
-            }
-          },
+              page: {
+                 ...preliminaryPageSettings.properties?.page,
+                borders: {
+                  top: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
+                  right: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
+                  bottom: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
+                  left: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
+                },
+              }
+           },
           headers: {
             default: createHeader(thesis),
           },
@@ -365,11 +363,11 @@ export const generateThesisDocx = async (thesis: Thesis) => {
             page: {
               ...mainPageSettings.properties?.page,
               borders: {
-                top: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
-                right: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
-                bottom: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
-                left: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
-              }
+                 top: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
+                  right: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
+                 bottom: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
+                 left: { style: BorderStyle.SINGLE, size: 4, color: '#000000' },
+               }
             }
           },
         headers: {
@@ -392,6 +390,7 @@ export const generateThesisDocx = async (thesis: Thesis) => {
                         text: paragraphText,
                         font: "Times New Roman",
                         size: 24,
+                       
                       })
                     );
               
@@ -399,22 +398,22 @@ export const generateThesisDocx = async (thesis: Thesis) => {
                        ...sectionParagraphs,
                        ...(section.figures || []).map(figure => new Paragraph({
                          children: [
-                            new TextRun({ text: `${figure.title}\n`}),
+                           new TextRun({ text: `${figure.title}\n`}),
                             new TextRun({
-                              children: [
-                                 ...(figure.imageUrl
-                                  ? [createImageRun(
-                                      new Buffer(figure.imageUrl.split(',')[1], 'base64'),
-                                      figure.dimensions.width * 100,
-                                      figure.dimensions.height * 100
-                                   ) as any]
+                            children: [
+                               ...(figure.imageUrl
+                                   ? [createImageRun(
+                                    new Buffer(figure.imageUrl.split(',')[1], 'base64'),
+                                    figure.dimensions.width * 100,
+                                    figure.dimensions.height * 100
+                                     ) as any]
                                     : []
-                            )
-                          ],
+                                  )
+                             ]
                           }),
-                           new TextRun({
-                              text: figure.caption,
-                              size: 20
+                         new TextRun({
+                             text: figure.caption,
+                             size: 20
                            })
                           ],
                          alignment: AlignmentType.CENTER,
@@ -429,13 +428,13 @@ export const generateThesisDocx = async (thesis: Thesis) => {
                          }),
                         ),
                       ];
-                  }),
+                    }),
                 new Paragraph({ children: [new PageBreak()] }),
-              ];
-            }),
-          ],
+                ];
+             }),
+           ],
         }
-    ]
+      ]
   });
 
   return doc;
