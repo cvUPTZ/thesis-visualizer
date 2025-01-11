@@ -80,13 +80,13 @@ export interface Section {
   tables: Table[];
   citations: Citation[];
   references?: Reference[];
-    tasks: {
-      id: string;
-      description: string;
-      status: 'pending' | 'in progress' | 'completed' | 'on hold';
-      dueDate?: string;
-      priority: 'high' | 'medium' | 'low'
-    }[]
+  tasks: {
+    id: string;
+    description: string;
+    status: 'pending' | 'in progress' | 'completed' | 'on hold';
+    dueDate?: string;
+    priority: 'high' | 'medium' | 'low';
+  }[];
 }
 
 export interface Figure {
@@ -115,7 +115,7 @@ export interface Citation {
   source: string;
   authors: string[];
   year: string;
-  type: 'article' | 'book' | 'conference' | 'website' | 'other';
+  type: 'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other';
   doi?: string;
   url?: string;
   journal?: string;
@@ -123,9 +123,6 @@ export interface Citation {
   issue?: string;
   pages?: string;
   publisher?: string;
-  thesis_id: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Reference {
@@ -153,4 +150,4 @@ export interface ThesisVersion {
     description?: string;
     created_at: string;
     created_by: string;
-  }
+}

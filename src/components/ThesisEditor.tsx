@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
-import { Chapter, Thesis } from '@/types/thesis';
+import { Chapter, Section, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
 import { useParams } from 'react-router-dom';
@@ -17,6 +17,7 @@ import { ChatMessages } from './collaboration/ChatMessages';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -37,23 +38,6 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   useThesisAutosave(thesis);
   useThesisInitialization(thesis);
   useThesisRealtime(currentThesisId, thesis, setThesis);
-
-  const calculateProgress = () => {
-    if (!thesis) return 0;
-    const allSections = [
-      ...thesis.frontMatter,
-      ...thesis.chapters.flatMap(chapter => chapter.sections),
-      ...thesis.backMatter
-    ];
-    
-    const completedSections = allSections.filter(section => 
-      section.content && section.content.trim().length > 0
-    ).length;
-    
-    return Math.round((completedSections / allSections.length) * 100);
-  };
-
-  const progress = calculateProgress();
 
   const handleContentChange = (id: string, content: string) => {
     if (!thesis) return;
@@ -94,6 +78,136 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
       )
     }));
   };
+
+  const handleUpdateSectionData = (updatedSection: Section) => {
+    if (!thesis) return;
+    setThesis(prevThesis => ({
+      ...prevThesis!,
+      frontMatter: prevThesis!.frontMatter.map(section =>
+        section.id === updatedSection.id ? updatedSection : section
+      ),
+      chapters: prevThesis!.chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.map(section =>
+          section.id === updatedSection.id ? updatedSection : section
+        )
+      })),
+      backMatter: prevThesis!.backMatter.map(section =>
+        section.id === updatedSection.id ? updatedSection : section
+      )
+    }));
+  };
+
+  const handleAddSectionTask = (sectionId: string) => {
+    if (!thesis) return;
+    const newTask = {
+      id: uuidv4(),
+      description: 'New Task',
+      status: 'pending' as const,
+      priority: 'medium' as const
+    };
+
+    setThesis(prevThesis => ({
+      ...prevThesis!,
+      frontMatter: prevThesis!.frontMatter.map(section =>
+        section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
+      ),
+      chapters: prevThesis!.chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.map(section =>
+          section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
+        )
+      })),
+      backMatter: prevThesis!.backMatter.map(section =>
+        section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
+      )
+    }));
+  };
+
+  const handleUpdateSectionTask = (sectionId: string, taskId: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => {
+    if (!thesis) return;
+    setThesis(prevThesis => ({
+      ...prevThesis!,
+      frontMatter: prevThesis!.frontMatter.map(section =>
+        section.id === sectionId ? {
+          ...section,
+          tasks: section.tasks.map(task =>
+            task.id === taskId ? { ...task, status } : task
+          )
+        } : section
+      ),
+      chapters: prevThesis!.chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.map(section =>
+          section.id === sectionId ? {
+            ...section,
+            tasks: section.tasks.map(task =>
+              task.id === taskId ? { ...task, status } : task
+            )
+          } : section
+        )
+      })),
+      backMatter: prevThesis!.backMatter.map(section =>
+        section.id === sectionId ? {
+          ...section,
+          tasks: section.tasks.map(task =>
+            task.id === taskId ? { ...task, status } : task
+          )
+        } : section
+      )
+    }));
+  };
+
+  const handleChangeSectionTaskDescription = (sectionId: string, taskId: string, newDescription: string) => {
+    if (!thesis) return;
+    setThesis(prevThesis => ({
+      ...prevThesis!,
+      frontMatter: prevThesis!.frontMatter.map(section =>
+        section.id === sectionId ? {
+          ...section,
+          tasks: section.tasks.map(task =>
+            task.id === taskId ? { ...task, description: newDescription } : task
+          )
+        } : section
+      ),
+      chapters: prevThesis!.chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.map(section =>
+          section.id === sectionId ? {
+            ...section,
+            tasks: section.tasks.map(task =>
+              task.id === taskId ? { ...task, description: newDescription } : task
+            )
+          } : section
+        )
+      })),
+      backMatter: prevThesis!.backMatter.map(section =>
+        section.id === sectionId ? {
+          ...section,
+          tasks: section.tasks.map(task =>
+            task.id === taskId ? { ...task, description: newDescription } : task
+          )
+        } : section
+      )
+    }));
+  };
+
+  const calculateProgress = () => {
+    if (!thesis) return 0;
+    const allSections = [
+      ...thesis.frontMatter,
+      ...thesis.chapters.flatMap(chapter => chapter.sections),
+      ...thesis.backMatter
+    ];
+    
+    const completedSections = allSections.filter(section => 
+      section.content && section.content.trim().length > 0
+    ).length;
+    
+    return Math.round((completedSections / allSections.length) * 100);
+  };
+
+  const progress = calculateProgress();
 
   if (isLoading) {
     return (
@@ -149,6 +263,10 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
         thesisId={currentThesisId!}
+        onUpdateSectionData={handleUpdateSectionData}
+        onAddSectionTask={handleAddSectionTask}
+        onUpdateSectionTask={handleUpdateSectionTask}
+        onChangeSectionTaskDescription={handleChangeSectionTaskDescription}
       />
       
       <div className="flex-1 flex flex-col">
