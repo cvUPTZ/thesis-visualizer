@@ -1,159 +1,105 @@
-export interface ThesisComment {
+export interface Collaborator {
   id: string;
-  thesis_id: string;
-  section_id: string;
-  reviewer_id: string;
-  content: {
-    text: string;
-  };
-  parent_id?: string;
-  status: 'pending' | 'resolved';
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CommentThread {
-  comment: ThesisComment;
-  replies: ThesisComment[];
-}
-
-export interface ThesisMetadata {
-  description: string;
-  keywords: string[];
-  createdAt: string;
-  shortTitle?: string;
-  institution?: string;
-  author?: string;
-  degree?: string;
-  date?: string;
-  universityName?: string;
-  departmentName?: string;
-  authorName?: string;
-  thesisDate?: string;
-  committeeMembers?: string[];
+  name: string;
+  email: string;
+  permissions: string[];
 }
 
 export interface Thesis {
   id: string;
   title: string;
-  content?: any;
-  metadata: ThesisMetadata;
-  frontMatter: Section[];
-  chapters: Chapter[];
-  backMatter: Section[];
-  user_id: string;
-  created_at: string;
-  updated_at: string;
+  abstract: string;
+  introduction?: string;
+  conclusion?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  status: 'draft' | 'submitted' | 'approved' | 'rejected';
+  ownerId: string;
+  collaborators?: Collaborator[];
+  contentOrder?: string[];
+  language?: string;
+  keywords?: string[];
+  visibility: 'private' | 'public';
+  version?: number;
+  outline?: string;
+  acknowledgements?: string;
+  bibliography?: string;
+  tableOfContents?: string;
+  notes?: string[];
 }
 
 export interface Chapter {
   id: string;
   title: string;
-  content?: string;
+  content: string;
+  thesisId: string;
   order: number;
-  sections: Section[];
-  figures: Figure[]; // Added this line
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Section {
   id: string;
   title: string;
   content: string;
-  type: ThesisSectionType;
+  chapterId: string;
   order: number;
-  required?: boolean;
-  figures: Figure[];
-  tables: Table[];
-  citations: Citation[];
-  references?: Reference[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Figure {
   id: string;
   imageUrl: string;
-  title: string; // Added title field
+  title: string;
   caption: string;
   altText: string;
   number: number;
-  dimensions: {
+  dimensions?: {
     width: number;
     height: number;
   };
+  position?: 'left' | 'center' | 'right';
+  customWidth?: number;
+  customHeight?: number;
 }
 
 export interface Table {
   id: string;
   title: string;
-  caption?: string;
-  content: string;
+  caption: string;
+  content: string[][];
+  thesisId: string;
+  number: number;
 }
 
 export interface Citation {
   id: string;
-  text: string;
-  source: string;
-  authors: string[];
-  year: string;
-  type: 'article' | 'book' | 'conference' | 'website' | 'other';
-  doi?: string;
-  url?: string;
-  journal?: string;
+  author: string;
+  title: string;
+  publisher: string;
+  year: number;
+  thesisId: string;
+  page?: string;
   volume?: string;
   issue?: string;
-  pages?: string;
-  publisher?: string;
-  thesis_id: string;
-  created_at: string;
-  updated_at: string;
+  url?: string;
+  accessed?: Date;
 }
 
 export interface Reference {
   id: string;
-  title: string;
   text: string;
-  source: string;
-  authors: string[];
-  year: string;
-  type: 'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other';
-  doi?: string;
-  url?: string;
-  journal?: string;
-  volume?: string;
-  issue?: string;
-  pages?: string;
-  publisher?: string;
+  thesisId: string;
 }
 
-export interface ThesisVersion {
+export interface Comment {
   id: string;
-  thesis_id: string;
-  content: any;
-  version_number: number;
-  description?: string;
-  created_at: string;
-  created_by: string;
+  authorId: string;
+  authorName: string;
+  text: string;
+  createdAt: Date;
+  updatedAt: Date;
+  parentId?: string; // For nested comments
+  context?: string; // To reference a specific part of the text
 }
-
-export type ThesisSectionType = 
-  | 'title'
-  | 'preface'
-  | 'acknowledgments'
-  | 'abstract'
-  | 'table-of-contents'
-  | 'list-of-figures'
-  | 'list-of-tables'
-  | 'abbreviations'
-  | 'glossary'
-  | 'introduction'
-  | 'theoretical-framework'
-  | 'methodology'
-  | 'empirical-study'
-  | 'results'
-  | 'discussion'
-  | 'conclusion'
-  | 'recommendations'
-  | 'postface'
-  | 'references'
-  | 'appendix'
-  | 'advice'
-  | 'custom';

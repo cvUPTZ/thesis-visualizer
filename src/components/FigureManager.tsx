@@ -35,7 +35,12 @@ export const FigureManager = ({
 
   console.log('Rendering FigureManager:', { figuresCount: figures?.length });
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = async (
+    file: File,
+    position?: string,
+    customWidth?: number,
+    customHeight?: number
+  ) => {
     try {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -53,7 +58,10 @@ export const FigureManager = ({
             dimensions: {
               width: img.width,
               height: img.height
-            }
+            },
+            position,
+            customWidth,
+            customHeight,
           };
           
           console.log('Adding new figure:', newFigure);
@@ -119,7 +127,9 @@ export const FigureManager = ({
             transition={{ duration: 0.2 }}
           >
             <FigureUpload
-              onUpload={handleFileUpload}
+              onUpload={(file, position, customWidth, customHeight) =>
+                handleFileUpload(file, position, customWidth, customHeight)
+              }
               imageUrl={previewImage || undefined}
               altText="Preview"
             />
