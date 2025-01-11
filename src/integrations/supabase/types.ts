@@ -742,6 +742,53 @@ export type Database = {
           },
         ]
       }
+      user_interactions: {
+        Row: {
+          created_at: string
+          element_class: string | null
+          element_id: string | null
+          event_type: string
+          id: string
+          page_path: string | null
+          scroll_depth: number | null
+          user_id: string | null
+          x_position: number | null
+          y_position: number | null
+        }
+        Insert: {
+          created_at?: string
+          element_class?: string | null
+          element_id?: string | null
+          event_type: string
+          id?: string
+          page_path?: string | null
+          scroll_depth?: number | null
+          user_id?: string | null
+          x_position?: number | null
+          y_position?: number | null
+        }
+        Update: {
+          created_at?: string
+          element_class?: string | null
+          element_id?: string | null
+          event_type?: string
+          id?: string
+          page_path?: string | null
+          scroll_depth?: number | null
+          user_id?: string | null
+          x_position?: number | null
+          y_position?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_interactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       supervisor_theses: {
