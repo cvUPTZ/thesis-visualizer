@@ -16,7 +16,7 @@ interface CollaboratorInviteFormProps {
   setIsInviting: (isInviting: boolean) => void;
 }
 
-const VALID_ROLES = ['editor', 'viewer'] as const;
+const VALID_ROLES = ['editor', 'viewer', 'supervisor'] as const;
 type ValidRole = typeof VALID_ROLES[number];
 
 export const CollaboratorInviteForm = ({

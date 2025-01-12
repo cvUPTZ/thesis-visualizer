@@ -38,12 +38,12 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
         font: "Times New Roman"
       }),
     ],
+    alignment: AlignmentType.CENTER,
     spacing: { 
       before: convertInchesToTwip(2), 
       after: convertInchesToTwip(1),
       line: 360
     },
-    alignment: AlignmentType.CENTER,
   }),
   new Paragraph({
     style: 'Subtitle',
@@ -59,11 +59,11 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
         break: 2
       }),
     ],
+    alignment: AlignmentType.CENTER,
     spacing: { 
       before: convertInchesToTwip(1),
       line: 360
     },
-    alignment: AlignmentType.CENTER,
   }),
   new Paragraph({
     style: 'Subtitle',
@@ -74,11 +74,11 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
         break: 2
       }),
     ],
+    alignment: AlignmentType.CENTER,
     spacing: { 
       before: convertInchesToTwip(1),
       line: 360
     },
-    alignment: AlignmentType.CENTER,
   }),
   new Paragraph({
     style: 'Subtitle',
@@ -88,11 +88,11 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
         size: 28,
       }),
     ],
+    alignment: AlignmentType.CENTER,
     spacing: { 
       before: convertInchesToTwip(0.5),
       line: 360
     },
-    alignment: AlignmentType.CENTER,
   }),
   new Paragraph({
     style: 'Subtitle',
@@ -114,11 +114,11 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
         bold: true
       }),
     ],
+    alignment: AlignmentType.CENTER,
     spacing: { 
       before: convertInchesToTwip(1),
       line: 360
     },
-    alignment: AlignmentType.CENTER,
   }),
   new Paragraph({
     style: 'Subtitle',
@@ -129,11 +129,11 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
         break: 2
       }),
     ],
+    alignment: AlignmentType.CENTER,
     spacing: { 
       before: convertInchesToTwip(1),
       line: 360
     },
-    alignment: AlignmentType.CENTER,
   }),
   new Paragraph({ 
     children: [new PageBreak()],
@@ -217,7 +217,7 @@ export const generateChapterContent = (
     },
     alignment: AlignmentType.CENTER,
   }),
-  ...content.split('\n\n').map(paragraph =>
+  ...(typeof content === 'string' ? content.split('\n\n').map(paragraph =>
     new Paragraph({
       style: 'Normal',
       children: [
@@ -235,7 +235,7 @@ export const generateChapterContent = (
         firstLine: convertInchesToTwip(0.5)
       }
     })
-  ),
+  ) : []),
 ];
 
 export const generateTableOfContents = (sections: { title: string; page: number }[]): Paragraph[] => {
