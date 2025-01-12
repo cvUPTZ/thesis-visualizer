@@ -5,6 +5,21 @@ export interface Collaborator {
   permissions: string[];
 }
 
+export interface Task {
+  id: string;
+  description: string;
+  status: 'pending' | 'in progress' | 'completed' | 'on hold';
+  priority: 'low' | 'medium' | 'high';
+}
+
+export interface CommentThread {
+  id: string;
+  content: string;
+  author: string;
+  createdAt: string;
+  replies: CommentThread[];
+}
+
 export type ThesisSectionType =
   | 'title'
   | 'preface'
@@ -50,31 +65,23 @@ export interface ThesisMetadata {
 export interface Thesis {
   id: string;
   title: string;
-  abstract: string;
-  introduction?: string;
-  conclusion?: string;
+  content: any;
+  metadata: ThesisMetadata;
+  frontMatter: Section[];
+  chapters: Chapter[];
+  backMatter: Section[];
   createdAt: Date;
   updatedAt: Date;
-  status: 'draft' | 'submitted' | 'approved' | 'rejected';
-  ownerId: string;
-  collaborators?: Collaborator[];
-  contentOrder?: string[];
+  user_id: string;
   language?: string;
-  keywords?: string[];
-  visibility: 'private' | 'public';
-  version?: number;
-  outline?: string;
-  acknowledgements?: string;
-  bibliography?: string;
-  tableOfContents?: string;
-  notes?: string[];
+  supervisor_email?: string;
+  supervisor_id?: string;
 }
 
 export interface Chapter {
   id: string;
   title: string;
   content: string;
-  thesisId: string;
   order: number;
   sections: Section[];
   figures: Figure[];
@@ -84,13 +91,14 @@ export interface Section {
   id: string;
   title: string;
   content: string;
-  chapterId: string;
   order: number;
+  type: ThesisSectionType;
   required?: boolean;
   figures: Figure[];
   tables: Table[];
   citations: Citation[];
   references?: Reference[];
+  tasks: Task[];
 }
 
 export interface Figure {
@@ -104,7 +112,7 @@ export interface Figure {
     width: number;
     height: number;
   };
-  position?: 'left' | 'center' | 'right';
+  position: 'left' | 'center' | 'right';
   customWidth?: number;
   customHeight?: number;
 }
@@ -114,7 +122,6 @@ export interface Table {
   title: string;
   caption: string;
   content: string[][];
-  thesisId: string;
   number: number;
 }
 
@@ -140,6 +147,7 @@ export interface Citation {
 export interface Reference {
   id: string;
   text: string;
+  title: string;
   source: string;
   authors: string[];
   year: string;
@@ -161,4 +169,12 @@ export interface ThesisVersion {
   description?: string;
   created_at: string;
   created_by: string;
+}
+
+export interface ThesisComment {
+  id: string;
+  content: string;
+  author: string;
+  createdAt: string;
+  replies: ThesisComment[];
 }

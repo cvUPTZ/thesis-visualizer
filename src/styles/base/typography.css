@@ -2,39 +2,38 @@
 @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Montserrat:wght@200;300;400&display=swap');
 
-  html {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    @apply antialiased scroll-smooth;
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+html {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  @apply antialiased scroll-smooth;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-  body {
-    @apply bg-background text-foreground font-sans min-h-screen w-full overflow-x-hidden;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    line-height: 1.5;
-  }
+body {
+  @apply bg-background text-foreground font-sans min-h-screen w-full overflow-x-hidden;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+}
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-serif tracking-tight mb-4;
-    font-family: 'Merriweather', serif;
-    line-height: 1.2;
-  }
+h1, h2, h3, h4, h5, h6 {
+  @apply font-serif tracking-tight mb-4;
+  font-family: 'Merriweather', serif;
+  line-height: 1.2;
+}
 
-  h1 { @apply text-4xl font-bold md:text-5xl lg:text-6xl; letter-spacing: -0.02em; }
-  h2 { @apply text-3xl font-bold md:text-4xl lg:text-5xl; letter-spacing: -0.01em; }
-  h3 { @apply text-2xl font-bold md:text-3xl lg:text-4xl; }
-  h4 { @apply text-xl font-bold md:text-2xl lg:text-3xl; }
-  h5 { @apply text-lg font-bold md:text-xl lg:text-2xl; }
-  h6 { @apply text-base font-bold md:text-lg lg:text-xl; }
+h1 { @apply text-4xl font-bold md:text-5xl lg:text-6xl; letter-spacing: -0.02em; }
+h2 { @apply text-3xl font-bold md:text-4xl lg:text-5xl; letter-spacing: -0.01em; }
+h3 { @apply text-2xl font-bold md:text-3xl lg:text-4xl; }
+h4 { @apply text-xl font-bold md:text-2xl lg:text-3xl; }
+h5 { @apply text-lg font-bold md:text-xl lg:text-2xl; }
+h6 { @apply text-base font-bold md:text-lg lg:text-xl; }
 
-  p { @apply text-base leading-relaxed mb-4; }
-  small { @apply text-sm leading-normal; }
+p { @apply text-base leading-relaxed mb-4; }
+small { @apply text-sm leading-normal; }
 
-  a {
-    @apply text-primary hover:text-primary/80 transition-colors duration-200;
-    text-decoration-thickness: from-font;
-  }
+a {
+  @apply text-primary hover:text-primary/80 transition-colors duration-200;
+  text-decoration-thickness: from-font;
 }
