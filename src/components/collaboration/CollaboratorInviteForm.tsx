@@ -113,13 +113,29 @@ export const CollaboratorInviteForm = ({
           throw new Error('Failed to add collaborator. Please try again.');
         }
 
+        // If it's a supervisor invitation, update the thesis table
+        if (role === 'supervisor') {
+          const { error: thesisUpdateError } = await supabase
+            .from('theses')
+            .update({
+              supervisor_id: existingUser.id,
+              supervisor_email: email.toLowerCase()
+            })
+            .eq('id', thesisId);
+
+          if (thesisUpdateError) {
+            console.error('Error updating thesis supervisor:', thesisUpdateError);
+            throw new Error('Failed to update thesis supervisor');
+          }
+        }
+
         // Create a notification for the invited user
         const { error: notificationError } = await supabase
           .from('notifications')
           .insert({
             user_id: existingUser.id,
             thesis_id: thesisId,
-            type: 'invitation',
+            type: role === 'supervisor' ? 'supervisor_invite' : 'invitation',
             message: `You have been invited to collaborate on "${thesisTitle}" as a ${role}`
           });
 

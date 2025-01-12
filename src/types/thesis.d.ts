@@ -35,6 +35,31 @@ export interface CitationPreviewProps {
   onDelete: (citation: Citation) => void;
 }
 
+export interface ThesisComment {
+  id: string;
+  thesis_id: string;
+  section_id: string;
+  reviewer_id: string;
+  content: {
+    text: string;
+  };
+  status: 'pending' | 'resolved';
+  created_at: string;
+  updated_at: string;
+  parent_id?: string;
+}
+
+export interface CommentThread {
+  id: string;
+  content: string;
+  author: {
+    id: string;
+    email: string;
+  };
+  created_at: string;
+  replies: CommentThread[];
+}
+
 export interface ThesisMetadata {
   description: string;
   keywords: string[];
