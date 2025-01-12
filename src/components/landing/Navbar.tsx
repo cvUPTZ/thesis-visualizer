@@ -10,8 +10,9 @@ export const Navbar = () => {
     <nav className="fixed w-full bg-[#1A1F2C] text-white z-50 py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
-          <Link to="/" className="text-2xl font-bold text-[#9b87f5]">
-            Otro7a Manager
+          <Link to="/" className="text-2xl font-extrabold font-mono">
+            <span className="text-[#9b87f5] font-sans">Otro7a</span>
+            <span className="text-[#D6BCFA] font-serif">Manager</span>
           </Link>
           <div className="hidden md:flex space-x-8">
             <Link to="/" className="hover:text-[#D6BCFA] transition-colors">
