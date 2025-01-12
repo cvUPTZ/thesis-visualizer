@@ -1,15 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthError, Provider } from '@supabase/supabase-js';
-import { Github, Loader2, Mail } from 'lucide-react';
+import { Github, Loader2 } from 'lucide-react';
 
 interface SocialAuthProps {
   isLoading: boolean;
   setLoading: (loading: boolean) => void;
   onError: (error: AuthError) => void;
+  mode: 'signin' | 'signup';
+  userType: 'student' | 'supervisor';
 }
 
-export const SocialAuth = ({ isLoading, setLoading, onError }: SocialAuthProps) => {
+export const SocialAuth = ({ isLoading, setLoading, onError, mode, userType }: SocialAuthProps) => {
   const handleSocialLogin = async (provider: Provider) => {
     try {
       console.log('🔑 Initiating social login with:', provider);
@@ -18,10 +20,14 @@ export const SocialAuth = ({ isLoading, setLoading, onError }: SocialAuthProps) 
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: provider === 'google' ? {
-            access_type: 'offline',
-            prompt: 'consent',
-          } : undefined
+          queryParams: {
+            ...provider === 'google' ? {
+              access_type: 'offline',
+              prompt: 'consent',
+            } : {},
+            // Only include user_type during signup
+            ...(mode === 'signup' ? { user_type: userType } : {})
+          }
         }
       });
 

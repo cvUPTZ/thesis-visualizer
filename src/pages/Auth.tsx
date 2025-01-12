@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Auth as SupabaseAuth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { supabase } from '@/integrations/supabase/client';
+import { Card } from '@/components/ui/card';
+import { EmailAuthForm } from '@/components/auth/EmailAuthForm';
+import { SocialAuth } from '@/components/auth/SocialAuth';
+import { AuthError } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card } from '@/components/ui/card';
 
 const Auth = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [loading, setLoading] = useState(false);
   const [userType, setUserType] = useState<'student' | 'supervisor'>('student');
+  const { toast } = useToast();
+
+  const handleError = (error: AuthError) => {
+    toast({
+      title: 'Authentication Error',
+      description: error.message,
+      variant: 'destructive',
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1f2c] via-[#2d364d] to-[#1a1f2c] flex items-center justify-center p-4">
@@ -20,44 +28,50 @@ const Auth = () => {
           <p className="text-gray-300">Please sign in or create an account</p>
         </div>
 
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            I am a:
-          </label>
-          <Select
-            value={userType}
-            onValueChange={(value: 'student' | 'supervisor') => setUserType(value)}
-          >
-            <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
-              <SelectValue placeholder="Select user type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="student">Student</SelectItem>
-              <SelectItem value="supervisor">Supervisor</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {mode === 'signup' && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              I am a:
+            </label>
+            <Select
+              value={userType}
+              onValueChange={(value: 'student' | 'supervisor') => setUserType(value)}
+            >
+              <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
+                <SelectValue placeholder="Select user type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="student">Student</SelectItem>
+                <SelectItem value="supervisor">Supervisor</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
-        <SupabaseAuth
-          supabaseClient={supabase}
-          appearance={{
-            theme: ThemeSupa,
-            variables: {
-              default: {
-                colors: {
-                  brand: '#6B46C1',
-                  brandAccent: '#553C9A',
-                }
-              }
-            }
-          }}
-          providers={['google']}
-          redirectTo={`${window.location.origin}/auth/callback`}
-          onlyThirdPartyProviders={false}
-          additionalData={{
-            user_type: userType
-          }}
-        />
+        <div className="space-y-6">
+          <EmailAuthForm
+            mode={mode}
+            onModeChange={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
+            onError={handleError}
+          />
+          
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-700" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-[#1a1f2c] px-2 text-gray-400">Or continue with</span>
+            </div>
+          </div>
+
+          <SocialAuth
+            isLoading={loading}
+            setLoading={setLoading}
+            onError={handleError}
+            mode={mode}
+            userType={userType}
+          />
+        </div>
       </Card>
     </div>
   );

@@ -24,7 +24,6 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast({
@@ -35,7 +34,6 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
       return;
     }
 
-    // Validate password length
     if (password.length < 6) {
       toast({
         title: "Invalid Password",
@@ -45,7 +43,6 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
       return;
     }
     
-    // Check if enough time has passed since last attempt (3 seconds)
     const now = Date.now();
     if (now - lastAttempt < 3000) {
       toast({
@@ -66,7 +63,6 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       } else {
-        // Sign up with additional metadata for user type
         const { error } = await supabase.auth.signUp({ 
           email, 
           password,
@@ -79,11 +75,9 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
         
         if (error) throw error;
         
-        // Show success message for signup
         toast({
           title: "Registration Successful",
           description: "Please check your email to verify your account before signing in.",
-          duration: 6000, // Show for 6 seconds
         });
       }
       
@@ -92,7 +86,6 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
     } catch (error) {
       console.error('❌ Auth error:', error);
       if (error instanceof Error) {
-        // Handle specific error cases
         if (error.message.includes('rate limit')) {
           toast({
             title: "Too many attempts",
