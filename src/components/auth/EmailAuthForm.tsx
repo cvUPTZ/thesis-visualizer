@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AuthError } from '@supabase/supabase-js';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface EmailAuthFormProps {
   mode: 'signin' | 'signup';
@@ -15,6 +16,7 @@ interface EmailAuthFormProps {
 export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [userType, setUserType] = useState<'student' | 'supervisor'>('student');
   const [loading, setLoading] = useState(false);
   const [lastAttempt, setLastAttempt] = useState(0);
   const { toast } = useToast();
@@ -59,13 +61,37 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
 
     try {
       console.log('🔐 Attempting auth:', mode, { email });
-      const { error } = mode === 'signin'
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
-
-      if (error) {
-        console.error('❌ Auth error:', error);
+      
+      if (mode === 'signin') {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      } else {
+        // Sign up with additional metadata for user type
+        const { error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            data: {
+              user_type: userType
+            }
+          }
+        });
         
+        if (error) throw error;
+        
+        // Show success message for signup
+        toast({
+          title: "Registration Successful",
+          description: "Please check your email to verify your account before signing in.",
+          duration: 6000, // Show for 6 seconds
+        });
+      }
+      
+      console.log('✅ Auth successful');
+      
+    } catch (error) {
+      console.error('❌ Auth error:', error);
+      if (error instanceof Error) {
         // Handle specific error cases
         if (error.message.includes('rate limit')) {
           toast({
@@ -82,21 +108,8 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
             variant: "destructive",
           });
         } else {
-          onError(error);
+          onError(error as AuthError);
         }
-      } else {
-        console.log('✅ Auth successful');
-        if (mode === 'signup') {
-          toast({
-            title: "Success",
-            description: "Please check your email to verify your account",
-          });
-        }
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        console.error('❌ Unexpected auth error:', err);
-        onError(err as AuthError);
       }
     } finally {
       setLoading(false);
@@ -127,6 +140,25 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
           disabled={loading}
         />
       </div>
+      
+      {mode === 'signup' && (
+        <div>
+          <Select 
+            value={userType} 
+            onValueChange={(value: 'student' | 'supervisor') => setUserType(value)}
+            disabled={loading}
+          >
+            <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
+              <SelectValue placeholder="Select user type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="student">Student</SelectItem>
+              <SelectItem value="supervisor">Supervisor</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <Button
         type="submit"
         className="w-full"
