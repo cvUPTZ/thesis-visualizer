@@ -10,12 +10,24 @@ import { useToast } from '@/hooks/use-toast';
 import { usePDF } from 'react-to-pdf';
 import { cn } from '@/lib/utils';
 import { Slider } from '../ui/slider';
-import {  
-  Document,
-  Packer
+import { 
+    Document,
+    Packer,
+    Paragraph,
+    TextRun,
+    PageNumber,
+    Header,
+    Footer,
+    AlignmentType,
+    Table, 
+    TableRow, 
+    TableCell,
+    WidthType,
+    BorderStyle
 } from 'docx';
-import {  generateTitlePage, generateChapterContent } from '@/utils/docx/sectionGenerators';
+import {  generateTitlePage, generateChapterContent, createHeading, createParagraph } from '@/utils/docx/sectionGenerators';
 import { documentStyles, pageSettings } from '@/utils/docx/documentStyles';
+import { createPageNumberParagraph } from '@/utils/docx/pageNumbering';
 
 interface ThesisPreviewProps {
   thesis: any;
@@ -25,51 +37,108 @@ interface ThesisPreviewProps {
 export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language = 'en' }) => {
   const { toast } = useToast();
     const [isFullScreen, setIsFullScreen] = React.useState(false);
-    const [previewWidth, setPreviewWidth] = useState(210); // Default A4 width in mm
+    const [previewWidth, setPreviewWidth] = useState(210);
   const { toPDF, targetRef } = usePDF({
     filename: `${thesis.frontMatter[0]?.title || 'thesis'}.pdf`,
-      page: {
-        margin: 20,
-        format: 'a4',
-      }
+    page: {
+      margin: 20,
+      format: 'a4',
+    }
   });
-
 
     const handleExport = async () => {
       try {
-        const doc = new Document({
-          sections: [
-            {
-            ...pageSettings.page,
-             children: [
+         // Create the DOCX document
+         const doc = new Document({
+            sections: [
+              {
+              ...pageSettings.page,
+              properties: {
+                  type: 'nextPage'
+                },
+              headers: {
+                 default: new Header({
+                  children: [
+                    new Paragraph({
+                      children: [
+                          new TextRun({
+                          text: thesis.metadata?.title,
+                            size: 22,
+                            font: 'Times New Roman',
+                           }),
+                        ],
+                         alignment: AlignmentType.CENTER,
+                     })
+                  ],
+                   }),
+              },
+            footers: {
+              default: new Footer({
+                children: [
+                  createPageNumberParagraph()
+                ],
+                  }),
+            },
+            children: [
                 ...generateTitlePage({
-                title: thesis.metadata?.title,
-                  author: thesis.metadata?.authorName,
-                 date: thesis.metadata?.thesisDate,
-                  university: thesis.metadata?.universityName,
-                 department: thesis.metadata?.departmentName,
-                  degree: thesis.metadata?.degree,
-                }),
-               ...(thesis.frontMatter || []).filter((section:any) => section.type !== 'title').map((section: any) => {
-                 return new Paragraph({ text: section.content, size: 24 })
-               }),
-             ...(thesis.chapters || []).flatMap((chapter:any) => 
-                generateChapterContent(
-                  chapter.order, 
-                  chapter.title, 
-                  chapter.content, 
-                  chapter.figures || []
-                )
-             ),
-                ...(thesis.backMatter || []).map((section: any) => {
-                return new Paragraph({ text: section.content, size: 24 })
-             })
-          ],
-        }],
-          styles: documentStyles
-        });
-        const blob = await Packer.toBlob(doc);
+                    title: thesis.metadata?.title,
+                    author: thesis.metadata?.authorName,
+                    date: thesis.metadata?.thesisDate,
+                    university: thesis.metadata?.universityName,
+                    department: thesis.metadata?.departmentName,
+                    degree: thesis.metadata?.degree,
+                  }),
+              new Paragraph({ children: [new PageBreak()], spacing: { before: convertInchesToTwip(2) } }),
+              new Paragraph({
+                  children:[new TextRun({
+                      text: 'Table Of Contents',
+                      bold: true,
+                      size: 32
+                  })],
+                  alignment: AlignmentType.CENTER
+              }),
+              new Paragraph({ children: [new PageBreak()] }),
 
+               ...generateTableOfContents(
+                  thesis.chapters?.map((chapter: any, index: number) => ({
+                    title: chapter.title,
+                    page: index + 3
+                  })) || [],
+                ),
+
+              new Paragraph({ children: [new PageBreak()] }),
+            ...(thesis.frontMatter || [])
+              .filter((section: any) => section.type !== 'title')
+                .map((section: any) => {
+                  return new Paragraph({
+                   ...section,
+                      children: [
+                         new TextRun({
+                             text: section.content,
+                             size: 24,
+                             font: 'Times New Roman'
+                           }),
+                        ],
+                    });
+               }),
+              ...(thesis.chapters || []).flatMap((chapter: any) =>
+                generateChapterContent(
+                  chapter.order,
+                  chapter.title,
+                  chapter.content,
+                  chapter.figures || [],
+                )
+              ),
+              ...(thesis.backMatter || []).map((section: any) => {
+                  return createParagraph(section.content)
+               }),
+            ],
+          }],
+            styles: documentStyles
+        });
+         // Convert to a blob for download
+        const blob = await Packer.toBlob(doc);
+        //Create a download link and click
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -78,15 +147,16 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+
         toast({
           title: "Success",
-          description: "PDF exported successfully",
+          description: "DOCX exported successfully",
         });
       } catch (error) {
-        console.error('PDF export error:', error);
+        console.error('DOCX export error:', error);
         toast({
           title: "Error",
-          description: "Failed to export PDF",
+          description: "Failed to export DOCX",
           variant: "destructive",
         });
       }
@@ -170,68 +240,68 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
             )}
             style={{ width: `${previewWidth}mm` }}
           >
-           {/* Title Page */}
-          <div className="mb-8 bg-white rounded-lg overflow-hidden thesis-page">
-            {language === 'en' ? (
-              <TitlePage metadata={thesis.metadata} titleSection={thesis.frontMatter[0]} />
-            ) : (
-              <FrenchTitlePage thesis={thesis} titleSection={thesis.frontMatter[0]} />
-            )}
-          </div>
-          
-          {/* Front Matter */}
-          {thesis.frontMatter.map((section: any, index: number) => (
-            <div 
-              key={section.id} 
-              className="thesis-page"
-            >
-              {section.type === 'abstract' ? (
-                <AbstractSection abstractSection={section} />
+              {/* Title Page */}
+            <div className="mb-8 bg-white rounded-lg overflow-hidden thesis-page">
+              {language === 'en' ? (
+                <TitlePage metadata={thesis.metadata} titleSection={thesis.frontMatter[0]} />
               ) : (
-                <ContentSection 
+                <FrenchTitlePage thesis={thesis} titleSection={thesis.frontMatter[0]} />
+              )}
+            </div>
+              
+            {/* Front Matter */}
+            {thesis.frontMatter.map((section: any, index: number) => (
+              <div 
+                key={section.id} 
+                className="thesis-page"
+              >
+                {section.type === 'abstract' ? (
+                  <AbstractSection abstractSection={section} />
+                ) : (
+                  <ContentSection 
+                    section={section}
+                    elementPositions={[]}
+                    onElementClick={() => {}}
+                    onPositionChange={() => {}}
+                  />
+                )}
+              </div>
+            ))}
+              
+            {/* Chapters */}
+            {thesis.chapters.map((chapter: any) => (
+              <React.Fragment key={chapter.id}>
+                {chapter.sections.map((section: any) => (
+                  <div 
+                    key={section.id} 
+                    className="thesis-page"
+                  >
+                    <ContentSection
+                      section={section}
+                      chapterTitle={chapter.title}
+                      elementPositions={[]}
+                      onElementClick={() => {}}
+                      onPositionChange={() => {}}
+                    />
+                  </div>
+                ))}
+              </React.Fragment>
+            ))}
+              
+            {/* Back Matter */}
+            {thesis.backMatter.map((section: any) => (
+              <div 
+                key={section.id} 
+                className="thesis-page"
+              >
+                <ContentSection
                   section={section}
                   elementPositions={[]}
                   onElementClick={() => {}}
                   onPositionChange={() => {}}
                 />
-              )}
-            </div>
-          ))}
-          
-          {/* Chapters */}
-          {thesis.chapters.map((chapter: any) => (
-            <React.Fragment key={chapter.id}>
-              {chapter.sections.map((section: any) => (
-                <div 
-                  key={section.id} 
-                  className="thesis-page"
-                >
-                  <ContentSection
-                    section={section}
-                    chapterTitle={chapter.title}
-                    elementPositions={[]}
-                    onElementClick={() => {}}
-                    onPositionChange={() => {}}
-                  />
-                </div>
-              ))}
-            </React.Fragment>
-          ))}
-          
-          {/* Back Matter */}
-          {thesis.backMatter.map((section: any) => (
-            <div 
-              key={section.id} 
-              className="thesis-page"
-            >
-              <ContentSection
-                section={section}
-                elementPositions={[]}
-                onElementClick={() => {}}
-                onPositionChange={() => {}}
-              />
-            </div>
-          ))}
+              </div>
+            ))}
         </div>
       </ScrollArea>
     </div>

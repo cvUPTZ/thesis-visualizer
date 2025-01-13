@@ -11,9 +11,19 @@ interface ImageBorder {
   color: string;
 }
 
+export const base64ToUint8Array = (base64: string) => {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+};
+
 
 export const createImageRun = (
-  data: Buffer | Uint8Array,
+  data: Uint8Array,
   dimensions: ImageDimensions,
   border?: ImageBorder
 ): IImageOptions => ({
@@ -24,7 +34,7 @@ export const createImageRun = (
   },
     type: 'png',
   fallback: {
-        width: dimensions.width,
-        height: dimensions.height,
-      }
+      width: dimensions.width,
+      height: dimensions.height,
+    }
 });
