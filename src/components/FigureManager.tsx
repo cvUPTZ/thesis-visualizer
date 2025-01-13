@@ -111,36 +111,36 @@ export const FigureManager = ({
           </div>
           <h3 className="text-lg font-serif font-medium text-primary">Figures</h3>
         </div>
-        <Dialog open={isAddingFigure} onOpenChange={setIsAddingFigure}>
-          <DialogTrigger asChild>
-            <Button
-              onClick={() => setIsAddingFigure(true)} 
-              variant="outline" 
-              size="sm"
-              className="gap-2 hover:bg-primary/10 transition-colors"
-            >
-              <PlusCircle className="w-4 h-4" />
-              Add Figure
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Add Figure</DialogTitle>
-            </DialogHeader>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2 }}
-            >
-              <FigureUpload
-                onUpload={handleFileUpload}
-                imageUrl={previewImage || undefined}
-                altText="Preview"
-              />
-            </motion.div>
-          </DialogContent>
-        </Dialog>
+        <DialogTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 hover:bg-primary/10 transition-colors"
+          >
+            <PlusCircle className="w-4 h-4" />
+            Add Figure
+          </Button>
+        </DialogTrigger>
       </motion.div>
+
+      <Dialog open={isAddingFigure} onOpenChange={setIsAddingFigure}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Add Figure</DialogTitle>
+          </DialogHeader>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            <FigureUpload
+              onUpload={handleFileUpload}
+              imageUrl={previewImage || undefined}
+              altText="Preview"
+            />
+          </motion.div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
         <DialogContent className="max-w-3xl">
