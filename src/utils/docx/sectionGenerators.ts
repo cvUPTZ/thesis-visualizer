@@ -176,17 +176,17 @@ export const generateChapterContent = (
       if (figure.imageUrl) {
         const imageBuffer = Buffer.from(figure.imageUrl.split(',')[1], 'base64');
         
+        const imageRun = new ImageRun({
+          data: imageBuffer,
+          transformation: {
+            width: figure.dimensions.width,
+            height: figure.dimensions.height
+          }
+        });
+
         paragraphs.push(
           new Paragraph({
-            children: [
-              new ImageRun({
-                data: imageBuffer,
-                transformation: {
-                  width: figure.dimensions.width,
-                  height: figure.dimensions.height
-                }
-              })
-            ],
+            children: [imageRun],
             alignment: figure.position === 'left' ? AlignmentType.LEFT : 
                       figure.position === 'right' ? AlignmentType.RIGHT : 
                       AlignmentType.CENTER

@@ -27,7 +27,8 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
       figures: [],
       tables: [],
       citations: [],
-      references: []
+      references: [],
+      tasks: []
     };
 
     onUpdateChapter({

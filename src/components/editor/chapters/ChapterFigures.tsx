@@ -42,7 +42,8 @@ export const ChapterFigures: React.FC<ChapterFiguresProps> = ({
       dimensions: {
         width: 0,
         height: 0
-      }
+      },
+      position: 'center'
     };
 
     console.log('Adding new figure:', newFigure);

@@ -1,4 +1,4 @@
-import { IImageOptions, BorderStyle as DocxBorderStyle } from 'docx';
+import { IImageOptions, BorderStyle } from 'docx';
 
 interface ImageDimensions {
   width: number;
@@ -6,7 +6,7 @@ interface ImageDimensions {
 }
 
 interface ImageBorder {
-  style: typeof DocxBorderStyle;
+  style: typeof BorderStyle;
   size: number;
   color: string;
 }
@@ -15,39 +15,15 @@ export const createImageRun = (
   data: Buffer | Uint8Array,
   dimensions: ImageDimensions,
   border?: ImageBorder
-): IImageOptions => {
-  const imageOptions: IImageOptions = {
-    data,
-    transformation: {
-      width: dimensions.width,
-      height: dimensions.height,
-    },
-  };
-
-  if (border) {
-    imageOptions.borders = {
-      top: {
-        style: border.style,
-        size: border.size,
-        color: border.color,
-      },
-      bottom: {
-        style: border.style,
-        size: border.size,
-        color: border.color,
-      },
-      left: {
-        style: border.style,
-        size: border.size,
-        color: border.color,
-      },
-      right: {
-        style: border.style,
-        size: border.size,
-        color: border.color,
-      },
-    };
+): IImageOptions => ({
+  data,
+  transformation: {
+    width: dimensions.width,
+    height: dimensions.height,
+  },
+  type: 'png',
+  fallback: {
+    width: dimensions.width,
+    height: dimensions.height,
   }
-
-  return imageOptions;
-};
+});
