@@ -11,6 +11,7 @@ interface ImageBorder {
   color: string;
 }
 
+
 export const createImageRun = (
   data: Buffer | Uint8Array,
   dimensions: ImageDimensions,
@@ -21,9 +22,9 @@ export const createImageRun = (
     width: dimensions.width,
     height: dimensions.height,
   },
-  type: 'png',
+    type: 'png',
   fallback: {
-    width: dimensions.width,
-    height: dimensions.height,
-  }
+        width: dimensions.width,
+        height: dimensions.height,
+      }
 });

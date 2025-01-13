@@ -1,4 +1,6 @@
-import { HeadingLevel, IParagraphOptions, IRunOptions, convertInchesToTwip, AlignmentType, Paragraph, TextRun } from 'docx';
+import { HeadingLevel, IParagraphOptions, IRunOptions, convertInchesToTwip, AlignmentType, Paragraph, TextRun, Table, TableCell, TableRow, WidthType, BorderStyle } from 'docx';
+import { Buffer } from 'buffer';
+import { IImageOptions } from './imageUtils';
 
 export const createHeading = (text: string, level: keyof typeof HeadingLevel, chapterNumber?: number): IParagraphOptions => ({
   text: chapterNumber ? `CHAPTER ${chapterNumber}\n${text}` : text,

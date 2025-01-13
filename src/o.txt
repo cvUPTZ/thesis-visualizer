@@ -423,14 +423,26 @@ export const EditorSection: React.FC<SectionProps> = ({
 
   if (!isActive) return null;
 
-  const handleSectionUpdate = (updatedSection: Section) => {
+    const handleSectionDataUpdate = (updatedSection: Section) => {
     console.log('Updating section:', updatedSection);
-    onContentChange(updatedSection.id, updatedSection.content);
-    
+      onContentChange(updatedSection.id, updatedSection.content)
+        onTitleChange(updatedSection.id, updatedSection.title)
+       
     toast({
       title: "Success",
       description: "Section updated successfully",
     });
+  };
+   
+    const handleSectionTaskUpdate = (updatedSection: Section) => {
+        console.log('Updating section:', updatedSection);
+       
+       
+        onContentChange(updatedSection.id, updatedSection.content)
+        toast({
+            title: "Success",
+            description: "Section updated successfully",
+        });
   };
 
   return (
@@ -445,11 +457,14 @@ export const EditorSection: React.FC<SectionProps> = ({
         <SectionContent
           content={section.content}
           onContentChange={(content) => onContentChange(section.id, content)}
+          section={section}
+            isActive={isActive}
+           onUpdateSectionData={handleSectionTaskUpdate}
         />
 
         <SectionManagers
           section={section}
-          onSectionUpdate={handleSectionUpdate}
+          onSectionUpdate={handleSectionDataUpdate}
         />
       </div>
     </div>
@@ -553,6 +568,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -579,7 +595,17 @@ export const FigureManager = ({
 
   console.log('Rendering FigureManager:', { figuresCount: figures?.length });
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = async (
+    file: File,
+    position: 'left' | 'center' | 'right' = 'center',
+    customWidth?: number,
+    customHeight?: number,
+    border?: {
+      style: 'single' | 'double' | 'thick' | 'none';
+      size: number;
+      color: string;
+    }
+  ) => {
     try {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -595,14 +621,17 @@ export const FigureManager = ({
             altText: '',
             number: (figures?.length || 0) + 1,
             dimensions: {
-              width: img.width,
-              height: img.height
-            }
+              width: customWidth || img.width,
+              height: customHeight || img.height
+            },
+            position,
+            border,
           };
           
           console.log('Adding new figure:', newFigure);
           onAddFigure(newFigure);
           setIsAddingFigure(false);
+          setPreviewImage(null);
           
           toast({
             title: "Figure Added",
@@ -641,35 +670,36 @@ export const FigureManager = ({
           </div>
           <h3 className="text-lg font-serif font-medium text-primary">Figures</h3>
         </div>
-        <Button
-          onClick={() => setIsAddingFigure(true)} 
-          variant="outline" 
-          size="sm"
-          className="gap-2 hover:bg-primary/10 transition-colors"
-        >
-          <PlusCircle className="w-4 h-4" />
-          Add Figure
-        </Button>
+        <Dialog open={isAddingFigure} onOpenChange={setIsAddingFigure}>
+          <DialogTrigger asChild>
+            <Button
+              onClick={() => setIsAddingFigure(true)} 
+              variant="outline" 
+              size="sm"
+              className="gap-2 hover:bg-primary/10 transition-colors"
+            >
+              <PlusCircle className="w-4 h-4" />
+              Add Figure
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Add Figure</DialogTitle>
+            </DialogHeader>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              <FigureUpload
+                onUpload={handleFileUpload}
+                imageUrl={previewImage || undefined}
+                altText="Preview"
+              />
+            </motion.div>
+          </DialogContent>
+        </Dialog>
       </motion.div>
-
-      <Dialog open={isAddingFigure} onOpenChange={setIsAddingFigure}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Figure</DialogTitle>
-          </DialogHeader>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.2 }}
-          >
-            <FigureUpload
-              onUpload={handleFileUpload}
-              imageUrl={previewImage || undefined}
-              altText="Preview"
-            />
-          </motion.div>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
         <DialogContent className="max-w-3xl">
@@ -1041,7 +1071,7 @@ export const ThemeToggle = () => {
 
 import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
-import { Chapter, Thesis } from '@/types/thesis';
+import { Chapter, Section, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
 import { useParams } from 'react-router-dom';
@@ -1058,6 +1088,7 @@ import { ChatMessages } from './collaboration/ChatMessages';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -1078,23 +1109,6 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   useThesisAutosave(thesis);
   useThesisInitialization(thesis);
   useThesisRealtime(currentThesisId, thesis, setThesis);
-
-  const calculateProgress = () => {
-    if (!thesis) return 0;
-    const allSections = [
-      ...thesis.frontMatter,
-      ...thesis.chapters.flatMap(chapter => chapter.sections),
-      ...thesis.backMatter
-    ];
-    
-    const completedSections = allSections.filter(section => 
-      section.content && section.content.trim().length > 0
-    ).length;
-    
-    return Math.round((completedSections / allSections.length) * 100);
-  };
-
-  const progress = calculateProgress();
 
   const handleContentChange = (id: string, content: string) => {
     if (!thesis) return;
@@ -1135,6 +1149,136 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
       )
     }));
   };
+
+  const handleUpdateSectionData = (updatedSection: Section) => {
+    if (!thesis) return;
+    setThesis(prevThesis => ({
+      ...prevThesis!,
+      frontMatter: prevThesis!.frontMatter.map(section =>
+        section.id === updatedSection.id ? updatedSection : section
+      ),
+      chapters: prevThesis!.chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.map(section =>
+          section.id === updatedSection.id ? updatedSection : section
+        )
+      })),
+      backMatter: prevThesis!.backMatter.map(section =>
+        section.id === updatedSection.id ? updatedSection : section
+      )
+    }));
+  };
+
+  const handleAddSectionTask = (sectionId: string) => {
+    if (!thesis) return;
+    const newTask = {
+      id: uuidv4(),
+      description: 'New Task',
+      status: 'pending' as const,
+      priority: 'medium' as const
+    };
+
+    setThesis(prevThesis => ({
+      ...prevThesis!,
+      frontMatter: prevThesis!.frontMatter.map(section =>
+        section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
+      ),
+      chapters: prevThesis!.chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.map(section =>
+          section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
+        )
+      })),
+      backMatter: prevThesis!.backMatter.map(section =>
+        section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
+      )
+    }));
+  };
+
+  const handleUpdateSectionTask = (sectionId: string, taskId: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => {
+    if (!thesis) return;
+    setThesis(prevThesis => ({
+      ...prevThesis!,
+      frontMatter: prevThesis!.frontMatter.map(section =>
+        section.id === sectionId ? {
+          ...section,
+          tasks: section.tasks.map(task =>
+            task.id === taskId ? { ...task, status } : task
+          )
+        } : section
+      ),
+      chapters: prevThesis!.chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.map(section =>
+          section.id === sectionId ? {
+            ...section,
+            tasks: section.tasks.map(task =>
+              task.id === taskId ? { ...task, status } : task
+            )
+          } : section
+        )
+      })),
+      backMatter: prevThesis!.backMatter.map(section =>
+        section.id === sectionId ? {
+          ...section,
+          tasks: section.tasks.map(task =>
+            task.id === taskId ? { ...task, status } : task
+          )
+        } : section
+      )
+    }));
+  };
+
+  const handleChangeSectionTaskDescription = (sectionId: string, taskId: string, newDescription: string) => {
+    if (!thesis) return;
+    setThesis(prevThesis => ({
+      ...prevThesis!,
+      frontMatter: prevThesis!.frontMatter.map(section =>
+        section.id === sectionId ? {
+          ...section,
+          tasks: section.tasks.map(task =>
+            task.id === taskId ? { ...task, description: newDescription } : task
+          )
+        } : section
+      ),
+      chapters: prevThesis!.chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.map(section =>
+          section.id === sectionId ? {
+            ...section,
+            tasks: section.tasks.map(task =>
+              task.id === taskId ? { ...task, description: newDescription } : task
+            )
+          } : section
+        )
+      })),
+      backMatter: prevThesis!.backMatter.map(section =>
+        section.id === sectionId ? {
+          ...section,
+          tasks: section.tasks.map(task =>
+            task.id === taskId ? { ...task, description: newDescription } : task
+          )
+        } : section
+      )
+    }));
+  };
+
+  const calculateProgress = () => {
+    if (!thesis) return 0;
+    const allSections = [
+      ...thesis.frontMatter,
+      ...thesis.chapters.flatMap(chapter => chapter.sections),
+      ...thesis.backMatter
+    ];
+    
+    const completedSections = allSections.filter(section => 
+      section.content && section.content.trim().length > 0
+    ).length;
+    
+    return Math.round((completedSections / allSections.length) * 100);
+  };
+
+  const progress = calculateProgress();
 
   if (isLoading) {
     return (
@@ -1190,6 +1334,10 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
         thesisId={currentThesisId!}
+        onUpdateSectionData={handleUpdateSectionData}
+        onAddSectionTask={handleAddSectionTask}
+        onUpdateSectionTask={handleUpdateSectionTask}
+        onChangeSectionTaskDescription={handleChangeSectionTaskDescription}
       />
       
       <div className="flex-1 flex flex-col">
@@ -1458,48 +1606,147 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
 
 import React from 'react';
 import { Section } from '@/types/thesis';
-import { TableOfContents } from './thesis/sidebar/TableOfContents';
+import { TableOfContents } from '@/components/thesis/sidebar/TableOfContents';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { ThesisPlan } from './sidebar/ThesisPlan';
+import { Button } from './ui/button';
 
 interface ThesisSidebarProps {
   sections: Section[];
   activeSection: string;
   onSectionSelect: (id: string) => void;
   thesisId: string;
+  onUpdateSectionData: (section: Section) => void;
+  onAddSectionTask: (sectionId: string) => void;
+  onUpdateSectionTask: (sectionId: string, taskId: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => void;
+  onChangeSectionTaskDescription: (sectionId: string, taskId: string, newDescription: string) => void;
 }
 
-export const ThesisSidebar = ({ 
-  sections = [], 
-  activeSection, 
+export const ThesisSidebar: React.FC<ThesisSidebarProps> = ({
+  sections = [],
+  activeSection,
   onSectionSelect,
-  thesisId
-}: ThesisSidebarProps) => {
-  console.log('Rendering ThesisSidebar:', { 
-    activeSection, 
-    sectionsCount: sections?.length,
-    sections: sections?.map(s => ({ id: s.id, title: s.title }))
-  });
-  
+  thesisId,
+  onUpdateSectionData,
+  onAddSectionTask,
+  onUpdateSectionTask,
+  onChangeSectionTaskDescription,
+}) => {
+  const [openSections, setOpenSections] = React.useState<string[]>(['frontMatter', 'mainContent', 'backMatter', 'figures', 'tables']);
+  const [collaboratorLocations, setCollaboratorLocations] = React.useState<Record<string, any>>({});
+    const [activeTab, setActiveTab] = React.useState('content');
+  const presenceChannel = React.useRef<any>(null);
+
+  React.useEffect(() => {
+    if (!thesisId) return;
+
+    // Set up presence channel
+    presenceChannel.current = supabase.channel(`thesis:${thesisId}`);
+    
+    presenceChannel.current
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.current?.presenceState() || {};
+        console.log('Presence state updated:', state);
+        setCollaboratorLocations(state);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        console.log('User joined:', key, newPresences);
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        console.log('User left:', key, leftPresences);
+      })
+      .subscribe(async (status: string) => {
+        if (status === 'SUBSCRIBED') {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+
+          // Track user's current section
+          await presenceChannel.current?.track({
+            user_id: user.id,
+            email: user.email,
+            section_id: activeSection,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    return () => {
+      if (presenceChannel.current) {
+        supabase.removeChannel(presenceChannel.current);
+      }
+    };
+  }, [thesisId]);
+
+  // Update presence when active section changes
+  React.useEffect(() => {
+    const updatePresence = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !presenceChannel.current) return;
+
+      await presenceChannel.current?.track({
+        user_id: user.id,
+        email: user.email,
+        section_id: activeSection,
+        online_at: new Date().toISOString(),
+      });
+    };
+
+    updatePresence();
+  }, [activeSection]);
+
+  // Group sections by type
   const validSections = Array.isArray(sections) ? sections.filter(section => 
     section && typeof section === 'object' && 'id' in section && 'title' in section
   ) : [];
-  
+
   return (
     <aside className="w-64 h-full bg-editor-bg border-r border-editor-border">
       <div className="sticky top-0 z-10 bg-editor-bg border-b border-editor-border p-4">
         <h2 className="text-lg font-serif font-medium text-editor-text">Contents</h2>
       </div>
-      <div className="p-4">
-        <TableOfContents
-          sections={validSections}
-          activeSection={activeSection}
-          onSectionSelect={onSectionSelect}
-          thesisId={thesisId}
-        />
+      <div className="p-4 space-y-4">
+        <div className="flex gap-2">
+          <Button 
+            variant={activeTab === 'content' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setActiveTab('content')}
+          >
+            Contents
+          </Button>
+          <Button 
+            variant={activeTab === 'plan' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setActiveTab('plan')}
+          >
+            Plan
+          </Button>
+        </div>
+        {activeTab === 'content' && (
+          <TableOfContents
+            sections={validSections}
+            activeSection={activeSection}
+            onSectionSelect={onSectionSelect}
+            thesisId={thesisId}
+            onUpdateSectionData={onUpdateSectionData}
+            onAddSectionTask={onAddSectionTask}
+            onUpdateSectionTask={onUpdateSectionTask}
+            onChangeSectionTaskDescription={onChangeSectionTaskDescription}
+          />
+        )}
+        {activeTab === 'plan' && (
+          <ThesisPlan
+            sections={validSections}
+            activeSection={activeSection}
+            onSectionSelect={onSectionSelect}
+            onUpdateSectionData={onUpdateSectionData}
+          />
+        )}
       </div>
     </aside>
   );
 };
+
 
 // File: src/components/admin/ActivityLog.tsx
 
@@ -3444,6 +3691,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AuthError } from '@supabase/supabase-js';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface EmailAuthFormProps {
   mode: 'signin' | 'signup';
@@ -3454,6 +3702,7 @@ interface EmailAuthFormProps {
 export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [userType, setUserType] = useState<'student' | 'supervisor'>('student');
   const [loading, setLoading] = useState(false);
   const [lastAttempt, setLastAttempt] = useState(0);
   const { toast } = useToast();
@@ -3461,7 +3710,6 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast({
@@ -3472,7 +3720,6 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
       return;
     }
 
-    // Validate password length
     if (password.length < 6) {
       toast({
         title: "Invalid Password",
@@ -3482,7 +3729,6 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
       return;
     }
     
-    // Check if enough time has passed since last attempt (3 seconds)
     const now = Date.now();
     if (now - lastAttempt < 3000) {
       toast({
@@ -3498,14 +3744,34 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
 
     try {
       console.log('🔐 Attempting auth:', mode, { email });
-      const { error } = mode === 'signin'
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
-
-      if (error) {
-        console.error('❌ Auth error:', error);
+      
+      if (mode === 'signin') {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            data: {
+              user_type: userType
+            }
+          }
+        });
         
-        // Handle specific error cases
+        if (error) throw error;
+        
+        toast({
+          title: "Registration Successful",
+          description: "Please check your email to verify your account before signing in.",
+        });
+      }
+      
+      console.log('✅ Auth successful');
+      
+    } catch (error) {
+      console.error('❌ Auth error:', error);
+      if (error instanceof Error) {
         if (error.message.includes('rate limit')) {
           toast({
             title: "Too many attempts",
@@ -3521,21 +3787,8 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
             variant: "destructive",
           });
         } else {
-          onError(error);
+          onError(error as AuthError);
         }
-      } else {
-        console.log('✅ Auth successful');
-        if (mode === 'signup') {
-          toast({
-            title: "Success",
-            description: "Please check your email to verify your account",
-          });
-        }
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        console.error('❌ Unexpected auth error:', err);
-        onError(err as AuthError);
       }
     } finally {
       setLoading(false);
@@ -3566,6 +3819,25 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
           disabled={loading}
         />
       </div>
+      
+      {mode === 'signup' && (
+        <div>
+          <Select 
+            value={userType} 
+            onValueChange={(value: 'student' | 'supervisor') => setUserType(value)}
+            disabled={loading}
+          >
+            <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
+              <SelectValue placeholder="Select user type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="student">Student</SelectItem>
+              <SelectItem value="supervisor">Supervisor</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <Button
         type="submit"
         className="w-full"
@@ -3602,15 +3874,17 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthError, Provider } from '@supabase/supabase-js';
-import { Github, Loader2, Mail } from 'lucide-react';
+import { Github, Loader2 } from 'lucide-react';
 
 interface SocialAuthProps {
   isLoading: boolean;
   setLoading: (loading: boolean) => void;
   onError: (error: AuthError) => void;
+  mode: 'signin' | 'signup';
+  userType: 'student' | 'supervisor';
 }
 
-export const SocialAuth = ({ isLoading, setLoading, onError }: SocialAuthProps) => {
+export const SocialAuth = ({ isLoading, setLoading, onError, mode, userType }: SocialAuthProps) => {
   const handleSocialLogin = async (provider: Provider) => {
     try {
       console.log('🔑 Initiating social login with:', provider);
@@ -3619,10 +3893,14 @@ export const SocialAuth = ({ isLoading, setLoading, onError }: SocialAuthProps) 
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: provider === 'google' ? {
-            access_type: 'offline',
-            prompt: 'consent',
-          } : undefined
+          queryParams: {
+            ...provider === 'google' ? {
+              access_type: 'offline',
+              prompt: 'consent',
+            } : {},
+            // Only include user_type during signup
+            ...(mode === 'signup' ? { user_type: userType } : {})
+          }
         }
       });
 
@@ -4762,7 +5040,7 @@ interface CollaboratorInviteFormProps {
   setIsInviting: (isInviting: boolean) => void;
 }
 
-const VALID_ROLES = ['editor', 'viewer'] as const;
+const VALID_ROLES = ['editor', 'viewer', 'supervisor'] as const;
 type ValidRole = typeof VALID_ROLES[number];
 
 export const CollaboratorInviteForm = ({
@@ -4859,13 +5137,29 @@ export const CollaboratorInviteForm = ({
           throw new Error('Failed to add collaborator. Please try again.');
         }
 
+        // If it's a supervisor invitation, update the thesis table
+        if (role === 'supervisor') {
+          const { error: thesisUpdateError } = await supabase
+            .from('theses')
+            .update({
+              supervisor_id: existingUser.id,
+              supervisor_email: email.toLowerCase()
+            })
+            .eq('id', thesisId);
+
+          if (thesisUpdateError) {
+            console.error('Error updating thesis supervisor:', thesisUpdateError);
+            throw new Error('Failed to update thesis supervisor');
+          }
+        }
+
         // Create a notification for the invited user
         const { error: notificationError } = await supabase
           .from('notifications')
           .insert({
             user_id: existingUser.id,
             thesis_id: thesisId,
-            type: 'invitation',
+            type: role === 'supervisor' ? 'supervisor_invite' : 'invitation',
             message: `You have been invited to collaborate on "${thesisTitle}" as a ${role}`
           });
 
@@ -4929,6 +5223,7 @@ export const CollaboratorInviteForm = ({
     </form>
   );
 };
+
 
 // File: src/components/collaboration/CollaboratorLocation.tsx
 
@@ -6268,26 +6563,95 @@ export const StatsDisplay = ({ stats }: StatsDisplayProps) => {
 // File: src/components/editor/SectionContent.tsx
 
 import React from 'react';
-import { MarkdownEditor } from '../MarkdownEditor';
+import { Section } from '@/types/thesis';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
+import { TaskItem } from '@/components/ui/TaskInput'; // Import TaskItem
+import { Button } from '../ui/button';
+import { PlusCircle } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
 interface SectionContentProps {
-  content: string;
+  section: Section;
+  isActive: boolean;
   onContentChange: (content: string) => void;
+  onUpdateSectionData: (section: Section) => void;
 }
 
-export const SectionContent = ({ content, onContentChange }: SectionContentProps) => {
-  console.log('Rendering SectionContent:', { contentLength: content?.length });
-  
+export const SectionContent: React.FC<SectionContentProps> = ({
+  section,
+  isActive,
+  onContentChange,
+  onUpdateSectionData
+}) => {
+  const [showTasks, setShowTasks] = React.useState(false);
+
+  if (!isActive) return null;
+
+  const handleAddSectionTask = () => {
+    const newTask = {
+      id: uuidv4(),
+      description: 'New Task',
+      status: 'pending' as const,
+      priority: 'medium' as const
+    };
+    onUpdateSectionData({ ...section, tasks: [...(section.tasks || []), newTask] });
+  };
+
+  const handleUpdateTaskStatus = (id: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => {
+    const updatedTasks = (section.tasks || []).map(task =>
+      task.id === id ? { ...task, status } : task
+    );
+    onUpdateSectionData({ ...section, tasks: updatedTasks });
+  };
+
+  const handleTaskDescription = (id: string, newDescription: string) => {
+    const updatedTasks = (section.tasks || []).map(task =>
+      task.id === id ? { ...task, description: newDescription } : task
+    );
+    onUpdateSectionData({ ...section, tasks: updatedTasks });
+  };
+
   return (
     <div className="editor-content">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-medium">Tasks</h3>
+        <Button size="sm" onClick={() => setShowTasks(!showTasks)} variant="outline">
+          {showTasks ? 'Hide tasks' : 'Show Tasks'}
+        </Button>
+      </div>
+      {showTasks && (
+        <div className="space-y-2 mb-4">
+          {(section.tasks || []).map((task) => (
+            <TaskItem
+              key={task.id}
+              id={task.id}
+              description={task.description}
+              status={task.status}
+              onToggleStatus={(status) => handleUpdateTaskStatus(task.id, status)}
+              onChangeDescription={(newDescription) => handleTaskDescription(task.id, newDescription)}
+            />
+          ))}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAddSectionTask}
+            className="gap-2 bg-transparent"
+          >
+            <PlusCircle className="w-4 h-4" />
+            Add Task
+          </Button>
+        </div>
+      )}
       <MarkdownEditor
-        value={content}
+        key={section.id} // Add key to force remount
+        value={section.content}
         onChange={onContentChange}
         placeholder="Start writing..."
       />
     </div>
   );
 };
+
 
 // File: src/components/editor/SectionHeader.tsx
 
@@ -6570,7 +6934,8 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
       figures: [],
       tables: [],
       citations: [],
-      references: []
+      references: [],
+      tasks: []
     };
 
     onUpdateChapter({
@@ -6654,6 +7019,7 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
     </div>
   );
 };
+
 
 // File: src/components/editor/chapters/ChapterCreationDialog.tsx
 
@@ -6796,7 +7162,8 @@ export const ChapterFigures: React.FC<ChapterFiguresProps> = ({
       dimensions: {
         width: 0,
         height: 0
-      }
+      },
+      position: 'center'
     };
 
     console.log('Adding new figure:', newFigure);
@@ -6862,6 +7229,7 @@ export const ChapterFigures: React.FC<ChapterFiguresProps> = ({
     </div>
   );
 };
+
 
 // File: src/components/editor/chapters/ChapterItem.tsx
 
@@ -7411,47 +7779,202 @@ export const FigureList = ({ figures, onRemove, onUpdate, onPreview }: FigureLis
 
 // File: src/components/editor/managers/FigureUpload.tsx
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { Card } from '@/components/ui/card';
 
 interface FigureUploadProps {
-  onUpload: (file: File) => void;
+  onUpload: (
+    file: File, 
+    position: 'left' | 'center' | 'right',
+    customWidth?: number,
+    customHeight?: number,
+    border?: {
+      style: 'single' | 'double' | 'thick' | 'none';
+      size: number;
+      color: string;
+    }
+  ) => void;
   imageUrl?: string;
   altText?: string;
 }
 
-export const FigureUpload = ({ onUpload, imageUrl, altText }: FigureUploadProps) => {
+export const FigureUpload: React.FC<FigureUploadProps> = ({ onUpload, imageUrl, altText }) => {
+  const [position, setPosition] = useState<'left' | 'center' | 'right'>('center');
+  const [customWidth, setCustomWidth] = useState<number>();
+  const [customHeight, setCustomHeight] = useState<number>();
+  const [maintainAspectRatio, setMaintainAspectRatio] = useState(true);
+  const [border, setBorder] = useState<{
+    style: 'single' | 'double' | 'thick' | 'none';
+    size: number;
+    color: string;
+  }>({
+    style: 'none',
+    size: 1,
+    color: '#000000'
+  });
+  const [originalDimensions, setOriginalDimensions] = useState<{width: number, height: number}>();
+
+  const handleDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      if (acceptedFiles && acceptedFiles.length > 0) {
+        const file = acceptedFiles[0];
+        const img = new Image();
+        img.onload = () => {
+          setOriginalDimensions({ width: img.width, height: img.height });
+          setCustomWidth(img.width);
+          setCustomHeight(img.height);
+        };
+        img.src = URL.createObjectURL(file);
+        onUpload(file, position, customWidth, customHeight, border);
+      }
+    },
+    [onUpload, position, customWidth, customHeight, border]
+  );
+
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif']
     },
     multiple: false,
-    onDrop: (acceptedFiles) => {
-      if (acceptedFiles && acceptedFiles.length > 0) {
-        onUpload(acceptedFiles[0]);
-      }
-    }
+    onDrop: handleDrop,
   });
 
+  const handleWidthChange = (width: number) => {
+    setCustomWidth(width);
+    if (maintainAspectRatio && originalDimensions) {
+      const ratio = originalDimensions.height / originalDimensions.width;
+      setCustomHeight(Math.round(width * ratio));
+    }
+  };
+
+  const handleHeightChange = (height: number) => {
+    setCustomHeight(height);
+    if (maintainAspectRatio && originalDimensions) {
+      const ratio = originalDimensions.width / originalDimensions.height;
+      setCustomWidth(Math.round(height * ratio));
+    }
+  };
+
   return (
-    <div
-      {...getRootProps()}
-      className="relative aspect-video mb-4 bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 border-dashed border-gray-300 hover:border-primary transition-colors"
-    >
-      <input {...getInputProps()} />
-      {imageUrl ? (
-        <img
-          src={imageUrl}
-          alt={altText}
-          className="object-contain w-full h-full"
-        />
-      ) : (
-        <div className="flex flex-col items-center justify-center h-full">
-          <Upload className="w-8 h-8 text-gray-400" />
-          <p className="text-sm text-gray-500 mt-2">Drop image here or click to upload</p>
+    <div className="space-y-6">
+      <div
+        {...getRootProps()}
+        className="relative aspect-video mb-4 bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 border-dashed border-gray-300 hover:border-primary transition-colors"
+      >
+        <input {...getInputProps()} />
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={altText}
+            className="object-contain w-full h-full"
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full">
+            <Upload className="w-8 h-8 text-gray-400" />
+            <p className="text-sm text-gray-500 mt-2">Drop image here or click to upload</p>
+          </div>
+        )}
+      </div>
+
+      <Card className="p-4 space-y-4">
+        <div>
+          <Label htmlFor="position">Position</Label>
+          <Select 
+            value={position} 
+            onValueChange={(value: 'left' | 'center' | 'right') => setPosition(value)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Center" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="left">Left</SelectItem>
+              <SelectItem value="center">Center</SelectItem>
+              <SelectItem value="right">Right</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      )}
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>Maintain Aspect Ratio</Label>
+            <Switch 
+              checked={maintainAspectRatio}
+              onCheckedChange={setMaintainAspectRatio}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Width (px)</Label>
+            <Input
+              type="number"
+              value={customWidth}
+              onChange={(e) => handleWidthChange(Number(e.target.value))}
+              min={1}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Height (px)</Label>
+            <Input
+              type="number"
+              value={customHeight}
+              onChange={(e) => handleHeightChange(Number(e.target.value))}
+              min={1}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <Label>Border Style</Label>
+          <Select 
+            value={border.style}
+            onValueChange={(value: 'none' | 'single' | 'double' | 'thick') => 
+              setBorder(prev => ({ ...prev, style: value }))}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="None" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">None</SelectItem>
+              <SelectItem value="single">Single</SelectItem>
+              <SelectItem value="double">Double</SelectItem>
+              <SelectItem value="thick">Thick</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {border.style !== 'none' && (
+            <>
+              <div className="space-y-2">
+                <Label>Border Size (px)</Label>
+                <Slider
+                  value={[border.size]}
+                  onValueChange={([value]) => setBorder(prev => ({ ...prev, size: value }))}
+                  min={1}
+                  max={10}
+                  step={1}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Border Color</Label>
+                <Input
+                  type="color"
+                  value={border.color}
+                  onChange={(e) => setBorder(prev => ({ ...prev, color: e.target.value }))}
+                  className="h-10"
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </Card>
     </div>
   );
 };
@@ -8069,8 +8592,9 @@ export const Navbar = () => {
     <nav className="fixed w-full bg-[#1A1F2C] text-white z-50 py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
-          <Link to="/" className="text-2xl font-bold text-[#9b87f5]">
-            Thesis Visualizer
+          <Link to="/" className="text-2xl font-extrabold font-mono">
+            <span className="text-[#9b87f5] font-sans">Otro7a</span>
+            <span className="text-[#D6BCFA] font-serif">Manager</span>
           </Link>
           <div className="hidden md:flex space-x-8">
             <Link to="/" className="hover:text-[#D6BCFA] transition-colors">
@@ -11048,34 +11572,47 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Card } from '@/components/ui/card';
-import { Profile } from '@/types/profile';
+import { Send } from 'lucide-react';
 
 interface CommentInputProps {
   onSubmit: (content: string) => Promise<void>;
 }
 
-export const CommentInput = ({ onSubmit }: CommentInputProps) => {
-  const [newComment, setNewComment] = useState('');
+export const CommentInput: React.FC<CommentInputProps> = ({ onSubmit }) => {
+  const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!newComment.trim()) return;
-    await onSubmit(newComment);
-    setNewComment('');
+    if (!content.trim()) return;
+    
+    setLoading(true);
+    try {
+      await onSubmit(content);
+      setContent('');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Card className="p-4">
+    <div className="space-y-2">
       <Textarea
-        value={newComment}
-        onChange={(e) => setNewComment(e.target.value)}
-        placeholder="Add your comment..."
-        className="mb-2"
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder="Write your comment..."
+        className="min-h-[100px]"
       />
-      <Button onClick={handleSubmit}>
-        Submit Comment
-      </Button>
-    </Card>
+      <div className="flex justify-end">
+        <Button 
+          onClick={handleSubmit}
+          disabled={!content.trim() || loading}
+          className="flex items-center gap-2"
+        >
+          <Send className="w-4 h-4" />
+          Submit Comment
+        </Button>
+      </div>
+    </div>
   );
 };
 
@@ -11240,6 +11777,157 @@ export const CommentThread = ({
         </div>
       )}
     </div>
+  );
+};
+
+// File: src/components/review/ReviewInterface.tsx
+
+import React, { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CommentList } from './CommentList';
+import { CommentInput } from './CommentInput';
+import { Badge } from '@/components/ui/badge';
+import { Check, MessageSquare, AlertCircle } from 'lucide-react';
+
+interface ReviewInterfaceProps {
+  thesisId: string;
+  sectionId: string;
+}
+
+export const ReviewInterface: React.FC<ReviewInterfaceProps> = ({
+  thesisId,
+  sectionId,
+}) => {
+  const [comments, setComments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchComments();
+  }, [thesisId, sectionId]);
+
+  const fetchComments = async () => {
+    try {
+      console.log('Fetching comments for thesis:', thesisId, 'section:', sectionId);
+      const { data, error } = await supabase
+        .from('thesis_reviews')
+        .select(`
+          *,
+          profiles (
+            email,
+            roles (
+              name
+            )
+          )
+        `)
+        .eq('thesis_id', thesisId)
+        .eq('section_id', sectionId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      console.log('Fetched comments:', data);
+      setComments(data || []);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load comments",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitComment = async (content: string) => {
+    try {
+      console.log('Submitting new comment');
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('No authenticated user');
+      }
+
+      const { data, error } = await supabase
+        .from('thesis_reviews')
+        .insert([
+          {
+            thesis_id: thesisId,
+            section_id: sectionId,
+            reviewer_id: userData.user.id,
+            content: { text: content },
+            status: 'pending'
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      console.log('New comment submitted:', data);
+      setComments(prev => [...prev, data]);
+      
+      toast({
+        title: "Success",
+        description: "Comment added successfully",
+      });
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit comment",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <Card className="p-4 space-y-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-medium">Review Comments</h3>
+        <Badge variant="outline" className="flex items-center gap-2">
+          <MessageSquare className="w-4 h-4" />
+          {comments.length} Comments
+        </Badge>
+      </div>
+
+      <Tabs defaultValue="comments">
+        <TabsList>
+          <TabsTrigger value="comments">Comments</TabsTrigger>
+          <TabsTrigger value="resolved">Resolved</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="comments">
+          <ScrollArea className="h-[400px] pr-4">
+            <CommentList 
+              comments={comments.filter(c => c.status === 'pending')}
+              currentUser={null}
+              thesisId={thesisId}
+              sectionId={sectionId}
+            />
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="resolved">
+          <ScrollArea className="h-[400px] pr-4">
+            <CommentList 
+              comments={comments.filter(c => c.status === 'resolved')}
+              currentUser={null}
+              thesisId={thesisId}
+              sectionId={sectionId}
+            />
+          </ScrollArea>
+        </TabsContent>
+      </Tabs>
+
+      <CommentInput onSubmit={handleSubmitComment} />
+    </Card>
   );
 };
 
@@ -11421,83 +12109,453 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { t } = useTranslation();
+ const [isMenuOpen, setIsMenuOpen] = useState(false);
+ const { t } = useTranslation();
+
+ return (
+   <nav className="fixed w-full bg-[#1A1F2C] text-white z-50">
+     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+       <div className="flex justify-between items-center h-16">
+         <Link to="/" className="group">
+           <div className="flex items-center">
+             <div className="bg-gradient-to-r from-[#9b87f5] via-[#b8a4ff] to-[#D6BCFA] text-transparent bg-clip-text">
+               <span className="text-4xl tracking-tight" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                 Otro7a
+               </span>
+               <span className="text-2xl font-extralight ml-3" style={{ fontFamily: 'Didot, serif' }}>
+                 Manager
+               </span>
+             </div>
+           </div>
+         </Link>
+
+         {/* Mobile menu button */}
+         <div className="md:hidden">
+           <Button
+             variant="ghost"
+             size="icon"
+             onClick={() => setIsMenuOpen(!isMenuOpen)}
+             className="text-white hover:bg-[#2A2F3C] hover:text-[#D6BCFA]"
+           >
+             <Menu className="h-6 w-6" />
+           </Button>
+         </div>
+
+         {/* Desktop menu */}
+         <div className="hidden md:flex items-center space-x-4">
+           <Link to="/" className="hover:text-[#D6BCFA] transition-colors font-light tracking-wide">
+             {t('common.features')}
+           </Link>
+           <Link to="/" className="hover:text-[#D6BCFA] transition-colors font-light tracking-wide">
+             {t('common.about')}
+           </Link>
+           <LanguageSwitcher />
+           <Link to="/">
+             <Button 
+               variant="outline" 
+               className="bg-transparent text-white border-[#9b87f5] hover:bg-[#9b87f5] hover:text-white transition-all duration-200 font-light tracking-wide"
+             >
+               {t('common.home')}
+             </Button>
+           </Link>
+         </div>
+       </div>
+
+       {/* Mobile menu */}
+       {isMenuOpen && (
+         <div className="md:hidden py-4 border-t border-[#2A2F3C]">
+           <div className="flex flex-col space-y-4">
+             <Link
+               to="/"
+               className="hover:text-[#D6BCFA] transition-colors px-4 font-light tracking-wide"
+               onClick={() => setIsMenuOpen(false)}
+             >
+               {t('common.features')}
+             </Link>
+             <Link
+               to="/"
+               className="hover:text-[#D6BCFA] transition-colors px-4 font-light tracking-wide"
+               onClick={() => setIsMenuOpen(false)}
+             >
+               {t('common.about')}
+             </Link>
+             <div className="px-4">
+               <LanguageSwitcher />
+             </div>
+             <Link to="/" onClick={() => setIsMenuOpen(false)}>
+               <Button
+                 variant="outline"
+                 className="w-full bg-transparent text-white border-[#9b87f5] hover:bg-[#9b87f5] hover:text-white transition-all duration-200 font-light tracking-wide"
+               >
+                 {t('common.home')}
+               </Button>
+             </Link>
+           </div>
+         </div>
+       )}
+     </div>
+   </nav>
+ );
+};
+
+// File: src/components/sidebar/TableOfContents.tsx
+
+import React from 'react';
+import { Section } from '@/types/thesis';
+import { cn } from '@/lib/utils';
+import { CollaboratorLocation } from '@/components/collaboration/CollaboratorLocation';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { TaskList } from './TaskList';
+import { FileText, BookOpen, ChevronRight, ChevronDown } from 'lucide-react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
+interface TableOfContentsProps {
+  sections: Section[];
+  activeSection: string;
+  onSectionSelect: (id: string) => void;
+  thesisId: string;
+  onUpdateSectionData: (section: Section) => void;
+  onAddSectionTask: (sectionId: string) => void;
+  onUpdateSectionTask: (sectionId: string, taskId: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => void;
+  onChangeSectionTaskDescription: (sectionId: string, taskId: string, newDescription: string) => void;
+}
+
+export const TableOfContents = ({
+  sections = [],
+  activeSection,
+  onSectionSelect,
+  thesisId,
+  onUpdateSectionData,
+  onAddSectionTask,
+  onUpdateSectionTask,
+  onChangeSectionTaskDescription,
+}: TableOfContentsProps) => {
+  const [openSections, setOpenSections] = React.useState<string[]>(['frontMatter', 'mainContent', 'backMatter']);
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev =>
+      prev.includes(section)
+        ? prev.filter(s => s !== section)
+        : [...prev, section]
+    );
+  };
+
+  // Group sections by type
+  const frontMatterSections = sections.filter(section => 
+    ['title', 'abstract', 'acknowledgments'].includes(section.type || '')
+  );
+  
+  const mainContentSections = sections.filter(section =>
+    !['title', 'abstract', 'acknowledgments', 'references', 'appendix'].includes(section.type || '')
+  );
+  
+  const backMatterSections = sections.filter(section =>
+    ['references', 'appendix'].includes(section.type || '')
+  );
+
+  const renderSectionItem = (section: Section) => (
+    <div key={section.id} className="space-y-2">
+      <button
+        onClick={() => onSectionSelect(section.id)}
+        className={cn(
+          "w-full text-left px-3 py-2 rounded-md text-sm",
+          "hover:bg-editor-hover transition-colors duration-200",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-editor-accent",
+          "flex items-center justify-between group",
+          activeSection === section.id && "bg-editor-active text-editor-accent font-medium"
+        )}
+      >
+        <div className="flex items-center gap-2">
+          <FileText className="w-4 h-4 text-editor-text group-hover:text-editor-accent transition-colors" />
+          <span className="truncate">{section.title || 'Untitled Section'}</span>
+        </div>
+      </button>
+      <TaskList
+        tasks={section.tasks}
+        onUpdateTask={(taskId, status) => onUpdateSectionTask(section.id, taskId, status)}
+        onAddTask={() => onAddSectionTask(section.id)}
+        onChangeTaskDescription={(taskId, newDescription) => onChangeSectionTaskDescription(section.id, taskId, newDescription)}
+      />
+    </div>
+  );
+
+  const renderCollapsibleSection = (
+    title: string,
+    sectionsList: Section[],
+    sectionKey: string,
+    icon: React.ReactNode
+  ) => (
+    <Collapsible
+      key={sectionKey}
+      open={openSections.includes(sectionKey)}
+      onOpenChange={() => toggleSection(sectionKey)}
+      className="space-y-1"
+    >
+      <CollapsibleTrigger className="flex items-center w-full p-2 text-sm font-medium hover:bg-editor-hover rounded-md">
+        {openSections.includes(sectionKey) ? (
+          <ChevronDown className="w-4 h-4 mr-2" />
+        ) : (
+          <ChevronRight className="w-4 h-4 mr-2" />
+        )}
+        {icon}
+        {title}
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pl-4 space-y-1">
+        {sectionsList.map(renderSectionItem)}
+      </CollapsibleContent>
+    </Collapsible>
+  );
 
   return (
-    <nav className="fixed w-full bg-[#1A1F2C] text-white z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" className="text-2xl font-bold text-[#9b87f5] hover:text-[#D6BCFA] transition-colors">
-            Thesis Visualizer
-          </Link>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-white hover:bg-[#2A2F3C] hover:text-[#D6BCFA]"
-            >
-              <Menu className="h-6 w-6" />
-            </Button>
-          </div>
-
-          {/* Desktop menu */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Link to="/" className="hover:text-[#D6BCFA] transition-colors">
-              {t('common.features')}
-            </Link>
-            <Link to="/" className="hover:text-[#D6BCFA] transition-colors">
-              {t('common.about')}
-            </Link>
-            <LanguageSwitcher />
-            <Link to="/">
-              <Button 
-                variant="outline" 
-                className="bg-transparent text-white border-[#9b87f5] hover:bg-[#9b87f5] hover:text-white transition-all duration-200"
-              >
-                {t('common.home')}
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        {/* Mobile menu */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-[#2A2F3C]">
-            <div className="flex flex-col space-y-4">
-              <Link
-                to="/"
-                className="hover:text-[#D6BCFA] transition-colors px-4"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {t('common.features')}
-              </Link>
-              <Link
-                to="/"
-                className="hover:text-[#D6BCFA] transition-colors px-4"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {t('common.about')}
-              </Link>
-              <div className="px-4">
-                <LanguageSwitcher />
-              </div>
-              <Link to="/" onClick={() => setIsMenuOpen(false)}>
-                <Button
-                  variant="outline"
-                  className="w-full bg-transparent text-white border-[#9b87f5] hover:bg-[#9b87f5] hover:text-white transition-all duration-200"
-                >
-                  {t('common.home')}
-                </Button>
-              </Link>
-            </div>
-          </div>
+    <ScrollArea className="h-[calc(100vh-4rem)]">
+      <div className="space-y-4">
+        {frontMatterSections.length > 0 && (
+          renderCollapsibleSection(
+            'Front Matter',
+            frontMatterSections,
+            'frontMatter',
+            <BookOpen className="w-4 h-4 mr-2" />
+          )
+        )}
+        {mainContentSections.length > 0 && (
+          renderCollapsibleSection(
+            'Main Content',
+            mainContentSections,
+            'mainContent',
+            <BookOpen className="w-4 h-4 mr-2" />
+          )
+        )}
+        {backMatterSections.length > 0 && (
+          renderCollapsibleSection(
+            'Back Matter',
+            backMatterSections,
+            'backMatter',
+            <BookOpen className="w-4 h-4 mr-2" />
+          )
         )}
       </div>
-    </nav>
+    </ScrollArea>
+  );
+};
+
+// File: src/components/sidebar/TaskList.tsx
+
+import React from 'react';
+import { Task } from '@/types/thesis';
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface TaskListProps {
+  tasks: Task[];
+  onUpdateTask: (taskId: string, status: Task['status']) => void;
+  onAddTask: () => void;
+  onChangeTaskDescription: (taskId: string, newDescription: string) => void;
+}
+
+export const TaskList: React.FC<TaskListProps> = ({
+  tasks,
+  onUpdateTask,
+  onAddTask,
+  onChangeTaskDescription,
+}) => {
+  return (
+    <div className="space-y-2">
+      {tasks.map((task) => (
+        <div key={task.id} className="flex items-center gap-2">
+          <select
+            value={task.status}
+            onChange={(e) => onUpdateTask(task.id, e.target.value as Task['status'])}
+            className="text-sm rounded-md border border-input bg-transparent px-2 py-1"
+          >
+            <option value="pending">Pending</option>
+            <option value="in progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="on hold">On Hold</option>
+          </select>
+          <input
+            type="text"
+            value={task.description}
+            onChange={(e) => onChangeTaskDescription(task.id, e.target.value)}
+            className="flex-1 text-sm rounded-md border border-input bg-transparent px-2 py-1"
+          />
+        </div>
+      ))}
+      <Button
+        onClick={onAddTask}
+        variant="ghost"
+        size="sm"
+        className="w-full justify-start gap-2"
+      >
+        <PlusCircle className="h-4 w-4" />
+        Add Task
+      </Button>
+    </div>
+  );
+};
+
+// File: src/components/sidebar/ThesisPlan.tsx
+
+import React from 'react';
+import { Section } from '@/types/thesis';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
+import { BookOpen, ChevronDown, ChevronRight } from 'lucide-react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Checkbox } from '@/components/ui/checkbox';
+
+interface ThesisPlanProps {
+  sections: Section[];
+  activeSection: string;
+  onSectionSelect: (id: string) => void;
+  onUpdateSectionData: (section: Section) => void;
+}
+
+export const ThesisPlan: React.FC<ThesisPlanProps> = ({
+  sections,
+  activeSection,
+  onSectionSelect,
+  onUpdateSectionData
+}) => {
+  const [openSections, setOpenSections] = React.useState<string[]>(['frontMatter', 'mainContent', 'backMatter']);
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev =>
+      prev.includes(section)
+        ? prev.filter(s => s !== section)
+        : [...prev, section]
+    );
+  };
+
+  const handleStatusChange = (sectionId: string, taskId: string, checked: boolean) => {
+    const section = sections.find(s => s.id === sectionId);
+    if (!section) return;
+
+    const updatedTasks = section.tasks.map(task =>
+      task.id === taskId ? { ...task, status: checked ? 'completed' : 'pending', priority: task.priority || 'medium' } : task
+    );
+
+    onUpdateSectionData({
+      ...section,
+      tasks: updatedTasks
+    });
+  };
+
+  const renderSectionItem = (section: Section) => (
+    <div key={section.id} className="space-y-2">
+      <button
+        onClick={() => onSectionSelect(section.id)}
+        className={cn(
+          "w-full text-left px-3 py-2 rounded-md text-sm",
+          "hover:bg-editor-hover transition-colors duration-200",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-editor-accent",
+          "flex items-center gap-2 group",
+          activeSection === section.id && "bg-editor-active text-editor-accent font-medium"
+        )}
+      >
+        <span className="truncate">{section.title || 'Untitled Section'}</span>
+      </button>
+      <ul className="ml-4 space-y-1">
+        {(section.tasks || []).map((task) => (
+          <li key={task.id} className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={task.status === 'completed'}
+                onCheckedChange={(checked) => handleStatusChange(section.id, task.id, checked as boolean)}
+                id={task.id}
+              />
+              <span className="text-sm">{task.description}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+
+  const frontMatterSections = sections.filter(section => 
+    ['title', 'abstract', 'acknowledgments'].includes(section.type || '')
+  );
+  
+  const mainContentSections = sections.filter(section =>
+    !['title', 'abstract', 'acknowledgments', 'references', 'appendix'].includes(section.type || '')
+  );
+  
+  const backMatterSections = sections.filter(section =>
+    ['references', 'appendix'].includes(section.type || '')
+  );
+
+  return (
+    <ScrollArea className="h-[calc(100vh-8rem)]">
+      <div className="space-y-4">
+        {frontMatterSections.length > 0 && (
+          <Collapsible
+            open={openSections.includes('frontMatter')}
+            onOpenChange={() => toggleSection('frontMatter')}
+          >
+            <CollapsibleTrigger className="flex items-center w-full p-2 text-sm font-medium hover:bg-editor-hover rounded-md">
+              {openSections.includes('frontMatter') ? (
+                <ChevronDown className="w-4 h-4 mr-2" />
+              ) : (
+                <ChevronRight className="w-4 h-4 mr-2" />
+              )}
+              <BookOpen className="w-4 h-4 mr-2" />
+              Front Matter
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pl-4 space-y-1">
+              {frontMatterSections.map(renderSectionItem)}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {mainContentSections.length > 0 && (
+          <Collapsible
+            open={openSections.includes('mainContent')}
+            onOpenChange={() => toggleSection('mainContent')}
+          >
+            <CollapsibleTrigger className="flex items-center w-full p-2 text-sm font-medium hover:bg-editor-hover rounded-md">
+              {openSections.includes('mainContent') ? (
+                <ChevronDown className="w-4 h-4 mr-2" />
+              ) : (
+                <ChevronRight className="w-4 h-4 mr-2" />
+              )}
+              <BookOpen className="w-4 h-4 mr-2" />
+              Main Content
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pl-4 space-y-1">
+              {mainContentSections.map(renderSectionItem)}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {backMatterSections.length > 0 && (
+          <Collapsible
+            open={openSections.includes('backMatter')}
+            onOpenChange={() => toggleSection('backMatter')}
+          >
+            <CollapsibleTrigger className="flex items-center w-full p-2 text-sm font-medium hover:bg-editor-hover rounded-md">
+              {openSections.includes('backMatter') ? (
+                <ChevronDown className="w-4 h-4 mr-2" />
+              ) : (
+                <ChevronRight className="w-4 h-4 mr-2" />
+              )}
+              <BookOpen className="w-4 h-4 mr-2" />
+              Back Matter
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pl-4 space-y-1">
+              {backMatterSections.map(renderSectionItem)}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+      </div>
+    </ScrollArea>
   );
 };
 
@@ -13667,10 +14725,12 @@ export const ThesisEditorHeader: React.FC<ThesisEditorHeaderProps> = ({
 
 // File: src/components/thesis/editor/ThesisEditorMain.tsx
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { ThesisEditorContent } from './ThesisEditorContent';
 import { ThesisEditorPreview } from './ThesisEditorPreview';
 import { Chapter, Thesis } from '@/types/thesis';
+import { useThesisRealtime } from '@/hooks/useThesisRealtime';
+import { useToast } from '@/hooks/use-toast';
 
 interface ThesisEditorMainProps {
   thesis: Thesis | null;
@@ -13693,25 +14753,258 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
   onUpdateChapter,
   onAddChapter
 }) => {
+     const { toast } = useToast();
+      const [localThesis, setLocalThesis] = useState(thesis);
+
+    useThesisRealtime(thesis?.id, localThesis, setLocalThesis);
+
+
+    const handleUpdateSectionData = (updatedSection: any) => {
+        if (!localThesis) return;
+      const updateThesis = () => {
+             setLocalThesis((prev) => {
+             if(!prev) return null;
+
+             const frontMatter = prev.frontMatter.map((s) => (s.id === updatedSection.id ? updatedSection : s));
+             const chapters = prev.chapters.map((chapter) => {
+                 return {
+                     ...chapter,
+                    sections: chapter.sections.map(s => s.id === updatedSection.id ? updatedSection : s)
+                 }
+             });
+               const backMatter = prev.backMatter.map((s) => (s.id === updatedSection.id ? updatedSection : s));
+
+            return {
+                ...prev,
+                frontMatter,
+                chapters,
+                backMatter,
+             };
+         });
+        }
+
+      updateThesis()
+  };
+
+
+   const handleContentChange = (id: string, content: string) => {
+       if (!localThesis) return;
+        setLocalThesis((prev) => {
+             if(!prev) return null;
+        
+            const frontMatter = prev.frontMatter.map(section =>
+             section.id === id ? { ...section, content } : section
+           );
+           const chapters = prev.chapters.map(chapter => ({
+                ...chapter,
+                 sections: chapter.sections.map(section =>
+              section.id === id ? { ...section, content } : section
+                )
+            }));
+           const backMatter = prev.backMatter.map(section =>
+              section.id === id ? { ...section, content } : section
+            );
+            
+            return {
+                ...prev,
+                frontMatter,
+                chapters,
+                backMatter
+            };
+           
+      });
+      onContentChange(id, content);
+    };
+
+     const handleTitleChange = (id: string, title: string) => {
+         if (!localThesis) return;
+        setLocalThesis((prev) => {
+             if(!prev) return null;
+        
+           const frontMatter = prev.frontMatter.map(section =>
+                section.id === id ? { ...section, title } : section
+              );
+          const chapters = prev.chapters.map(chapter => ({
+            ...chapter,
+            sections: chapter.sections.map(section =>
+                section.id === id ? { ...section, title } : section
+             )
+           }));
+            const backMatter = prev.backMatter.map(section =>
+            section.id === id ? { ...section, title } : section
+              );
+            
+                return {
+                ...prev,
+                frontMatter,
+                chapters,
+                backMatter
+               };
+             
+        });
+      onTitleChange(id, title);
+    };
+
+    const handleAddSectionTask = (sectionId: string) => {
+       if (!localThesis) return;
+        setLocalThesis((prev) => {
+           if(!prev) return null;
+           const frontMatter = prev.frontMatter.map((s) => {
+               if(s.id === sectionId){
+                    return {
+                      ...s,
+                         tasks: [...(s.tasks || []),{ id: Date.now().toString(), description: 'New Task', status: 'pending' }]
+                    }
+               }
+              return s;
+           })
+            const chapters = prev.chapters.map(chapter => ({
+                ...chapter,
+               sections: chapter.sections.map(s => {
+                   if (s.id === sectionId) {
+                        return {
+                         ...s,
+                       tasks: [...(s.tasks || []),{ id: Date.now().toString(), description: 'New Task', status: 'pending' }]
+                        }
+                    }
+                   return s;
+                })
+           }))
+
+            const backMatter = prev.backMatter.map(s => {
+               if(s.id === sectionId){
+                     return {
+                         ...s,
+                       tasks: [...(s.tasks || []),{ id: Date.now().toString(), description: 'New Task', status: 'pending' }]
+                   }
+               }
+                return s;
+           })
+            
+             return {
+              ...prev,
+              frontMatter,
+              chapters,
+              backMatter
+            };
+
+           });
+    }
+
+    const handleUpdateSectionTask = (sectionId: string, taskId: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => {
+        if(!localThesis) return
+       setLocalThesis((prev) => {
+           if(!prev) return null;
+
+            const frontMatter = prev.frontMatter.map((s) => {
+              if(s.id === sectionId){
+                 const updatedTasks = s.tasks.map((task) =>
+                    task.id === taskId ? { ...task, status: status } : task
+                   )
+                    return { ...s, tasks: updatedTasks};
+               }
+               return s
+            });
+            const chapters = prev.chapters.map(chapter => ({
+                 ...chapter,
+                 sections: chapter.sections.map(s => {
+                      if(s.id === sectionId){
+                            const updatedTasks = s.tasks.map((task) =>
+                                task.id === taskId ? { ...task, status } : task
+                              )
+                            return { ...s, tasks: updatedTasks}
+                       }
+                        return s
+                  })
+             }))
+               const backMatter = prev.backMatter.map((s) => {
+                 if(s.id === sectionId){
+                     const updatedTasks = s.tasks.map((task) =>
+                       task.id === taskId ? { ...task, status } : task
+                     )
+                      return { ...s, tasks: updatedTasks};
+                 }
+                 return s
+             });
+
+               return {
+                ...prev,
+                frontMatter,
+                 chapters,
+                backMatter
+             };
+       })
+  };
+
+      const handleSectionTaskDescriptionChange = (sectionId: string, taskId: string, newDescription: string) => {
+         if(!localThesis) return;
+
+       setLocalThesis((prev) => {
+              if(!prev) return null;
+
+            const frontMatter = prev.frontMatter.map((s) => {
+              if(s.id === sectionId){
+                     const updatedTasks = s.tasks.map((task) =>
+                     task.id === taskId ? { ...task, description: newDescription } : task
+                     )
+                     return { ...s, tasks: updatedTasks };
+                }
+               return s;
+           })
+            const chapters = prev.chapters.map(chapter => ({
+                 ...chapter,
+                 sections: chapter.sections.map(s => {
+                        if(s.id === sectionId){
+                            const updatedTasks = s.tasks.map((task) =>
+                                task.id === taskId ? { ...task, description: newDescription } : task
+                            )
+                           return { ...s, tasks: updatedTasks}
+                        }
+                       return s;
+                   })
+               }))
+            const backMatter = prev.backMatter.map(s => {
+               if(s.id === sectionId){
+                     const updatedTasks = s.tasks.map((task) =>
+                         task.id === taskId ? { ...task, description: newDescription } : task
+                   )
+                     return { ...s, tasks: updatedTasks };
+                }
+               return s;
+            })
+            
+               return {
+                ...prev,
+                frontMatter,
+                 chapters,
+                backMatter
+               };
+       })
+  };
+  
   return (
     <main className="flex-1 p-8 flex">
       <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
         <div className="max-w-4xl mx-auto space-y-6">
           <ThesisEditorContent
-            frontMatter={thesis?.frontMatter || []}
-            chapters={thesis?.chapters || []}
-            backMatter={thesis?.backMatter || []}
+              frontMatter={localThesis?.frontMatter || []}
+            chapters={localThesis?.chapters || []}
+            backMatter={localThesis?.backMatter || []}
             activeSection={activeSection}
-            onContentChange={onContentChange}
-            onTitleChange={onTitleChange}
+            onContentChange={handleContentChange}
+            onTitleChange={handleTitleChange}
             onUpdateChapter={onUpdateChapter}
             onAddChapter={onAddChapter}
+            onUpdateSectionData={handleUpdateSectionData}
+            onAddSectionTask={handleAddSectionTask}
+            onUpdateSectionTask={handleUpdateSectionTask}
+            onChangeSectionTaskDescription={handleSectionTaskDescriptionChange}
           />
         </div>
       </div>
-      {showPreview && thesis && (
+        {showPreview && localThesis && (
         <div className="w-1/2 pl-8 border-l">
-          <ThesisEditorPreview thesis={thesis} previewRef={previewRef} />
+          <ThesisEditorPreview thesis={localThesis} previewRef={previewRef} />
         </div>
       )}
     </main>
@@ -15367,9 +16660,8 @@ export const TitlePage = ({ metadata, titleSection }: TitlePageProps) => {
 // File: src/components/thesis/sidebar/TableOfContents.tsx
 
 import React from 'react';
-import { ChevronDown, ChevronRight, FileText, BookOpen, Image, Table } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Section } from '@/types/thesis';
+import { cn } from '@/lib/utils';
 import { CollaboratorLocation } from '@/components/collaboration/CollaboratorLocation';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -15378,19 +16670,29 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { TaskList } from './TaskList';
+import { FileText, BookOpen, ChevronRight, ChevronDown } from 'lucide-react';
 
 interface TableOfContentsProps {
   sections: Section[];
   activeSection: string;
   onSectionSelect: (id: string) => void;
   thesisId: string;
+   onUpdateSectionData: (section: Section) => void;
+  onAddSectionTask: (sectionId: string) => void;
+  onUpdateSectionTask: (sectionId: string, taskId: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => void;
+    onChangeSectionTaskDescription: (sectionId: string, taskId: string, newDescription: string) => void
 }
 
-export const TableOfContents = ({ 
-  sections = [], 
-  activeSection, 
+export const TableOfContents = ({
+  sections = [],
+  activeSection,
   onSectionSelect,
-  thesisId
+  thesisId,
+    onUpdateSectionData,
+    onAddSectionTask,
+     onUpdateSectionTask,
+    onChangeSectionTaskDescription,
 }: TableOfContentsProps) => {
   const [openSections, setOpenSections] = React.useState<string[]>(['frontMatter', 'mainContent', 'backMatter', 'figures', 'tables']);
   const [collaboratorLocations, setCollaboratorLocations] = React.useState<Record<string, any>>({});
@@ -15499,7 +16801,7 @@ export const TableOfContents = ({
           <FileText className="w-4 h-4 text-editor-text group-hover:text-editor-accent transition-colors" />
           <span className="truncate">{section.title || 'Untitled Section'}</span>
         </div>
-        {collaborators.length > 0 && (
+         {collaborators.length > 0 && (
           <div className="flex -space-x-2">
             {collaborators.map((collaborator: any) => (
               <CollaboratorLocation 
@@ -15535,7 +16837,17 @@ export const TableOfContents = ({
         {title}
       </CollapsibleTrigger>
       <CollapsibleContent className="pl-4 space-y-1">
-        {sectionsList.map(renderSectionItem)}
+        {sectionsList.map(section => (
+          <div className="space-y-2">
+            {renderSectionItem(section)}
+            <TaskList
+                tasks={section.tasks}
+                onUpdateTask={(taskId, status) => onUpdateSectionTask(section.id, taskId, status)}
+                onAddTask={() => onAddSectionTask(section.id)}
+                onChangeTaskDescription={(taskId, newDescription)=> onChangeSectionTaskDescription(section.id, taskId, newDescription)}
+              />
+            </div>
+          ))}
       </CollapsibleContent>
     </Collapsible>
   );
@@ -15616,6 +16928,237 @@ export const TableOfContents = ({
   );
 };
 
+// File: src/components/thesis/sidebar/TaskList.tsx
+
+import React, { useState } from 'react';
+import { TaskItem } from '@/components/ui/TaskInput';
+import { Button } from '@/components/ui/button';
+import { PlusCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
+interface TaskListProps {
+  tasks: {
+    id: string;
+    description: string;
+    status: 'pending' | 'in progress' | 'completed' | 'on hold';
+    dueDate?: string;
+      priority?: 'high' | 'medium' | 'low';
+    }[];
+   onUpdateTask: (taskId: string, newStatus: 'pending' | 'in progress' | 'completed' | 'on hold') => void;
+    onAddTask: () => void;
+    onChangeTaskDescription: (taskId: string, newDescription: string) => void
+}
+
+export const TaskList: React.FC<TaskListProps> = ({
+  tasks = [],
+    onUpdateTask,
+    onAddTask,
+    onChangeTaskDescription,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+    const handleToggleOpen = () => {
+      setIsOpen(!isOpen)
+    }
+    
+  return (
+    <div className="space-y-2">
+      <Collapsible open={isOpen} onOpenChange={handleToggleOpen} className="mt-4">
+        <CollapsibleTrigger className="flex w-full justify-between hover:bg-editor-hover rounded-md py-2 px-3 items-center text-sm font-medium">
+          <div className="flex items-center gap-1">
+            <span className="">
+              Tasks ({tasks.length})
+            </span>
+          </div>
+           {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="w-4 h-4" /> }
+        </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="pl-2 space-y-2">
+                {tasks.map((task) => (
+                    <TaskItem 
+                      key={task.id}
+                      id={task.id}
+                      description={task.description}
+                      status={task.status}
+                      onToggleStatus={(newStatus) => onUpdateTask(task.id, newStatus)}
+                      onChangeDescription={(newDescription)=> onChangeTaskDescription(task.id, newDescription)}
+                     />
+                ))}
+                  <Button
+                     onClick={onAddTask}
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start gap-2"
+                  >
+                    <PlusCircle className="h-4 w-4"/>
+                    Add Task
+                  </Button>
+            </div>
+          </CollapsibleContent>
+      </Collapsible>
+    </div>
+  );
+};
+
+// File: src/components/thesis/sidebar/ThesisPlan.tsx
+
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { BookOpen, ChevronDown, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
+interface ThesisPlanProps {
+    sections: any[];
+  activeSection: string;
+  onSectionSelect: (id: string) => void;
+  onUpdateSectionData: (section: any) => void;
+}
+
+export const ThesisPlan: React.FC<ThesisPlanProps> = ({
+  sections,
+  activeSection,
+    onSectionSelect,
+    onUpdateSectionData
+}) => {
+  const [openSections, setOpenSections] = React.useState<string[]>(['frontMatter', 'mainContent', 'backMatter']);
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev =>
+      prev.includes(section)
+        ? prev.filter(s => s !== section)
+        : [...prev, section]
+    );
+  };
+
+  const handleStatusChange = (sectionId: string, taskId: string, checked: boolean) => {
+      const updatedSections = sections.map(section => {
+        if (section.id === sectionId){
+            const updatedTasks = section.tasks.map((task: any) =>
+              task.id === taskId ? { ...task, status: checked ? 'completed' : 'pending' } : task
+            );
+
+            return {...section, tasks: updatedTasks};
+        }
+        return section
+      });
+      
+        onUpdateSectionData(updatedSections);
+    };
+
+
+  const renderSectionItem = (section: any) => {
+      return (
+        <div key={section.id} className="space-y-2">
+            <button
+              onClick={() => onSectionSelect(section.id)}
+               className={cn(
+                  "w-full text-left px-3 py-2 rounded-md text-sm",
+                   "hover:bg-editor-hover transition-colors duration-200",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-editor-accent",
+                 "flex items-center gap-2 group"
+                 ,
+                  activeSection === section.id && "bg-editor-active text-editor-accent font-medium"
+                )}
+            >
+               <span className="truncate">{section.title || 'Untitled Section'}</span>
+            </button>
+              <ul className="ml-4 space-y-1">
+                {(section.tasks || []).map((task: any) => (
+                  <li key={task.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={task.status === 'completed'}
+                        onCheckedChange={(e) => handleStatusChange(section.id, task.id, e)}
+                        id={task.id}
+                      />
+                      <span className="text-sm">{task.description}</span>
+                    </div>
+                  </li>
+                  ))}
+              </ul>
+          </div>
+      );
+    };
+
+  const renderCollapsibleSection = (
+    title: string,
+    sectionsList: any[],
+    sectionKey: string,
+    icon: React.ReactNode
+  ) => (
+    <Collapsible
+      key={sectionKey}
+      open={openSections.includes(sectionKey)}
+      onOpenChange={() => toggleSection(sectionKey)}
+      className="space-y-1"
+    >
+      <CollapsibleTrigger className="flex items-center w-full p-2 text-sm font-medium hover:bg-editor-hover rounded-md">
+        {openSections.includes(sectionKey) ? (
+          <ChevronDown className="w-4 h-4 mr-2" />
+        ) : (
+          <ChevronRight className="w-4 h-4 mr-2" />
+        )}
+        {icon}
+        {title}
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pl-4 space-y-1">
+        {sectionsList.map(renderSectionItem)}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+
+  const frontMatterSections = sections.filter(section => 
+      ['title', 'abstract', 'acknowledgments'].includes(section.type || '')
+    );
+    
+    const mainContentSections = sections.filter(section =>
+      !['title', 'abstract', 'acknowledgments', 'references', 'appendix'].includes(section.type || '')
+    );
+    
+    const backMatterSections = sections.filter(section =>
+      ['references', 'appendix'].includes(section.type || '')
+  );
+
+  return (
+    <div className="space-y-4">
+           {frontMatterSections.length > 0 && (
+          renderCollapsibleSection(
+            'Front Matter',
+            frontMatterSections,
+            'frontMatter',
+            <BookOpen className="w-4 h-4 mr-2" />
+          )
+        )}
+        {mainContentSections.length > 0 && (
+          renderCollapsibleSection(
+            'Main Content',
+            mainContentSections,
+            'mainContent',
+            <BookOpen className="w-4 h-4 mr-2" />
+          )
+        )}
+        {backMatterSections.length > 0 && (
+          renderCollapsibleSection(
+            'Back Matter',
+            backMatterSections,
+            'backMatter',
+            <BookOpen className="w-4 h-4 mr-2" />
+          )
+        )}
+    </div>
+  );
+};
 
 // File: src/components/thesis/toolbar/CollaboratorSection.tsx
 
@@ -15869,6 +17412,100 @@ export const ThesisTracker = ({ thesis }: ThesisTrackerProps) => {
         </div>
       </div>
     </Card>
+  );
+};
+
+// File: src/components/ui/LoadingButton.tsx
+
+import React from 'react';
+import { Button } from './button';
+import { ButtonProps } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+
+interface LoadingButtonProps extends ButtonProps {
+  loading?: boolean;
+}
+
+export const LoadingButton: React.FC<LoadingButtonProps> = ({
+  children,
+  loading = false,
+  disabled,
+  ...props
+}) => {
+  return (
+    <Button {...props} disabled={disabled || loading}>
+      {loading ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
+        </>
+      ) : (
+        children
+      )}
+    </Button>
+  );
+};
+
+// File: src/components/ui/TaskInput.tsx
+
+import React from 'react';
+import { Input } from './input';
+import { CheckCircle, Circle } from 'lucide-react';
+import { Button } from './button';
+
+interface TaskInputProps {
+  id: string;
+  description: string;
+  status: 'pending' | 'in progress' | 'completed' | 'on hold';
+  onChangeDescription: (newDescription: string) => void;
+  onToggleStatus: (newStatus: 'pending' | 'in progress' | 'completed' | 'on hold') => void;
+  dueDate?: string;
+  priority?: 'high' | 'medium' | 'low';
+}
+
+export const TaskItem: React.FC<TaskInputProps> = ({
+  id,
+  description,
+  status,
+  onChangeDescription,
+    onToggleStatus,
+  dueDate,
+    priority
+}) => {
+
+  const handleToggleStatus = () => {
+    if(status === 'pending') return onToggleStatus('in progress')
+    if(status === 'in progress') return onToggleStatus('completed')
+    if(status === 'completed') return onToggleStatus('on hold')
+     if(status === 'on hold') return onToggleStatus('pending')
+  }
+
+    const getStatusIcon = () => {
+        switch(status){
+            case 'completed':
+                return <CheckCircle className="h-4 w-4 text-green-500" />;
+            default:
+                return <Circle className="h-4 w-4 text-muted-foreground" />;
+        }
+    }
+
+  return (
+    <div className="flex items-center gap-2 p-2 rounded-md group hover:bg-accent/10">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleToggleStatus}
+        className="h-8 w-8 p-0"
+      >
+        {getStatusIcon()}
+      </Button>
+      <Input
+        value={description}
+        onChange={(e) => onChangeDescription(e.target.value)}
+        className="bg-transparent border-none flex-1 focus-visible:ring-0"
+        placeholder="Add a new task"
+      />
+    </div>
   );
 };
 
@@ -21650,107 +23287,109 @@ export { useToast, toast }
 
 // File: src/hooks/useCitationManager.ts
 
+// src/hooks/useCitationManager.ts
+
 import { useState } from 'react';
 import { Citation } from '@/types/thesis';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from './use-toast';
+import { useQuery } from '@tanstack/react-query';
 
 export const useCitationManager = (thesisId: string) => {
-  const [citations, setCitations] = useState<Citation[]>([]);
-  const [loading, setLoading] = useState(false);
+    const { toast } = useToast();
   const [selectedCitation, setSelectedCitation] = useState<Citation | null>(null);
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | Citation['type']>('all');
-  const [sortField, setSortField] = useState<'year' | 'author' | 'title'>('year');
+  const [sortField, setSortField] = useState<'year' | 'author' | 'text'>('year');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const { toast } = useToast();
 
-  const addCitation = async (citation: Omit<Citation, 'thesis_id'>) => {
-    try {
-      setLoading(true);
+    const {
+        data: citations,
+        isLoading,
+        error,
+        refetch
+    } = useQuery({
+      queryKey: ['citations', thesisId],
+        queryFn: async () => {
+          if(!thesisId){
+            throw new Error('Thesis ID is required to load citations');
+          }
+
+        const { data, error } = await supabase
+            .from('citations')
+            .select('*')
+            .eq('thesis_id', thesisId)
+            .order('created_at', { ascending: false });
+
+          if (error) {
+                console.error('Error fetching citations:', error);
+                throw error;
+            }
+
+            return data as Citation[];
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    });
+
+    const addCitation = async (citation: Omit<Citation, 'thesis_id'>) => {
+        try {
       const now = new Date().toISOString();
-      const newCitation: Citation = {
+        const newCitation: Citation = {
         ...citation,
         thesis_id: thesisId,
-        type: citation.type || 'article',
+          type: citation.type || 'article',
         created_at: now,
         updated_at: now
-      };
+        };
 
-      const { data, error } = await supabase
-        .from('citations')
-        .insert([newCitation])
-        .select()
-        .single();
+        const { error } = await supabase
+            .from('citations')
+            .insert([newCitation]);
 
-      if (error) throw error;
+          if (error) throw error;
 
-      setCitations(prev => [...prev, data as Citation]);
-      toast({
-        title: "Success",
-        description: "Citation added successfully",
-      });
-    } catch (error) {
-      console.error('Error adding citation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add citation",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+        toast({
+          title: "Success",
+          description: "Citation added successfully",
+          });
 
-  const fetchCitations = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('citations')
-        .select('*')
-        .eq('thesis_id', thesisId)
-        .order('created_at', { ascending: false });
+            await refetch()
+        } catch (error: any) {
+          console.error('Error adding citation:', error);
+            toast({
+                title: "Error",
+                description: "Failed to add citation",
+                variant: "destructive",
+            });
+        }
+    };
 
-      if (error) throw error;
-
-      setCitations(data as Citation[]);
-    } catch (error) {
-      console.error('Error fetching citations:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch citations",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const deleteCitation = async (id: string) => {
     try {
-      setLoading(true);
-      const { error } = await supabase
+        const { error } = await supabase
         .from('citations')
         .delete()
-        .eq('id', id);
-
+            .eq('id', id);
+            
       if (error) throw error;
 
-      setCitations(prev => prev.filter(citation => citation.id !== id));
-      toast({
-        title: "Success",
-        description: "Citation deleted successfully",
-      });
-    } catch (error) {
-      console.error('Error deleting citation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete citation",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+        toast({
+          title: "Success",
+            description: "Citation deleted successfully",
+        });
+
+          await refetch();
+        } catch (error) {
+        console.error('Error deleting citation:', error);
+          toast({
+                title: "Error",
+                description: "Failed to delete citation",
+              variant: "destructive",
+          });
     }
   };
 
@@ -21763,8 +23402,9 @@ export const useCitationManager = (thesisId: string) => {
     setSearchDialogOpen(false);
   };
 
-  const getFilteredAndSortedCitations = (citationsToFilter: Citation[]) => {
-    let filtered = [...citationsToFilter];
+  const getFilteredAndSortedCitations = () => {
+      if (!citations) return [];
+    let filtered = [...citations];
     
     if (searchTerm) {
       filtered = filtered.filter(citation => 
@@ -21788,7 +23428,7 @@ export const useCitationManager = (thesisId: string) => {
         case 'author':
           comparison = (a.authors[0] || '').localeCompare(b.authors[0] || '');
           break;
-        case 'title':
+        case 'text':
           comparison = a.text.localeCompare(b.text);
           break;
       }
@@ -21799,8 +23439,9 @@ export const useCitationManager = (thesisId: string) => {
   };
 
   return {
-    citations,
-    loading,
+    citations: citations || [],
+    isLoading,
+    error,
     selectedCitation,
     setSelectedCitation,
     searchDialogOpen,
@@ -21814,14 +23455,13 @@ export const useCitationManager = (thesisId: string) => {
     sortDirection,
     setSortDirection,
     addCitation,
-    fetchCitations,
     deleteCitation,
     handleAddCitation,
     handleSearchResult,
-    getFilteredAndSortedCitations
+      getFilteredAndSortedCitations,
+      refetch
   };
 };
-
 
 // File: src/hooks/useCollaboratorPermissions.tsx
 
@@ -22253,6 +23893,167 @@ export const useNotifications = (thesisId: string) => {
   };
 };
 
+// File: src/hooks/useReferenceManager.ts
+
+// src/hooks/useReferenceManager.ts
+import { useState } from 'react';
+import { Reference } from '@/types/thesis';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+
+export const useReferenceManager = (thesisId: string) => {
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<'all' | Reference['type']>('all');
+  const [sortField, setSortField] = useState<'year' | 'author' | 'title'>('year');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const { toast } = useToast();
+
+   const {
+        data: references,
+        isLoading,
+        error,
+        refetch
+    } = useQuery({
+        queryKey: ['references', thesisId],
+      queryFn: async () => {
+          if(!thesisId){
+            throw new Error('Thesis ID is required to load references');
+          }
+
+          const { data, error } = await supabase
+            .from('references')
+              .select('*')
+              .eq('thesis_id', thesisId)
+          .order('created_at', { ascending: false });
+
+          if (error) {
+            console.error('Error fetching references:', error);
+            throw error;
+          }
+            return data as Reference[];
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    });
+
+    const addReference = async (reference: Reference) => {
+        try {
+            setLoading(true);
+            const now = new Date().toISOString();
+        const newReference = {
+          ...reference,
+            thesis_id: thesisId,
+            created_at: now,
+              updated_at: now
+        };
+
+        const { error } = await supabase
+            .from('references')
+              .insert([newReference])
+
+        if (error) throw error;
+            toast({
+                title: "Success",
+                description: "Reference added successfully",
+                });
+
+            await refetch();
+
+    } catch (error) {
+      console.error('Error adding reference:', error);
+        toast({
+              title: "Error",
+            description: "Failed to add reference",
+              variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const deleteReference = async (id: string) => {
+      try {
+        setLoading(true);
+        const { error } = await supabase
+          .from('references')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+          toast({
+            title: "Success",
+              description: "Reference deleted successfully",
+          });
+          await refetch();
+      } catch (error) {
+        console.error('Error deleting reference:', error);
+        toast({
+            title: "Error",
+            description: "Failed to delete reference",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    const getFilteredAndSortedReferences = () => {
+        if(!references) return [];
+        let filtered = [...references];
+        
+    if (searchTerm) {
+      filtered = filtered.filter(reference => 
+        reference.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reference.authors.some(author => 
+          author.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+
+        if (filterType !== 'all') {
+          filtered = filtered.filter(reference => reference.type === filterType);
+        }
+
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case 'year':
+          comparison = a.year.localeCompare(b.year);
+          break;
+        case 'author':
+          comparison = (a.authors[0] || '').localeCompare(b.authors[0] || '');
+          break;
+          case 'title':
+            comparison = a.title.localeCompare(b.title);
+            break;
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  };
+
+  return {
+    references: references || [],
+      isLoading,
+      error,
+      searchTerm,
+    setSearchTerm,
+    filterType,
+    setFilterType,
+    sortField,
+    setSortField,
+    sortDirection,
+      setSortDirection,
+      addReference,
+      deleteReference,
+    getFilteredAndSortedReferences,
+      refetch
+  };
+};
+
 // File: src/hooks/useThesesList.ts
 
 import { useState } from 'react';
@@ -22394,10 +24195,11 @@ export const useThesis = (thesisId: string) => {
 
 // File: src/hooks/useThesisAutosave.ts
 
+// src/hooks/useThesisAutosave.ts
 import { useCallback, useEffect, useRef } from 'react';
 import { debounce } from 'lodash';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from './use-toast';
 import { Thesis } from '@/types/thesis';
 import { Json } from '@/integrations/supabase/types';
 
@@ -22408,49 +24210,56 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
   const TOAST_COOLDOWN = 5000; // 5 seconds between toasts
 
   const saveThesis = useCallback(async (thesisData: Thesis) => {
-    if (!thesisData) return;
-    
-    try {
-      console.log('Auto-saving thesis:', thesisData.id);
-      
-      const serializedContent = JSON.stringify({
-        metadata: thesisData.metadata,
-        frontMatter: thesisData.frontMatter,
-        chapters: thesisData.chapters,
-        backMatter: thesisData.backMatter
-      }) as unknown as Json;
+      if (!thesisData) return;
 
-      const { error } = await supabase
-        .from('theses')
-        .update({ 
-          content: serializedContent,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', thesisData.id);
+      try {
+        console.log('Auto-saving thesis:', thesisData.id);
 
-      if (error) throw error;
-      
-      lastSavedContent.current = JSON.stringify(thesisData);
-      console.log('Auto-save successful');
-      
-      // Only show toast if enough time has passed since the last one
-      const now = Date.now();
-      if (now - lastToastTime.current >= TOAST_COOLDOWN) {
-        lastToastTime.current = now;
-        toast({
-          title: "Auto-saved",
-          description: "Your thesis has been automatically saved.",
-        });
+        const serializedContent = JSON.stringify({
+          metadata: thesisData.metadata,
+          frontMatter: thesisData.frontMatter,
+          chapters: thesisData.chapters,
+          backMatter: thesisData.backMatter
+        }) as unknown as Json;
+
+        const { error, data } = await supabase
+            .from('theses')
+            .update({
+              content: serializedContent,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', thesisData.id)
+            .select()
+            .maybeSingle();
+
+          if (error) throw error;
+
+          if (!data) {
+                console.log('Thesis was not found, skipping auto-save:', thesisData.id);
+              return;
+          }
+
+        lastSavedContent.current = JSON.stringify(thesisData);
+          console.log('Auto-save successful:', { id: thesisData.id, updateTime: data.updated_at });
+          // Only show toast if enough time has passed since the last one
+          const now = Date.now();
+          if (now - lastToastTime.current >= TOAST_COOLDOWN) {
+            lastToastTime.current = now;
+            toast({
+                title: "Auto-saved",
+                description: "Your thesis has been automatically saved.",
+            });
+          }
+      } catch (error) {
+          console.error('Error auto-saving thesis:', error);
+          toast({
+              title: "Auto-save failed",
+              description: "Failed to auto-save your thesis. Your changes will be saved on next successful attempt.",
+              variant: "destructive",
+          });
       }
-    } catch (error) {
-      console.error('Error auto-saving thesis:', error);
-      toast({
-        title: "Auto-save failed",
-        description: "Failed to auto-save your thesis. Your changes will be saved on next successful attempt.",
-        variant: "destructive",
-      });
-    }
   }, [toast]);
+
 
   const debouncedSave = useCallback(
     debounce((thesisData: Thesis) => {
@@ -22474,12 +24283,14 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
 
 // File: src/hooks/useThesisData.ts
 
+// src/hooks/useThesisData.ts
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Thesis } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
 import { validate as validateUUID } from 'uuid';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Json } from '@/integrations/supabase/types';
 
 export const useThesisData = (thesisId: string | undefined) => {
   const { toast } = useToast();
@@ -22492,9 +24303,9 @@ export const useThesisData = (thesisId: string | undefined) => {
   } = useQuery({
     queryKey: ['thesis', thesisId],
     queryFn: async () => {
-      if (!thesisId) {
+        if (!thesisId) {
         console.log('No thesis ID provided');
-        return null;
+          return null;
       }
 
       if (!validateUUID(thesisId)) {
@@ -22503,9 +24314,9 @@ export const useThesisData = (thesisId: string | undefined) => {
       }
 
       try {
-        console.log('🔍 Fetching thesis with ID:', thesisId);
+          console.log('🔍 Fetching thesis with ID:', thesisId);
 
-        const { data: session } = await supabase.auth.getSession();
+           const { data: session } = await supabase.auth.getSession();
         if (!session?.session?.user) {
           console.error('❌ No authenticated user found');
           throw new Error('Authentication required');
@@ -22513,7 +24324,7 @@ export const useThesisData = (thesisId: string | undefined) => {
 
         console.log('👤 User authenticated:', session.session.user.email);
 
-        const { data: fetchedThesis, error: fetchError } = await supabase
+           const { data: fetchedThesis, error: fetchError } = await supabase
           .from('theses')
           .select(`
             *,
@@ -22533,9 +24344,9 @@ export const useThesisData = (thesisId: string | undefined) => {
           throw new Error(fetchError.message);
         }
 
-        if (!fetchedThesis) {
+          if (!fetchedThesis) {
           console.log('⚠️ No thesis found with ID:', thesisId);
-          return null;
+            return null;
         }
 
         console.log('✅ Thesis data loaded:', {
@@ -22546,28 +24357,29 @@ export const useThesisData = (thesisId: string | undefined) => {
 
         const parsedContent = typeof fetchedThesis.content === 'string'
           ? JSON.parse(fetchedThesis.content)
-          : fetchedThesis.content;
+            : fetchedThesis.content;
 
         const formattedThesis: Thesis = {
           id: fetchedThesis.id,
-          title: fetchedThesis.title,
-          content: fetchedThesis.content,
-          user_id: fetchedThesis.user_id,
-          created_at: fetchedThesis.created_at,
-          updated_at: fetchedThesis.updated_at,
-          metadata: {
-            description: parsedContent?.metadata?.description || '',
-            keywords: parsedContent?.metadata?.keywords || [],
-            createdAt: parsedContent?.metadata?.createdAt || new Date().toISOString(),
-            universityName: parsedContent?.metadata?.universityName,
-            departmentName: parsedContent?.metadata?.departmentName,
-            authorName: parsedContent?.metadata?.authorName,
-            thesisDate: parsedContent?.metadata?.thesisDate,
-            committeeMembers: parsedContent?.metadata?.committeeMembers
-          },
-          frontMatter: parsedContent?.frontMatter || [],
-          chapters: parsedContent?.chapters || [],
-          backMatter: parsedContent?.backMatter || []
+            title: fetchedThesis.title,
+            content: fetchedThesis.content,
+            user_id: fetchedThesis.user_id,
+            created_at: fetchedThesis.created_at,
+            updated_at: fetchedThesis.updated_at,
+            metadata: parsedContent?.metadata || {},
+          frontMatter: parsedContent?.frontMatter?.map((section: any) => ({
+                ...section,
+                tasks: section.tasks || [],
+            })) || [],
+            chapters: parsedContent?.chapters?.map((chapter: any) => ({
+                ...chapter,
+                tasks: chapter.tasks || [],
+                sections: chapter.sections?.map((section: any) => ({
+                  ...section,
+                  tasks: section.tasks || []
+                })) || []
+            })) || [],
+            backMatter: parsedContent?.backMatter || [],
         };
 
         return formattedThesis;
@@ -22581,14 +24393,14 @@ export const useThesisData = (thesisId: string | undefined) => {
         throw err;
       }
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+      retry: 2,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   const setThesis = (newThesis: Thesis | ((prev: Thesis | null) => Thesis | null)) => {
-    queryClient.setQueryData(['thesis', thesisId], newThesis);
+        queryClient.setQueryData(['thesis', thesisId], newThesis);
   };
 
   return { thesis, setThesis, isLoading, error };
@@ -23590,6 +25402,81 @@ export type Database = {
           },
         ]
       }
+      thesis_references: {
+        Row: {
+          authors: string[]
+          created_at: string
+          doi: string | null
+          id: string
+          issue: string | null
+          journal: string | null
+          pages: string | null
+          publisher: string | null
+          source: string
+          text: string
+          thesis_id: string
+          title: string
+          type: string
+          updated_at: string
+          url: string | null
+          volume: string | null
+          year: string
+        }
+        Insert: {
+          authors?: string[]
+          created_at?: string
+          doi?: string | null
+          id?: string
+          issue?: string | null
+          journal?: string | null
+          pages?: string | null
+          publisher?: string | null
+          source: string
+          text: string
+          thesis_id: string
+          title: string
+          type: string
+          updated_at?: string
+          url?: string | null
+          volume?: string | null
+          year: string
+        }
+        Update: {
+          authors?: string[]
+          created_at?: string
+          doi?: string | null
+          id?: string
+          issue?: string | null
+          journal?: string | null
+          pages?: string | null
+          publisher?: string | null
+          source?: string
+          text?: string
+          thesis_id?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          url?: string | null
+          volume?: string | null
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thesis_references_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "supervisor_theses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thesis_references_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "theses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       thesis_reviews: {
         Row: {
           content: Json
@@ -24059,151 +25946,81 @@ export default AdminPanel;
 
 // File: src/pages/Auth.tsx
 
-import { useState } from 'react';
-import { Separator } from '@/components/ui/separator';
+import React, { useState } from 'react';
+import { Card } from '@/components/ui/card';
 import { EmailAuthForm } from '@/components/auth/EmailAuthForm';
 import { SocialAuth } from '@/components/auth/SocialAuth';
-import { X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import LandingPage from './LandingPage';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AuthError, AuthApiError } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
+import { AuthError } from '@supabase/supabase-js';
+import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const Auth = () => {
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [loading, setLoading] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const navigate = useNavigate();
+  const [userType, setUserType] = useState<'student' | 'supervisor'>('student');
+  const { toast } = useToast();
 
-  const handleClose = () => {
-    navigate('/');
-  };
-
-  const toggleAuthMode = () => {
-    setAuthMode(prev => prev === 'signin' ? 'signup' : 'signin');
-    setErrorMessage(''); // Clear any existing errors when switching modes
-  };
-
-  useEffect(() => {
-    // Check if user is already logged in
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
-      }
-    };
-    checkSession();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-      
-      if (event === 'SIGNED_IN' && session) {
-        navigate('/');
-      }
+  const handleError = (error: AuthError) => {
+    toast({
+      title: 'Authentication Error',
+      description: error.message,
+      variant: 'destructive',
     });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
-
-  // Error message handler
-  const getErrorMessage = (error: AuthError) => {
-    console.error('Authentication error:', error);
-    
-    if (error instanceof AuthApiError) {
-      switch (error.status) {
-        case 400:
-          if (error.message.includes('invalid_credentials')) {
-            return 'Invalid email or password. Please check your credentials and try again.';
-          }
-          if (error.message.includes('email not confirmed')) {
-            return 'Please verify your email address before signing in.';
-          }
-          return 'Invalid login attempt. Please check your credentials and try again.';
-        case 422:
-          return 'Invalid email format. Please enter a valid email address.';
-        case 429:
-          return 'Too many login attempts. Please try again later.';
-        default:
-          return error.message;
-      }
-    }
-    return 'An unexpected error occurred. Please try again.';
   };
 
   return (
-    <div className="relative min-h-screen">
-      {/* Background Landing Page with reduced opacity */}
-      <div className="fixed inset-0 opacity-25">
-        <LandingPage />
-      </div>
-
-      {/* Auth Content */}
-      <div className="relative min-h-screen flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-md space-y-8 bg-[#1A1F2C]/95 p-8 rounded-2xl backdrop-blur-sm relative">
-          {/* Close Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 top-4 text-gray-400 hover:text-white"
-            onClick={handleClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">
-              {authMode === 'signin' ? 'Welcome Back' : 'Create Account'}
-            </h1>
-            <p className="text-gray-400">
-              {authMode === 'signin' 
-                ? 'Sign in to continue to your account' 
-                : 'Sign up to get started'}
-            </p>
-          </div>
-
-          {errorMessage && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertDescription>{errorMessage}</AlertDescription>
-            </Alert>
-          )}
-
-          <div className="space-y-4">
-            <SocialAuth 
-              isLoading={loading} 
-              setLoading={setLoading}
-              onError={(error) => setErrorMessage(getErrorMessage(error))}
-            />
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full border-t border-gray-600" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-[#1A1F2C] px-2 text-gray-400">Or continue with</span>
-              </div>
-            </div>
-
-            <EmailAuthForm 
-              mode={authMode} 
-              onModeChange={toggleAuthMode}
-              onError={(error) => setErrorMessage(getErrorMessage(error))} 
-            />
-          </div>
-
-          <p className="text-center text-sm text-gray-400">
-            By continuing, you agree to our{' '}
-            <a href="#" className="text-[#9b87f5] hover:underline">Terms of Service</a>
-            {' '}and{' '}
-            <a href="#" className="text-[#9b87f5] hover:underline">Privacy Policy</a>
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-[#1a1f2c] via-[#2d364d] to-[#1a1f2c] flex items-center justify-center p-4">
+      <Card className="w-full max-w-md p-6 bg-white/5 backdrop-blur-lg border-white/10">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-white mb-2">Welcome</h1>
+          <p className="text-gray-300">Please sign in or create an account</p>
         </div>
-      </div>
+
+        {mode === 'signup' && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              I am a:
+            </label>
+            <Select
+              value={userType}
+              onValueChange={(value: 'student' | 'supervisor') => setUserType(value)}
+            >
+              <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
+                <SelectValue placeholder="Select user type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="student">Student</SelectItem>
+                <SelectItem value="supervisor">Supervisor</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <div className="space-y-6">
+          <EmailAuthForm
+            mode={mode}
+            onModeChange={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
+            onError={handleError}
+          />
+          
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-700" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-[#1a1f2c] px-2 text-gray-400">Or continue with</span>
+            </div>
+          </div>
+
+          <SocialAuth
+            isLoading={loading}
+            setLoading={setLoading}
+            onError={handleError}
+            mode={mode}
+            userType={userType}
+          />
+        </div>
+      </Card>
     </div>
   );
 };
@@ -24587,6 +26404,14 @@ export interface Notification {
   created_at: string;
 }
 
+export interface SectionContentProps {
+  section: Section;
+  isActive: boolean;
+  onContentChange: (content: string) => void;
+  onUpdateSectionData: (section: Section) => void;
+}
+
+
 // File: src/types/features.d.ts
 
 export interface Feature {
@@ -24724,6 +26549,31 @@ export interface CitationPreviewProps {
   onDelete: (citation: Citation) => void;
 }
 
+export interface ThesisComment {
+  id: string;
+  thesis_id: string;
+  section_id: string;
+  reviewer_id: string;
+  content: {
+    text: string;
+  };
+  status: 'pending' | 'resolved';
+  created_at: string;
+  updated_at: string;
+  parent_id?: string;
+}
+
+export interface CommentThread {
+  id: string;
+  content: string;
+  author: {
+    id: string;
+    email: string;
+  };
+  created_at: string;
+  replies: CommentThread[];
+}
+
 export interface ThesisMetadata {
   description: string;
   keywords: string[];
@@ -24740,26 +26590,54 @@ export interface ThesisMetadata {
   committeeMembers?: string[];
 }
 
+
 // File: src/types/thesis.ts
 
-export interface ThesisComment {
+export interface Collaborator {
   id: string;
-  thesis_id: string;
-  section_id: string;
-  reviewer_id: string;
-  content: {
-    text: string;
-  };
-  parent_id?: string;
-  status: 'pending' | 'resolved';
-  created_at: string;
-  updated_at: string;
+  name: string;
+  email: string;
+  permissions: string[];
+}
+
+export interface Task {
+  id: string;
+  description: string;
+  status: 'pending' | 'in progress' | 'completed' | 'on hold';
+  priority: 'low' | 'medium' | 'high';
 }
 
 export interface CommentThread {
-  comment: ThesisComment;
-  replies: ThesisComment[];
+  id: string;
+  content: string;
+  author: string;
+  createdAt: string;
+  replies: CommentThread[];
 }
+
+export type ThesisSectionType =
+  | 'title'
+  | 'preface'
+  | 'acknowledgments'
+  | 'abstract'
+  | 'table-of-contents'
+  | 'list-of-figures'
+  | 'list-of-tables'
+  | 'abbreviations'
+  | 'glossary'
+  | 'introduction'
+  | 'theoretical-framework'
+  | 'methodology'
+  | 'empirical-study'
+  | 'results'
+  | 'discussion'
+  | 'conclusion'
+  | 'recommendations'
+  | 'postface'
+  | 'references'
+  | 'appendix'
+  | 'advice'
+  | 'custom';
 
 export interface ThesisMetadata {
   description: string;
@@ -24780,42 +26658,46 @@ export interface ThesisMetadata {
 export interface Thesis {
   id: string;
   title: string;
-  content?: any;
+  content: any;
   metadata: ThesisMetadata;
   frontMatter: Section[];
   chapters: Chapter[];
   backMatter: Section[];
+  createdAt: Date;
+  updatedAt: Date;
   user_id: string;
-  created_at: string;
-  updated_at: string;
+  language?: string;
+  supervisor_email?: string;
+  supervisor_id?: string;
 }
 
 export interface Chapter {
   id: string;
   title: string;
-  content?: string;
+  content: string;
   order: number;
   sections: Section[];
-  figures: Figure[]; // Added this line
+  figures: Figure[];
 }
 
 export interface Section {
   id: string;
   title: string;
   content: string;
-  type: ThesisSectionType;
   order: number;
+  type: ThesisSectionType;
   required?: boolean;
   figures: Figure[];
   tables: Table[];
   citations: Citation[];
   references?: Reference[];
+  tasks: Task[];
 }
 
 export interface Figure {
   id: string;
   imageUrl: string;
-  title: string; // Added title field
+  title: string;
   caption: string;
   altText: string;
   number: number;
@@ -24823,13 +26705,20 @@ export interface Figure {
     width: number;
     height: number;
   };
+  position: 'left' | 'center' | 'right';
+  border?: {
+    style: 'single' | 'double' | 'thick' | 'none';
+    size: number;
+    color: string;
+  };
 }
 
 export interface Table {
   id: string;
   title: string;
-  caption?: string;
-  content: string;
+  caption: string;
+  content: string[][];
+  number: number;
 }
 
 export interface Citation {
@@ -24853,8 +26742,8 @@ export interface Citation {
 
 export interface Reference {
   id: string;
-  title: string;
   text: string;
+  title: string;
   source: string;
   authors: string[];
   year: string;
@@ -24878,29 +26767,13 @@ export interface ThesisVersion {
   created_by: string;
 }
 
-export type ThesisSectionType = 
-  | 'title'
-  | 'preface'
-  | 'acknowledgments'
-  | 'abstract'
-  | 'table-of-contents'
-  | 'list-of-figures'
-  | 'list-of-tables'
-  | 'abbreviations'
-  | 'glossary'
-  | 'introduction'
-  | 'theoretical-framework'
-  | 'methodology'
-  | 'empirical-study'
-  | 'results'
-  | 'discussion'
-  | 'conclusion'
-  | 'recommendations'
-  | 'postface'
-  | 'references'
-  | 'appendix'
-  | 'advice'
-  | 'custom';
+export interface ThesisComment {
+  id: string;
+  content: string;
+  author: string;
+  createdAt: string;
+  replies: ThesisComment[];
+}
 
 
 // File: src/utils/commentTransforms.ts
@@ -25002,213 +26875,96 @@ export const createCaption = (text: string, type: 'figure' | 'table', number: st
 
 // File: src/utils/docx/documentStyles.ts
 
-import { convertInchesToTwip, IStylesOptions, HeadingLevel } from 'docx';
-
-// Standard margins (1.5 inches left, 1 inch others)
-export const pageSettings = {
-  margin: {
-    top: convertInchesToTwip(1),
-    right: convertInchesToTwip(1),
-    bottom: convertInchesToTwip(1),
-    left: convertInchesToTwip(1.5) // Increased for binding
-  }
-};
-
-// Preliminary pages with Roman numerals
-export const preliminaryPageSettings = {
-  ...pageSettings,
-  pageNumbers: {
-    start: 1,
-    formatType: 'lowerRoman'
-  }
-};
-
-// Main content pages with Arabic numerals
-export const mainPageSettings = {
-  ...pageSettings,
-  pageNumbers: {
-    start: 1,
-    formatType: 'decimal'
-  }
-};
+import { 
+  IStylesOptions, 
+  AlignmentType,
+  convertInchesToTwip,
+} from 'docx';
 
 export const documentStyles: IStylesOptions = {
   default: {
+    heading1: {
+      run: {
+        size: 28,
+        bold: true,
+        font: 'Times New Roman',
+      },
+      paragraph: {
+        spacing: {
+          after: 120,
+        },
+        alignment: AlignmentType.CENTER,
+      },
+    },
+    heading2: {
+      run: {
+        size: 26,
+        bold: true,
+        font: 'Times New Roman',
+      },
+      paragraph: {
+        spacing: {
+          after: 120,
+        },
+      },
+    },
     document: {
       run: {
+        size: 24,
         font: 'Times New Roman',
-        size: 24, // 12pt
       },
       paragraph: {
         spacing: {
-          line: 360, // 1.5 spacing
-          before: 0,
-          after: 0
+          line: 360,
+          after: 200,
         },
-        indent: {
-          firstLine: convertInchesToTwip(0.5)
-        }
-      }
-    }
+      },
+    },
   },
-  paragraphStyles: [
-    {
-      id: 'Normal',
-      name: 'Normal',
-      run: {
-        font: 'Times New Roman',
-        size: 24 // 12pt
-      },
-      paragraph: {
-        spacing: { 
-          line: 360, // 1.5 spacing
-          before: 0,
-          after: 0
-        },
-        indent: {
-          firstLine: convertInchesToTwip(0.5)
-        }
-      }
+};
+
+export const pageSettings = {
+  page: {
+    margin: {
+      top: convertInchesToTwip(1),
+      right: convertInchesToTwip(1),
+      bottom: convertInchesToTwip(1),
+      left: convertInchesToTwip(1),
     },
-    {
-      id: 'Heading1',
-      name: 'Chapter Heading',
-      basedOn: 'Normal',
-      next: 'Normal',
-      run: {
-        font: 'Times New Roman',
-        size: 32, // 16pt
-        bold: true,
-        allCaps: true
-      },
-      paragraph: {
-        spacing: {
-          before: 480,
-          after: 240
-        },
-        alignment: 'center'
-      }
-    },
-    {
-      id: 'Title',
-      name: 'Title',
-      basedOn: 'Normal',
-      run: {
-        font: 'Times New Roman',
-        size: 32, // 16pt
-        bold: true,
-        allCaps: true
-      },
-      paragraph: {
-        spacing: {
-          before: 720,
-          after: 240
-        },
-        alignment: 'center'
-      }
-    },
-    {
-      id: 'Subtitle',
-      name: 'Subtitle',
-      basedOn: 'Normal',
-      run: {
-        size: 28, // 14pt
-      },
-      paragraph: {
-        spacing: {
-          before: 240,
-          after: 480
-        },
-        alignment: 'center'
-      }
-    },
-    {
-      id: 'BlockQuote',
-      name: 'Block Quote',
-      basedOn: 'Normal',
-      run: {
-        size: 24
-      },
-      paragraph: {
-        spacing: { 
-          line: 240, // single spacing
-          before: 240,
-          after: 240
-        },
-        indent: {
-          left: convertInchesToTwip(0.5),
-          right: convertInchesToTwip(0.5)
-        }
-      }
-    },
-    {
-      id: 'Caption',
-      name: 'Caption',
-      basedOn: 'Normal',
-      run: {
-        size: 20 // 10pt
-      },
-      paragraph: {
-        spacing: { 
-          line: 240, // single spacing
-          before: 120,
-          after: 120
-        },
-        alignment: 'center'
-      }
-    },
-    {
-      id: 'TableOfContents',
-      name: 'Table of Contents',
-      basedOn: 'Normal',
-      run: {
-        size: 24
-      },
-      paragraph: {
-        spacing: {
-          line: 480, // double spacing
-          before: 0,
-          after: 0
-        }
-      }
-    },
-    {
-      id: 'Abstract',
-      name: 'Abstract',
-      basedOn: 'Normal',
-      run: {
-        size: 24
-      },
-      paragraph: {
-        spacing: {
-          line: 240, // single spacing
-          before: 0,
-          after: 0
-        },
-        indent: {
-          firstLine: 0
-        }
-      }
-    }
-  ]
+  },
 };
 
 // File: src/utils/docx/imageUtils.ts
 
-import { IMediaData, IMediaTransformation } from 'docx';
+import { IImageOptions, BorderStyle } from 'docx';
 
-export const createImageRun = (imageData: Buffer | Uint8Array, width: number, height: number) => {
-  const transformation: IMediaTransformation = {
-    width,
-    height
-  };
+interface ImageDimensions {
+  width: number;
+  height: number;
+}
 
-  return {
-    data: imageData,
-    transformation,
-    format: 'png' as const
-  };
-};
+interface ImageBorder {
+  style: typeof BorderStyle;
+  size: number;
+  color: string;
+}
+
+export const createImageRun = (
+  data: Buffer | Uint8Array,
+  dimensions: ImageDimensions,
+  border?: ImageBorder
+): IImageOptions => ({
+  data,
+  transformation: {
+    width: dimensions.width,
+    height: dimensions.height,
+  },
+  type: 'png',
+  fallback: {
+    width: dimensions.width,
+    height: dimensions.height,
+  }
+});
 
 // File: src/utils/docx/pageNumbering.ts
 
@@ -25232,33 +26988,55 @@ export const createPageNumberParagraph = (): Paragraph => {
 
 // File: src/utils/docx/sectionGenerators.ts
 
-import { Document, Paragraph, TextRun, PageBreak, AlignmentType, HeadingLevel } from 'docx';
-import { TitlePageOptions, ThesisMetadata } from './types';
-import { convertInchesToTwip } from 'docx';
+import { 
+  Document, 
+  Paragraph, 
+  TextRun, 
+  PageBreak, 
+  AlignmentType,
+  HeadingLevel,
+  TabStopPosition,
+  TabStopType,
+  convertInchesToTwip,
+  LevelFormat,
+  NumberFormat,
+  TableRow,
+  TableCell,
+  Table,
+  WidthType,
+  BorderStyle,
+  ImageRun
+} from 'docx';
+import { Buffer } from 'buffer';
+import { TitlePageOptions } from './types';
+import { createImageRun } from './imageUtils';
 
 export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
   new Paragraph({
-    style: 'Title',
     children: [
       new TextRun({
         text: options.title.toUpperCase(),
         bold: true,
-        size: 32, // 16pt
+        size: 32,
+        font: "Times New Roman"
       }),
     ],
-    spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(1) },
-    alignment: AlignmentType.CENTER,
+    alignment: AlignmentType.LEFT,
   }),
   new Paragraph({
-    style: 'Subtitle',
     children: [
       new TextRun({
-        text: `By\n${options.author}`,
-        size: 28, // 14pt
+        text: 'By',
+        size: 28,
+        break: 1
+      }),
+      new TextRun({
+        text: options.author,
+        size: 28,
+        break: 2
       }),
     ],
-    spacing: { before: convertInchesToTwip(1) },
-    alignment: AlignmentType.CENTER,
+    alignment: AlignmentType.LEFT,
   }),
   new Paragraph({
     style: 'Subtitle',
@@ -25266,10 +27044,14 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
       new TextRun({
         text: options.university || '',
         size: 28,
+        break: 2
       }),
     ],
-    spacing: { before: convertInchesToTwip(1) },
     alignment: AlignmentType.CENTER,
+    spacing: { 
+      before: convertInchesToTwip(1),
+      line: 360
+    },
   }),
   new Paragraph({
     style: 'Subtitle',
@@ -25279,19 +27061,37 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
         size: 28,
       }),
     ],
-    spacing: { before: convertInchesToTwip(0.5) },
     alignment: AlignmentType.CENTER,
+    spacing: { 
+      before: convertInchesToTwip(0.5),
+      line: 360
+    },
   }),
   new Paragraph({
     style: 'Subtitle',
     children: [
       new TextRun({
-        text: `A thesis submitted in partial fulfillment\nof the requirements for the degree of\n${options.degree || ''}`,
+        text: 'A thesis submitted in partial fulfillment',
         size: 24,
+        break: 2
+      }),
+      new TextRun({
+        text: 'of the requirements for the degree of',
+        size: 24,
+        break: 1
+      }),
+      new TextRun({
+        text: options.degree || '',
+        size: 24,
+        break: 2,
+        bold: true
       }),
     ],
-    spacing: { before: convertInchesToTwip(1) },
     alignment: AlignmentType.CENTER,
+    spacing: { 
+      before: convertInchesToTwip(1),
+      line: 360
+    },
   }),
   new Paragraph({
     style: 'Subtitle',
@@ -25299,104 +27099,161 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
       new TextRun({
         text: options.date,
         size: 24,
+        break: 2
       }),
     ],
-    spacing: { before: convertInchesToTwip(1) },
     alignment: AlignmentType.CENTER,
+    spacing: { 
+      before: convertInchesToTwip(1),
+      line: 360
+    },
   }),
-  new Paragraph({ children: [new PageBreak()] }),
-];
-
-export const generateAbstractSection = (content: string): Paragraph[] => [
-  new Paragraph({
-    style: 'Title',
-    children: [
-      new TextRun({
-        text: 'ABSTRACT',
-        bold: true,
-      }),
-    ],
-    spacing: { before: 720, after: 480 },
-    alignment: AlignmentType.CENTER,
+  new Paragraph({ 
+    children: [new PageBreak()],
+    spacing: { before: convertInchesToTwip(2) }
   }),
-  ...content.split('\n').map(paragraph => 
-    new Paragraph({
-      style: 'Abstract',
-      children: [
-        new TextRun({
-          text: paragraph,
-        }),
-      ],
-    })
-  ),
-  new Paragraph({ children: [new PageBreak()] }),
 ];
 
 export const generateChapterContent = (
   chapterNumber: number,
   title: string,
-  content: string
-): Paragraph[] => [
-  new Paragraph({
-    style: 'Heading1',
-    children: [
-      new TextRun({
-        text: `CHAPTER ${chapterNumber}`,
-        bold: true,
-      }),
-    ],
-  }),
-  new Paragraph({
-    style: 'Heading1',
-    children: [
-      new TextRun({
-        text: title,
-        bold: true,
-      }),
-    ],
-  }),
-  ...content.split('\n').map(paragraph =>
+  content: string,
+  figures: any[]
+): Paragraph[] => {
+  const paragraphs: Paragraph[] = [
     new Paragraph({
-      style: 'Normal',
       children: [
         new TextRun({
-          text: paragraph,
+          text: `CHAPTER ${chapterNumber}`,
+          bold: true,
+          size: 32
         }),
       ],
-    })
-  ),
-];
+      pageBreakBefore: true,
+      alignment: AlignmentType.LEFT,
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: title.toUpperCase(),
+          bold: true,
+          size: 32
+        }),
+      ],
+      alignment: AlignmentType.LEFT,
+    }),
+  ];
 
-export const generateTableOfContents = (sections: { title: string; page: number }[]): Paragraph[] => [
-  new Paragraph({
-    style: 'Title',
-    children: [
-      new TextRun({
-        text: 'TABLE OF CONTENTS',
-        bold: true,
-      }),
-    ],
-    spacing: { before: 720, after: 480 },
-    alignment: AlignmentType.CENTER,
-  }),
-  ...sections.map(section => 
+  // Add content paragraphs
+  if (typeof content === 'string') {
+    content.split('\n\n').forEach(paragraph => {
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: paragraph.trim(),
+              size: 24
+            }),
+          ],
+          alignment: AlignmentType.LEFT,
+        })
+      );
+    });
+  }
+
+  // Add figures
+  if (figures && figures.length > 0) {
+    figures.forEach(figure => {
+      if (figure.imageUrl) {
+        try {
+          // Extract base64 data from data URL
+          const base64Data = figure.imageUrl.split(',')[1];
+          if (!base64Data) {
+            console.warn('Invalid image URL format:', figure.imageUrl);
+            return;
+          }
+
+          const imageBuffer = Buffer.from(base64Data, 'base64');
+          
+          const imageRun = new ImageRun({
+            data: imageBuffer,
+            transformation: {
+              width: figure.dimensions?.width || 400,
+              height: figure.dimensions?.height || 300
+            }
+          });
+
+          paragraphs.push(
+            new Paragraph({
+              children: [imageRun],
+              alignment: figure.position === 'left' ? AlignmentType.LEFT : 
+                        figure.position === 'right' ? AlignmentType.RIGHT : 
+                        AlignmentType.CENTER
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `Figure ${figure.number}: ${figure.caption || ''}`,
+                  italics: true,
+                  size: 20
+                })
+              ],
+              alignment: AlignmentType.CENTER
+            })
+          );
+        } catch (error) {
+          console.error('Error processing figure:', error);
+        }
+      }
+    });
+  }
+
+  return paragraphs;
+};
+
+export const generateTableOfContents = (sections: { title: string; page: number }[]): Paragraph[] => {
+  const tabStops = [
+    {
+      type: TabStopType.RIGHT,
+      position: TabStopPosition.MAX,
+      leader: TabStopType.DECIMAL
+    }
+  ];
+
+  return [
     new Paragraph({
-      style: 'TableOfContents',
       children: [
         new TextRun({
-          text: section.title,
-        }),
-        new TextRun({
-          text: `.`.repeat(50),
-        }),
-        new TextRun({
-          text: section.page.toString(),
+          text: 'TABLE OF CONTENTS',
+          bold: true,
+          size: 32
         }),
       ],
-    })
-  ),
-  new Paragraph({ children: [new PageBreak()] }),
-];
+      alignment: AlignmentType.LEFT,
+    }),
+    ...sections.map(section => 
+      new Paragraph({
+        tabStops,
+        children: [
+          new TextRun({
+            text: section.title,
+            size: 24
+          }),
+          new TextRun({
+            text: '\t',
+          }),
+          new TextRun({
+            text: section.page.toString(),
+            size: 24
+          }),
+        ],
+        alignment: AlignmentType.LEFT,
+      })
+    ),
+    new Paragraph({ children: [new PageBreak()] }),
+  ];
+};
+
 
 // File: src/utils/docx/styleConfig.ts
 
@@ -25449,43 +27306,286 @@ export const styleConfig: IStylesOptions = {
 
 // File: src/utils/docx/titlePageGenerator.ts
 
-import { Paragraph, TextRun, AlignmentType } from 'docx';
-import { TitlePageOptions } from './types';
+import { 
+  IStylesOptions, 
+  BorderStyle, 
+  HeadingLevel, 
+  AlignmentType,
+  LineRuleType,
+  UnderlineType,
+  convertInchesToTwip
+} from 'docx';
 
-export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => {
-  return [
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 1440, after: 240 },
-      children: [
-        new TextRun({
-          text: options.title,
-          bold: true,
-          size: 32,
-        }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 240, after: 240 },
-      children: [
-        new TextRun({
-          text: options.author,
-          size: 24,
-        }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 240, after: 1440 },
-      children: [
-        new TextRun({
-          text: options.date,
-          size: 24,
-        }),
-      ],
-    }),
-  ];
+export const styleConfig: IStylesOptions = {
+  default: {
+    document: {
+      run: {
+        font: "Times New Roman",
+        size: 24,
+        language: {
+          value: "en-US"
+        }
+      },
+      paragraph: {
+        spacing: {
+          line: 360,
+          lineRule: LineRuleType.AUTO
+        }
+      }
+    }
+  },
+  paragraphStyles: [
+    {
+      id: "Normal",
+      name: "Normal",
+      quickFormat: true,
+      run: {
+        font: "Times New Roman",
+        size: 24,
+        color: "000000"
+      },
+      paragraph: {
+        spacing: {
+          line: 360,
+          before: 0,
+          after: 0
+        },
+        indent: {
+          firstLine: convertInchesToTwip(0.5)
+        }
+      }
+    },
+    {
+      id: "Heading1",
+      name: "Heading 1",
+      basedOn: "Normal",
+      next: "Normal",
+      quickFormat: true,
+      run: {
+        bold: true,
+        size: 32,
+        allCaps: true
+      },
+      paragraph: {
+        spacing: {
+          before: 480,
+          after: 240,
+          line: 360
+        },
+        keepNext: true,
+        keepLines: true,
+        outlineLevel: 0,
+        alignment: AlignmentType.CENTER
+      }
+    },
+    {
+      id: "Heading2",
+      name: "Heading 2",
+      basedOn: "Normal",
+      next: "Normal",
+      quickFormat: true,
+      run: {
+        bold: true,
+        size: 28
+      },
+      paragraph: {
+        spacing: {
+          before: 360,
+          after: 180,
+          line: 360
+        },
+        keepNext: true,
+        keepLines: true,
+        outlineLevel: 1
+      }
+    },
+    {
+      id: "Heading3",
+      name: "Heading 3",
+      basedOn: "Normal",
+      next: "Normal",
+      quickFormat: true,
+      run: {
+        bold: true,
+        italics: true,
+        size: 26
+      },
+      paragraph: {
+        spacing: {
+          before: 280,
+          after: 140,
+          line: 360
+        },
+        keepNext: true,
+        outlineLevel: 2
+      }
+    },
+    {
+      id: "BlockQuote",
+      name: "Block Quote",
+      basedOn: "Normal",
+      quickFormat: true,
+      run: {
+        italics: true,
+        size: 24
+      },
+      paragraph: {
+        spacing: {
+          before: 240,
+          after: 240,
+          line: 300
+        },
+        indent: {
+          left: convertInchesToTwip(0.5),
+          right: convertInchesToTwip(0.5)
+        },
+        alignment: AlignmentType.JUSTIFY
+      }
+    },
+    {
+      id: "Caption",
+      name: "Caption",
+      basedOn: "Normal",
+      quickFormat: true,
+      run: {
+        italics: true,
+        size: 20
+      },
+      paragraph: {
+        spacing: {
+          before: 120,
+          after: 240,
+          line: 240
+        },
+        alignment: AlignmentType.CENTER
+      }
+    },
+    {
+      id: "TableHeader",
+      name: "Table Header",
+      basedOn: "Normal",
+      quickFormat: true,
+      run: {
+        bold: true,
+        size: 24
+      },
+      paragraph: {
+        spacing: {
+          before: 120,
+          after: 120,
+          line: 240
+        },
+        alignment: AlignmentType.CENTER
+      }
+    },
+    {
+      id: "TableBody",
+      name: "Table Body",
+      basedOn: "Normal",
+      quickFormat: true,
+      run: {
+        size: 24
+      },
+      paragraph: {
+        spacing: {
+          before: 60,
+          after: 60,
+          line: 240
+        }
+      }
+    },
+    {
+      id: "FootnoteText",
+      name: "Footnote Text",
+      basedOn: "Normal",
+      quickFormat: true,
+      run: {
+        size: 20
+      },
+      paragraph: {
+        spacing: {
+          before: 0,
+          after: 0,
+          line: 240
+        },
+        indent: {
+          firstLine: convertInchesToTwip(0.25)
+        }
+      }
+    },
+    {
+      id: "Bibliography",
+      name: "Bibliography",
+      basedOn: "Normal",
+      quickFormat: true,
+      run: {
+        size: 24
+      },
+      paragraph: {
+        spacing: {
+          before: 0,
+          after: 120,
+          line: 360
+        },
+        indent: {
+          left: convertInchesToTwip(0.5),
+          hanging: convertInchesToTwip(0.5)
+        }
+      }
+    },
+    {
+      id: "TOCHeading",
+      name: "TOC Heading",
+      basedOn: "Normal",
+      quickFormat: true,
+      run: {
+        bold: true,
+        size: 28
+      },
+      paragraph: {
+        spacing: {
+          before: 480,
+          after: 240,
+          line: 360
+        },
+        alignment: AlignmentType.CENTER
+      }
+    },
+    {
+      id: "TOCEntry1",
+      name: "TOC Entry 1",
+      basedOn: "Normal",
+      quickFormat: true,
+      run: {
+        size: 24
+      },
+      paragraph: {
+        spacing: {
+          line: 360
+        },
+        indent: {
+          left: 0
+        }
+      }
+    },
+    {
+      id: "TOCEntry2",
+      name: "TOC Entry 2",
+      basedOn: "Normal",
+      quickFormat: true,
+      run: {
+        size: 24
+      },
+      paragraph: {
+        spacing: {
+          line: 360
+        },
+        indent: {
+          left: convertInchesToTwip(0.25)
+        }
+      }
+    }
+  ]
 };
 
 // File: src/utils/docx/types.ts
@@ -25545,152 +27645,49 @@ export interface ThesisMetadata {
 
 // File: src/utils/docxExport.ts
 
-import { Document, Header, Footer, PageBreak, Paragraph, TextRun, AlignmentType, BorderStyle, PageNumber, ISectionPropertiesOptions } from "docx";
-import { documentStyles } from './docx/documentStyles';
-import { generateTitlePage, generateAbstractSection, generateChapterContent, generateTableOfContents } from './docx/sectionGenerators';
+import {
+  Document,
+  Paragraph,
+  TextRun,
+  PageBreak,
+  AlignmentType,
+} from 'docx';
+import { documentStyles, pageSettings } from './docx/documentStyles';
+import { generateTitlePage, generateChapterContent, generateTableOfContents } from './docx/sectionGenerators';
 import { Thesis } from '@/types/thesis';
 
-const createHeader = (thesis: Thesis) => {
-  return new Header({
-    children: [
-      new Paragraph({
-        border: {
-          bottom: {
-            color: "000000",
-            space: 1,
-            style: BorderStyle.SINGLE,
-            size: 6,
-          },
-        },
-        spacing: { after: 200 },
-        children: [
-          new TextRun({
-            text: thesis.metadata?.shortTitle || "Running head",
-            font: "Times New Roman",
-            size: 24
-          }),
-          new TextRun({ text: "\t" }),
-          new TextRun({
-            text: String(PageNumber.CURRENT),
-            font: "Times New Roman",
-            size: 24
-          })
-        ],
-      }),
-    ],
-  });
-};
-
-const createFooter = () => {
-  return new Footer({
-    children: [
-      new Paragraph({
-        border: {
-          top: {
-            color: "000000",
-            space: 1,
-            style: BorderStyle.SINGLE,
-            size: 6,
-          },
-        },
-        spacing: { before: 200 },
-        alignment: AlignmentType.CENTER,
-        children: [
-          new TextRun({
-            text: String(PageNumber.CURRENT),
-            font: "Times New Roman",
-            size: 24
-          })
-        ],
-      }),
-    ],
-  });
-};
-
-export const generateThesisDocx = (thesis: Thesis) => {
-  const titleSection = thesis.frontMatter.find(section => section.type === 'title');
-  const abstractSection = thesis.frontMatter.find(section => section.type === 'abstract');
-
-  const tocSections = [
-    ...thesis.frontMatter.map(section => ({
-      title: section.title,
-      page: 0
-    })),
-    ...thesis.chapters.map((chapter, index) => ({
-      title: `Chapter ${index + 1}: ${chapter.title}`,
-      page: 0
-    }))
-  ];
-
-  const preliminaryPageSettings: ISectionPropertiesOptions = {
-    properties: {
-      page: {
-        size: {
-          width: 12240, // 8.5"
-          height: 15840, // 11"
-        },
-        margin: {
-          top: 1440,
-          right: 1440,
-          bottom: 1440,
-          left: 1800
-        }
-      },
-      pageNumberStart: 1,
-      pageNumberFormatType: 'lowerRoman'
-    }
-  };
-
-  const mainPageSettings: ISectionPropertiesOptions = {
-    properties: {
-      page: {
-        size: {
-          width: 12240, // 8.5"
-          height: 15840, // 11"
-        },
-        margin: {
-          top: 1440,
-          right: 1440,
-          bottom: 1440,
-          left: 1800
-        }
-      },
-      pageNumberStart: 1,
-      pageNumberFormatType: 'decimal'
-    }
-  };
-
+export const generateThesisDocx = (thesis: Thesis): Document => {
   const doc = new Document({
-    styles: documentStyles,
     sections: [
       {
-        properties: preliminaryPageSettings.properties,
+        ...pageSettings.page,
         children: [
           ...generateTitlePage({
-            title: titleSection?.title || thesis.title,
+            title: thesis.title,
             author: thesis.metadata?.authorName || '',
-            date: thesis.metadata?.thesisDate || new Date().getFullYear().toString(),
-            university: thesis.metadata?.universityName,
-            department: thesis.metadata?.departmentName,
-            degree: thesis.metadata?.degree
+            date: thesis.metadata?.thesisDate || '',
+            university: thesis.metadata?.universityName || '',
+            department: thesis.metadata?.departmentName || '',
+            degree: thesis.metadata?.degree || '',
           }),
-          ...generateTableOfContents(tocSections),
-          ...(abstractSection ? generateAbstractSection(abstractSection.content) : []),
-        ]
-      },
-      {
-        properties: mainPageSettings.properties,
-        children: [
-          ...thesis.chapters.flatMap((chapter, index) => 
+          new Paragraph({ children: [new PageBreak()] }),
+          ...generateTableOfContents(thesis.chapters?.map((chapter, index) => ({
+            title: chapter.title,
+            page: index + 3
+          })) || []),
+          new Paragraph({ children: [new PageBreak()] }),
+          ...(thesis.chapters?.flatMap(chapter => 
             generateChapterContent(
-              index + 1,
-              chapter.title,
-              chapter.content || ''
+              chapter.order + 1, 
+              chapter.title, 
+              chapter.content,
+              chapter.figures || []
             )
-          )
-        ]
-      }
-    ]
+          ) || []),
+        ],
+      },
+    ],
+    styles: documentStyles,
   });
 
   return doc;
