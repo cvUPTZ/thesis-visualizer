@@ -58,8 +58,6 @@ export interface ThesisMetadata {
   authorName?: string;
   thesisDate?: string;
   committeeMembers?: string[];
-  startDate?: string;
-  dueDate?: string;
 }
 
 export interface Thesis {
@@ -115,6 +113,11 @@ export interface Figure {
   position: 'left' | 'center' | 'right';
   customWidth?: number;
   customHeight?: number;
+  border?: {
+    style: 'single' | 'double' | 'thick' | 'none';
+    size: number;
+    color: string;
+  };
 }
 
 export interface Table {
