@@ -1,33 +1,35 @@
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { TitlePage } from './preview/TitlePage';
-import { FrenchTitlePage } from './preview/FrenchTitlePage';
-import { AbstractSection } from './preview/AbstractSection';
-import { ContentSection } from './preview/ContentSection';
+import { TitlePage } from '@/components/preview/TitlePage';
+import { FrenchTitlePage } from '@/components/preview/FrenchTitlePage';
+import { AbstractSection } from '@/components/preview/AbstractSection';
+import { ContentSection } from '@/components/preview/ContentSection';
 import { Button } from '@/components/ui/button';
 import { FileDown, Maximize2, Minimize2, ZoomIn, ZoomOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { usePDF } from 'react-to-pdf';
 import { cn } from '@/lib/utils';
-import { Slider } from '../ui/slider';
+import { Slider } from '@/components/ui/slider';
 import { 
-    Document,
-    Packer,
-    Paragraph,
-    TextRun,
-    PageNumber,
-    Header,
-    Footer,
-    AlignmentType,
-    Table, 
-    TableRow, 
-    TableCell,
-    WidthType,
-    BorderStyle
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  PageNumber,
+  Header,
+  Footer,
+  AlignmentType,
+  Table, 
+  TableRow, 
+  TableCell,
+  WidthType,
+  BorderStyle,
+  PageBreak
 } from 'docx';
-import {  generateTitlePage, generateChapterContent, createHeading, createParagraph } from '@/utils/docx/sectionGenerators';
+import { generateTitlePage, generateChapterContent, createHeading, createParagraph } from '@/utils/docx/sectionGenerators';
 import { documentStyles, pageSettings } from '@/utils/docx/documentStyles';
 import { createPageNumberParagraph } from '@/utils/docx/pageNumbering';
+import { convertInchesToTwip } from 'docx';
 
 interface ThesisPreviewProps {
   thesis: any;

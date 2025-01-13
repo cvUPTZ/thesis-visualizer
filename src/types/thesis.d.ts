@@ -1,77 +1,56 @@
-export interface Citation {
+export interface Section {
   id: string;
-  text: string;
-  authors: string[];
-  type: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CitationManagerProps {
-  citations: Citation[];
-  onCitationSelect?: (citation: Citation) => void;
-  selectedCitation?: Citation | null;
-  onCitationCreate?: (citation: Citation) => void;
-  onCitationUpdate?: (citation: Citation) => void;
-  onCitationDelete?: (citation: Citation) => void;
-  thesisId: string;
-}
-
-export interface CitationListProps {
-  citations: Citation[];
-  onRemove: (id: string) => void;
-  onUpdate: (citation: Citation) => void;
-  onPreview: (citation: Citation) => void;
-}
-
-export interface CitationSearchProps {
-  onCitationSelect: (citation: Citation) => void;
-}
-
-export interface CitationPreviewProps {
-  citation: Citation;
-  onClose: () => void;
-  onEdit: (citation: Citation) => void;
-  onDelete: (citation: Citation) => void;
-}
-
-export interface ThesisComment {
-  id: string;
-  thesis_id: string;
-  section_id: string;
-  reviewer_id: string;
-  content: {
-    text: string;
-  };
-  status: 'pending' | 'resolved';
-  created_at: string;
-  updated_at: string;
-  parent_id?: string;
-}
-
-export interface CommentThread {
-  id: string;
+  title?: string;
   content: string;
-  author: {
-    id: string;
-    email: string;
-  };
-  created_at: string;
-  replies: CommentThread[];
+  type: 'abstract' | 'content' | 'title';
 }
 
 export interface ThesisMetadata {
-  description: string;
-  keywords: string[];
-  createdAt: string;
-  shortTitle?: string;
-  institution?: string;
-  author?: string;
-  degree?: string;
-  date?: string;
-  universityName?: string;
-  departmentName?: string;
-  authorName?: string;
-  thesisDate?: string;
+  title: string;
+  authorName: string;
+  thesisDate: string;
+  universityName: string;
+  departmentName: string;
+  degree: string;
   committeeMembers?: string[];
+}
+
+export interface Thesis {
+  frontMatter: Section[];
+  chapters: Chapter[];
+  backMatter: Section[];
+  metadata: ThesisMetadata;
+}
+
+export interface Chapter {
+  id: string;
+  title: string;
+  order: number;
+  sections: Section[];
+}
+
+export interface Task {
+  id: string;
+  description: string;
+  status: 'pending' | 'in progress' | 'completed' | 'on hold';
+  priority: 'low' | 'medium' | 'high';
+}
+
+export interface Figure {
+  id: string;
+  imageUrl: string;
+  caption: string;
+  altText: string;
+  title: string;
+  number: number;
+  dimensions: { width: number; height: number; };
+  position: 'left' | 'right' | 'center';
+}
+
+export interface Reference {
+  id: string;
+  title: string;
+  author: string;
+  year: number;
+  url?: string;
 }
