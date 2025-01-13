@@ -4,11 +4,9 @@ import {
   TextRun,
   PageBreak,
   AlignmentType,
-  convertInchesToTwip,
-  ISectionOptions,
 } from 'docx';
 import { documentStyles, pageSettings } from './docx/documentStyles';
-import { generateTitlePage, generateAbstractSection, generateChapterContent, generateTableOfContents } from './docx/sectionGenerators';
+import { generateTitlePage, generateChapterContent, generateTableOfContents } from './docx/sectionGenerators';
 import { Thesis } from '@/types/thesis';
 
 export const generateThesisDocx = (thesis: Thesis): Document => {
@@ -26,8 +24,6 @@ export const generateThesisDocx = (thesis: Thesis): Document => {
             degree: thesis.metadata?.degree || '',
           }),
           new Paragraph({ children: [new PageBreak()] }),
-          ...generateAbstractSection(thesis.abstract || ''),
-          new Paragraph({ children: [new PageBreak()] }),
           ...generateTableOfContents(thesis.chapters?.map((chapter, index) => ({
             title: chapter.title,
             page: index + 3
@@ -38,7 +34,7 @@ export const generateThesisDocx = (thesis: Thesis): Document => {
               chapter.order + 1, 
               chapter.title, 
               chapter.content,
-              chapter.figures
+              chapter.figures || []
             )
           ) || []),
         ],

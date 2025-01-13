@@ -17,12 +17,11 @@ import {
   BorderStyle,
   ImageRun
 } from 'docx';
-import { TitlePageOptions, ThesisMetadata } from './types';
+import { TitlePageOptions } from './types';
 import { createImageRun } from './imageUtils';
 
 export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
   new Paragraph({
-    style: 'Title',
     children: [
       new TextRun({
         text: options.title.toUpperCase(),
@@ -32,14 +31,8 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
       }),
     ],
     alignment: AlignmentType.LEFT,
-    spacing: { 
-      before: convertInchesToTwip(2), 
-      after: convertInchesToTwip(1),
-      line: 360
-    },
   }),
   new Paragraph({
-    style: 'Subtitle',
     children: [
       new TextRun({
         text: 'By',
@@ -52,11 +45,7 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
         break: 2
       }),
     ],
-    alignment: AlignmentType.CENTER,
-    spacing: { 
-      before: convertInchesToTwip(1),
-      line: 360
-    },
+    alignment: AlignmentType.LEFT,
   }),
   new Paragraph({
     style: 'Subtitle',
@@ -142,7 +131,6 @@ export const generateChapterContent = (
 ): Paragraph[] => {
   const paragraphs: Paragraph[] = [
     new Paragraph({
-      style: 'Heading1',
       children: [
         new TextRun({
           text: `CHAPTER ${chapterNumber}`,
@@ -150,16 +138,10 @@ export const generateChapterContent = (
           size: 32
         }),
       ],
-      spacing: {
-        before: 480,
-        after: 240,
-        line: 360
-      },
       pageBreakBefore: true,
       alignment: AlignmentType.LEFT,
     }),
     new Paragraph({
-      style: 'Heading1',
       children: [
         new TextRun({
           text: title.toUpperCase(),
@@ -167,11 +149,6 @@ export const generateChapterContent = (
           size: 32
         }),
       ],
-      spacing: {
-        before: 240,
-        after: 360,
-        line: 360
-      },
       alignment: AlignmentType.LEFT,
     }),
   ];
@@ -181,21 +158,12 @@ export const generateChapterContent = (
     content.split('\n\n').forEach(paragraph => {
       paragraphs.push(
         new Paragraph({
-          style: 'Normal',
           children: [
             new TextRun({
               text: paragraph.trim(),
               size: 24
             }),
           ],
-          spacing: {
-            before: 240,
-            after: 240,
-            line: 360
-          },
-          indent: {
-            firstLine: convertInchesToTwip(0.5)
-          },
           alignment: AlignmentType.LEFT,
         })
       );
@@ -206,22 +174,19 @@ export const generateChapterContent = (
   if (figures && figures.length > 0) {
     figures.forEach(figure => {
       if (figure.imageUrl) {
+        const imageBuffer = Buffer.from(figure.imageUrl.split(',')[1], 'base64');
+        
         paragraphs.push(
           new Paragraph({
             children: [
               new ImageRun({
-                data: Buffer.from(figure.imageUrl.split(',')[1], 'base64'),
+                data: imageBuffer,
                 transformation: {
                   width: figure.dimensions.width,
                   height: figure.dimensions.height
-                },
-                alignment: figure.position || AlignmentType.CENTER
+                }
               })
             ],
-            spacing: {
-              before: 240,
-              after: 120
-            },
             alignment: figure.position === 'left' ? AlignmentType.LEFT : 
                       figure.position === 'right' ? AlignmentType.RIGHT : 
                       AlignmentType.CENTER
@@ -234,11 +199,7 @@ export const generateChapterContent = (
                 size: 20
               })
             ],
-            spacing: {
-              before: 120,
-              after: 240
-            },
-            alignment: AlignmentType.CENTER
+            alignment: AlignmentType.LEFT
           })
         );
       }
@@ -253,13 +214,12 @@ export const generateTableOfContents = (sections: { title: string; page: number 
     {
       type: TabStopType.RIGHT,
       position: TabStopPosition.MAX,
-      leader: TabStopType.DOT
+      leader: TabStopType.DECIMAL
     }
   ];
 
   return [
     new Paragraph({
-      style: 'Title',
       children: [
         new TextRun({
           text: 'TABLE OF CONTENTS',
@@ -267,12 +227,10 @@ export const generateTableOfContents = (sections: { title: string; page: number 
           size: 32
         }),
       ],
-      spacing: { before: 720, after: 480 },
-      alignment: AlignmentType.CENTER,
+      alignment: AlignmentType.LEFT,
     }),
     ...sections.map(section => 
       new Paragraph({
-        style: 'TableOfContents',
         tabStops,
         children: [
           new TextRun({
@@ -287,77 +245,7 @@ export const generateTableOfContents = (sections: { title: string; page: number 
             size: 24
           }),
         ],
-        spacing: {
-          before: 240,
-          after: 240,
-          line: 360
-        },
-        indent: {
-          left: convertInchesToTwip(section.title.startsWith('Chapter') ? 0 : 0.5)
-        }
-      })
-    ),
-    new Paragraph({ 
-      children: [new PageBreak()],
-      spacing: { before: convertInchesToTwip(1) }
-    }),
-  ];
-};
-
-// New helper functions for additional sections
-
-export const generateListOfFigures = (figures: { title: string; page: number }[]): Paragraph[] => {
-  const tabStops = [
-    {
-      type: TabStopType.RIGHT,
-      position: TabStopPosition.MAX,
-      leader: TabStopType.DOT
-    }
-  ];
-
-  return [
-    new Paragraph({
-      style: 'Title',
-      children: [new TextRun({ text: 'LIST OF FIGURES', bold: true, size: 32 })],
-      spacing: { before: 720, after: 480 },
-      alignment: AlignmentType.CENTER,
-    }),
-    ...figures.map(figure => 
-      new Paragraph({
-        style: 'TableOfContents',
-        tabStops,
-        children: [
-          new TextRun({ text: figure.title, size: 24 }),
-          new TextRun({ text: '\t' }),
-          new TextRun({ text: figure.page.toString(), size: 24 }),
-        ],
-        spacing: { before: 240, after: 240, line: 360 }
-      })
-    ),
-    new Paragraph({ children: [new PageBreak()] }),
-  ];
-};
-
-export const generateListOfTables = (tables: { title: string; page: number }[]): Paragraph[] => {
-  // Similar to List of Figures implementation
-  // Add implementation here
-  return [];
-};
-
-export const generateAcknowledgments = (content: string): Paragraph[] => {
-  return [
-    new Paragraph({
-      style: 'Title',
-      children: [new TextRun({ text: 'ACKNOWLEDGMENTS', bold: true, size: 32 })],
-      spacing: { before: 720, after: 480 },
-      alignment: AlignmentType.CENTER,
-    }),
-    ...content.split('\n\n').map(paragraph => 
-      new Paragraph({
-        style: 'Normal',
-        children: [new TextRun({ text: paragraph.trim(), size: 24 })],
-        spacing: { before: 240, after: 240, line: 360 },
-        indent: { firstLine: convertInchesToTwip(0.5) }
+        alignment: AlignmentType.LEFT,
       })
     ),
     new Paragraph({ children: [new PageBreak()] }),
