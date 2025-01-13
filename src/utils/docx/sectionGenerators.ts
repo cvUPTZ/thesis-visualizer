@@ -8,18 +8,12 @@ import {
   TabStopPosition,
   TabStopType,
   convertInchesToTwip,
-  LevelFormat,
-  NumberFormat,
-  TableRow,
-  TableCell,
-  Table,
-  WidthType,
-  BorderStyle,
-  ImageRun
+  ImageRun,
+  IImageOptions
 } from 'docx';
 import { Buffer } from 'buffer';
 import { TitlePageOptions } from './types';
-import { createImageRun } from './imageUtils';
+import { base64ToUint8Array } from './imageUtils';
 
 export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
   new Paragraph({
@@ -31,7 +25,7 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
         font: "Times New Roman"
       }),
     ],
-    alignment: AlignmentType.LEFT,
+    alignment: AlignmentType.CENTER,
   }),
   new Paragraph({
     children: [
@@ -46,7 +40,7 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
         break: 2
       }),
     ],
-    alignment: AlignmentType.LEFT,
+    alignment: AlignmentType.CENTER,
   }),
   new Paragraph({
     style: 'Subtitle',
@@ -183,7 +177,7 @@ export const generateChapterContent = (
             return;
           }
 
-          const imageBuffer = Buffer.from(base64Data, 'base64');
+          const imageBuffer = base64ToUint8Array(base64Data);
           
           const imageRun = new ImageRun({
             data: imageBuffer,
@@ -191,7 +185,7 @@ export const generateChapterContent = (
               width: figure.dimensions?.width || 400,
               height: figure.dimensions?.height || 300
             }
-          });
+          } as IImageOptions);
 
           paragraphs.push(
             new Paragraph({
@@ -226,7 +220,7 @@ export const generateTableOfContents = (sections: { title: string; page: number 
     {
       type: TabStopType.RIGHT,
       position: TabStopPosition.MAX,
-      leader: TabStopType.DECIMAL
+      leader: TabStopType.DOT
     }
   ];
 
@@ -250,10 +244,7 @@ export const generateTableOfContents = (sections: { title: string; page: number 
             size: 24
           }),
           new TextRun({
-            text: '\t',
-          }),
-          new TextRun({
-            text: section.page.toString(),
+            text: '\t' + section.page.toString(),
             size: 24
           }),
         ],

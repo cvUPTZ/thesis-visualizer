@@ -1,17 +1,6 @@
-import { IImageOptions, BorderStyle } from 'docx';
+import { IImageOptions } from 'docx';
 
-interface ImageDimensions {
-  width: number;
-  height: number;
-}
-
-interface ImageBorder {
-  style: typeof BorderStyle;
-  size: number;
-  color: string;
-}
-
-export const base64ToUint8Array = (base64: string) => {
+export const base64ToUint8Array = (base64: string): Uint8Array => {
   const binaryString = atob(base64);
   const len = binaryString.length;
   const bytes = new Uint8Array(len);
@@ -21,20 +10,14 @@ export const base64ToUint8Array = (base64: string) => {
   return bytes;
 };
 
-
 export const createImageRun = (
   data: Uint8Array,
-  dimensions: ImageDimensions,
-  border?: ImageBorder
+  dimensions: { width: number; height: number }
 ): IImageOptions => ({
   data,
   transformation: {
     width: dimensions.width,
     height: dimensions.height,
   },
-    type: 'png',
-  fallback: {
-      width: dimensions.width,
-      height: dimensions.height,
-    }
+  type: 'png'
 });

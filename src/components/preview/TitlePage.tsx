@@ -7,7 +7,7 @@ interface TitlePageProps {
   titleSection?: Section;
 }
 
-export const TitlePage = ({ metadata, titleSection }: TitlePageProps) => {
+export const TitlePage: React.FC<TitlePageProps> = ({ metadata, titleSection }) => {
   return (
     <div className="thesis-page title-page min-h-[297mm] flex flex-col items-center justify-between py-16 px-8">
       <div className="thesis-title-content w-full max-w-3xl mx-auto space-y-12 text-center">
@@ -50,15 +50,6 @@ export const TitlePage = ({ metadata, titleSection }: TitlePageProps) => {
         
         <div className="thesis-date text-lg mt-8">
           {metadata?.thesisDate || "Month Year"}
-        </div>
-        
-        <div className="thesis-committee text-lg mt-12">
-          <div className="font-semibold mb-2">Thesis Committee:</div>
-          {metadata?.committeeMembers?.map((member, index) => (
-            <div key={index} className="committee-member">
-              {member}
-            </div>
-          ))}
         </div>
       </div>
     </div>
