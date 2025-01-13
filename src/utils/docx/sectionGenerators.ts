@@ -3,7 +3,7 @@ import {
   Paragraph, 
   TextRun, 
   PageBreak, 
-  AlignmentType, 
+  AlignmentType,
   HeadingLevel,
   TabStopPosition,
   TabStopType,
@@ -14,18 +14,11 @@ import {
   TableCell,
   Table,
   WidthType,
-  BorderStyle
+  BorderStyle,
+  ImageRun
 } from 'docx';
 import { TitlePageOptions, ThesisMetadata } from './types';
-
-// Helper function to create leader dots
-const createLeaderDots = (spacing: number = 50) => {
-  return new TextRun({
-    text: '.',
-    spacing: spacing,
-    style: 'LeaderDot'
-  });
-};
+import { createImageRun } from './imageUtils';
 
 export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
   new Paragraph({
@@ -38,7 +31,7 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
         font: "Times New Roman"
       }),
     ],
-    alignment: AlignmentType.CENTER,
+    alignment: AlignmentType.LEFT,
     spacing: { 
       before: convertInchesToTwip(2), 
       after: convertInchesToTwip(1),
@@ -141,102 +134,119 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => [
   }),
 ];
 
-export const generateAbstractSection = (content: string): Paragraph[] => [
-  new Paragraph({
-    style: 'Title',
-    children: [
-      new TextRun({
-        text: 'ABSTRACT',
-        bold: true,
-        size: 32
-      }),
-    ],
-    spacing: { before: 720, after: 480 },
-    alignment: AlignmentType.CENTER,
-  }),
-  ...content.split('\n\n').map(paragraph => 
-    new Paragraph({
-      style: 'Abstract',
-      children: [
-        new TextRun({
-          text: paragraph.trim(),
-          size: 24
-        }),
-      ],
-      spacing: {
-        before: 240,
-        after: 240,
-        line: 360
-      },
-      indent: {
-        firstLine: convertInchesToTwip(0.5)
-      }
-    })
-  ),
-  new Paragraph({ 
-    children: [new PageBreak()],
-    spacing: { before: convertInchesToTwip(1) }
-  }),
-];
-
 export const generateChapterContent = (
   chapterNumber: number,
   title: string,
-  content: string
-): Paragraph[] => [
-  new Paragraph({
-    style: 'Heading1',
-    children: [
-      new TextRun({
-        text: `CHAPTER ${chapterNumber}`,
-        bold: true,
-        size: 32
-      }),
-    ],
-    spacing: {
-      before: 480,
-      after: 240,
-      line: 360
-    },
-    pageBreakBefore: true,
-    alignment: AlignmentType.CENTER,
-  }),
-  new Paragraph({
-    style: 'Heading1',
-    children: [
-      new TextRun({
-        text: title.toUpperCase(),
-        bold: true,
-        size: 32
-      }),
-    ],
-    spacing: {
-      before: 240,
-      after: 360,
-      line: 360
-    },
-    alignment: AlignmentType.CENTER,
-  }),
-  ...(typeof content === 'string' ? content.split('\n\n').map(paragraph =>
+  content: string,
+  figures: any[]
+): Paragraph[] => {
+  const paragraphs: Paragraph[] = [
     new Paragraph({
-      style: 'Normal',
+      style: 'Heading1',
       children: [
         new TextRun({
-          text: paragraph.trim(),
-          size: 24
+          text: `CHAPTER ${chapterNumber}`,
+          bold: true,
+          size: 32
+        }),
+      ],
+      spacing: {
+        before: 480,
+        after: 240,
+        line: 360
+      },
+      pageBreakBefore: true,
+      alignment: AlignmentType.LEFT,
+    }),
+    new Paragraph({
+      style: 'Heading1',
+      children: [
+        new TextRun({
+          text: title.toUpperCase(),
+          bold: true,
+          size: 32
         }),
       ],
       spacing: {
         before: 240,
-        after: 240,
+        after: 360,
         line: 360
       },
-      indent: {
-        firstLine: convertInchesToTwip(0.5)
+      alignment: AlignmentType.LEFT,
+    }),
+  ];
+
+  // Add content paragraphs
+  if (typeof content === 'string') {
+    content.split('\n\n').forEach(paragraph => {
+      paragraphs.push(
+        new Paragraph({
+          style: 'Normal',
+          children: [
+            new TextRun({
+              text: paragraph.trim(),
+              size: 24
+            }),
+          ],
+          spacing: {
+            before: 240,
+            after: 240,
+            line: 360
+          },
+          indent: {
+            firstLine: convertInchesToTwip(0.5)
+          },
+          alignment: AlignmentType.LEFT,
+        })
+      );
+    });
+  }
+
+  // Add figures
+  if (figures && figures.length > 0) {
+    figures.forEach(figure => {
+      if (figure.imageUrl) {
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new ImageRun({
+                data: Buffer.from(figure.imageUrl.split(',')[1], 'base64'),
+                transformation: {
+                  width: figure.dimensions.width,
+                  height: figure.dimensions.height
+                },
+                alignment: figure.position || AlignmentType.CENTER
+              })
+            ],
+            spacing: {
+              before: 240,
+              after: 120
+            },
+            alignment: figure.position === 'left' ? AlignmentType.LEFT : 
+                      figure.position === 'right' ? AlignmentType.RIGHT : 
+                      AlignmentType.CENTER
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Figure ${figure.number}: ${figure.caption || ''}`,
+                italics: true,
+                size: 20
+              })
+            ],
+            spacing: {
+              before: 120,
+              after: 240
+            },
+            alignment: AlignmentType.CENTER
+          })
+        );
       }
-    })
-  ) : []),
-];
+    });
+  }
+
+  return paragraphs;
+};
 
 export const generateTableOfContents = (sections: { title: string; page: number }[]): Paragraph[] => {
   const tabStops = [

@@ -25,15 +25,22 @@ export const generateThesisDocx = (thesis: Thesis): Document => {
             department: thesis.metadata?.departmentName || '',
             degree: thesis.metadata?.degree || '',
           }),
-          new PageBreak(),
+          new Paragraph({ children: [new PageBreak()] }),
           ...generateAbstractSection(thesis.abstract || ''),
-          new PageBreak(),
+          new Paragraph({ children: [new PageBreak()] }),
           ...generateTableOfContents(thesis.chapters?.map((chapter, index) => ({
             title: chapter.title,
             page: index + 3
           })) || []),
-          new PageBreak(),
-          ...thesis.chapters?.flatMap(chapter => generateChapterContent(chapter.order + 1, chapter.title, chapter.content)) || [],
+          new Paragraph({ children: [new PageBreak()] }),
+          ...(thesis.chapters?.flatMap(chapter => 
+            generateChapterContent(
+              chapter.order + 1, 
+              chapter.title, 
+              chapter.content,
+              chapter.figures
+            )
+          ) || []),
         ],
       },
     ],
