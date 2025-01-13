@@ -106,13 +106,11 @@ export interface Figure {
   caption: string;
   altText: string;
   number: number;
-  dimensions?: {
+  dimensions: {
     width: number;
     height: number;
   };
   position: 'left' | 'center' | 'right';
-  customWidth?: number;
-  customHeight?: number;
   border?: {
     style: 'single' | 'double' | 'thick' | 'none';
     size: number;

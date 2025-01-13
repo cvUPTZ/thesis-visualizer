@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/card';
 interface FigureUploadProps {
   onUpload: (
     file: File, 
-    position?: 'left' | 'center' | 'right',
+    position: 'left' | 'center' | 'right',
     customWidth?: number,
     customHeight?: number,
     border?: {
@@ -24,13 +24,17 @@ interface FigureUploadProps {
   altText?: string;
 }
 
-export const FigureUpload = ({ onUpload, imageUrl, altText }: FigureUploadProps) => {
+export const FigureUpload: React.FC<FigureUploadProps> = ({ onUpload, imageUrl, altText }) => {
   const [position, setPosition] = useState<'left' | 'center' | 'right'>('center');
   const [customWidth, setCustomWidth] = useState<number>();
   const [customHeight, setCustomHeight] = useState<number>();
   const [maintainAspectRatio, setMaintainAspectRatio] = useState(true);
-  const [border, setBorder] = useState({
-    style: 'none' as const,
+  const [border, setBorder] = useState<{
+    style: 'single' | 'double' | 'thick' | 'none';
+    size: number;
+    color: string;
+  }>({
+    style: 'none',
     size: 1,
     color: '#000000'
   });
@@ -101,7 +105,10 @@ export const FigureUpload = ({ onUpload, imageUrl, altText }: FigureUploadProps)
       <Card className="p-4 space-y-4">
         <div>
           <Label htmlFor="position">Position</Label>
-          <Select onValueChange={(value: 'left' | 'center' | 'right') => setPosition(value)} defaultValue={position}>
+          <Select 
+            value={position} 
+            onValueChange={(value: 'left' | 'center' | 'right') => setPosition(value)}
+          >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Center" />
             </SelectTrigger>
@@ -146,9 +153,9 @@ export const FigureUpload = ({ onUpload, imageUrl, altText }: FigureUploadProps)
         <div className="space-y-4">
           <Label>Border Style</Label>
           <Select 
+            value={border.style}
             onValueChange={(value: 'none' | 'single' | 'double' | 'thick') => 
               setBorder(prev => ({ ...prev, style: value }))}
-            defaultValue={border.style}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="None" />
