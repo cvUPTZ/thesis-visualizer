@@ -17,6 +17,7 @@ import {
   BorderStyle,
   ImageRun
 } from 'docx';
+import { Buffer } from 'buffer';
 import { TitlePageOptions } from './types';
 import { createImageRun } from './imageUtils';
 
@@ -174,34 +175,45 @@ export const generateChapterContent = (
   if (figures && figures.length > 0) {
     figures.forEach(figure => {
       if (figure.imageUrl) {
-        const imageBuffer = Buffer.from(figure.imageUrl.split(',')[1], 'base64');
-        
-        const imageRun = new ImageRun({
-          data: imageBuffer,
-          transformation: {
-            width: figure.dimensions.width,
-            height: figure.dimensions.height
+        try {
+          // Extract base64 data from data URL
+          const base64Data = figure.imageUrl.split(',')[1];
+          if (!base64Data) {
+            console.warn('Invalid image URL format:', figure.imageUrl);
+            return;
           }
-        });
 
-        paragraphs.push(
-          new Paragraph({
-            children: [imageRun],
-            alignment: figure.position === 'left' ? AlignmentType.LEFT : 
-                      figure.position === 'right' ? AlignmentType.RIGHT : 
-                      AlignmentType.CENTER
-          }),
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: `Figure ${figure.number}: ${figure.caption || ''}`,
-                italics: true,
-                size: 20
-              })
-            ],
-            alignment: AlignmentType.LEFT
-          })
-        );
+          const imageBuffer = Buffer.from(base64Data, 'base64');
+          
+          const imageRun = new ImageRun({
+            data: imageBuffer,
+            transformation: {
+              width: figure.dimensions?.width || 400,
+              height: figure.dimensions?.height || 300
+            }
+          });
+
+          paragraphs.push(
+            new Paragraph({
+              children: [imageRun],
+              alignment: figure.position === 'left' ? AlignmentType.LEFT : 
+                        figure.position === 'right' ? AlignmentType.RIGHT : 
+                        AlignmentType.CENTER
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `Figure ${figure.number}: ${figure.caption || ''}`,
+                  italics: true,
+                  size: 20
+                })
+              ],
+              alignment: AlignmentType.CENTER
+            })
+          );
+        } catch (error) {
+          console.error('Error processing figure:', error);
+        }
       }
     });
   }

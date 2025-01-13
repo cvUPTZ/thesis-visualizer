@@ -491,6 +491,81 @@ export type Database = {
           },
         ]
       }
+      thesis_references: {
+        Row: {
+          authors: string[]
+          created_at: string
+          doi: string | null
+          id: string
+          issue: string | null
+          journal: string | null
+          pages: string | null
+          publisher: string | null
+          source: string
+          text: string
+          thesis_id: string
+          title: string
+          type: string
+          updated_at: string
+          url: string | null
+          volume: string | null
+          year: string
+        }
+        Insert: {
+          authors?: string[]
+          created_at?: string
+          doi?: string | null
+          id?: string
+          issue?: string | null
+          journal?: string | null
+          pages?: string | null
+          publisher?: string | null
+          source: string
+          text: string
+          thesis_id: string
+          title: string
+          type: string
+          updated_at?: string
+          url?: string | null
+          volume?: string | null
+          year: string
+        }
+        Update: {
+          authors?: string[]
+          created_at?: string
+          doi?: string | null
+          id?: string
+          issue?: string | null
+          journal?: string | null
+          pages?: string | null
+          publisher?: string | null
+          source?: string
+          text?: string
+          thesis_id?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          url?: string | null
+          volume?: string | null
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thesis_references_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "supervisor_theses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thesis_references_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "theses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       thesis_reviews: {
         Row: {
           content: Json
