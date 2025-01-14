@@ -1,264 +1,171 @@
-// // // MarkdownEditor.tsx
-// // import React, { useCallback, useMemo, useRef } from 'react';
-// // import MDEditor, { commands } from '@uiw/react-md-editor';
-// // import { EditorProps } from '@/types/components';
-// // import { Card } from './ui/card';
-// // import { motion } from 'framer-motion';
-
-// // export const MarkdownEditor: React.FC<EditorProps> = React.memo(({ 
-// //   value, 
-// //   onChange, 
-// //   placeholder 
-// // }) => {
-// //   // Use ref to track previous value
-// //   const prevValueRef = useRef(value);
-
-// //   // Optimize change handler
-// //   const handleChange = useCallback((newValue: string | undefined) => {
-// //     // Only trigger onChange if value actually changed
-// //     if (newValue !== prevValueRef.current) {
-// //       prevValueRef.current = newValue || '';
-// //       onChange(newValue || '');
-// //     }
-// //   }, [onChange]);
-
-// //   // Memoize commands
-// //   const customCommands = useMemo(() => [
-// //     commands.title1,
-// //     commands.title2,
-// //     commands.title3,
-// //     commands.bold,
-// //     commands.italic,
-// //     commands.strikethrough,
-// //     commands.hr,
-// //     commands.link,
-// //     commands.quote,
-// //     commands.code,
-// //     commands.unorderedListCommand,
-// //     commands.orderedListCommand,
-// //   ], []);
-
-// //   return (
-// //     <div className="w-full"> {/* Remove motion.div to reduce animation overhead */}
-// //       <Card className="overflow-hidden bg-white/50 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-xl">
-// //         <MDEditor
-// //           value={value}
-// //           onChange={handleChange}
-// //           preview="live"
-// //           height={400}
-// //           className="border-none bg-transparent"
-// //           hideToolbar={false}
-// //           commands={customCommands}
-// //           textareaProps={{
-// //             placeholder,
-// //             className: "focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-md p-4 bg-editor-bg/50",
-// //             "data-testid": "markdown-editor-textarea",
-// //           }}
-// //           previewOptions={{
-// //             skipHtml: true,
-// //             lazy: true
-// //           }}
-// //           // Add performance optimizations
-// //           renderHTML={text => Promise.resolve(text)}
-// //           visibleDragbar={false}
-// //           enableScroll={true}
-// //         />
-// //       </Card>
-// //     </div>
-// //   );
-// // });
-
-// // // Usage in SectionContent
-// // export const SectionContent: React.FC<SectionContentProps> = React.memo(({
-// //   section,
-// //   isActive,
-// //   onContentChange,
-// //   onUpdateSectionData
-// // }) => {
-// //   const handleEditorChange = useCallback((content: string) => {
-// //     // Batch the updates
-// //     requestAnimationFrame(() => {
-// //       onContentChange(content);
-// //       onUpdateSectionData({
-// //         ...section,
-// //         content
-// //       });
-// //     });
-// //   }, [section, onContentChange, onUpdateSectionData]);
-
-// //   if (!isActive) return null;
-
-// //   return (
-// //     <div className="w-full">
-// //       <MarkdownEditor
-// //         value={section.content}
-// //         onChange={handleEditorChange}
-// //         placeholder="Start writing your section content..."
-// //       />
-// //     </div>
-// //   );
-// // });
-
-
-// // MarkdownEditor.tsx
-// import React, { useCallback, useMemo, useRef, useEffect } from 'react';
-// import MDEditor, { commands } from '@uiw/react-md-editor';
-// import { EditorProps } from '@/types/components';
-// import { Card } from './ui/card';
-
-// export const MarkdownEditor: React.FC<EditorProps> = React.memo(({ 
-//   value, 
-//   onChange, 
-//   placeholder 
-// }) => {
-//   const prevValueRef = useRef(value);
-//   const textAreaRef = useRef<HTMLTextAreaElement>(null);
- 
-
-//   const handleChange = useCallback((newValue: string | undefined) => {
-//     if (newValue !== prevValueRef.current) {
-//       prevValueRef.current = newValue || '';
-//       onChange(newValue || '');
-//     }
-//   }, [onChange]);
-
-//   useEffect(() => {
-//     textAreaRef.current?.focus();
-//   }, []);
-
-//   const customCommands = useMemo(() => [
-//     commands.title1,
-//     commands.title2,
-//     commands.title3,
-//     commands.bold,
-//     commands.italic,
-//     commands.strikethrough,
-//     commands.hr,
-//     commands.link,
-//     commands.quote,
-//     commands.code,
-//     commands.unorderedListCommand,
-//     commands.orderedListCommand,
-//   ], []);
-
-//   return (
-//     <div className="w-full">
-//       <Card className="overflow-hidden bg-white/50 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-xl">
-//         <MDEditor
-//           value={value}
-//           onChange={handleChange}
-//           preview="live"
-//           height={400}
-//           className="border-none bg-transparent"
-//           hideToolbar={false}
-//           commands={customCommands}
-//            textareaProps={{
-//              ref: textAreaRef,
-//             placeholder,
-//             className: "focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-md p-4 bg-editor-bg/50",
-//             "data-testid": "markdown-editor-textarea",
-//           }}
-//           previewOptions={{
-//             skipHtml: true,
-//             lazy: true
-//           }}
-//           renderHTML={text => Promise.resolve(text)}
-//           visibleDragbar={false}
-//           enableScroll={true}
-//         />
-//       </Card>
-//     </div>
-//   );
-// });
-import React, { useMemo } from 'react';
+// components/MarkdownEditor.tsx
+import React, { useCallback, useMemo, useRef, useEffect } from 'react';
 import MDEditor, { commands, type ICommand } from '@uiw/react-md-editor';
-import { EditorProps } from '@/types/components';
+import { debounce } from 'lodash';
 import { Card } from './ui/card';
-import { motion } from 'framer-motion';
+import { Figure, Table, Citation, Reference } from '@/types/thesis';
 
-const editorAnimation = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.3 }
-};
+interface EditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  onInsertFigure?: (figure: Omit<Figure, 'id' | 'number'>) => void;
+  onInsertTable?: (table: Omit<Table, 'id' | 'number'>) => void;
+  onInsertCitation?: (citation: Omit<Citation, 'id' | 'thesis_id' | 'created_at' | 'updated_at'>) => void;
+  figures?: Figure[];
+  tables?: Table[];
+  citations?: Citation[];
+}
+
+// Custom commands for thesis-specific features
+const createThesisCommands = (props: EditorProps): ICommand[] => ([
+  {
+    name: 'insertFigure',
+    keyCommand: 'insertFigure',
+    buttonProps: { 'aria-label': 'Insert Figure' },
+    icon: <span>📷</span>,
+    execute: () => {
+      props.onInsertFigure?.({
+        imageUrl: '',
+        title: '',
+        caption: '',
+        altText: '',
+        dimensions: { width: 0, height: 0 },
+        position: 'center'
+      });
+    },
+  },
+  {
+    name: 'insertTable',
+    keyCommand: 'insertTable',
+    buttonProps: { 'aria-label': 'Insert Table' },
+    icon: <span>📊</span>,
+    execute: () => {
+      props.onInsertTable?.({
+        title: '',
+        caption: '',
+        content: [['']],
+      });
+    },
+  },
+  {
+    name: 'insertCitation',
+    keyCommand: 'insertCitation',
+    buttonProps: { 'aria-label': 'Insert Citation' },
+    icon: <span>📚</span>,
+    execute: () => {
+      props.onInsertCitation?.({
+        text: '',
+        source: '',
+        authors: [],
+        year: '',
+        type: 'article'
+      });
+    },
+  }
+]);
 
 export const MarkdownEditor = React.memo(({ 
   value, 
-  onChange, 
-  placeholder 
+  onChange,
+  placeholder,
+  onInsertFigure,
+  onInsertTable,
+  onInsertCitation,
+  figures,
+  tables,
+  citations
 }: EditorProps) => {
-  // Memoize commands array to prevent recreating on every render
-  const customCommands = useMemo(() => {
-    const headingCommands = [
-      commands.title1,
-      commands.title2,
-      commands.title3,
-      commands.title4,
-      commands.title5,
-      commands.title6,
-    ];
+  const editorRef = useRef<HTMLDivElement>(null);
+  
+  const debouncedOnChange = useMemo(
+    () => debounce((val: string) => {
+      onChange(val || '');
+    }, 150),
+    [onChange]
+  );
 
-    return [
-      ...headingCommands,
-      commands.divider,
+  useEffect(() => {
+    return () => {
+      debouncedOnChange.cancel();
+    };
+  }, [debouncedOnChange]);
+
+  const customCommands = useMemo(() => {
+    const baseCommands = [
       commands.bold,
       commands.italic,
       commands.strikethrough,
-      commands.hr,
-      commands.divider,
       commands.link,
       commands.quote,
       commands.code,
-      commands.divider,
       commands.unorderedListCommand,
-      commands.orderedListCommand,
-      commands.checkedListCommand,
+      commands.orderedListCommand
     ] as ICommand[];
-  }, []);
 
-  // Memoize textarea props
-  const textareaProps = useMemo(() => ({
-    placeholder,
-    className: "focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-md p-4 bg-editor-bg/50",
-  }), [placeholder]);
+    const thesisCommands = createThesisCommands({
+      value,
+      onChange,
+      onInsertFigure,
+      onInsertTable,
+      onInsertCitation
+    });
 
-  // Memoize preview options
-  const previewOptions = useMemo(() => ({
-    className: "prose prose-sm max-w-none prose-headings:font-serif prose-headings:text-editor-text prose-p:text-editor-text p-4",
-    skipHtml: false,
-    rehypeRewrite: (node: any) => {
-      if (node.type === 'element' && node.tagName === 'a') {
-        node.properties = {
-          ...node.properties,
-          target: '_blank',
-          rel: 'noopener noreferrer',
-          className: 'text-primary hover:text-primary/80 transition-colors duration-200'
-        };
-      }
+    return [...baseCommands, commands.divider, ...thesisCommands];
+  }, [value, onChange, onInsertFigure, onInsertTable, onInsertCitation]);
+
+  const editorProps = useMemo(() => ({
+    value,
+    onChange: debouncedOnChange,
+    preview: "edit" as const,
+    height: 400,
+    className: "border-none bg-transparent",
+    hideToolbar: false,
+    commands: customCommands,
+    visibleDragbar: false,
+    renderTextarea: true,
+    textareaProps: {
+      placeholder,
+      className: "focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-md p-4 bg-editor-bg/50",
+    },
+    previewOptions: {
+      className: "prose prose-sm max-w-none prose-headings:font-serif prose-headings:text-editor-text prose-p:text-editor-text p-4",
+      skipHtml: true,
+      rehypeRewrite: undefined
     }
-  }), []);
+  }), [value, debouncedOnChange, customCommands, placeholder]);
 
   return (
-    <motion.div
-      {...editorAnimation}
-      layout={false} // Prevent layout animations
-    >
+    <div ref={editorRef} className="transform translate-y-0 opacity-100 transition-transform duration-300">
       <Card className="overflow-hidden bg-white/50 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-xl" data-color-mode="light">
-        <MDEditor
-          value={value}
-          onChange={(val) => onChange(val || '')}
-          preview="edit"
-          height={400}
-          className="border-none bg-transparent"
-          hideToolbar={false}
-          commands={customCommands}
-          textareaProps={textareaProps}
-          previewOptions={previewOptions}
-        />
+        <MDEditor {...editorProps} />
+        {figures && figures.length > 0 && (
+          <div className="p-4 border-t">
+            <h4 className="text-sm font-medium mb-2">Figures</h4>
+            <div className="flex flex-wrap gap-2">
+              {figures.map(figure => (
+                <div key={figure.id} className="text-xs bg-gray-100 p-1 rounded">
+                  Figure {figure.number}: {figure.title}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {citations && citations.length > 0 && (
+          <div className="p-4 border-t">
+            <h4 className="text-sm font-medium mb-2">Citations</h4>
+            <div className="flex flex-wrap gap-2">
+              {citations.map(citation => (
+                <div key={citation.id} className="text-xs bg-gray-100 p-1 rounded">
+                  {citation.authors.join(', ')} ({citation.year})
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </Card>
-    </motion.div>
+    </div>
   );
 });
 
-// Add display name for debugging
 MarkdownEditor.displayName = 'MarkdownEditor';
