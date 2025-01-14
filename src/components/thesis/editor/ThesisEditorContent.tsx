@@ -1,5 +1,9 @@
 import React from 'react';
 import { Chapter, Section } from '@/types/thesis';
+import { Input } from '@/components/ui/input';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
+import { ChapterManager } from '@/components/ChapterManager';
+import { ChatMessages } from '@/components/collaboration/ChatMessages';
 
 export interface ThesisEditorContentProps {
   frontMatter: Section[];
@@ -16,7 +20,7 @@ export interface ThesisEditorContentProps {
   onChangeSectionTaskDescription: (sectionId: string, taskId: string, newDescription: string) => void;
 }
 
-const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
+export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
   frontMatter,
   chapters,
   backMatter,
@@ -47,7 +51,7 @@ const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
         <div className="mb-6">
           <MarkdownEditor
             value={section.content}
-            onChange={(value) => onContentChange(section.id, value || '')}
+            onChange={(value) => onContentChange(section.id, value)}
             placeholder="Start writing..."
           />
         </div>
@@ -71,11 +75,9 @@ const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
         </div>
         
         <div className="lg:col-span-1">
-          <ChatMessages thesisId={thesisId} />
+          {activeSection && <ChatMessages thesisId={activeSection} />}
         </div>
       </div>
     </div>
   );
 };
-
-export default ThesisEditorContent;
