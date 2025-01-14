@@ -1,90 +1,93 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Thesis } from '@/types/thesis';
-import { supabase } from '@/integrations/supabase/client';
+import { motion } from 'framer-motion';
+import { ThesisNode } from './ThesisNode';
+import { CollaboratorOrbit } from './CollaboratorOrbit';
+import { CentralIcon } from './CentralIcon';
+import { NotificationsPanel } from './NotificationsPanel';
+import { StatCard } from './StatCard';
 
-export const ThesisVisualization = () => {
-  const [thesis, setThesis] = useState<Thesis | null>(null);
+interface ThesisVisualizationProps {
+  initialData?: Partial<Thesis>;
+}
+
+export const ThesisVisualization: React.FC<ThesisVisualizationProps> = ({ initialData }) => {
+  const [thesis, setThesis] = useState<Thesis>({
+    id: '',
+    title: '',
+    content: {},
+    metadata: {
+      description: '',
+      keywords: [],
+      createdAt: new Date().toISOString(),
+      universityName: '',
+      departmentName: '',
+      authorName: '',
+      thesisDate: '',
+      committeeMembers: []
+    },
+    frontMatter: [],
+    chapters: [],
+    backMatter: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    user_id: '',
+    language: 'en'
+  });
 
   useEffect(() => {
-    const fetchThesis = async () => {
-      const { data, error } = await supabase
-        .from('theses')
-        .select('*')
-        .limit(1)
-        .single();
+    if (initialData) {
+      setThesis(prevThesis => ({
+        ...prevThesis,
+        ...initialData,
+        createdAt: initialData.createdAt || new Date(),
+        updatedAt: initialData.updatedAt || new Date()
+      }));
+    }
+  }, [initialData]);
 
-      if (error) {
-        console.error('Error fetching thesis:', error);
-        return;
-      }
-
-      if (data) {
-        const content = typeof data.content === 'string' 
-          ? JSON.parse(data.content)
-          : data.content;
-
-        setThesis({
-          ...data,
-          content,
-          metadata: {
-            description: '',
-            keywords: [],
-            createdAt: data.created_at,
-            universityName: '',
-            departmentName: '',
-            authorName: '',
-            thesisDate: '',
-            committeeMembers: [],
-          },
-          frontMatter: content.frontMatter || [],
-          chapters: content.chapters || [],
-          backMatter: content.backMatter || [],
-        });
-      }
-    };
-
-    fetchThesis();
-  }, []);
-
-  if (!thesis) {
-    return null;
-  }
+  const sections = [
+    ...(thesis.frontMatter || []),
+    ...(thesis.chapters || []).flatMap(chapter => chapter.sections || []),
+    ...(thesis.backMatter || [])
+  ];
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-[600px] bg-gradient-to-br from-background to-background/50 rounded-lg overflow-hidden">
       <motion.div
+        className="absolute inset-0"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="absolute inset-0"
       >
-        {/* Visualization content */}
-        <div className="grid grid-cols-3 gap-4 p-4">
-          {thesis.chapters.map((chapter, index) => (
-            <motion.div
-              key={chapter.id}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: index * 0.1 }}
-              className="p-4 bg-white rounded-lg shadow"
-            >
-              <h3 className="font-bold">{chapter.title}</h3>
-              <p className="text-sm text-gray-600">
-                {chapter.sections?.length || 0} sections
-              </p>
-            </motion.div>
-          ))}
+        <CentralIcon thesis={thesis} />
+        <CollaboratorOrbit thesis={thesis} />
+        
+        {sections.map((section, index) => (
+          <ThesisNode
+            key={section.id}
+            section={section}
+            index={index}
+            total={sections.length}
+          />
+        ))}
+
+        <NotificationsPanel thesis={thesis} />
+        
+        <div className="absolute bottom-4 left-4 right-4 flex justify-between">
+          <StatCard
+            title="Sections"
+            value={sections.length}
+            trend={sections.length > 0 ? 'up' : 'neutral'}
+          />
+          <StatCard
+            title="Progress"
+            value={Math.round((sections.filter(s => s.content?.length > 0).length / Math.max(sections.length, 1)) * 100)}
+            suffix="%"
+            trend="up"
+          />
         </div>
       </motion.div>
-      <style>{`
-        .visualization-container {
-          position: relative;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-        }
-      `}</style>
     </div>
   );
 };
