@@ -5,6 +5,10 @@ import { Chapter, Section, Task, Thesis } from '@/types/thesis';
 import { useThesisRealtime } from '@/hooks/useThesisRealtime';
 import { useToast } from '@/hooks/use-toast';
 
+// Define strict types for the update functions
+type SectionUpdater = (section: Section) => Section;
+type ThesisUpdater = (prev: Thesis | null) => Thesis | null;
+
 interface ThesisEditorMainProps {
   thesis: Thesis | null;
   activeSection: string;
@@ -31,11 +35,11 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = React.memo(({
 
   useThesisRealtime(thesis?.id, localThesis, setLocalThesis);
 
-  // Memoize section update functions
+  // Strictly typed section update function
   const updateSections = useCallback((
     prev: Thesis | null,
     sectionId: string,
-    updater: (section: Section) => Section
+    updater: SectionUpdater
   ): Thesis | null => {
     if (!prev) return null;
 
@@ -56,20 +60,20 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = React.memo(({
     };
   }, []);
 
-  const handleUpdateSectionData = useCallback((updatedSection: Section) => {
+  const handleUpdateSectionData = useCallback((updatedSection: Section): void => {
     if (!localThesis) return;
     
     setLocalThesis(prev => updateSections(prev, updatedSection.id, () => updatedSection));
   }, [localThesis, updateSections]);
 
-  const handleAddSectionTask = useCallback((sectionId: string) => {
+  const handleAddSectionTask = useCallback((sectionId: string): void => {
     if (!localThesis) return;
     
     const newTask: Task = {
-      id: crypto.randomUUID(),
+      id: crypto.randomUUID() as string, // Type assertion for crypto
       description: 'New Task',
-      status: 'pending',
-      priority: 'medium'
+      status: 'pending' as const, // Use const assertion
+      priority: 'medium' as const
     };
 
     setLocalThesis(prev => 
@@ -80,7 +84,7 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = React.memo(({
     );
   }, [localThesis, updateSections]);
 
-  const handleContentChange = useCallback((id: string, content: string) => {
+  const handleContentChange = useCallback((id: string, content: string): void => {
     if (!localThesis) return;
     
     setLocalThesis(prev => 
@@ -90,13 +94,12 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = React.memo(({
       }))
     );
     
-    // Debounce the parent update
     requestAnimationFrame(() => {
       parentOnContentChange(id, content);
     });
   }, [localThesis, updateSections, parentOnContentChange]);
 
-  const handleTitleChange = useCallback((id: string, title: string) => {
+  const handleTitleChange = useCallback((id: string, title: string): void => {
     if (!localThesis) return;
     
     setLocalThesis(prev => 
@@ -111,7 +114,7 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = React.memo(({
     });
   }, [localThesis, updateSections, parentOnTitleChange]);
 
-  // Memoize content props
+  // Memoized content props with explicit return type
   const contentProps = useMemo(() => ({
     frontMatter: localThesis?.frontMatter || [],
     chapters: localThesis?.chapters || [],
@@ -153,5 +156,4 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = React.memo(({
   );
 });
 
-// Add display name for debugging
 ThesisEditorMain.displayName = 'ThesisEditorMain';
