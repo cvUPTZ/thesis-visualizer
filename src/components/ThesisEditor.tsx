@@ -217,20 +217,20 @@ task.id === taskId ? { ...task, description: newDescription } : task
   const calculateProgress = () => {
     if (!thesis) return 0;
     
-    const frontMatter = thesis.frontMatter || [];
-    const chapters = thesis.chapters || [];
-    const backMatter = thesis.backMatter || [];
+    const frontMatter = Array.isArray(thesis.frontMatter) ? thesis.frontMatter : [];
+    const chapters = Array.isArray(thesis.chapters) ? thesis.chapters : [];
+    const backMatter = Array.isArray(thesis.backMatter) ? thesis.backMatter : [];
     
     const allSections = [
       ...frontMatter,
-      ...chapters.flatMap(chapter => chapter.sections || []),
+      ...chapters.flatMap(chapter => Array.isArray(chapter.sections) ? chapter.sections : []),
       ...backMatter
     ];
 
     if (allSections.length === 0) return 0;
 
     const completedSections = allSections.filter(section => 
-      section.content && section.content.trim().length > 0
+      section?.content && section.content.trim().length > 0
     ).length;
 
     return Math.round((completedSections / allSections.length) * 100);
@@ -281,86 +281,86 @@ task.id === taskId ? { ...task, description: newDescription } : task
     );
   }
 
-return (
-<div className="min-h-screen bg-background flex">
-<ThesisSidebar
-sections={[
-...(thesis?.frontMatter || []),
-...(thesis?.chapters || []).flatMap(chapter => chapter.sections),
-...(thesis?.backMatter || [])
-]}
-activeSection={activeSection}
-onSectionSelect={setActiveSection}
-thesisId={currentThesisId!}
-onUpdateSectionData={handleUpdateSectionData}
-onAddSectionTask={handleAddSectionTask}
-onUpdateSectionTask={handleUpdateSectionTask}
-onChangeSectionTaskDescription={handleChangeSectionTaskDescription}
-/>
-
-<div className="flex-1 flex flex-col">
-    <ThesisEditorHeader
-      thesis={thesis}
-      showPreview={showPreview}
-      onTogglePreview={() => setShowPreview(!showPreview)}
-    />
-    
-    <div className="px-8 py-4">
-      <ThesisEditorStatus
-        thesis={thesis}
+  return (
+    <div className="min-h-screen bg-background flex">
+      <ThesisSidebar
+        sections={[
+          ...(Array.isArray(thesis?.frontMatter) ? thesis.frontMatter : []),
+          ...(Array.isArray(thesis?.chapters) ? thesis.chapters.flatMap(chapter => chapter.sections || []) : []),
+          ...(Array.isArray(thesis?.backMatter) ? thesis.backMatter : [])
+        ]}
+        activeSection={activeSection}
+        onSectionSelect={setActiveSection}
         thesisId={currentThesisId!}
-        progress={progress}
-        showTracker={showTracker}
-        setShowTracker={setShowTracker}
+        onUpdateSectionData={handleUpdateSectionData}
+        onAddSectionTask={handleAddSectionTask}
+        onUpdateSectionTask={handleUpdateSectionTask}
+        onChangeSectionTaskDescription={handleChangeSectionTaskDescription}
       />
-    </div>
 
-    <ThesisEditorMain
-      thesis={thesis}
-      activeSection={activeSection}
-      showPreview={showPreview}
-      previewRef={previewRef}
-      onContentChange={handleContentChange}
-      onTitleChange={handleTitleChange}
-      onUpdateChapter={(chapter: Chapter) => {
-        setThesis(prev => ({
-          ...prev!,
-          chapters: prev!.chapters.map(c =>
-            c.id === chapter.id ? chapter : c
-          )
-        }));
-      }}
-      onAddChapter={(chapter) => {
-        setThesis(prev => ({
-          ...prev!,
-          chapters: [...(prev?.chapters || []), chapter]
-        }));
-      }}
-    />
-  </div>
+      <div className="flex-1 flex flex-col">
+        <ThesisEditorHeader
+          thesis={thesis}
+          showPreview={showPreview}
+          onTogglePreview={() => setShowPreview(!showPreview)}
+        />
+        
+        <div className="px-8 py-4">
+          <ThesisEditorStatus
+            thesis={thesis}
+            thesisId={currentThesisId!}
+            progress={progress}
+            showTracker={showTracker}
+            setShowTracker={setShowTracker}
+          />
+        </div>
 
-  <Collapsible
-    open={showChat}
-    onOpenChange={setShowChat}
-    className="fixed bottom-4 right-4 w-[400px] z-50"
-  >
-    <CollapsibleTrigger asChild>
-      <Button
-        variant="outline"
-        size="sm"
-        className="absolute -top-10 right-0 bg-background shadow-md"
+        <ThesisEditorMain
+          thesis={thesis}
+          activeSection={activeSection}
+          showPreview={showPreview}
+          previewRef={previewRef}
+          onContentChange={handleContentChange}
+          onTitleChange={handleTitleChange}
+          onUpdateChapter={(chapter: Chapter) => {
+            setThesis(prev => ({
+              ...prev!,
+              chapters: prev!.chapters.map(c =>
+                c.id === chapter.id ? chapter : c
+              )
+            }));
+          }}
+          onAddChapter={(chapter) => {
+            setThesis(prev => ({
+              ...prev!,
+              chapters: [...(prev?.chapters || []), chapter]
+            }));
+          }}
+        />
+      </div>
+
+      <Collapsible
+        open={showChat}
+        onOpenChange={setShowChat}
+        className="fixed bottom-4 right-4 w-[400px] z-50"
       >
-        {showChat ? (
-          <ChevronDown className="h-4 w-4" />
-        ) : (
-          <ChevronUp className="h-4 w-4" />
-        )}
-      </Button>
-    </CollapsibleTrigger>
-    <CollapsibleContent>
-      {currentThesisId && <ChatMessages thesisId={currentThesisId} />}
-    </CollapsibleContent>
-  </Collapsible>
-</div>
-);
-});
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="absolute -top-10 right-0 bg-background shadow-md"
+          >
+            {showChat ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronUp className="h-4 w-4" />
+            )}
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          {currentThesisId && <ChatMessages thesisId={currentThesisId} />}
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
+  );
+};
