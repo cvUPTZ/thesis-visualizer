@@ -47,9 +47,9 @@ export const ThesisVisualization: React.FC<ThesisVisualizationProps> = ({ initia
   }, [initialData]);
 
   const sections = [
-    ...(thesis.frontMatter || []),
-    ...(thesis.chapters || []).flatMap(chapter => chapter.sections || []),
-    ...(thesis.backMatter || [])
+    ...(Array.isArray(thesis.frontMatter) ? thesis.frontMatter : []),
+    ...(Array.isArray(thesis.chapters) ? thesis.chapters.flatMap(chapter => chapter.sections || []) : []),
+    ...(Array.isArray(thesis.backMatter) ? thesis.backMatter : [])
   ];
 
   return (
@@ -77,12 +77,12 @@ export const ThesisVisualization: React.FC<ThesisVisualizationProps> = ({ initia
         <div className="absolute bottom-4 left-4 right-4 flex justify-between">
           <StatCard
             title="Sections"
-            value={sections.length}
-            trend={sections.length > 0 ? 'up' : 'neutral'}
+            value={sections.length.toString()}
+            trend={sections.length > 0 ? 'up' : 'stable'}
           />
           <StatCard
             title="Progress"
-            value={Math.round((sections.filter(s => s.content?.length > 0).length / Math.max(sections.length, 1)) * 100)}
+            value={Math.round((sections.filter(s => s.content?.length > 0).length / Math.max(sections.length, 1)) * 100).toString()}
             suffix="%"
             trend="up"
           />
