@@ -8,6 +8,23 @@ export const createHeading = (text: string, level: keyof typeof HeadingLevel = '
   });
 };
 
+export const createParagraph = (text: string) => {
+  return new Paragraph({
+    children: [
+      new TextRun({
+        text,
+        size: 24,
+        font: "Times New Roman"
+      })
+    ],
+    spacing: {
+      line: 360,
+      before: 240,
+      after: 120
+    }
+  });
+};
+
 export const generateTableOfContents = (chapters: { title: string; page: number }[]) => {
   return chapters.map(({ title, page }) => 
     new Paragraph({
@@ -59,7 +76,7 @@ export const generateTitlePage = ({ title, author, date, university, department,
   ];
 };
 
-export const generateChapterContent = (order, title, content, figures = []) => {
+export const generateChapterContent = (order: number, title: string, content: string, figures: any[] = []) => {
   const paragraphs = [];
   
   // Add chapter title
