@@ -40,44 +40,66 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   useThesisRealtime(currentThesisId, thesis, setThesis);
 
   const handleContentChange = (id: string, content: string) => {
+    console.log('handleContentChange fired', {id, content});
     if (!thesis) return;
     
     setThesis(prevThesis => ({
-      ...prevThesis!,
-      frontMatter: prevThesis!.frontMatter.map(section =>
-        section.id === id ? { ...section, content } : section
-      ),
-      chapters: prevThesis!.chapters.map(chapter => ({
-        ...chapter,
-        sections: chapter.sections.map(section =>
-          section.id === id ? { ...section, content } : section
-        )
-      })),
-      backMatter: prevThesis!.backMatter.map(section =>
-        section.id === id ? { ...section, content } : section
-      )
+     ...prevThesis!,
+     frontMatter: prevThesis!.frontMatter.map(section =>
+       section.id === id ? { ...section, content } : section
+     ),
+     chapters: prevThesis!.chapters.map(chapter => ({
+       ...chapter,
+       sections: chapter.sections.map(section =>
+         section.id === id ? { ...section, content } : section
+       )
+     })),
+     backMatter: prevThesis!.backMatter.map(section =>
+       section.id === id ? { ...section, content } : section
+     )
     }));
   };
 
-  const handleTitleChange = (id: string, title: string) => {
-    if (!thesis) return;
+const handleTitleChange = (id: string, title: string) => {
+   console.log('handleTitleChange fired', { id, title });
+  if (!thesis) return;
 
-    setThesis(prevThesis => ({
-      ...prevThesis!,
-      frontMatter: prevThesis!.frontMatter.map(section =>
-        section.id === id ? { ...section, title } : section
-      ),
-      chapters: prevThesis!.chapters.map(chapter => ({
-        ...chapter,
-        sections: chapter.sections.map(section =>
-          section.id === id ? { ...section, title } : section
-        )
-      })),
-      backMatter: prevThesis!.backMatter.map(section =>
-        section.id === id ? { ...section, title } : section
-      )
-    }));
-  };
+ setThesis(prevThesis => ({
+   ...prevThesis!,
+   frontMatter: prevThesis!.frontMatter.map(section =>
+     section.id === id ? { ...section, title } : section
+   ),
+   chapters: prevThesis!.chapters.map(chapter => ({
+     ...chapter,
+     sections: chapter.sections.map(section =>
+       section.id === id ? { ...section, title } : section
+     )
+   })),
+   backMatter: prevThesis!.backMatter.map(section =>
+     section.id === id ? { ...section, title } : section
+   )
+ }));
+};
+
+  // const handleTitleChange = (id: string, title: string) => {
+  //   if (!thesis) return;
+
+  //   setThesis(prevThesis => ({
+  //     ...prevThesis!,
+  //     frontMatter: prevThesis!.frontMatter.map(section =>
+  //       section.id === id ? { ...section, title } : section
+  //     ),
+  //     chapters: prevThesis!.chapters.map(chapter => ({
+  //       ...chapter,
+  //       sections: chapter.sections.map(section =>
+  //         section.id === id ? { ...section, title } : section
+  //       )
+  //     })),
+  //     backMatter: prevThesis!.backMatter.map(section =>
+  //       section.id === id ? { ...section, title } : section
+  //     )
+  //   }));
+  // };
 
   const handleUpdateSectionData = (updatedSection: Section) => {
     if (!thesis) return;
