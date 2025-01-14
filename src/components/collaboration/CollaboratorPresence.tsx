@@ -49,7 +49,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
             console.log('Presence state:', state);
             
             const currentPresence = Object.values(state).flat().map((presence: any) => ({
-              id: presence.user_id,
+              id: `${presence.user_id}-${Date.now()}`, // Ensure unique ID
               user_id: presence.user_id,
               email: presence.email,
               last_seen: presence.online_at
@@ -75,7 +75,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
 
         // Initialize with collaborators from database
         const initialCollaborators = collaborators?.map(collab => ({
-          id: collab.id,
+          id: `${collab.user_id}-${Date.now()}`, // Ensure unique ID
           user_id: collab.user_id,
           email: collab.profiles?.email,
           last_seen: new Date().toISOString()
@@ -107,7 +107,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
       <AnimatePresence>
         {activeCollaborators.map((collaborator) => (
           <motion.div
-            key={collaborator.user_id}
+            key={collaborator.id} // Using the unique ID we created
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
