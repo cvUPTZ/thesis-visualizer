@@ -29,10 +29,10 @@ export const generateThesisDocx = (thesis: Thesis): Document => {
             page: index + 3
           })) || []),
           new Paragraph({ children: [new PageBreak()] }),
-          ...(thesis.chapters?.flatMap(chapter => 
+          ...(thesis.chapters?.flatMap((chapter, index) => 
             generateChapterContent(
-              chapter.order + 1, 
-              chapter.title, 
+              index + 1,
+              chapter.title,
               chapter.content,
               chapter.figures || []
             )
