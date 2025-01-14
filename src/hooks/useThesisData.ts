@@ -1,4 +1,3 @@
-// src/hooks/useThesisData.ts
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Thesis } from '@/types/thesis';
@@ -76,17 +75,17 @@ export const useThesisData = (thesisId: string | undefined) => {
 
         const formattedThesis: Thesis = {
           id: fetchedThesis.id,
-            title: fetchedThesis.title,
-            content: fetchedThesis.content,
-            user_id: fetchedThesis.user_id,
-            created_at: fetchedThesis.created_at,
-            updated_at: fetchedThesis.updated_at,
-            metadata: parsedContent?.metadata || {},
+          title: fetchedThesis.title,
+          content: fetchedThesis.content,
+          user_id: fetchedThesis.user_id,
+          createdAt: fetchedThesis.created_at,
+          updatedAt: fetchedThesis.updated_at,
+          metadata: parsedContent?.metadata || {},
           frontMatter: parsedContent?.frontMatter?.map((section: any) => ({
                 ...section,
                 tasks: section.tasks || [],
             })) || [],
-            chapters: parsedContent?.chapters?.map((chapter: any) => ({
+          chapters: parsedContent?.chapters?.map((chapter: any) => ({
                 ...chapter,
                 tasks: chapter.tasks || [],
                 sections: chapter.sections?.map((section: any) => ({
@@ -94,7 +93,7 @@ export const useThesisData = (thesisId: string | undefined) => {
                   tasks: section.tasks || []
                 })) || []
             })) || [],
-            backMatter: parsedContent?.backMatter || [],
+          backMatter: parsedContent?.backMatter || [],
         };
 
         return formattedThesis;

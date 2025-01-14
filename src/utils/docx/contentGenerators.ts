@@ -7,7 +7,7 @@ import {
   TextRun, 
   TabStopPosition,
   TabStopType,
-    ImageRun,
+  ImageRun,
   WidthType,
   BorderStyle
 } from 'docx';
@@ -21,7 +21,7 @@ export const createHeading = (text: string, level: keyof typeof HeadingLevel, ch
     before: 480,
     after: 240
   },
-    alignment: AlignmentType.CENTER
+  alignment: AlignmentType.CENTER
 });
 
 export const createParagraph = (text: string, options?: Partial<IParagraphOptions>): IParagraphOptions => ({

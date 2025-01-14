@@ -1,5 +1,29 @@
 import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopType, convertInchesToTwip } from 'docx';
 
+export const createHeading = (text: string, level: keyof typeof HeadingLevel = 'HEADING_1'): Paragraph => {
+  return new Paragraph({
+    text,
+    heading: HeadingLevel[level],
+    spacing: { before: 480, after: 240 }
+  });
+};
+
+export const generateTableOfContents = (chapters: { title: string; page: number }[]) => {
+  return chapters.map(({ title, page }) => 
+    new Paragraph({
+      children: [
+        new TextRun({ text: title }),
+        new TextRun({ text: `${page}` })
+      ],
+      tabStops: [{
+        type: TabStopType.RIGHT,
+        position: convertInchesToTwip(6),
+        leader: "dot"
+      }]
+    })
+  );
+};
+
 export const generateTitlePage = ({ title, author, date, university, department, degree }) => {
   return [
     new Paragraph({
@@ -58,35 +82,4 @@ export const generateChapterContent = (order, title, content, figures = []) => {
   }
   
   return paragraphs;
-};
-
-export const generateTableOfContents = (chapters) => {
-  const paragraphs = [];
-  
-  chapters.forEach(({ title, page }) => {
-    paragraphs.push(
-      new Paragraph({
-        children: [
-          new TextRun({ text: title, size: 24 }),
-          new TextRun({ text: `${page}`, size: 24 })
-        ],
-        tabStops: [
-          {
-            type: TabStopType.RIGHT,
-            position: convertInchesToTwip(6),
-            leader: "dot"
-          }
-        ]
-      })
-    );
-  });
-  
-  return paragraphs;
-};
-
-export const createParagraph = (content) => {
-  return new Paragraph({
-    children: [new TextRun({ text: content, size: 24 })],
-    spacing: { before: convertInchesToTwip(0.5) }
-  });
 };
