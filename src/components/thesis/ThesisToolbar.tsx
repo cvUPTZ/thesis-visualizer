@@ -25,12 +25,12 @@ interface ThesisToolbarProps {
   onTogglePreview: () => void;
 }
 
-export const ThesisToolbar = ({
+export const ThesisToolbar: React.FC<ThesisToolbarProps> = ({
   thesisId,
   thesisData,
   showPreview,
   onTogglePreview,
-}: ThesisToolbarProps) => {
+}) => {
   const { toast } = useToast();
   const { userEmail, userRole, handleLogout } = useUser();
   const {
@@ -54,7 +54,7 @@ export const ThesisToolbar = ({
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${thesisData.frontMatter[0]?.title || 'thesis'}_${type}.docx`;
+      link.download = `${thesisData.frontMatter?.[0]?.title || 'thesis'}_${type}.docx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -97,7 +97,7 @@ export const ThesisToolbar = ({
         <CollaboratorSection
           collaborators={collaborators as CollaboratorWithProfile[]}
           thesisId={thesisId}
-          thesisTitle={thesisData.frontMatter[0]?.title || 'Untitled Thesis'}
+          thesisTitle={thesisData.frontMatter?.[0]?.title || 'Untitled Thesis'}
           canManageCollaborators={canManageCollaboratorsProp}
           isAdmin={userProfile?.roles?.name === 'admin'}
         />
