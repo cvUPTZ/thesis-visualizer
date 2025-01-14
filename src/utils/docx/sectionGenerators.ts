@@ -9,9 +9,11 @@ import {
   TableRow,
   TableCell,
   WidthType,
-  BorderStyle
+  BorderStyle,
+  ImageRun,
+  IImageOptions
 } from 'docx';
-import { Chapter, Section } from '@/types/thesis';
+import { Chapter, Section, Figure } from '@/types/thesis';
 
 interface TitlePageOptions {
   title: string;
@@ -60,16 +62,6 @@ export const generateTitlePage = (options: TitlePageOptions): Paragraph[] => {
       children: [
         new TextRun({
           text: `A thesis submitted for the degree of ${options.degree}`,
-          size: 24
-        })
-      ],
-      spacing: { before: convertInchesToTwip(1) },
-      alignment: AlignmentType.CENTER
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `by`,
           size: 24
         })
       ],
@@ -162,7 +154,7 @@ export const generateChapterContent = (
   chapterNumber: number,
   title: string,
   content: string,
-  figures: any[] = []
+  figures: Figure[] = []
 ): Paragraph[] => {
   const paragraphs: Paragraph[] = [
     createHeading(`Chapter ${chapterNumber}`, 'HEADING_1'),
@@ -177,12 +169,30 @@ export const generateChapterContent = (
 
   if (figures && figures.length > 0) {
     figures.forEach(figure => {
-      if (figure.caption) {
-        paragraphs.push(createParagraph(figure.caption, {
-          alignment: AlignmentType.CENTER,
-          spacing: { before: 240, after: 240 }
-        }));
-      }
+      const imageOptions: IImageOptions = {
+        data: Buffer.from(figure.imageUrl.split(',')[1], 'base64'),
+        transformation: {
+          width: figure.dimensions.width,
+          height: figure.dimensions.height
+        },
+        type: 'png',
+        fallback: {
+          width: 400,
+          height: 300
+        }
+      };
+
+      paragraphs.push(
+        new Paragraph({
+          children: [new ImageRun(imageOptions)],
+          alignment: figure.position === 'left' ? AlignmentType.LEFT :
+                    figure.position === 'right' ? AlignmentType.RIGHT :
+                    AlignmentType.CENTER
+        }),
+        createParagraph(`Figure ${figure.number}: ${figure.caption || ''}`, {
+          alignment: AlignmentType.CENTER
+        })
+      );
     });
   }
 
