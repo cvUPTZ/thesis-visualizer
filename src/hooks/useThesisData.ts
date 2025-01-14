@@ -17,9 +17,9 @@ export const useThesisData = (thesisId: string | undefined) => {
   } = useQuery({
     queryKey: ['thesis', thesisId],
     queryFn: async () => {
-        if (!thesisId) {
+      if (!thesisId) {
         console.log('No thesis ID provided');
-          return null;
+        return null;
       }
 
       if (!validateUUID(thesisId)) {
@@ -28,9 +28,9 @@ export const useThesisData = (thesisId: string | undefined) => {
       }
 
       try {
-          console.log('🔍 Fetching thesis with ID:', thesisId);
+        console.log('🔍 Fetching thesis with ID:', thesisId);
 
-           const { data: session } = await supabase.auth.getSession();
+        const { data: session } = await supabase.auth.getSession();
         if (!session?.session?.user) {
           console.error('❌ No authenticated user found');
           throw new Error('Authentication required');
@@ -38,7 +38,7 @@ export const useThesisData = (thesisId: string | undefined) => {
 
         console.log('👤 User authenticated:', session.session.user.email);
 
-           const { data: fetchedThesis, error: fetchError } = await supabase
+        const { data: fetchedThesis, error: fetchError } = await supabase
           .from('theses')
           .select(`
             *,
@@ -58,9 +58,9 @@ export const useThesisData = (thesisId: string | undefined) => {
           throw new Error(fetchError.message);
         }
 
-          if (!fetchedThesis) {
+        if (!fetchedThesis) {
           console.log('⚠️ No thesis found with ID:', thesisId);
-            return null;
+          return null;
         }
 
         console.log('✅ Thesis data loaded:', {
@@ -71,28 +71,28 @@ export const useThesisData = (thesisId: string | undefined) => {
 
         const parsedContent = typeof fetchedThesis.content === 'string'
           ? JSON.parse(fetchedThesis.content)
-            : fetchedThesis.content;
+          : fetchedThesis.content;
 
         const formattedThesis: Thesis = {
           id: fetchedThesis.id,
           title: fetchedThesis.title,
           content: fetchedThesis.content,
           user_id: fetchedThesis.user_id,
-          createdAt: fetchedThesis.created_at,
-          updatedAt: fetchedThesis.updated_at,
+          createdAt: new Date(fetchedThesis.created_at),
+          updatedAt: new Date(fetchedThesis.updated_at),
           metadata: parsedContent?.metadata || {},
           frontMatter: parsedContent?.frontMatter?.map((section: any) => ({
-                ...section,
-                tasks: section.tasks || [],
-            })) || [],
+            ...section,
+            tasks: section.tasks || [],
+          })) || [],
           chapters: parsedContent?.chapters?.map((chapter: any) => ({
-                ...chapter,
-                tasks: chapter.tasks || [],
-                sections: chapter.sections?.map((section: any) => ({
-                  ...section,
-                  tasks: section.tasks || []
-                })) || []
-            })) || [],
+            ...chapter,
+            tasks: chapter.tasks || [],
+            sections: chapter.sections?.map((section: any) => ({
+              ...section,
+              tasks: section.tasks || []
+            })) || []
+          })) || [],
           backMatter: parsedContent?.backMatter || [],
         };
 
@@ -109,12 +109,12 @@ export const useThesisData = (thesisId: string | undefined) => {
     },
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
-      retry: 2,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   const setThesis = (newThesis: Thesis | ((prev: Thesis | null) => Thesis | null)) => {
-        queryClient.setQueryData(['thesis', thesisId], newThesis);
+    queryClient.setQueryData(['thesis', thesisId], newThesis);
   };
 
   return { thesis, setThesis, isLoading, error };
