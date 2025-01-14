@@ -37,6 +37,11 @@ export const MarkdownEditor: React.FC<EditorProps> = ({
 
   console.log('MarkdownEditor rendering with value length:', value?.length);
 
+  const handleChange = (val: string | undefined) => {
+    console.log('Editor value changed:', val);
+    onChange(val || '');
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -46,7 +51,7 @@ export const MarkdownEditor: React.FC<EditorProps> = ({
       <Card className="overflow-hidden bg-white/50 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-xl" data-color-mode="light">
         <MDEditor
           value={value}
-          onChange={(val) => onChange(val || '')}
+          onChange={handleChange}
           preview="edit"
           height={400}
           className="border-none bg-transparent"
@@ -55,6 +60,7 @@ export const MarkdownEditor: React.FC<EditorProps> = ({
           textareaProps={{
             placeholder,
             className: "focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-md p-4 bg-editor-bg/50",
+            "data-testid": "markdown-editor-textarea"
           }}
           previewOptions={{
             className: "prose prose-sm max-w-none prose-headings:font-serif prose-headings:text-editor-text prose-p:text-editor-text p-4",
