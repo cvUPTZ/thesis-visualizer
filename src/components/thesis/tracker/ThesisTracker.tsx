@@ -1,7 +1,7 @@
 import React from 'react';
-import { ThesisSaveButton } from '../ThesisSaveButton';
-import { Thesis } from '@/types/thesis';
+import { ThesisSaveButton } from '@/components/thesis/ThesisSaveButton';
 import { useToast } from '@/hooks/use-toast';
+import { Thesis } from '@/types/thesis';
 
 interface ThesisTrackerProps {
   thesisId: string;
@@ -33,7 +33,7 @@ export const ThesisTracker: React.FC<ThesisTrackerProps> = ({
 
   return (
     <div className="flex items-center gap-4">
-      <ThesisSaveButton thesisId={thesisId} thesisData={null} onSave={handleSave} />
+      <ThesisSaveButton thesisId={thesisId} thesisData={null} />
     </div>
   );
 };
