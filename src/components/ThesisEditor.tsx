@@ -1,3 +1,5 @@
+// File: src/components/ThesisEditor.tsx
+
 import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
 import { Chapter, Section, Thesis } from '@/types/thesis';
@@ -80,26 +82,6 @@ const handleTitleChange = (id: string, title: string) => {
    )
  }));
 };
-
-  // const handleTitleChange = (id: string, title: string) => {
-  //   if (!thesis) return;
-
-  //   setThesis(prevThesis => ({
-  //     ...prevThesis!,
-  //     frontMatter: prevThesis!.frontMatter.map(section =>
-  //       section.id === id ? { ...section, title } : section
-  //     ),
-  //     chapters: prevThesis!.chapters.map(chapter => ({
-  //       ...chapter,
-  //       sections: chapter.sections.map(section =>
-  //         section.id === id ? { ...section, title } : section
-  //       )
-  //     })),
-  //     backMatter: prevThesis!.backMatter.map(section =>
-  //       section.id === id ? { ...section, title } : section
-  //     )
-  //   }));
-  // };
 
   const handleUpdateSectionData = (updatedSection: Section) => {
     if (!thesis) return;
