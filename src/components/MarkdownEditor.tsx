@@ -1,4 +1,3 @@
-// components/MarkdownEditor.tsx
 import React, { useCallback, useMemo, useRef, useEffect, useState } from 'react';
 import MDEditor, { commands, type ICommand } from '@uiw/react-md-editor';
 import { debounce } from 'lodash';
@@ -147,7 +146,6 @@ export const MarkdownEditor = React.memo(({
     if (!val) return '';
     
     try {
-      // Handle UTF-8 encoding and potential surrogate pairs
       const encoded = new TextEncoder().encode(val);
       const decoded = new TextDecoder('utf-8', { fatal: true }).decode(encoded);
       setHasRenderError(false);
@@ -155,7 +153,6 @@ export const MarkdownEditor = React.memo(({
     } catch (error) {
       console.error('Character rendering error:', error);
       setHasRenderError(true);
-      // Return sanitized version of the string
       return val.replace(/[\uD800-\uDFFF]/g, '');
     }
   }, []);
@@ -215,31 +212,17 @@ export const MarkdownEditor = React.memo(({
   const editorProps = useMemo(() => ({
     value,
     onChange: debouncedOnChange,
-    preview: readOnly ? "preview" as const : "edit" as const,
+    preview: readOnly ? "preview" as const : "live" as const,
     height: minHeight,
     className: `border-none bg-transparent ${className}`,
     hideToolbar: readOnly,
     commands: customCommands,
     visibleDragbar: false,
-    renderTextarea: true,
     textareaProps: {
       placeholder,
       className: "focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-md p-4 bg-editor-bg/50",
       onCompositionStart: handleCompositionStart,
       onCompositionEnd: handleCompositionEnd,
-      onBeforeInput: (e: InputEvent) => {
-        if (isComposing) return;
-        
-        const input = e.data;
-        if (input) {
-          try {
-            new TextEncoder().encode(input);
-          } catch (error) {
-            e.preventDefault();
-            setHasRenderError(true);
-          }
-        }
-      },
       style: {
         minHeight: `${minHeight}px`,
         maxHeight: `${maxHeight}px`,
