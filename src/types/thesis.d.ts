@@ -61,6 +61,9 @@ export interface CommentThread {
   author: string;
   createdAt: string;
   replies: CommentThread[];
+  reviewer_id?: string;
+  text?: string;
+  comment?: string;
 }
 
 export type ThesisSectionType =
@@ -152,12 +155,6 @@ export interface Figure {
   dimensions: {
     width: number;
     height: number;
-  };
-  position: 'left' | 'center' | 'right';
-  border?: {
-    style: 'single' | 'double' | 'thick' | 'none';
-    size: number;
-    color: string;
   };
 }
 
