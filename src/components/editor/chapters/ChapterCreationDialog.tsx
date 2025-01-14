@@ -1,57 +1,46 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { Chapter, Figure } from '@/types/thesis';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Figure } from '@/types/thesis';
+import { Button } from '@/components/ui/button';
+import { v4 as uuidv4 } from 'uuid';
 
 interface ChapterCreationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onChapterCreate: (chapter: any) => void;
+  onChapterCreate: (chapter: Chapter) => void;
 }
 
 export const ChapterCreationDialog: React.FC<ChapterCreationDialogProps> = ({
   open,
   onOpenChange,
-  onChapterCreate,
+  onChapterCreate
 }) => {
-  const [title, setTitle] = useState('');
-  const [figures, setFigures] = useState<Figure[]>([]);
+  const [title, setTitle] = React.useState('');
 
-  const handleAddFigure = (file: File) => {
+  const handleCreate = () => {
     const newFigure: Figure = {
-      id: Date.now().toString(),
-      imageUrl: URL.createObjectURL(file),
+      id: uuidv4(),
+      imageUrl: '',
       caption: '',
       altText: '',
       title: '',
-      number: figures.length + 1 || 1,
-      dimensions: {
-        width: 0,
-        height: 0
-      }
+      number: 1,
+      dimensions: { width: 0, height: 0 },
+      position: 'center'
     };
-    
-    setFigures(prevFigures => [...prevFigures, newFigure]);
-  };
 
-  const handleCreateChapter = () => {
-    const newChapter = {
-      id: Date.now().toString(),
-      title,
-      figures,
+    const newChapter: Chapter = {
+      id: uuidv4(),
+      title: title || 'Untitled Chapter',
+      content: '',
+      order: 1,
       sections: [],
-      order: 1
+      figures: [newFigure]
     };
+
     onChapterCreate(newChapter);
     setTitle('');
-    setFigures([]);
     onOpenChange(false);
   };
 
@@ -60,32 +49,19 @@ export const ChapterCreationDialog: React.FC<ChapterCreationDialogProps> = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Chapter</DialogTitle>
-          <DialogDescription>
-            <div className="space-y-4">
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Chapter Title"
-                className="w-full"
-              />
-              <div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    if (e.target.files) {
-                      Array.from(e.target.files).forEach(handleAddFigure);
-                    }
-                  }}
-                  className="w-full"
-                />
-              </div>
-              <Button onClick={handleCreateChapter} className="w-full">
-                Create Chapter
-              </Button>
-            </div>
-          </DialogDescription>
         </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Input
+              placeholder="Chapter Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+          <Button onClick={handleCreate} className="w-full">
+            Create Chapter
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

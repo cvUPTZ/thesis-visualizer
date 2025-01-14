@@ -1,7 +1,7 @@
 import React from 'react';
 import { Section } from '@/types/thesis';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
-import { TaskItem } from '@/components/ui/TaskInput'; // Import TaskItem
+import { TaskItem } from '@/components/ui/TaskInput';
 import { Button } from '../ui/button';
 import { PlusCircle } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
@@ -30,7 +30,10 @@ export const SectionContent: React.FC<SectionContentProps> = ({
       status: 'pending' as const,
       priority: 'medium' as const
     };
-    onUpdateSectionData({ ...section, tasks: [...(section.tasks || []), newTask] });
+    onUpdateSectionData({ 
+      ...section, 
+      tasks: [...(section.tasks || []), newTask] 
+    });
   };
 
   const handleUpdateTaskStatus = (id: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => {
@@ -63,6 +66,7 @@ export const SectionContent: React.FC<SectionContentProps> = ({
               id={task.id}
               description={task.description}
               status={task.status}
+              priority={task.priority}
               onToggleStatus={(status) => handleUpdateTaskStatus(task.id, status)}
               onChangeDescription={(newDescription) => handleTaskDescription(task.id, newDescription)}
             />
@@ -79,7 +83,7 @@ export const SectionContent: React.FC<SectionContentProps> = ({
         </div>
       )}
       <MarkdownEditor
-        key={section.id} // Add key to force remount
+        key={section.id}
         value={section.content}
         onChange={onContentChange}
         placeholder="Start writing..."

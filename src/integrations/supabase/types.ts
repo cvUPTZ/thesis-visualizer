@@ -250,6 +250,51 @@ export type Database = {
           },
         ]
       }
+      footnotes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          number: number
+          section_id: string
+          thesis_id: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          number: number
+          section_id: string
+          thesis_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          number?: number
+          section_id?: string
+          thesis_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "footnotes_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "supervisor_theses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "footnotes_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "theses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
