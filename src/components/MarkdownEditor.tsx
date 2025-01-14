@@ -1,25 +1,23 @@
-import React from 'react';
+// MarkdownEditor.tsx
+import React, { useCallback, useMemo } from 'react';
 import MDEditor, { commands } from '@uiw/react-md-editor';
-import { EditorProps } from '@/types/components';
+import { EditorProps, Section } from '@/types/components';
 import { Card } from './ui/card';
 import { motion } from 'framer-motion';
+import debounce from 'lodash/debounce';
 
-export const MarkdownEditor: React.FC<EditorProps> = ({ 
+export const MarkdownEditor: React.FC<EditorProps> = React.memo(({ 
   value, 
   onChange, 
   placeholder 
 }) => {
-  const headingCommands = [
+  const customCommands = useMemo(() => [
     commands.title1,
     commands.title2,
     commands.title3,
     commands.title4,
     commands.title5,
     commands.title6,
-  ];
-
-  const customCommands = [
-    ...headingCommands,
     commands.divider,
     commands.bold,
     commands.italic,
@@ -33,22 +31,26 @@ export const MarkdownEditor: React.FC<EditorProps> = ({
     commands.unorderedListCommand,
     commands.orderedListCommand,
     commands.checkedListCommand,
-  ];
+  ], []);
 
-  console.log('MarkdownEditor rendering with value length:', value?.length);
-
-  const handleChange = (val: string | undefined) => {
-    console.log('Editor value changed:', val);
-    onChange(val || '');
-  };
+  const handleChange = useCallback(
+    debounce((val: string | undefined) => {
+      onChange(val || '');
+    }, 100),
+    [onChange]
+  );
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      layout="position"
     >
-      <Card className="overflow-hidden bg-white/50 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-xl" data-color-mode="light">
+      <Card 
+        className="overflow-hidden bg-white/50 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-xl" 
+        data-color-mode="light"
+      >
         <MDEditor
           value={value}
           onChange={handleChange}
@@ -64,20 +66,39 @@ export const MarkdownEditor: React.FC<EditorProps> = ({
           }}
           previewOptions={{
             className: "prose prose-sm max-w-none prose-headings:font-serif prose-headings:text-editor-text prose-p:text-editor-text p-4",
-            skipHtml: false,
-            rehypeRewrite: (node: any) => {
-              if (node.type === 'element' && node.tagName === 'a') {
-                node.properties = {
-                  ...node.properties,
-                  target: '_blank',
-                  rel: 'noopener noreferrer',
-                  className: 'text-primary hover:text-primary/80 transition-colors duration-200'
-                };
-              }
-            }
+            skipHtml: true,
+            lazy: true
           }}
         />
       </Card>
     </motion.div>
+  );
+});
+
+// Example usage in SectionContent component
+export const SectionContent: React.FC<SectionContentProps> = ({
+  section,
+  isActive,
+  onContentChange,
+  onUpdateSectionData
+}) => {
+  const handleEditorChange = useCallback((content: string) => {
+    onContentChange(content);
+    onUpdateSectionData({
+      ...section,
+      content
+    });
+  }, [section, onContentChange, onUpdateSectionData]);
+
+  if (!isActive) return null;
+
+  return (
+    <div className="w-full">
+      <MarkdownEditor
+        value={section.content}
+        onChange={handleEditorChange}
+        placeholder="Start writing your section content..."
+      />
+    </div>
   );
 };
