@@ -60,10 +60,14 @@ export interface CommentThread {
   content: string;
   author: string;
   createdAt: string;
-  replies: CommentThread[];
   reviewer_id?: string;
   text?: string;
-  comment?: string;
+  comment?: {
+    id: string;
+    content: string;
+    reviewer_id: string;
+  };
+  replies: CommentThread[];
 }
 
 export type ThesisSectionType =
