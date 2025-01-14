@@ -1,4 +1,4 @@
-import { Section, Reference, Citation } from './thesis';
+import { Section, Reference, Citation, Task, Chapter } from './thesis';
 
 export interface SectionProps {
   section: Section;
@@ -13,6 +13,12 @@ export interface EditorProps {
   placeholder?: string;
 }
 
+export interface CitationProps {
+  citation: Citation;
+  onUpdate: (citation: Citation) => void;
+  onDelete: (id: string) => void;
+}
+
 export interface ReferenceManagerProps {
   items: Reference[];
   onAdd: (reference: Reference) => void;
@@ -20,29 +26,10 @@ export interface ReferenceManagerProps {
   onUpdate: (reference: Reference) => void;
 }
 
-export interface CitationManagerProps {
-  citations: Citation[];
-  onCitationCreate: (citation: Citation) => void;
-  onCitationUpdate: (citation: Citation) => void;
-  onCitationDelete: (citation: Citation) => void;
-  thesisId: string;
-}
-
-export interface Message {
-  id: string;
-  content: string;
-  sender_id: string;
-  thesis_id: string;
-  created_at: string;
-}
-
-export interface Notification {
-  id: string;
-  message: string;
-  read: boolean;
-  thesis_id: string;
-  user_id: string;
-  created_at: string;
+export interface ReferenceProps {
+  reference: Reference;
+  onUpdate: (reference: Reference) => void;
+  onDelete: (id: string) => void;
 }
 
 export interface SectionContentProps {
@@ -50,4 +37,38 @@ export interface SectionContentProps {
   isActive: boolean;
   onContentChange: (content: string) => void;
   onUpdateSectionData: (section: Section) => void;
+}
+
+export interface TaskItemProps {
+  id: string;
+  description: string;
+  status: Task['status'];
+  priority: Task['priority'];
+  onToggleStatus: (status: Task['status']) => void;
+  onChangeDescription: (description: string) => void;
+}
+
+export interface ThesisContentProps {
+  frontMatter: Section[];
+  chapters: Chapter[];
+  backMatter: Section[];
+  activeSection: string;
+  onContentChange: (id: string, content: string) => void;
+  onTitleChange: (id: string, title: string) => void;
+  thesisId: string;
+  onUpdateChapter: (chapter: Chapter) => void;
+  onAddChapter: (chapter: Chapter) => void;
+}
+
+export interface ThesisEditorContentProps extends ThesisContentProps {}
+
+export interface ThesisSidebarProps {
+  sections: Section[];
+  activeSection: string;
+  onSectionSelect: (id: string) => void;
+  thesisId: string;
+  onUpdateSectionData: (section: Section) => void;
+  onAddSectionTask: (sectionId: string) => void;
+  onUpdateSectionTask: (sectionId: string, taskId: string, status: Task['status']) => void;
+  onChangeSectionTaskDescription: (sectionId: string, taskId: string, description: string) => void;
 }
