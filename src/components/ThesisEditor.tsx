@@ -23,7 +23,7 @@ interface ThesisEditorProps {
   thesisId?: string;
 }
 
-export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesisId }) => {
+export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEditorProps) => {
   const { thesisId: routeThesisId } = useParams();
   const currentThesisId = propsThesisId || routeThesisId;
   const { toast } = useToast();
@@ -39,180 +39,104 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   useThesisInitialization(thesis);
   useThesisRealtime(currentThesisId, thesis, setThesis);
 
-const handleContentChange = (id: string, content: string) => {
-console.log('handleContentChange fired', {id, content});
-if (!thesis) return;
+  const handleContentChange = (id: string, content: string) => {
+    console.log('handleContentChange fired', {id, content});
+    if (!thesis) return;
 
-setThesis(prevThesis => ({
- ...prevThesis!,
- frontMatter: prevThesis!.frontMatter.map(section =>
-   section.id === id ? { ...section, content } : section
- ),
- chapters: prevThesis!.chapters.map(chapter => ({
-   ...chapter,
-   sections: chapter.sections.map(section =>
-     section.id === id ? { ...section, content } : section
-   )
- })),
- backMatter: prevThesis!.backMatter.map(section =>
-   section.id === id ? { ...section, content } : section
- )
-}));
-};
+    setThesis(prevThesis => {
+      if (!prevThesis) return prevThesis;
+      return {
+        ...prevThesis,
+        frontMatter: (prevThesis.frontMatter || []).map(section =>
+          section.id === id ? { ...section, content } : section
+        ),
+        chapters: (prevThesis.chapters || []).map(chapter => ({
+          ...chapter,
+          sections: (chapter.sections || []).map(section =>
+            section.id === id ? { ...section, content } : section
+          )
+        })),
+        backMatter: (prevThesis.backMatter || []).map(section =>
+          section.id === id ? { ...section, content } : section
+        )
+      };
+    });
+  };
 
-const handleTitleChange = (id: string, title: string) => {
-console.log('handleTitleChange fired', { id, title });
-if (!thesis) return;
+  const handleTitleChange = (id: string, title: string) => {
+    console.log('handleTitleChange fired', { id, title });
+    if (!thesis) return;
 
-setThesis(prevThesis => ({
-...prevThesis!,
-frontMatter: prevThesis!.frontMatter.map(section =>
-section.id === id ? { ...section, title } : section
-),
-chapters: prevThesis!.chapters.map(chapter => ({
-...chapter,
-sections: chapter.sections.map(section =>
-section.id === id ? { ...section, title } : section
-)
-})),
-backMatter: prevThesis!.backMatter.map(section =>
-section.id === id ? { ...section, title } : section
-)
-}));
-};
+    setThesis(prevThesis => {
+      if (!prevThesis) return prevThesis;
+      return {
+        ...prevThesis,
+        frontMatter: (prevThesis.frontMatter || []).map(section =>
+          section.id === id ? { ...section, title } : section
+        ),
+        chapters: (prevThesis.chapters || []).map(chapter => ({
+          ...chapter,
+          sections: (chapter.sections || []).map(section =>
+            section.id === id ? { ...section, title } : section
+          )
+        })),
+        backMatter: (prevThesis.backMatter || []).map(section =>
+          section.id === id ? { ...section, title } : section
+        )
+      };
+    });
+  };
 
-// const handleTitleChange = (id: string, title: string) => {
-//   if (!thesis) return;
+  const handleUpdateSectionData = (updatedSection: Section) => {
+    if (!thesis) return;
+    setThesis(prevThesis => {
+      if (!prevThesis) return prevThesis;
+      return {
+        ...prevThesis,
+        frontMatter: (prevThesis.frontMatter || []).map(section =>
+          section.id === updatedSection.id ? updatedSection : section
+        ),
+        chapters: (prevThesis.chapters || []).map(chapter => ({
+          ...chapter,
+          sections: (chapter.sections || []).map(section =>
+            section.id === updatedSection.id ? updatedSection : section
+          )
+        })),
+        backMatter: (prevThesis.backMatter || []).map(section =>
+          section.id === updatedSection.id ? updatedSection : section
+        )
+      };
+    });
+  };
 
-//   setThesis(prevThesis => ({
-//     ...prevThesis!,
-//     frontMatter: prevThesis!.frontMatter.map(section =>
-//       section.id === id ? { ...section, title } : section
-//     ),
-//     chapters: prevThesis!.chapters.map(chapter => ({
-//       ...chapter,
-//       sections: chapter.sections.map(section =>
-//         section.id === id ? { ...section, title } : section
-//       )
-//     })),
-//     backMatter: prevThesis!.backMatter.map(section =>
-//       section.id === id ? { ...section, title } : section
-//     )
-//   }));
-// };
+  const handleAddSectionTask = (sectionId: string) => {
+    if (!thesis) return;
+    const newTask = {
+      id: uuidv4(),
+      description: 'New Task',
+      status: 'pending' as const,
+      priority: 'medium' as const
+    };
 
-const handleUpdateSectionData = (updatedSection: Section) => {
-if (!thesis) return;
-setThesis(prevThesis => ({
-...prevThesis!,
-frontMatter: prevThesis!.frontMatter.map(section =>
-section.id === updatedSection.id ? updatedSection : section
-),
-chapters: prevThesis!.chapters.map(chapter => ({
-...chapter,
-sections: chapter.sections.map(section =>
-section.id === updatedSection.id ? updatedSection : section
-)
-})),
-backMatter: prevThesis!.backMatter.map(section =>
-section.id === updatedSection.id ? updatedSection : section
-)
-}));
-};
-
-const handleAddSectionTask = (sectionId: string) => {
-if (!thesis) return;
-const newTask = {
-id: uuidv4(),
-description: 'New Task',
-status: 'pending' as const,
-priority: 'medium' as const
-};
-
-setThesis(prevThesis => ({
-  ...prevThesis!,
-  frontMatter: prevThesis!.frontMatter.map(section =>
-    section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
-  ),
-  chapters: prevThesis!.chapters.map(chapter => ({
-    ...chapter,
-    sections: chapter.sections.map(section =>
-      section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
-    )
-  })),
-  backMatter: prevThesis!.backMatter.map(section =>
-    section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
-  )
-}));
-};
-
-const handleUpdateSectionTask = (sectionId: string, taskId: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => {
-if (!thesis) return;
-setThesis(prevThesis => ({
-...prevThesis!,
-frontMatter: prevThesis!.frontMatter.map(section =>
-section.id === sectionId ? {
-...section,
-tasks: section.tasks.map(task =>
-task.id === taskId ? { ...task, status } : task
-)
-} : section
-),
-chapters: prevThesis!.chapters.map(chapter => ({
-...chapter,
-sections: chapter.sections.map(section =>
-section.id === sectionId ? {
-...section,
-tasks: section.tasks.map(task =>
-task.id === taskId ? { ...task, status } : task
-)
-} : section
-)
-})),
-backMatter: prevThesis!.backMatter.map(section =>
-section.id === sectionId ? {
-...section,
-tasks: section.tasks.map(task =>
-task.id === taskId ? { ...task, status } : task
-)
-} : section
-)
-}));
-};
-
-const handleChangeSectionTaskDescription = (sectionId: string, taskId: string, newDescription: string) => {
-if (!thesis) return;
-setThesis(prevThesis => ({
-...prevThesis!,
-frontMatter: prevThesis!.frontMatter.map(section =>
-section.id === sectionId ? {
-...section,
-tasks: section.tasks.map(task =>
-task.id === taskId ? { ...task, description: newDescription } : task
-)
-} : section
-),
-chapters: prevThesis!.chapters.map(chapter => ({
-...chapter,
-sections: chapter.sections.map(section =>
-section.id === sectionId ? {
-...section,
-tasks: section.tasks.map(task =>
-task.id === taskId ? { ...task, description: newDescription } : task
-)
-} : section
-)
-})),
-backMatter: prevThesis!.backMatter.map(section =>
-section.id === sectionId ? {
-...section,
-tasks: section.tasks.map(task =>
-task.id === taskId ? { ...task, description: newDescription } : task
-)
-} : section
-)
-}));
-};
+    setThesis(prevThesis => {
+      if (!prevThesis) return prevThesis;
+      return {
+        ...prevThesis,
+        frontMatter: (prevThesis.frontMatter || []).map(section =>
+          section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
+        ),
+        chapters: (prevThesis.chapters || []).map(chapter => ({
+          ...chapter,
+          sections: (chapter.sections || []).map(section =>
+            section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
+          )
+        })),
+        backMatter: (prevThesis.backMatter || []).map(section =>
+          section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
+        )
+      };
+    });
+  };
 
   const calculateProgress = () => {
     if (!thesis) return 0;
@@ -285,17 +209,37 @@ task.id === taskId ? { ...task, description: newDescription } : task
     <div className="min-h-screen bg-background flex">
       <ThesisSidebar
         sections={[
-          ...(Array.isArray(thesis?.frontMatter) ? thesis.frontMatter : []),
-          ...(Array.isArray(thesis?.chapters) ? thesis.chapters.flatMap(chapter => chapter.sections || []) : []),
-          ...(Array.isArray(thesis?.backMatter) ? thesis.backMatter : [])
+          ...(thesis?.frontMatter || []),
+          ...(thesis?.chapters || []).flatMap(chapter => chapter.sections || []),
+          ...(thesis?.backMatter || [])
         ]}
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
         thesisId={currentThesisId!}
         onUpdateSectionData={handleUpdateSectionData}
         onAddSectionTask={handleAddSectionTask}
-        onUpdateSectionTask={handleUpdateSectionTask}
-        onChangeSectionTaskDescription={handleChangeSectionTaskDescription}
+        onUpdateSectionTask={(sectionId, taskId, status) => {
+          if (!thesis) return;
+          handleUpdateSectionData({
+            ...thesis.frontMatter.find(s => s.id === sectionId) || 
+            thesis.chapters.flatMap(c => c.sections).find(s => s.id === sectionId) ||
+            thesis.backMatter.find(s => s.id === sectionId) || {} as Section,
+            tasks: (thesis.frontMatter.find(s => s.id === sectionId)?.tasks || []).map(t =>
+              t.id === taskId ? { ...t, status } : t
+            )
+          });
+        }}
+        onChangeSectionTaskDescription={(sectionId, taskId, description) => {
+          if (!thesis) return;
+          handleUpdateSectionData({
+            ...thesis.frontMatter.find(s => s.id === sectionId) || 
+            thesis.chapters.flatMap(c => c.sections).find(s => s.id === sectionId) ||
+            thesis.backMatter.find(s => s.id === sectionId) || {} as Section,
+            tasks: (thesis.frontMatter.find(s => s.id === sectionId)?.tasks || []).map(t =>
+              t.id === taskId ? { ...t, description } : t
+            )
+          });
+        }}
       />
 
       <div className="flex-1 flex flex-col">
@@ -363,4 +307,6 @@ task.id === taskId ? { ...task, description: newDescription } : task
       </Collapsible>
     </div>
   );
-};
+});
+
+ThesisEditor.displayName = 'ThesisEditor';
