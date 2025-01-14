@@ -1,10 +1,9 @@
-// components/ThesisEditorContent.tsx
 import React, { useCallback, useMemo } from 'react';
-import { Section, Chapter } from '@/types/thesis';
-import { SectionEditor } from './SectionEditor';
-import { ChapterManager } from './ChapterManager';
-import { ChatMessages } from './collaboration/ChatMessages';
+import { SectionEditor } from '@/components/SectionEditor';
+import { ChapterManager } from '@/components/ChapterManager';
+import { ChatMessages } from '@/components/collaboration/ChatMessages';
 import { useThrottledState } from '@/hooks/useThrottledState';
+import { Section, Chapter, Task } from '@/types/thesis';
 
 interface ThesisEditorContentProps {
   frontMatter: Section[];
@@ -17,8 +16,8 @@ interface ThesisEditorContentProps {
   onAddChapter: (chapter: Chapter) => void;
   onUpdateSectionData: (section: Section) => void;
   onAddSectionTask: (sectionId: string) => void;
-  onUpdateSectionTask: (sectionId: string, taskId: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => void;
-  onChangeSectionTaskDescription: (sectionId: string, taskId: string, newDescription: string) => void;
+  onUpdateSectionTask: (sectionId: string, taskId: string, status: Task['status']) => void;
+  onChangeSectionTaskDescription: (sectionId: string, taskId: string, description: string) => void;
 }
 
 export const ThesisEditorContent = React.memo(({
@@ -31,7 +30,9 @@ export const ThesisEditorContent = React.memo(({
   onUpdateChapter,
   onAddChapter,
   onUpdateSectionData,
-  onAddSectionTask
+  onAddSectionTask,
+  onUpdateSectionTask,
+  onChangeSectionTaskDescription
 }: ThesisEditorContentProps) => {
   const [localActiveSection, setLocalActiveSection] = useThrottledState<string>(activeSection);
 
@@ -45,9 +46,13 @@ export const ThesisEditorContent = React.memo(({
         section={section}
         onTitleChange={onTitleChange}
         onContentChange={onContentChange}
+        onUpdateSectionData={onUpdateSectionData}
+        onAddSectionTask={onAddSectionTask}
+        onUpdateSectionTask={onUpdateSectionTask}
+        onChangeSectionTaskDescription={onChangeSectionTaskDescription}
       />
     );
-  }, [localActiveSection, onTitleChange, onContentChange]);
+  }, [localActiveSection, onTitleChange, onContentChange, onUpdateSectionData, onAddSectionTask, onUpdateSectionTask, onChangeSectionTaskDescription]);
 
   const activeContent = useMemo(() => {
     return [
