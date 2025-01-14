@@ -215,7 +215,7 @@ export const MarkdownEditor = React.memo(({
   const editorProps = useMemo(() => ({
     value,
     onChange: debouncedOnChange,
-    preview: readOnly ? "preview" : "edit" as const,
+    preview: readOnly ? "preview" as const : "edit" as const,
     height: minHeight,
     className: `border-none bg-transparent ${className}`,
     hideToolbar: readOnly,

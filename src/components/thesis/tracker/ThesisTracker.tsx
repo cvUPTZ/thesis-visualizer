@@ -1,33 +1,39 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { ThesisSaveButton } from '../ThesisSaveButton';
 import { Thesis } from '@/types/thesis';
-import { useThesis } from '@/hooks/useThesis';
-import { useThesisRealtime } from '@/hooks/useThesisRealtime';
-import { ThesisSaveButton } from '../thesis/ThesisSaveButton';
+import { useToast } from '@/hooks/use-toast';
 
 interface ThesisTrackerProps {
   thesisId: string;
+  onSave?: (thesis: Thesis) => void;
 }
 
-export const ThesisTracker: React.FC<ThesisTrackerProps> = ({ thesisId }) => {
-  const { thesis, loading, error } = useThesis(thesisId);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+export const ThesisTracker: React.FC<ThesisTrackerProps> = ({
+  thesisId,
+  onSave
+}) => {
+  const { toast } = useToast();
 
-  useThesisRealtime(thesisId, thesis, setLastUpdate);
-
-  useEffect(() => {
-    if (thesis) {
-      setLastUpdate(thesis.updatedAt);
+  const handleSave = async (thesis: Thesis) => {
+    try {
+      onSave?.(thesis);
+      toast({
+        title: "Success",
+        description: "Thesis saved successfully",
+      });
+    } catch (error) {
+      console.error('Error saving thesis:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save thesis",
+        variant: "destructive",
+      });
     }
-  }, [thesis]);
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error loading thesis: {error.message}</div>;
+  };
 
   return (
-    <div>
-      <h2 className="text-lg font-bold">Thesis Tracker</h2>
-      <p>Last updated: {lastUpdate ? lastUpdate.toLocaleString() : 'Never'}</p>
-      <ThesisSaveButton thesisId={thesisId} thesisData={thesis} />
+    <div className="flex items-center gap-4">
+      <ThesisSaveButton thesisId={thesisId} thesisData={null} onSave={handleSave} />
     </div>
   );
 };
