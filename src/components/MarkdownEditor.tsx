@@ -159,10 +159,12 @@ export const MarkdownEditor = React.memo(({
 
   const debouncedOnChange = useMemo(
     () => debounce((val: string) => {
-      const processedValue = handleCharacterRendering(val);
-      onChange(processedValue);
+      if (!isComposing) {
+        const processedValue = handleCharacterRendering(val);
+        onChange(processedValue);
+      }
     }, 150),
-    [onChange, handleCharacterRendering]
+    [onChange, handleCharacterRendering, isComposing]
   );
 
   useEffect(() => {
@@ -170,6 +172,22 @@ export const MarkdownEditor = React.memo(({
       debouncedOnChange.cancel();
     };
   }, [debouncedOnChange]);
+
+  const handleCompositionStart = useCallback(() => {
+    setIsComposing(true);
+  }, []);
+
+  const handleCompositionEnd = useCallback((e: React.CompositionEvent<HTMLTextAreaElement>) => {
+    setIsComposing(false);
+    // Trigger onChange manually after composition ends
+    debouncedOnChange(e.currentTarget.value);
+  }, [debouncedOnChange]);
+
+  const handleDirectInput = useCallback((value?: string) => {
+    if (!isComposing && value !== undefined) {
+      debouncedOnChange(value);
+    }
+  }, [debouncedOnChange, isComposing]);
 
   const customCommands = useMemo(() => {
     if (readOnly) return [];
@@ -192,26 +210,18 @@ export const MarkdownEditor = React.memo(({
 
     const thesisCommands = createThesisCommands({
       value,
-      onChange,
+      onChange: handleDirectInput,
       onInsertFigure,
       onInsertTable,
       onInsertCitation
     });
 
     return [...baseCommands, commands.divider, ...thesisCommands];
-  }, [value, onChange, onInsertFigure, onInsertTable, onInsertCitation, readOnly]);
-
-  const handleCompositionStart = useCallback(() => {
-    setIsComposing(true);
-  }, []);
-
-  const handleCompositionEnd = useCallback(() => {
-    setIsComposing(false);
-  }, []);
+  }, [value, handleDirectInput, onInsertFigure, onInsertTable, onInsertCitation, readOnly]);
 
   const editorProps = useMemo(() => ({
     value,
-    onChange: debouncedOnChange,
+    onChange: handleDirectInput,
     preview: readOnly ? "preview" as const : "live" as const,
     height: minHeight,
     className: `border-none bg-transparent ${className}`,
@@ -236,14 +246,15 @@ export const MarkdownEditor = React.memo(({
     }
   }), [
     value,
-    debouncedOnChange,
+    handleDirectInput,
     customCommands,
     placeholder,
     readOnly,
     minHeight,
     maxHeight,
     className,
-    isComposing
+    handleCompositionStart,
+    handleCompositionEnd
   ]);
 
   return (
