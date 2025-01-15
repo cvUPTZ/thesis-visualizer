@@ -1,8 +1,8 @@
-// MarkdownEditor.tsx
 import React from 'react';
 import MDEditor, { commands, ICommand } from '@uiw/react-md-editor';
 import { motion } from 'framer-motion';
 import { Card } from './ui/card';
+import rehypeSanitize from 'rehype-sanitize';
 
 interface EditorProps {
   value: string;
@@ -17,6 +17,8 @@ export const MarkdownEditor: React.FC<EditorProps> = ({
   placeholder,
   readOnly = false
 }) => {
+  console.log('MarkdownEditor rendering with:', { valueLength: value?.length, readOnly });
+
   // Define common editor commands
   const extraCommands: ICommand[] = [
     commands.title1,
