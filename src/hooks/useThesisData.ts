@@ -72,6 +72,7 @@ export const useThesisData = (thesisId: string | undefined) => {
           ? JSON.parse(fetchedThesis.content)
           : fetchedThesis.content;
 
+        // Ensure all required arrays exist
         const formattedThesis: Thesis = {
           id: fetchedThesis.id,
           title: fetchedThesis.title,
@@ -83,15 +84,15 @@ export const useThesisData = (thesisId: string | undefined) => {
             description: parsedContent?.metadata?.description || '',
             keywords: parsedContent?.metadata?.keywords || [],
             createdAt: parsedContent?.metadata?.createdAt || new Date().toISOString(),
-            universityName: parsedContent?.metadata?.universityName,
-            departmentName: parsedContent?.metadata?.departmentName,
-            authorName: parsedContent?.metadata?.authorName,
-            thesisDate: parsedContent?.metadata?.thesisDate,
-            committeeMembers: parsedContent?.metadata?.committeeMembers
+            universityName: parsedContent?.metadata?.universityName || '',
+            departmentName: parsedContent?.metadata?.departmentName || '',
+            authorName: parsedContent?.metadata?.authorName || '',
+            thesisDate: parsedContent?.metadata?.thesisDate || '',
+            committeeMembers: parsedContent?.metadata?.committeeMembers || []
           },
-          frontMatter: parsedContent?.frontMatter || [],
-          chapters: parsedContent?.chapters || [],
-          backMatter: parsedContent?.backMatter || []
+          frontMatter: Array.isArray(parsedContent?.frontMatter) ? parsedContent.frontMatter : [],
+          chapters: Array.isArray(parsedContent?.chapters) ? parsedContent.chapters : [],
+          backMatter: Array.isArray(parsedContent?.backMatter) ? parsedContent.backMatter : []
         };
 
         return formattedThesis;
