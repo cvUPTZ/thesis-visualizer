@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
-import { Section, Thesis } from '@/types/thesis';
+import { Section, Thesis, Chapter } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
 import { useParams } from 'react-router-dom';
@@ -17,6 +17,7 @@ import { ChatMessages } from './collaboration/ChatMessages';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChapterManager } from './ChapterManager';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -49,6 +50,12 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
         frontMatter: (prevThesis.frontMatter || []).map(section =>
           section.id === id ? { ...section, content } : section
         ),
+        chapters: (prevThesis.chapters || []).map(chapter => ({
+          ...chapter,
+          sections: chapter.sections.map(section =>
+            section.id === id ? { ...section, content } : section
+          )
+        })),
         backMatter: (prevThesis.backMatter || []).map(section =>
           section.id === id ? { ...section, content } : section
         )
@@ -67,9 +74,59 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
         frontMatter: (prevThesis.frontMatter || []).map(section =>
           section.id === id ? { ...section, title } : section
         ),
+        chapters: (prevThesis.chapters || []).map(chapter => ({
+          ...chapter,
+          sections: chapter.sections.map(section =>
+            section.id === id ? { ...section, title } : section
+          )
+        })),
         backMatter: (prevThesis.backMatter || []).map(section =>
           section.id === id ? { ...section, title } : section
         )
+      };
+    });
+  };
+
+  const handleUpdateChapter = (updatedChapter: Chapter) => {
+    if (!thesis) return;
+    
+    console.log('Updating chapter:', updatedChapter);
+    
+    setThesis(prevThesis => {
+      if (!prevThesis) return prevThesis;
+      return {
+        ...prevThesis,
+        chapters: (prevThesis.chapters || []).map(chapter =>
+          chapter.id === updatedChapter.id ? updatedChapter : chapter
+        )
+      };
+    });
+  };
+
+  const handleAddChapter = (newChapter: Chapter) => {
+    if (!thesis) return;
+    
+    console.log('Adding new chapter:', newChapter);
+    
+    setThesis(prevThesis => {
+      if (!prevThesis) return prevThesis;
+      return {
+        ...prevThesis,
+        chapters: [...(prevThesis.chapters || []), newChapter]
+      };
+    });
+  };
+
+  const handleDeleteChapter = (chapterId: string) => {
+    if (!thesis) return;
+    
+    console.log('Deleting chapter:', chapterId);
+    
+    setThesis(prevThesis => {
+      if (!prevThesis) return prevThesis;
+      return {
+        ...prevThesis,
+        chapters: (prevThesis.chapters || []).filter(chapter => chapter.id !== chapterId)
       };
     });
   };
@@ -83,6 +140,12 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
         frontMatter: (prevThesis.frontMatter || []).map(section =>
           section.id === updatedSection.id ? updatedSection : section
         ),
+        chapters: (prevThesis.chapters || []).map(chapter => ({
+          ...chapter,
+          sections: chapter.sections.map(section =>
+            section.id === updatedSection.id ? updatedSection : section
+          )
+        })),
         backMatter: (prevThesis.backMatter || []).map(section =>
           section.id === updatedSection.id ? updatedSection : section
         )
@@ -94,9 +157,14 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
     if (!thesis) return 0;
     
     const frontMatter = Array.isArray(thesis.frontMatter) ? thesis.frontMatter : [];
+    const chapters = Array.isArray(thesis.chapters) ? thesis.chapters : [];
     const backMatter = Array.isArray(thesis.backMatter) ? thesis.backMatter : [];
     
-    const allSections = [...frontMatter, ...backMatter];
+    const allSections = [
+      ...frontMatter,
+      ...chapters.flatMap(chapter => chapter.sections),
+      ...backMatter
+    ];
 
     if (allSections.length === 0) return 0;
 
@@ -157,6 +225,7 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
       <ThesisSidebar
         sections={[
           ...(thesis?.frontMatter || []),
+          ...(thesis?.chapters?.flatMap(chapter => chapter.sections) || []),
           ...(thesis?.backMatter || [])
         ]}
         activeSection={activeSection}
@@ -182,6 +251,15 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
           />
         </div>
 
+        <div className="px-8 py-4">
+          <ChapterManager
+            chapters={thesis?.chapters || []}
+            onUpdateChapter={handleUpdateChapter}
+            onAddChapter={handleAddChapter}
+            onDeleteChapter={handleDeleteChapter}
+          />
+        </div>
+
         <ThesisEditorMain
           thesis={thesis}
           activeSection={activeSection}
@@ -189,6 +267,8 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
           previewRef={previewRef}
           onContentChange={handleContentChange}
           onTitleChange={handleTitleChange}
+          onUpdateChapter={handleUpdateChapter}
+          onAddChapter={handleAddChapter}
         />
       </div>
 
