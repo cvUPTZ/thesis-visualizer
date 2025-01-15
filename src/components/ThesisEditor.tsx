@@ -1,11 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
-import { Section, Thesis, Chapter } from '@/types/thesis';
+import { Section, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
 import { useParams } from 'react-router-dom';
-import { ThesisCreationModal } from './thesis/ThesisCreationModal';
-import { ThesisList } from './thesis/ThesisList';
 import { useThesisData } from '@/hooks/useThesisData';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -17,7 +15,6 @@ import { ChatMessages } from './collaboration/ChatMessages';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { ChapterManager } from './ChapterManager';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -38,6 +35,42 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
   useThesisAutosave(thesis);
   useThesisInitialization(thesis);
   useThesisRealtime(currentThesisId, thesis, setThesis);
+
+  const handleUpdateSectionData = (updatedSection: Section) => {
+    if (!thesis) return;
+
+    setThesis(prevThesis => {
+      if (!prevThesis) return prevThesis;
+
+      // Check if section already exists
+      const existingFrontMatter = prevThesis.frontMatter.find(s => s.id === updatedSection.id);
+      const existingBackMatter = prevThesis.backMatter.find(s => s.id === updatedSection.id);
+
+      if (existingFrontMatter) {
+        // Update in frontMatter
+        return {
+          ...prevThesis,
+          frontMatter: prevThesis.frontMatter.map(s =>
+            s.id === updatedSection.id ? updatedSection : s
+          )
+        };
+      } else if (existingBackMatter) {
+        // Update in backMatter
+        return {
+          ...prevThesis,
+          backMatter: prevThesis.backMatter.map(s =>
+            s.id === updatedSection.id ? updatedSection : s
+          )
+        };
+      } else {
+        // Add as new section to mainContent
+        return {
+          ...prevThesis,
+          frontMatter: [...prevThesis.frontMatter, updatedSection]
+        };
+      }
+    });
+  };
 
   const handleContentChange = (id: string, content: string) => {
     console.log('handleContentChange fired', {id, content});
@@ -87,95 +120,20 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
     });
   };
 
-  const handleUpdateChapter = (updatedChapter: Chapter) => {
+  const handleAddSectionTask = (sectionId: string) => {
     if (!thesis) return;
-    
-    console.log('Updating chapter:', updatedChapter);
-    
-    setThesis(prevThesis => {
-      if (!prevThesis) return prevThesis;
-      return {
-        ...prevThesis,
-        chapters: (prevThesis.chapters || []).map(chapter =>
-          chapter.id === updatedChapter.id ? updatedChapter : chapter
-        )
-      };
-    });
+    // Implementation for adding tasks
   };
 
-  const handleAddChapter = (newChapter: Chapter) => {
+  const handleUpdateSectionTask = (sectionId: string, taskId: string, status: 'pending' | 'in progress' | 'completed' | 'on hold') => {
     if (!thesis) return;
-    
-    console.log('Adding new chapter:', newChapter);
-    
-    setThesis(prevThesis => {
-      if (!prevThesis) return prevThesis;
-      return {
-        ...prevThesis,
-        chapters: [...(prevThesis.chapters || []), newChapter]
-      };
-    });
+    // Implementation for updating tasks
   };
 
-  const handleDeleteChapter = (chapterId: string) => {
+  const handleChangeSectionTaskDescription = (sectionId: string, taskId: string, description: string) => {
     if (!thesis) return;
-    
-    console.log('Deleting chapter:', chapterId);
-    
-    setThesis(prevThesis => {
-      if (!prevThesis) return prevThesis;
-      return {
-        ...prevThesis,
-        chapters: (prevThesis.chapters || []).filter(chapter => chapter.id !== chapterId)
-      };
-    });
+    // Implementation for changing task descriptions
   };
-
-  const handleUpdateSectionData = (updatedSection: Section) => {
-    if (!thesis) return;
-    setThesis(prevThesis => {
-      if (!prevThesis) return prevThesis;
-      return {
-        ...prevThesis,
-        frontMatter: (prevThesis.frontMatter || []).map(section =>
-          section.id === updatedSection.id ? updatedSection : section
-        ),
-        chapters: (prevThesis.chapters || []).map(chapter => ({
-          ...chapter,
-          sections: chapter.sections.map(section =>
-            section.id === updatedSection.id ? updatedSection : section
-          )
-        })),
-        backMatter: (prevThesis.backMatter || []).map(section =>
-          section.id === updatedSection.id ? updatedSection : section
-        )
-      };
-    });
-  };
-
-  const calculateProgress = () => {
-    if (!thesis) return 0;
-    
-    const frontMatter = Array.isArray(thesis.frontMatter) ? thesis.frontMatter : [];
-    const chapters = Array.isArray(thesis.chapters) ? thesis.chapters : [];
-    const backMatter = Array.isArray(thesis.backMatter) ? thesis.backMatter : [];
-    
-    const allSections = [
-      ...frontMatter,
-      ...chapters.flatMap(chapter => chapter.sections),
-      ...backMatter
-    ];
-
-    if (allSections.length === 0) return 0;
-
-    const completedSections = allSections.filter(section => 
-      section?.content && section.content.trim().length > 0
-    ).length;
-
-    return Math.round((completedSections / allSections.length) * 100);
-  };
-
-  const progress = calculateProgress();
 
   if (isLoading) {
     return (
@@ -206,32 +164,20 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
     );
   }
 
-  if (!thesis && !currentThesisId) {
-    return (
-      <div className="flex flex-col h-full">
-        <div className="flex justify-between p-4 items-center">
-          <ThesisCreationModal onThesisCreated={() => {}} />
-          <ThesisList />
-        </div>
-        <div className="flex flex-1 items-center justify-center">
-          <p className="text-muted-foreground text-lg">No thesis loaded</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background flex">
       <ThesisSidebar
         sections={[
           ...(thesis?.frontMatter || []),
-          ...(thesis?.chapters?.flatMap(chapter => chapter.sections) || []),
           ...(thesis?.backMatter || [])
         ]}
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
         thesisId={currentThesisId!}
         onUpdateSectionData={handleUpdateSectionData}
+        onAddSectionTask={handleAddSectionTask}
+        onUpdateSectionTask={handleUpdateSectionTask}
+        onChangeSectionTaskDescription={handleChangeSectionTaskDescription}
       />
 
       <div className="flex-1 flex flex-col">
@@ -245,31 +191,24 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
           <ThesisEditorStatus
             thesis={thesis}
             thesisId={currentThesisId!}
-            progress={progress}
+            progress={0} // Placeholder for progress calculation
             showTracker={showTracker}
             setShowTracker={setShowTracker}
           />
         </div>
 
         <div className="px-8 py-4">
-          <ChapterManager
-            chapters={thesis?.chapters || []}
-            onUpdateChapter={handleUpdateChapter}
-            onAddChapter={handleAddChapter}
-            onDeleteChapter={handleDeleteChapter}
+          <ThesisEditorMain
+            thesis={thesis}
+            activeSection={activeSection}
+            showPreview={showPreview}
+            previewRef={previewRef}
+            onContentChange={handleContentChange}
+            onTitleChange={handleTitleChange}
+            onUpdateChapter={() => {}} // Placeholder for chapter update
+            onAddChapter={() => {}} // Placeholder for chapter addition
           />
         </div>
-
-        <ThesisEditorMain
-          thesis={thesis}
-          activeSection={activeSection}
-          showPreview={showPreview}
-          previewRef={previewRef}
-          onContentChange={handleContentChange}
-          onTitleChange={handleTitleChange}
-          onUpdateChapter={handleUpdateChapter}
-          onAddChapter={handleAddChapter}
-        />
       </div>
 
       <Collapsible
