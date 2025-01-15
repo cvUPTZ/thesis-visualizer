@@ -32,12 +32,27 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
   onSelect
 }) => {
   const [activeTab, setActiveTab] = useState('content');
+  const [isEditing, setIsEditing] = useState(false);
+  const [title, setTitle] = useState(chapter.title);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onUpdateChapter({
-      ...chapter,
-      title: e.target.value
-    });
+    setTitle(e.target.value);
+  };
+
+  const handleTitleBlur = () => {
+    if (title !== chapter.title) {
+      onUpdateChapter({
+        ...chapter,
+        title: title || 'Untitled Chapter'
+      });
+    }
+    setIsEditing(false);
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleTitleBlur();
+    }
   };
 
   return (
@@ -61,12 +76,24 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
             <div className="bg-primary/10 text-primary font-medium px-3 py-1 rounded-md">
               Ch. {chapterNumber}
             </div>
-            <Input
-              value={chapter.title}
-              onChange={handleTitleChange}
-              className="text-xl font-serif border-none bg-transparent px-0 focus-visible:ring-0 w-full min-w-[300px]"
-              placeholder="Chapter Title"
-            />
+            {isEditing ? (
+              <Input
+                value={title}
+                onChange={handleTitleChange}
+                onBlur={handleTitleBlur}
+                onKeyDown={handleTitleKeyDown}
+                autoFocus
+                className="text-xl font-serif border-none bg-transparent px-0 focus-visible:ring-0 w-full min-w-[300px]"
+                placeholder="Chapter Title"
+              />
+            ) : (
+              <div
+                onClick={() => setIsEditing(true)}
+                className="text-xl font-serif cursor-text px-2 hover:bg-gray-50 rounded min-w-[300px]"
+              >
+                {chapter.title || 'Untitled Chapter'}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">

@@ -51,8 +51,12 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
   };
 
   const handleCreateChapter = (chapter: Chapter) => {
-    console.log('Handling chapter creation:', chapter);
+    console.log('Creating new chapter:', chapter);
+    // Immediately add the chapter to the local state
     onAddChapter(chapter);
+    // Open the new chapter automatically
+    setOpenChapters(prev => [...prev, chapter.id]);
+    setShowCreateDialog(false);
     toast({
       title: "Chapter Added",
       description: "New chapter has been created successfully",
@@ -71,6 +75,11 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
         description: `${chaptersToDelete.length} chapter(s) have been removed successfully`,
       });
     }
+  };
+
+  const handleUpdateChapter = (updatedChapter: Chapter) => {
+    console.log('Updating chapter:', updatedChapter);
+    onUpdateChapter(updatedChapter);
   };
 
   return (
@@ -103,14 +112,14 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
       </div>
 
       <div className="space-y-4">
-        {chapters.map((chapter) => (
+        {chapters.map((chapter, index) => (
           <ChapterItem
             key={chapter.id}
             chapter={chapter}
-            chapterNumber={chapters.findIndex(c => c.id === chapter.id) + 1}
+            chapterNumber={index + 1}
             isOpen={openChapters.includes(chapter.id)}
             onToggle={() => toggleChapter(chapter.id)}
-            onUpdateChapter={onUpdateChapter}
+            onUpdateChapter={handleUpdateChapter}
             isSelected={chaptersToDelete.includes(chapter.id)}
             onSelect={() => toggleChapterSelection(chapter.id)}
           />
