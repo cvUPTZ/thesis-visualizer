@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
-import { Chapter, Section, Thesis } from '@/types/thesis';
+import { Section, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
 import { useParams } from 'react-router-dom';
@@ -17,7 +17,6 @@ import { ChatMessages } from './collaboration/ChatMessages';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -50,12 +49,6 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
         frontMatter: (prevThesis.frontMatter || []).map(section =>
           section.id === id ? { ...section, content } : section
         ),
-        chapters: (prevThesis.chapters || []).map(chapter => ({
-          ...chapter,
-          sections: (chapter.sections || []).map(section =>
-            section.id === id ? { ...section, content } : section
-          )
-        })),
         backMatter: (prevThesis.backMatter || []).map(section =>
           section.id === id ? { ...section, content } : section
         )
@@ -74,12 +67,6 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
         frontMatter: (prevThesis.frontMatter || []).map(section =>
           section.id === id ? { ...section, title } : section
         ),
-        chapters: (prevThesis.chapters || []).map(chapter => ({
-          ...chapter,
-          sections: (chapter.sections || []).map(section =>
-            section.id === id ? { ...section, title } : section
-          )
-        })),
         backMatter: (prevThesis.backMatter || []).map(section =>
           section.id === id ? { ...section, title } : section
         )
@@ -96,43 +83,8 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
         frontMatter: (prevThesis.frontMatter || []).map(section =>
           section.id === updatedSection.id ? updatedSection : section
         ),
-        chapters: (prevThesis.chapters || []).map(chapter => ({
-          ...chapter,
-          sections: (chapter.sections || []).map(section =>
-            section.id === updatedSection.id ? updatedSection : section
-          )
-        })),
         backMatter: (prevThesis.backMatter || []).map(section =>
           section.id === updatedSection.id ? updatedSection : section
-        )
-      };
-    });
-  };
-
-  const handleAddSectionTask = (sectionId: string) => {
-    if (!thesis) return;
-    const newTask = {
-      id: uuidv4(),
-      description: 'New Task',
-      status: 'pending' as const,
-      priority: 'medium' as const
-    };
-
-    setThesis(prevThesis => {
-      if (!prevThesis) return prevThesis;
-      return {
-        ...prevThesis,
-        frontMatter: (prevThesis.frontMatter || []).map(section =>
-          section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
-        ),
-        chapters: (prevThesis.chapters || []).map(chapter => ({
-          ...chapter,
-          sections: (chapter.sections || []).map(section =>
-            section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
-          )
-        })),
-        backMatter: (prevThesis.backMatter || []).map(section =>
-          section.id === sectionId ? { ...section, tasks: [...(section.tasks || []), newTask] } : section
         )
       };
     });
@@ -142,14 +94,9 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
     if (!thesis) return 0;
     
     const frontMatter = Array.isArray(thesis.frontMatter) ? thesis.frontMatter : [];
-    const chapters = Array.isArray(thesis.chapters) ? thesis.chapters : [];
     const backMatter = Array.isArray(thesis.backMatter) ? thesis.backMatter : [];
     
-    const allSections = [
-      ...frontMatter,
-      ...chapters.flatMap(chapter => Array.isArray(chapter.sections) ? chapter.sections : []),
-      ...backMatter
-    ];
+    const allSections = [...frontMatter, ...backMatter];
 
     if (allSections.length === 0) return 0;
 
@@ -210,36 +157,12 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
       <ThesisSidebar
         sections={[
           ...(thesis?.frontMatter || []),
-          ...(thesis?.chapters || []).flatMap(chapter => chapter.sections || []),
           ...(thesis?.backMatter || [])
         ]}
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
         thesisId={currentThesisId!}
         onUpdateSectionData={handleUpdateSectionData}
-        onAddSectionTask={handleAddSectionTask}
-        onUpdateSectionTask={(sectionId, taskId, status) => {
-          if (!thesis) return;
-          handleUpdateSectionData({
-            ...thesis.frontMatter.find(s => s.id === sectionId) || 
-            thesis.chapters.flatMap(c => c.sections).find(s => s.id === sectionId) ||
-            thesis.backMatter.find(s => s.id === sectionId) || {} as Section,
-            tasks: (thesis.frontMatter.find(s => s.id === sectionId)?.tasks || []).map(t =>
-              t.id === taskId ? { ...t, status } : t
-            )
-          });
-        }}
-        onChangeSectionTaskDescription={(sectionId, taskId, description) => {
-          if (!thesis) return;
-          handleUpdateSectionData({
-            ...thesis.frontMatter.find(s => s.id === sectionId) || 
-            thesis.chapters.flatMap(c => c.sections).find(s => s.id === sectionId) ||
-            thesis.backMatter.find(s => s.id === sectionId) || {} as Section,
-            tasks: (thesis.frontMatter.find(s => s.id === sectionId)?.tasks || []).map(t =>
-              t.id === taskId ? { ...t, description } : t
-            )
-          });
-        }}
       />
 
       <div className="flex-1 flex flex-col">
@@ -266,20 +189,6 @@ export const ThesisEditor = React.memo(({ thesisId: propsThesisId }: ThesisEdito
           previewRef={previewRef}
           onContentChange={handleContentChange}
           onTitleChange={handleTitleChange}
-          onUpdateChapter={(chapter: Chapter) => {
-            setThesis(prev => ({
-              ...prev!,
-              chapters: prev!.chapters.map(c =>
-                c.id === chapter.id ? chapter : c
-              )
-            }));
-          }}
-          onAddChapter={(chapter) => {
-            setThesis(prev => ({
-              ...prev!,
-              chapters: [...(prev?.chapters || []), chapter]
-            }));
-          }}
         />
       </div>
 

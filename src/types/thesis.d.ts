@@ -1,98 +1,15 @@
 export interface Section {
   id: string;
-  title?: string;
+  title: string;
   content: string;
-  type: 'abstract' | 'content' | 'title';
+  type: ThesisSectionType;
+  required?: boolean;
+  figures: Figure[];
+  tables: Table[];
+  citations: Citation[];
+  references?: Reference[];
+  tasks: Task[];
 }
-
-export interface ThesisMetadata {
-  title: string;
-  authorName: string;
-  thesisDate: string;
-  universityName: string;
-  departmentName: string;
-  degree: string;
-  committeeMembers?: string[];
-}
-
-export interface Thesis {
-  frontMatter: Section[];
-  chapters: Chapter[];
-  backMatter: Section[];
-  metadata: ThesisMetadata;
-}
-
-export interface Chapter {
-  id: string;
-  title: string;
-  order: number;
-  sections: Section[];
-}
-
-export interface Task {
-  id: string;
-  description: string;
-  status: 'pending' | 'in progress' | 'completed' | 'on hold';
-  priority: 'low' | 'medium' | 'high';
-}
-
-export interface Figure {
-  id: string;
-  imageUrl: string;
-  caption: string;
-  altText: string;
-  title: string;
-  number: number;
-  dimensions: { width: number; height: number; };
-  position: 'left' | 'right' | 'center';
-}
-
-export interface Reference {
-  id: string;
-  title: string;
-  author: string;
-  year: number;
-  url?: string;
-}
-
-export interface CommentThread {
-  id: string;
-  content: string;
-  author: string;
-  createdAt: string;
-  reviewer_id?: string;
-  text?: string;
-  comment?: {
-    id: string;
-    content: string;
-    reviewer_id: string;
-  };
-  replies: CommentThread[];
-}
-
-export type ThesisSectionType =
-  | 'title'
-  | 'preface'
-  | 'acknowledgments'
-  | 'abstract'
-  | 'table-of-contents'
-  | 'list-of-figures'
-  | 'list-of-tables'
-  | 'abbreviations'
-  | 'glossary'
-  | 'introduction'
-  | 'theoretical-framework'
-  | 'methodology'
-  | 'empirical-study'
-  | 'results'
-  | 'discussion'
-  | 'conclusion'
-  | 'recommendations'
-  | 'postface'
-  | 'references'
-  | 'appendix'
-  | 'advice'
-  | 'custom';
 
 export interface ThesisMetadata {
   description: string;
@@ -116,7 +33,6 @@ export interface Thesis {
   content: any;
   metadata: ThesisMetadata;
   frontMatter: Section[];
-  chapters: Chapter[];
   backMatter: Section[];
   createdAt: Date;
   updatedAt: Date;
@@ -124,29 +40,6 @@ export interface Thesis {
   language?: string;
   supervisor_email?: string;
   supervisor_id?: string;
-}
-
-export interface Chapter {
-  id: string;
-  title: string;
-  content: string;
-  order: number;
-  sections: Section[];
-  figures: Figure[];
-}
-
-export interface Section {
-  id: string;
-  title: string;
-  content: string;
-  order: number;
-  type: ThesisSectionType;
-  required?: boolean;
-  figures: Figure[];
-  tables: Table[];
-  citations: Citation[];
-  references?: Reference[];
-  tasks: Task[];
 }
 
 export interface Figure {
@@ -160,6 +53,7 @@ export interface Figure {
     width: number;
     height: number;
   };
+  position: 'left' | 'center' | 'right';
 }
 
 export interface Table {
@@ -206,20 +100,33 @@ export interface Reference {
   publisher?: string;
 }
 
-export interface ThesisVersion {
+export interface Task {
   id: string;
-  thesis_id: string;
-  content: any;
-  version_number: number;
-  description?: string;
-  created_at: string;
-  created_by: string;
+  description: string;
+  status: 'pending' | 'in progress' | 'completed' | 'on hold';
+  priority: 'low' | 'medium' | 'high';
 }
 
-export interface ThesisComment {
-  id: string;
-  content: string;
-  author: string;
-  createdAt: string;
-  replies: ThesisComment[];
-}
+export type ThesisSectionType =
+  | 'title'
+  | 'preface'
+  | 'acknowledgments'
+  | 'abstract'
+  | 'table-of-contents'
+  | 'list-of-figures'
+  | 'list-of-tables'
+  | 'abbreviations'
+  | 'glossary'
+  | 'introduction'
+  | 'theoretical-framework'
+  | 'methodology'
+  | 'empirical-study'
+  | 'results'
+  | 'discussion'
+  | 'conclusion'
+  | 'recommendations'
+  | 'postface'
+  | 'references'
+  | 'appendix'
+  | 'advice'
+  | 'custom';
