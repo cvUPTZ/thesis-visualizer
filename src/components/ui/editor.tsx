@@ -1,170 +1,194 @@
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import Link from '@tiptap/extension-link';
-import Image from '@tiptap/extension-image';
-import Table from '@tiptap/extension-table';
-import TableRow from '@tiptap/extension-table-row';
-import TableCell from '@tiptap/extension-table-cell';
-import TableHeader from '@tiptap/extension-table-header';
-import TextAlign from '@tiptap/extension-text-align';
-import { Button } from './button';
-import {
-  Bold,
-  Italic,
-  Underline as UnderlineIcon,
-  Link as LinkIcon,
-  Image as ImageIcon,
-  Table as TableIcon,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  List,
-  ListOrdered,
-} from 'lucide-react';
+import React from 'react';
+import { Chapter, Section } from '@/types/thesis';
+import { MarkdownEditor } from '../MarkdownEditor';
+import { FigureManager } from '../FigureManager';
+import { TableManager } from '../TableManager';
+import { CitationManager } from '../CitationManager';
+import { ReferenceManager } from '../ReferenceManager';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { PlusCircle } from 'lucide-react';
 
-export function Editor() {
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-primary underline',
-        },
-      }),
-      Image.configure({
-        HTMLAttributes: {
-          class: 'rounded-lg max-w-full',
-        },
-      }),
-      Table.configure({
-        resizable: true,
-        HTMLAttributes: {
-          class: 'border-collapse table-auto w-full',
-        },
-      }),
-      TableRow,
-      TableHeader,
-      TableCell,
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-    ],
-    content: '',
-    editorProps: {
-      attributes: {
-        class: 'prose dark:prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-2xl focus:outline-none',
-      },
-    },
-  });
+interface ThesisContentProps {
+  frontMatter: Section[];
+  chapters: Chapter[];
+  backMatter: Section[];
+  activeSection: string;
+  onContentChange: (id: string, content: string) => void;
+  onTitleChange: (id: string, title: string) => void;
+  onUpdateChapter: (chapter: Chapter) => void;
+  onAddChapter: () => void;
+}
 
-  if (!editor) {
-    return null;
-  }
+export const ThesisContent = ({
+    frontMatter,
+    chapters,
+    backMatter,
+    activeSection,
+    onContentChange,
+    onTitleChange,
+    onUpdateChapter,
+    onAddChapter
+}: ThesisContentProps) => {
 
-  const addImage = () => {
-    const url = window.prompt('Enter image URL');
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
-    }
+    const handleAddSection = (chapterId: string) => {
+        const chapter = chapters.find((c) => c.id === chapterId);
+        if (!chapter) return;
+
+        const newSection: Section = {
+            id: Date.now().toString(),
+            title: 'New Section',
+            content: '',
+            type: 'custom',
+            order: chapter.sections.length + 1,
+            figures: [],
+            tables: [],
+            citations: [],
+            references: []
+        };
+        
+        const introductionSection: Section = {
+            id: Date.now().toString() + "-intro",
+            title: 'Introduction',
+            content: 'Introduction',
+             type: 'custom',
+             order: 1,
+             figures: [],
+             tables: [],
+             citations: [],
+             references: []
+        };
+        
+
+        onUpdateChapter({
+            ...chapter,
+            sections: [introductionSection, ...chapter.sections, newSection]
+        });
+    };
+  const renderSectionContent = (section: Section) => {
+    const isActive = activeSection === section.id;
+
+    if (!isActive) return null;
+      return (
+          <div key={section.id} className="editor-section space-y-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Input
+                value={section.title}
+                onChange={(e) => onTitleChange(section.id, e.target.value)}
+                className="text-xl font-serif border-none bg-transparent px-0 focus-visible:ring-0"
+              />
+            </div>
+            <div className="mb-6">
+              <MarkdownEditor
+                  value={section.content}
+                  onChange={(value) => onContentChange(section.id, value || '')}
+                  placeholder="Start writing..."
+              />
+            </div>
+            <div className="space-y-8">
+              <FigureManager
+                figures={section.figures}
+                onAddFigure={(figure) => {
+                    section.figures.push(figure);
+                    onContentChange(section.id, section.content);
+                }}
+                onRemoveFigure={(id) => {
+                    section.figures = section.figures.filter(f => f.id !== id);
+                  onContentChange(section.id, section.content);
+                }}
+                onUpdateFigure={(figure) => {
+                  section.figures = section.figures.map(f => f.id === figure.id ? figure : f);
+                  onContentChange(section.id, section.content);
+                }}
+              />
+              <TableManager
+                tables={section.tables}
+                onAddTable={(table) => {
+                    section.tables.push(table);
+                  onContentChange(section.id, section.content);
+                }}
+                onRemoveTable={(id) => {
+                    section.tables = section.tables.filter(t => t.id !== id);
+                  onContentChange(section.id, section.content);
+                }}
+                onUpdateTable={(table) => {
+                  section.tables = section.tables.map(t => t.id === table.id ? table : t);
+                  onContentChange(section.id, section.content);
+                }}
+              />
+              <CitationManager
+                  citations={section.citations}
+                  onAddCitation={(citation) => {
+                      section.citations.push(citation);
+                      onContentChange(section.id, section.content);
+                  }}
+                  onRemoveCitation={(id) => {
+                      section.citations = section.citations.filter(c => c.id !== id);
+                    onContentChange(section.id, section.content);
+                  }}
+                  onUpdateCitation={(citation) => {
+                      section.citations = section.citations.map(c => c.id === citation.id ? citation : c);
+                    onContentChange(section.id, section.content);
+                  }}
+              />
+              {section.type === 'references' && section.references && (
+                  <ReferenceManager
+                      items={section.references}
+                    onAdd={(reference) => {
+                      section.references = [...(section.references || []), reference];
+                        onContentChange(section.id, section.content);
+                    }}
+                    onRemove={(id) => {
+                      section.references = section.references?.filter(r => r.id !== id);
+                        onContentChange(section.id, section.content);
+                    }}
+                    onUpdate={(reference) => {
+                      section.references = section.references?.map(r => r.id === reference.id ? reference : r);
+                        onContentChange(section.id, section.content);
+                    }}
+                  />
+              )}
+            </div>
+          </div>
+      )
   };
 
-  const addLink = () => {
-    const url = window.prompt('Enter URL');
-    if (url) {
-      editor.chain().focus().setLink({ href: url }).run();
-    }
-  };
-
-  const addTable = () => {
-    editor.chain().focus().insertTable({ rows: 3, cols: 3 }).run();
-  };
 
   return (
-    <div className="editor-container border rounded-lg overflow-hidden">
-      <div className="editor-toolbar border-b p-2 flex flex-wrap gap-2 bg-background">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={editor.isActive('bold') ? 'bg-muted' : ''}
-        >
-          <Bold className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={editor.isActive('italic') ? 'bg-muted' : ''}
-        >
-          <Italic className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={editor.isActive('underline') ? 'bg-muted' : ''}
-        >
-          <UnderlineIcon className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={addLink}
-          className={editor.isActive('link') ? 'bg-muted' : ''}
-        >
-          <LinkIcon className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="sm" onClick={addImage}>
-          <ImageIcon className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="sm" onClick={addTable}>
-          <TableIcon className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().setTextAlign('left').run()}
-          className={editor.isActive({ textAlign: 'left' }) ? 'bg-muted' : ''}
-        >
-          <AlignLeft className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().setTextAlign('center').run()}
-          className={editor.isActive({ textAlign: 'center' }) ? 'bg-muted' : ''}
-        >
-          <AlignCenter className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().setTextAlign('right').run()}
-          className={editor.isActive({ textAlign: 'right' }) ? 'bg-muted' : ''}
-        >
-          <AlignRight className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={editor.isActive('bulletList') ? 'bg-muted' : ''}
-        >
-          <List className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={editor.isActive('orderedList') ? 'bg-muted' : ''}
-        >
-          <ListOrdered className="w-4 h-4" />
-        </Button>
-      </div>
-      <EditorContent editor={editor} className="p-4" />
+    <div className="space-y-6">
+          {frontMatter.map(section => renderSectionContent(section))}
+          <div className="space-y-6">
+          <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-serif font-semibold">Chapters</h2>
+              <Button onClick={onAddChapter} className="flex items-center gap-2">
+                  <PlusCircle className="w-4 h-4" />
+                  Add Chapter
+              </Button>
+          </div>
+            {chapters.map((chapter) => (
+              <div key={chapter.id} className="border rounded-lg p-6 space-y-6">
+                <Input
+                  value={chapter.title}
+                  onChange={(e) =>
+                    onUpdateChapter({ ...chapter, title: e.target.value })
+                  }
+                  className="text-xl font-serif"
+                  placeholder="Chapter Title"
+                />
+                <div className="space-y-6">
+                    {chapter.sections.map((section) => renderSectionContent(section))}
+                  <Button
+                    onClick={() => handleAddSection(chapter.id)}
+                    variant="outline"
+                    className="mt-4"
+                  >
+                    Add Section
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {backMatter.map(section => renderSectionContent(section))}
     </div>
   );
-}
+};

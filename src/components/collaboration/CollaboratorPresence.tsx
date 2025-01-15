@@ -48,22 +48,14 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
             const state = presenceChannel.current?.presenceState() || {};
             console.log('Presence state:', state);
             
-            // Create a Set to track unique user_ids
-            const uniqueCollaborators = new Map<string, ActiveCollaborator>();
-            
-            // Process presence state
-            Object.values(state).flat().forEach((presence: any) => {
-              if (!uniqueCollaborators.has(presence.user_id)) {
-                uniqueCollaborators.set(presence.user_id, {
-                  id: presence.user_id,
-                  user_id: presence.user_id,
-                  email: presence.email,
-                  last_seen: presence.online_at
-                });
-              }
-            });
+            const currentPresence = Object.values(state).flat().map((presence: any) => ({
+              id: presence.user_id,
+              user_id: presence.user_id,
+              email: presence.email,
+              last_seen: presence.online_at
+            }));
 
-            setActiveCollaborators(Array.from(uniqueCollaborators.values()));
+            setActiveCollaborators(currentPresence);
           })
           .on('presence', { event: 'join' }, ({ key, newPresences }) => {
             console.log('User joined:', key, newPresences);
@@ -81,20 +73,15 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
             }
           });
 
-        // Initialize with unique collaborators from database
-        const uniqueInitialCollaborators = new Map<string, ActiveCollaborator>();
-        collaborators?.forEach(collab => {
-          if (!uniqueInitialCollaborators.has(collab.user_id)) {
-            uniqueInitialCollaborators.set(collab.user_id, {
-              id: collab.user_id,
-              user_id: collab.user_id,
-              email: collab.profiles?.email,
-              last_seen: new Date().toISOString()
-            });
-          }
-        });
+        // Initialize with collaborators from database
+        const initialCollaborators = collaborators?.map(collab => ({
+          id: collab.id,
+          user_id: collab.user_id,
+          email: collab.profiles?.email,
+          last_seen: new Date().toISOString()
+        })) || [];
 
-        setActiveCollaborators(Array.from(uniqueInitialCollaborators.values()));
+        setActiveCollaborators(initialCollaborators);
 
       } catch (error) {
         console.error('Error setting up presence:', error);

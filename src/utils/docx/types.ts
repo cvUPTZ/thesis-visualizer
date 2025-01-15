@@ -1,52 +1,30 @@
-import { IStylesOptions, BorderStyle, INumberingOptions, convertInchesToTwip } from 'docx';
-
-export interface DocxGenerationOptions {
-  font: string;
-  fontSize: number;
-  margins?: {
-    top: number;
-    right: number;
-    bottom: number;
-    left: number;
-  };
-  pageNumberFormat?: 'decimal' | 'lowerRoman' | 'upperRoman';
-}
+import { Thesis } from '@/types/thesis';
 
 export interface ImageOptions {
-  data: Buffer | Uint8Array;
-  width: number;
-  height: number;
-  type?: string;
-  fallback?: string;
+  width?: number;
+  height?: number;
+  altText: string;
+}
+
+export interface DocPropertiesOptions {
+  name: string;
+  description: string;
+  title: string;
+}
+
+export interface DocxGenerationOptions {
+  thesis: Thesis;
+  includeTableOfContents?: boolean;
+  includeTitlePage?: boolean;
 }
 
 export interface TitlePageOptions {
-  title: string;
-  author: string;
-  date: string;
-  university?: string;
-  department?: string;
-  degree?: string;
+  thesis: Thesis;
+  language?: 'en' | 'fr' | 'ar';
 }
 
-export interface TableOptions {
-  headers: string[];
-  rows: string[][];
-  style?: string;
-  caption?: string;
-  label?: string;
-}
-
-export interface SectionNumbering {
-  format: 'decimal' | 'lowerRoman' | 'upperRoman';
-  start: number;
-}
-
-export interface ThesisMetadata {
-  title: string;
-  author: string;
-  date: string;
-  university: string;
-  department: string;
-  degree: string;
+export interface ContentGenerationOptions {
+  thesis: Thesis;
+  includeTableOfContents?: boolean;
+  isPreview?: boolean;
 }

@@ -1,3 +1,4 @@
+// File: src/components/thesis/form/ThesisMetadataFields.tsx
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -5,22 +6,18 @@ interface ThesisMetadataFieldsProps {
   title: string;
   description: string;
   keywords: string;
-  supervisorEmail?: string;
   setTitle: (value: string) => void;
   setDescription: (value: string) => void;
   setKeywords: (value: string) => void;
-  setSupervisorEmail?: (value: string) => void;
 }
 
 export const ThesisMetadataFields = ({
   title,
   description,
   keywords,
-  supervisorEmail,
   setTitle,
   setDescription,
   setKeywords,
-  setSupervisorEmail,
 }: ThesisMetadataFieldsProps) => {
   return (
     <div className="space-y-4">
@@ -65,22 +62,6 @@ export const ThesisMetadataFields = ({
           Separate keywords with commas (e.g., AI, Machine Learning, Data Science)
         </p>
       </div>
-
-      {setSupervisorEmail && (
-        <div>
-          <label htmlFor="supervisorEmail" className="block text-sm font-medium mb-1">
-            Supervisor Email
-          </label>
-          <Input
-            id="supervisorEmail"
-            type="email"
-            value={supervisorEmail || ''}
-            onChange={(e) => setSupervisorEmail(e.target.value)}
-            placeholder="Enter your supervisor's email"
-            required
-          />
-        </div>
-      )}
     </div>
   );
 };

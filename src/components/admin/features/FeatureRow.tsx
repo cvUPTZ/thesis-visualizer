@@ -4,6 +4,7 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, ChevronRight, ChevronDown, Loader2 } from 'lucide-react';
 
+// Update the FeatureRowProps interface
 interface FeatureRowProps {
   feature: {
     id: string;

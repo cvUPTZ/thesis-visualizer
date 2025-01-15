@@ -5,7 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { AuthError } from '@supabase/supabase-js';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface EmailAuthFormProps {
   mode: 'signin' | 'signup';
@@ -16,7 +15,6 @@ interface EmailAuthFormProps {
 export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userType, setUserType] = useState<'student' | 'supervisor'>('student');
   const [loading, setLoading] = useState(false);
   const [lastAttempt, setLastAttempt] = useState(0);
   const { toast } = useToast();
@@ -24,25 +22,7 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast({
-        title: "Invalid Email",
-        description: "Please enter a valid email address",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (password.length < 6) {
-      toast({
-        title: "Invalid Password",
-        description: "Password must be at least 6 characters long",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+    // Check if enough time has passed since last attempt (3 seconds)
     const now = Date.now();
     if (now - lastAttempt < 3000) {
       toast({
@@ -57,52 +37,37 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
     setLoading(true);
 
     try {
-      console.log('🔐 Attempting auth:', mode, { email });
-      
-      if (mode === 'signin') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.auth.signUp({ 
-          email, 
-          password,
-          options: {
-            data: {
-              user_type: userType
-            }
-          }
-        });
+      console.log('🔐 Attempting auth:', mode);
+      const { error } = mode === 'signin'
+        ? await supabase.auth.signInWithPassword({ email, password })
+        : await supabase.auth.signUp({ email, password });
+
+      if (error) {
+        console.error('❌ Auth error:', error);
         
-        if (error) throw error;
-        
-        toast({
-          title: "Registration Successful",
-          description: "Please check your email to verify your account before signing in.",
-        });
-      }
-      
-      console.log('✅ Auth successful');
-      
-    } catch (error) {
-      console.error('❌ Auth error:', error);
-      if (error instanceof Error) {
+        // Handle rate limiting specifically
         if (error.message.includes('rate limit')) {
           toast({
             title: "Too many attempts",
             description: "Please wait a moment before trying again",
             variant: "destructive",
           });
-        } else if (error.message.includes('Invalid login credentials')) {
-          toast({
-            title: "Authentication Failed",
-            description: mode === 'signin' 
-              ? "Invalid email or password. Please check your credentials and try again."
-              : "Unable to create account. Please try again.",
-            variant: "destructive",
-          });
         } else {
-          onError(error as AuthError);
+          onError(error);
         }
+      } else {
+        console.log('✅ Auth successful');
+        if (mode === 'signup') {
+          toast({
+            title: "Success",
+            description: "Please check your email to verify your account",
+          });
+        }
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error('❌ Unexpected auth error:', err);
+        onError(err as AuthError);
       }
     } finally {
       setLoading(false);
@@ -133,25 +98,6 @@ export const EmailAuthForm = ({ mode, onModeChange, onError }: EmailAuthFormProp
           disabled={loading}
         />
       </div>
-      
-      {mode === 'signup' && (
-        <div>
-          <Select 
-            value={userType} 
-            onValueChange={(value: 'student' | 'supervisor') => setUserType(value)}
-            disabled={loading}
-          >
-            <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
-              <SelectValue placeholder="Select user type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="student">Student</SelectItem>
-              <SelectItem value="supervisor">Supervisor</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
       <Button
         type="submit"
         className="w-full"

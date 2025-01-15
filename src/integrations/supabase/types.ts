@@ -113,13 +113,6 @@ export type Database = {
             foreignKeyName: "chat_messages_thesis_id_fkey"
             columns: ["thesis_id"]
             isOneToOne: false
-            referencedRelation: "supervisor_theses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chat_messages_thesis_id_fkey"
-            columns: ["thesis_id"]
-            isOneToOne: false
             referencedRelation: "theses"
             referencedColumns: ["id"]
           },
@@ -185,13 +178,6 @@ export type Database = {
             foreignKeyName: "citations_thesis_id_fkey"
             columns: ["thesis_id"]
             isOneToOne: false
-            referencedRelation: "supervisor_theses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "citations_thesis_id_fkey"
-            columns: ["thesis_id"]
-            isOneToOne: false
             referencedRelation: "theses"
             referencedColumns: ["id"]
           },
@@ -209,7 +195,6 @@ export type Database = {
           parent_id: string | null
           pricing_tier: string | null
           status: string
-          trial_days: number | null
           usage_data: Json | null
         }
         Insert: {
@@ -223,7 +208,6 @@ export type Database = {
           parent_id?: string | null
           pricing_tier?: string | null
           status?: string
-          trial_days?: number | null
           usage_data?: Json | null
         }
         Update: {
@@ -237,7 +221,6 @@ export type Database = {
           parent_id?: string | null
           pricing_tier?: string | null
           status?: string
-          trial_days?: number | null
           usage_data?: Json | null
         }
         Relationships: [
@@ -246,51 +229,6 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "features"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      footnotes: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          number: number
-          section_id: string
-          thesis_id: string
-          updated_at: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          number: number
-          section_id: string
-          thesis_id: string
-          updated_at?: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          number?: number
-          section_id?: string
-          thesis_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "footnotes_thesis_id_fkey"
-            columns: ["thesis_id"]
-            isOneToOne: false
-            referencedRelation: "supervisor_theses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "footnotes_thesis_id_fkey"
-            columns: ["thesis_id"]
-            isOneToOne: false
-            referencedRelation: "theses"
             referencedColumns: ["id"]
           },
         ]
@@ -324,13 +262,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "notifications_thesis_id_fkey"
-            columns: ["thesis_id"]
-            isOneToOne: false
-            referencedRelation: "supervisor_theses"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "notifications_thesis_id_fkey"
             columns: ["thesis_id"]
@@ -397,8 +328,6 @@ export type Database = {
           created_at: string
           id: string
           language: string
-          supervisor_email: string | null
-          supervisor_id: string | null
           title: string
           updated_at: string
           user_id: string
@@ -408,8 +337,6 @@ export type Database = {
           created_at?: string
           id?: string
           language?: string
-          supervisor_email?: string | null
-          supervisor_id?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -419,76 +346,11 @@ export type Database = {
           created_at?: string
           id?: string
           language?: string
-          supervisor_email?: string | null
-          supervisor_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "theses_supervisor_id_fkey"
-            columns: ["supervisor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      thesis_annotations: {
-        Row: {
-          content: Json
-          created_at: string
-          id: string
-          reviewer_id: string | null
-          section_id: string
-          thesis_id: string | null
-          type: string
-          updated_at: string
-        }
-        Insert: {
-          content?: Json
-          created_at?: string
-          id?: string
-          reviewer_id?: string | null
-          section_id: string
-          thesis_id?: string | null
-          type: string
-          updated_at?: string
-        }
-        Update: {
-          content?: Json
-          created_at?: string
-          id?: string
-          reviewer_id?: string | null
-          section_id?: string
-          thesis_id?: string | null
-          type?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "thesis_annotations_reviewer_id_fkey"
-            columns: ["reviewer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "thesis_annotations_thesis_id_fkey"
-            columns: ["thesis_id"]
-            isOneToOne: false
-            referencedRelation: "supervisor_theses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "thesis_annotations_thesis_id_fkey"
-            columns: ["thesis_id"]
-            isOneToOne: false
-            referencedRelation: "theses"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       thesis_collaborators: {
         Row: {
@@ -517,13 +379,6 @@ export type Database = {
             foreignKeyName: "thesis_collaborators_thesis_id_fkey"
             columns: ["thesis_id"]
             isOneToOne: false
-            referencedRelation: "supervisor_theses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "thesis_collaborators_thesis_id_fkey"
-            columns: ["thesis_id"]
-            isOneToOne: false
             referencedRelation: "theses"
             referencedColumns: ["id"]
           },
@@ -532,81 +387,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      thesis_references: {
-        Row: {
-          authors: string[]
-          created_at: string
-          doi: string | null
-          id: string
-          issue: string | null
-          journal: string | null
-          pages: string | null
-          publisher: string | null
-          source: string
-          text: string
-          thesis_id: string
-          title: string
-          type: string
-          updated_at: string
-          url: string | null
-          volume: string | null
-          year: string
-        }
-        Insert: {
-          authors?: string[]
-          created_at?: string
-          doi?: string | null
-          id?: string
-          issue?: string | null
-          journal?: string | null
-          pages?: string | null
-          publisher?: string | null
-          source: string
-          text: string
-          thesis_id: string
-          title: string
-          type: string
-          updated_at?: string
-          url?: string | null
-          volume?: string | null
-          year: string
-        }
-        Update: {
-          authors?: string[]
-          created_at?: string
-          doi?: string | null
-          id?: string
-          issue?: string | null
-          journal?: string | null
-          pages?: string | null
-          publisher?: string | null
-          source?: string
-          text?: string
-          thesis_id?: string
-          title?: string
-          type?: string
-          updated_at?: string
-          url?: string | null
-          volume?: string | null
-          year?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "thesis_references_thesis_id_fkey"
-            columns: ["thesis_id"]
-            isOneToOne: false
-            referencedRelation: "supervisor_theses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "thesis_references_thesis_id_fkey"
-            columns: ["thesis_id"]
-            isOneToOne: false
-            referencedRelation: "theses"
             referencedColumns: ["id"]
           },
         ]
@@ -658,13 +438,6 @@ export type Database = {
             columns: ["reviewer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "thesis_reviews_thesis_id_fkey"
-            columns: ["thesis_id"]
-            isOneToOne: false
-            referencedRelation: "supervisor_theses"
             referencedColumns: ["id"]
           },
           {
@@ -749,13 +522,6 @@ export type Database = {
             foreignKeyName: "thesis_versions_thesis_id_fkey"
             columns: ["thesis_id"]
             isOneToOne: false
-            referencedRelation: "supervisor_theses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "thesis_versions_thesis_id_fkey"
-            columns: ["thesis_id"]
-            isOneToOne: false
             referencedRelation: "theses"
             referencedColumns: ["id"]
           },
@@ -781,51 +547,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      user_features: {
-        Row: {
-          access_type: string
-          created_at: string
-          expires_at: string | null
-          feature_id: string | null
-          id: string
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          access_type: string
-          created_at?: string
-          expires_at?: string | null
-          feature_id?: string | null
-          id?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          access_type?: string
-          created_at?: string
-          expires_at?: string | null
-          feature_id?: string | null
-          id?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_features_feature_id_fkey"
-            columns: ["feature_id"]
-            isOneToOne: false
-            referencedRelation: "features"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_features_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       user_feedback: {
         Row: {
@@ -862,78 +583,9 @@ export type Database = {
           },
         ]
       }
-      user_interactions: {
-        Row: {
-          created_at: string
-          element_class: string | null
-          element_id: string | null
-          event_type: string
-          id: string
-          page_path: string | null
-          scroll_depth: number | null
-          user_id: string | null
-          x_position: number | null
-          y_position: number | null
-        }
-        Insert: {
-          created_at?: string
-          element_class?: string | null
-          element_id?: string | null
-          event_type: string
-          id?: string
-          page_path?: string | null
-          scroll_depth?: number | null
-          user_id?: string | null
-          x_position?: number | null
-          y_position?: number | null
-        }
-        Update: {
-          created_at?: string
-          element_class?: string | null
-          element_id?: string | null
-          event_type?: string
-          id?: string
-          page_path?: string | null
-          scroll_depth?: number | null
-          user_id?: string | null
-          x_position?: number | null
-          y_position?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_interactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
-      supervisor_theses: {
-        Row: {
-          content: Json | null
-          created_at: string | null
-          id: string | null
-          language: string | null
-          student_email: string | null
-          supervisor_email: string | null
-          supervisor_id: string | null
-          title: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "theses_supervisor_id_fkey"
-            columns: ["supervisor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       [_ in never]: never

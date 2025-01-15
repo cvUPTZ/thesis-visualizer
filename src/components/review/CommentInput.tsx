@@ -1,46 +1,33 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Profile } from '@/types/profile';
 
 interface CommentInputProps {
   onSubmit: (content: string) => Promise<void>;
 }
 
-export const CommentInput: React.FC<CommentInputProps> = ({ onSubmit }) => {
-  const [content, setContent] = useState('');
-  const [loading, setLoading] = useState(false);
+export const CommentInput = ({ onSubmit }: CommentInputProps) => {
+  const [newComment, setNewComment] = useState('');
 
   const handleSubmit = async () => {
-    if (!content.trim()) return;
-    
-    setLoading(true);
-    try {
-      await onSubmit(content);
-      setContent('');
-    } finally {
-      setLoading(false);
-    }
+    if (!newComment.trim()) return;
+    await onSubmit(newComment);
+    setNewComment('');
   };
 
   return (
-    <div className="space-y-2">
+    <Card className="p-4">
       <Textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="Write your comment..."
-        className="min-h-[100px]"
+        value={newComment}
+        onChange={(e) => setNewComment(e.target.value)}
+        placeholder="Add your comment..."
+        className="mb-2"
       />
-      <div className="flex justify-end">
-        <Button 
-          onClick={handleSubmit}
-          disabled={!content.trim() || loading}
-          className="flex items-center gap-2"
-        >
-          <Send className="w-4 h-4" />
-          Submit Comment
-        </Button>
-      </div>
-    </div>
+      <Button onClick={handleSubmit}>
+        Submit Comment
+      </Button>
+    </Card>
   );
 };

@@ -1,35 +1,15 @@
 import React, { useState } from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { TitlePage } from '@/components/preview/TitlePage';
-import { FrenchTitlePage } from '@/components/preview/FrenchTitlePage';
-import { AbstractSection } from '@/components/preview/AbstractSection';
-import { ContentSection } from '@/components/preview/ContentSection';
-import { Button } from '@/components/ui/button';
+import { ScrollArea } from './ui/scroll-area';
+import { TitlePage } from './thesis/preview/TitlePage';
+import { FrenchTitlePage } from './thesis/preview/FrenchTitlePage';
+import { AbstractSection } from './thesis/preview/AbstractSection';
+import { ContentSection } from './thesis/preview/ContentSection';
+import { Button } from './ui/button';
 import { FileDown, Maximize2, Minimize2, ZoomIn, ZoomOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { usePDF } from 'react-to-pdf';
 import { cn } from '@/lib/utils';
-import { Slider } from '@/components/ui/slider';
-import { 
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  PageNumber,
-  Header,
-  Footer,
-  AlignmentType,
-  Table, 
-  TableRow, 
-  TableCell,
-  WidthType,
-  BorderStyle,
-  PageBreak
-} from 'docx';
-import { generateTitlePage, generateChapterContent, createHeading, createParagraph } from '@/utils/docx/sectionGenerators';
-import { documentStyles, pageSettings } from '@/utils/docx/documentStyles';
-import { createPageNumberParagraph } from '@/utils/docx/pageNumbering';
-import { convertInchesToTwip } from 'docx';
+import { Slider } from './ui/slider';
 
 interface ThesisPreviewProps {
   thesis: any;
@@ -38,195 +18,64 @@ interface ThesisPreviewProps {
 
 export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language = 'en' }) => {
   const { toast } = useToast();
-  const [isFullScreen, setIsFullScreen] = React.useState(false);
-  const [previewWidth, setPreviewWidth] = useState(210);
   const { toPDF, targetRef } = usePDF({
-    filename: `${thesis?.frontMatter?.[0]?.title || 'thesis'}.pdf`,
-    page: {
+    filename: `${thesis.frontMatter[0]?.title || 'thesis'}.pdf`,
+    page: { 
       margin: 20,
       format: 'a4',
     }
   });
-
-  const generateTableOfContents = (chapters: { title: string; page: number }[]) => {
-    if (!chapters?.length) return [];
-    
-    return [
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: 'Table of Contents',
-            bold: true,
-            size: 28
-          })
-        ],
-        spacing: { after: 400 },
-        alignment: AlignmentType.CENTER
-      }),
-      ...chapters.map(chapter => 
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: chapter.title,
-              size: 24
-            }),
-            new TextRun({
-              text: `  ${chapter.page}`,
-              size: 24
-            })
-          ],
-          spacing: { before: 200, after: 200 }
-        })
-      )
-    ];
-  };
+  const [isFullScreen, setIsFullScreen] = React.useState(false);
+  const [previewWidth, setPreviewWidth] = useState(210); // Default A4 width in mm
 
   const handleExport = async () => {
     try {
-      if (!thesis?.metadata) {
-        throw new Error('No thesis metadata available');
-      }
-
-      const doc = new Document({
-        sections: [{
-          ...pageSettings.page,
-          properties: {
-            type: 'nextPage'
-          },
-          headers: {
-            default: new Header({
-              children: [
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: thesis.metadata?.title || '',
-                      size: 22,
-                      font: 'Times New Roman',
-                    }),
-                  ],
-                  alignment: AlignmentType.CENTER,
-                })
-              ],
-            }),
-          },
-          footers: {
-            default: new Footer({
-              children: [
-                createPageNumberParagraph()
-              ],
-            }),
-          },
-          children: [
-            ...generateTitlePage({
-              title: thesis.metadata?.title || '',
-              author: thesis.metadata?.authorName || '',
-              date: thesis.metadata?.thesisDate || '',
-              university: thesis.metadata?.universityName || '',
-              department: thesis.metadata?.departmentName || '',
-              degree: thesis.metadata?.degree || '',
-            }),
-            new Paragraph({ children: [new PageBreak()], spacing: { before: convertInchesToTwip(2) } }),
-            new Paragraph({
-              children: [new TextRun({
-                text: 'Table Of Contents',
-                bold: true,
-                size: 32
-              })],
-              alignment: AlignmentType.CENTER
-            }),
-            new Paragraph({ children: [new PageBreak()] }),
-            ...generateTableOfContents(
-              thesis.chapters?.map((chapter: any, index: number) => ({
-                title: chapter.title || '',
-                page: index + 3
-              })) || []
-            ),
-            new Paragraph({ children: [new PageBreak()] }),
-            ...(thesis.frontMatter || [])
-              .filter((section: any) => section.type !== 'title')
-              .map((section: any) => {
-                return new Paragraph({
-                  ...section,
-                  children: [
-                    new TextRun({
-                      text: section.content || '',
-                      size: 24,
-                      font: 'Times New Roman'
-                    }),
-                  ],
-                });
-              }),
-            ...(thesis.chapters || []).flatMap((chapter: any) =>
-              generateChapterContent(
-                chapter.order,
-                chapter.title || '',
-                chapter.content || '',
-                chapter.figures || [],
-              )
-            ),
-            ...(thesis.backMatter || []).map((section: any) => {
-              return createParagraph(section.content || '');
-            }),
-          ],
-        }],
-        styles: documentStyles
-      });
-
-      const blob = await Packer.toBlob(doc);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${thesis.frontMatter?.[0]?.title || 'thesis'}.docx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
+      await toPDF();
       toast({
         title: "Success",
-        description: "DOCX exported successfully",
+        description: "PDF exported successfully",
       });
     } catch (error) {
-      console.error('DOCX export error:', error);
+      console.error('PDF export error:', error);
       toast({
         title: "Error",
-        description: "Failed to export DOCX",
+        description: "Failed to export PDF",
         variant: "destructive",
       });
     }
   };
 
-    const toggleFullScreen = () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch((err) => {
-          console.error(`Error attempting to enable full-screen mode: ${err.message}`);
-        });
-        setIsFullScreen(true);
-      } else {
-        document.exitFullscreen();
-        setIsFullScreen(false);
-      }
-    };
-
-    React.useEffect(() => {
-      const handleFullScreenChange = () => {
-        setIsFullScreen(!!document.fullscreenElement);
-      };
-
-      document.addEventListener('fullscreenchange', handleFullScreenChange);
-      return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
-    }, []);
-
-    const handleWidthChange = (value: number[]) => {
-      setPreviewWidth(value[0]);
-    };
-
-    const adjustWidth = (increment: boolean) => {
-      setPreviewWidth(prev => {
-        const newWidth = increment ? prev + 10 : prev - 10;
-        return Math.min(Math.max(newWidth, 150), 300); // Min 150mm, Max 300mm
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
       });
+      setIsFullScreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullScreen(false);
+    }
+  };
+
+  React.useEffect(() => {
+    const handleFullScreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
     };
+
+    document.addEventListener('fullscreenchange', handleFullScreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
+  }, []);
+
+  const handleWidthChange = (value: number[]) => {
+    setPreviewWidth(value[0]);
+  };
+
+  const adjustWidth = (increment: boolean) => {
+    setPreviewWidth(prev => {
+      const newWidth = increment ? prev + 10 : prev - 10;
+      return Math.min(Math.max(newWidth, 150), 300); // Min 150mm, Max 300mm
+    });
+  };
 
   return (
     <div className="relative bg-background min-h-screen">
@@ -234,7 +83,7 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
         <div className="flex justify-between items-center mb-4">
           <Button onClick={handleExport} className="w-full sm:w-auto">
             <FileDown className="w-4 h-4 mr-2" />
-            Export to DOCX
+            Export to PDF
           </Button>
           <div className="flex items-center gap-2">
             <Button onClick={() => adjustWidth(false)} variant="outline" size="icon">
@@ -274,15 +123,17 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
           )}
           style={{ width: `${previewWidth}mm` }}
         >
+          {/* Title Page */}
           <div className="mb-8 bg-white rounded-lg overflow-hidden thesis-page">
             {language === 'en' ? (
-              <TitlePage metadata={thesis?.metadata} titleSection={thesis?.frontMatter?.[0]} />
+              <TitlePage metadata={thesis.metadata} titleSection={thesis.frontMatter[0]} />
             ) : (
-              <FrenchTitlePage thesis={thesis} titleSection={thesis?.frontMatter?.[0]} />
+              <FrenchTitlePage thesis={thesis} titleSection={thesis.frontMatter[0]} />
             )}
           </div>
-            
-          {(thesis?.frontMatter || []).map((section: any, index: number) => (
+          
+          {/* Front Matter */}
+          {thesis.frontMatter.map((section: any, index: number) => (
             <div 
               key={section.id} 
               className="thesis-page"
@@ -299,10 +150,11 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
               )}
             </div>
           ))}
-            
-          {(thesis?.chapters || []).map((chapter: any) => (
+          
+          {/* Chapters */}
+          {thesis.chapters.map((chapter: any) => (
             <React.Fragment key={chapter.id}>
-              {(chapter.sections || []).map((section: any) => (
+              {chapter.sections.map((section: any) => (
                 <div 
                   key={section.id} 
                   className="thesis-page"
@@ -318,8 +170,9 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
               ))}
             </React.Fragment>
           ))}
-            
-          {(thesis?.backMatter || []).map((section: any) => (
+          
+          {/* Back Matter */}
+          {thesis.backMatter.map((section: any) => (
             <div 
               key={section.id} 
               className="thesis-page"

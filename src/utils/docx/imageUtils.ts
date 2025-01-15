@@ -1,23 +1,18 @@
-import { IImageOptions } from 'docx';
+import { ImageOptions, DocPropertiesOptions } from './types';
 
-export const base64ToUint8Array = (base64: string): Uint8Array => {
-  const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
+export const convertImageToBase64 = async (imageUrl: string): Promise<string> => {
+  const response = await fetch(imageUrl);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 };
 
-export const createImageRun = (
-  data: Uint8Array,
-  dimensions: { width: number; height: number }
-): IImageOptions => ({
-  data,
-  transformation: {
-    width: dimensions.width,
-    height: dimensions.height,
-  },
-  type: 'png'
+export const getImageOptions = (altText: string): DocPropertiesOptions => ({
+  name: altText,
+  description: altText,
+  title: altText // Add the required title property
 });

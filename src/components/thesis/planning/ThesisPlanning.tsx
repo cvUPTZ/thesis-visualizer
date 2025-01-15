@@ -4,14 +4,14 @@ import { Progress } from '@/components/ui/progress';
 import { Calendar, Clock, Target, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Thesis } from '@/types/thesis';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 
 interface ThesisPlanningProps {
   thesis: Thesis;
 }
 
 export const ThesisPlanning: React.FC<ThesisPlanningProps> = ({ thesis }) => {
-  const startDate = thesis.createdAt ? new Date(thesis.createdAt) : new Date();
+  const startDate = new Date(thesis.created_at);
   const today = new Date();
   const estimatedEndDate = new Date(startDate);
   estimatedEndDate.setMonth(estimatedEndDate.getMonth() + 6); // Default 6 months duration

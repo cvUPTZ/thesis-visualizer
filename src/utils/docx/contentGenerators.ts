@@ -1,175 +1,185 @@
 import { 
-  HeadingLevel, 
-  IParagraphOptions,
-  convertInchesToTwip, 
-  AlignmentType, 
+  Document, 
   Paragraph, 
   TextRun, 
-  TabStopPosition,
-  TabStopType,
-  ImageRun,
-  WidthType,
-  BorderStyle
+  HeadingLevel, 
+  AlignmentType, 
+  TableOfContents, 
+  StyleLevel,
+  convertInchesToTwip
 } from 'docx';
-import { base64ToUint8Array } from './imageUtils';
+import { ContentGenerationOptions } from './types';
+import { defaultStyles, previewStyles } from './styleConfig';
 
+export const generateTableOfContents = (): TableOfContents => {
+  return new TableOfContents("Table of Contents", {
+    hyperlink: true,
+    headingStyleRange: "1-5",
+    stylesWithLevels: [
+      {
+        level: 1,
+        styleName: "heading 1",
+      } as StyleLevel,
+      {
+        level: 2,
+        styleName: "heading 2",
+      } as StyleLevel,
+    ],
+  });
+};
 
-export const createHeading = (text: string, level: keyof typeof HeadingLevel, chapterNumber?: number): IParagraphOptions => ({
-  text: chapterNumber ? `CHAPTER ${chapterNumber}\n${text}` : text,
-  heading: HeadingLevel[level],
-  spacing: {
-    before: 480,
-    after: 240
-  },
-  alignment: AlignmentType.CENTER
-});
-
-export const createParagraph = (text: string, options?: Partial<IParagraphOptions>): IParagraphOptions => ({
-  ...options,
-  children: [
-    new TextRun({
-      text,
-      size: 24, // 12pt
-      font: "Times New Roman"
-    })
-  ],
-  spacing: {
-    line: 360, // 1.5 spacing
-    before: 0,
-    after: 0,
-    ...options?.spacing
-  },
-  indent: {
-    firstLine: convertInchesToTwip(0.5),
-    ...options?.indent
-  }
-});
-
-export const createBlockQuote = (text: string): IParagraphOptions => ({
-  children: [
-    new TextRun({
-      text,
-      size: 24,
-      font: "Times New Roman"
-    })
-  ],
-  spacing: {
-    line: 240, // single spacing
-    before: 240,
-    after: 240
-  },
-  indent: {
-    left: convertInchesToTwip(0.5),
-    right: convertInchesToTwip(0.5)
-  }
-});
-
-export const createCaption = (text: string, type: 'figure' | 'table', number: string): IParagraphOptions => ({
-  children: [
-    new TextRun({
-      text: `${type === 'figure' ? 'Figure' : 'Table'} ${number}: ${text}`,
-      size: 20, // 10pt
-      font: "Times New Roman"
-    })
-  ],
-  spacing: {
-    line: 240, // single spacing
-    before: 120,
-    after: 120
-  },
-  alignment: AlignmentType.CENTER
-});
-
-
-export const generateChapterContent = (
-    chapterNumber: number,
-    title: string,
-    content: string,
-    figures: any[],
-): Paragraph[] => {
-    const paragraphs: Paragraph[] = [
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: `CHAPTER ${chapterNumber}`,
-            bold: true,
-            size: 32
-          }),
-        ],
-        pageBreakBefore: true,
-        alignment: AlignmentType.LEFT,
+const generateHeader = (title: string): Paragraph => {
+  return new Paragraph({
+    children: [
+      new TextRun({
+        text: title,
+        size: 20,
+        font: "Times New Roman",
       }),
+    ],
+    alignment: AlignmentType.CENTER,
+    style: 'header',
+  });
+};
+
+const generateFooter = (): Paragraph => {
+  return new Paragraph({
+    children: [
+      new TextRun("Page "),
+      new TextRun({
+        children: ["PAGE"],
+      }),
+      new TextRun(" of "),
+      new TextRun({
+        children: ["NUMPAGES"],
+      }),
+    ],
+    alignment: AlignmentType.CENTER,
+    style: 'footer',
+  });
+};
+
+const generateChapterSeparator = (chapterTitle: string): Paragraph[] => {
+  return [
     new Paragraph({
-      children: [
-        new TextRun({
-          text: title.toUpperCase(),
-          bold: true,
-          size: 32
-        }),
-      ],
-        alignment: AlignmentType.LEFT,
+      children: [new TextRun({ break: 1 })],
+      pageBreakBefore: true,
+    }),
+    new Paragraph({
+      text: chapterTitle,
+      heading: HeadingLevel.HEADING_1,
+      alignment: AlignmentType.CENTER,
+      spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(1) },
+      style: 'chapterTitle',
     }),
   ];
-  if (typeof content === 'string') {
-    content.split('\n\n').forEach(paragraph => {
+};
+
+export const generateContent = ({ thesis, isPreview = false }: ContentGenerationOptions): Paragraph[] => {
+  const paragraphs: Paragraph[] = [];
+  const styles = isPreview ? previewStyles : defaultStyles;
+
+  // Front Matter with proper spacing and styling
+  thesis.frontMatter.forEach(section => {
+    if (section.type !== 'title') {
       paragraphs.push(
         new Paragraph({
-          children: [
-            new TextRun({
-              text: paragraph.trim(),
-              size: 24
-            }),
-          ],
-          alignment: AlignmentType.LEFT,
+          text: section.title,
+          heading: HeadingLevel.HEADING_1,
+          style: 'heading 1',
+          pageBreakBefore: true,
+        }),
+        new Paragraph({
+          text: section.content,
+          spacing: styles.default.document.paragraph.spacing,
+          style: 'Normal',
         })
       );
-    });
     }
+  });
 
-      if (figures && figures.length > 0) {
-            figures.forEach(figure => {
-              if (figure.imageUrl) {
-                try {
-                  // Extract base64 data from data URL
-                   const base64Data = figure.imageUrl.split(',')[1];
-                   if (!base64Data) {
-                    console.warn('Invalid image URL format:', figure.imageUrl);
-                      return;
-                   }
-                   const imageBuffer = base64ToUint8Array(base64Data);
+  // Chapters with proper formatting and separation pages
+  thesis.chapters.forEach(chapter => {
+    // Add chapter separator page
+    paragraphs.push(...generateChapterSeparator(chapter.title));
 
-                  const imageRun = new ImageRun({
-                     data: imageBuffer,
-                    transformation: {
-                      width: figure.dimensions?.width || 400,
-                      height: figure.dimensions?.height || 300
-                    }
-                 });
-           
-                 paragraphs.push(
-                      new Paragraph({
-                        children: [imageRun],
-                           alignment: figure.position === 'left' ? AlignmentType.LEFT :
-                              figure.position === 'right' ? AlignmentType.RIGHT :
-                                AlignmentType.CENTER
-                      }),
-                     new Paragraph({
-                         children: [
-                             new TextRun({
-                                 text: `Figure ${figure.number}: ${figure.caption || ''}`,
-                                 italics: true,
-                                 size: 20
-                             })
-                         ],
-                         alignment: AlignmentType.CENTER
-                    })
-               );
-                } catch (error) {
-                    console.error('Error processing figure:', error);
-                }
-             }
-          });
+    chapter.sections.forEach(section => {
+      paragraphs.push(
+        new Paragraph({
+          text: section.title,
+          heading: HeadingLevel.HEADING_2,
+          spacing: styles.default.heading2.paragraph.spacing,
+          style: 'heading 2',
+        })
+      );
+
+      const contentParagraphs = section.content.split('\n\n');
+      contentParagraphs.forEach(content => {
+        if (content.trim()) {
+          paragraphs.push(
+            new Paragraph({
+              text: content,
+              spacing: styles.default.document.paragraph.spacing,
+              style: 'Normal',
+            })
+          );
         }
+      });
 
-    return paragraphs;
+      // Handle figures with captions
+      if (section.figures && section.figures.length > 0) {
+        section.figures.forEach(figure => {
+          paragraphs.push(
+            new Paragraph({
+              text: `[Figure ${figure.number}]`,
+              spacing: { before: 240, after: 120 },
+              alignment: AlignmentType.CENTER,
+            }),
+            new Paragraph({
+              text: figure.caption,
+              style: isPreview ? 'preview-caption' : 'caption',
+              spacing: { before: 120, after: 240 },
+            })
+          );
+        });
+      }
+
+      // Handle tables with captions
+      if (section.tables && section.tables.length > 0) {
+        section.tables.forEach(table => {
+          paragraphs.push(
+            new Paragraph({
+              text: table.content,
+              spacing: { before: 240, after: 120 },
+            }),
+            new Paragraph({
+              text: `Table ${table.id}: ${table.caption}`,
+              style: isPreview ? 'preview-caption' : 'caption',
+              spacing: { before: 120, after: 240 },
+            })
+          );
+        });
+      }
+    });
+  });
+
+  // Back Matter
+  thesis.backMatter.forEach(section => {
+    paragraphs.push(
+      new Paragraph({
+        text: section.title,
+        heading: HeadingLevel.HEADING_1,
+        pageBreakBefore: true,
+        spacing: styles.default.heading1.paragraph.spacing,
+        style: 'heading 1',
+      }),
+      new Paragraph({
+        text: section.content,
+        spacing: styles.default.document.paragraph.spacing,
+        style: 'Normal',
+      })
+    );
+  });
+
+  return paragraphs;
 };

@@ -9,7 +9,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,17 +35,7 @@ export const FigureManager = ({
 
   console.log('Rendering FigureManager:', { figuresCount: figures?.length });
 
-  const handleFileUpload = async (
-    file: File,
-    position: 'left' | 'center' | 'right' = 'center',
-    customWidth?: number,
-    customHeight?: number,
-    border?: {
-      style: 'single' | 'double' | 'thick' | 'none';
-      size: number;
-      color: string;
-    }
-  ) => {
+  const handleFileUpload = async (file: File) => {
     try {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -62,17 +51,14 @@ export const FigureManager = ({
             altText: '',
             number: (figures?.length || 0) + 1,
             dimensions: {
-              width: customWidth || img.width,
-              height: customHeight || img.height
-            },
-            position,
-            border,
+              width: img.width,
+              height: img.height
+            }
           };
           
           console.log('Adding new figure:', newFigure);
           onAddFigure(newFigure);
           setIsAddingFigure(false);
-          setPreviewImage(null);
           
           toast({
             title: "Figure Added",
@@ -111,20 +97,19 @@ export const FigureManager = ({
           </div>
           <h3 className="text-lg font-serif font-medium text-primary">Figures</h3>
         </div>
-        <DialogTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 hover:bg-primary/10 transition-colors"
-          >
-            <PlusCircle className="w-4 h-4" />
-            Add Figure
-          </Button>
-        </DialogTrigger>
+        <Button
+          onClick={() => setIsAddingFigure(true)} 
+          variant="outline" 
+          size="sm"
+          className="gap-2 hover:bg-primary/10 transition-colors"
+        >
+          <PlusCircle className="w-4 h-4" />
+          Add Figure
+        </Button>
       </motion.div>
 
       <Dialog open={isAddingFigure} onOpenChange={setIsAddingFigure}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Figure</DialogTitle>
           </DialogHeader>

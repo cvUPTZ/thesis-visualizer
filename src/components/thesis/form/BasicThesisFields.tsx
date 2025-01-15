@@ -1,25 +1,22 @@
+import React from 'react';
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 
 interface BasicThesisFieldsProps {
   values: {
     title: string;
     description: string;
     keywords: string;
-    supervisorEmail?: string;
   };
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const BasicThesisFields = ({
-  values,
-  handleChange,
-}: BasicThesisFieldsProps) => {
+export const BasicThesisFields = ({ values, handleChange }: BasicThesisFieldsProps) => {
   return (
-    <div className="space-y-4">
+    <>
       <div>
-        <Label htmlFor="title">Title</Label>
+        <label htmlFor="title" className="block text-sm font-medium mb-1">
+          Title
+        </label>
         <Input
           id="title"
           name="title"
@@ -31,19 +28,23 @@ export const BasicThesisFields = ({
       </div>
 
       <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
+        <label htmlFor="description" className="block text-sm font-medium mb-1">
+          Description
+        </label>
+        <Input
           id="description"
           name="description"
           value={values.description}
           onChange={handleChange}
-          placeholder="Brief description of your thesis"
+          placeholder="Enter a brief description of your thesis"
           required
         />
       </div>
 
       <div>
-        <Label htmlFor="keywords">Keywords</Label>
+        <label htmlFor="keywords" className="block text-sm font-medium mb-1">
+          Keywords
+        </label>
         <Input
           id="keywords"
           name="keywords"
@@ -52,23 +53,7 @@ export const BasicThesisFields = ({
           placeholder="Enter keywords separated by commas"
           required
         />
-        <p className="text-sm text-muted-foreground mt-1">
-          Separate keywords with commas (e.g., AI, Machine Learning, Data Science)
-        </p>
       </div>
-
-      <div>
-        <Label htmlFor="supervisorEmail">Supervisor Email</Label>
-        <Input
-          id="supervisorEmail"
-          name="supervisorEmail"
-          type="email"
-          value={values.supervisorEmail || ''}
-          onChange={handleChange}
-          placeholder="Enter your supervisor's email"
-          required
-        />
-      </div>
-    </div>
+    </>
   );
 };

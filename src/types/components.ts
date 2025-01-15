@@ -1,74 +1,91 @@
-import { Section, Reference, Citation, Task, Chapter } from './thesis';
+import { BaseProps } from './common';
+import { Chapter, Section, Citation, Figure, Table, Reference } from './thesis';
 
-export interface SectionProps {
+export interface EditorProps extends BaseProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}
+
+export interface SectionProps extends BaseProps {
   section: Section;
   isActive: boolean;
   onContentChange: (id: string, content: string) => void;
   onTitleChange: (id: string, title: string) => void;
 }
 
-export interface EditorProps {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
+export interface ChapterProps extends BaseProps {
+  chapter: Chapter;
+  onUpdateChapter: (chapter: Chapter) => void;
 }
 
-export interface CitationProps {
+export interface CitationProps extends BaseProps {
   citation: Citation;
+  onRemove: (id: string) => void;
   onUpdate: (citation: Citation) => void;
-  onDelete: (id: string) => void;
+  onPreview?: () => void;
 }
 
-export interface ReferenceManagerProps {
+export interface CitationManagerProps extends BaseProps {
+  citations: Citation[];
+  onCitationSelect?: (citation: Citation) => void;
+  selectedCitation?: Citation | null;
+  onCitationCreate?: (citation: Citation) => void;
+  onCitationUpdate?: (citation: Citation) => void;
+  onCitationDelete?: (citation: Citation) => void;
+  thesisId: string;
+  onAddCitation?: (citation: any) => void;
+  onRemoveCitation?: (id: any) => void;
+  onUpdateCitation?: (citation: any) => void;
+}
+
+export interface CitationListProps extends BaseProps {
+  citations: Citation[];
+  onRemove: (id: string) => void;
+  onUpdate: (citation: Citation) => void;
+  onPreview: (citation: Citation) => void;
+}
+
+export interface CitationSearchProps {
+  onCitationSelect: (citation: Citation) => void;
+}
+
+export interface CitationPreviewProps {
+  citation: Citation;
+  onClose: () => void;
+  onEdit: (citation: Citation) => void;
+  onDelete: (citation: Citation) => void;
+}
+
+export interface FigureProps extends BaseProps {
+  figure: Figure;
+  onRemove: (id: string) => void;
+  onUpdate: (figure: Figure) => void;
+  onPreview?: () => void;
+}
+
+export interface TableProps extends BaseProps {
+  table: Table;
+  onRemove: (id: string) => void;
+  onUpdate: (table: Table) => void;
+}
+
+export interface ReferenceProps extends BaseProps {
+  reference: Reference;
+  onRemove: (id: string) => void;
+  onUpdate: (reference: Reference) => void;
+}
+
+export interface ReferenceManagerProps extends BaseProps {
   items: Reference[];
   onAdd: (reference: Reference) => void;
   onRemove: (id: string) => void;
   onUpdate: (reference: Reference) => void;
 }
 
-export interface ReferenceProps {
-  reference: Reference;
-  onUpdate: (reference: Reference) => void;
-  onDelete: (id: string) => void;
-}
-
-export interface SectionContentProps {
-  section: Section;
-  isActive: boolean;
-  onContentChange: (content: string) => void;
-  onUpdateSectionData: (section: Section) => void;
-}
-
-export interface TaskItemProps {
-  id: string;
-  description: string;
-  status: Task['status'];
-  priority: Task['priority'];
-  onToggleStatus: (status: Task['status']) => void;
-  onChangeDescription: (description: string) => void;
-}
-
-export interface ThesisContentProps {
-  frontMatter: Section[];
-  chapters: Chapter[];
-  backMatter: Section[];
-  activeSection: string;
-  onContentChange: (id: string, content: string) => void;
-  onTitleChange: (id: string, title: string) => void;
-  thesisId: string;
-  onUpdateChapter: (chapter: Chapter) => void;
-  onAddChapter: (chapter: Chapter) => void;
-}
-
-export interface ThesisEditorContentProps extends ThesisContentProps {}
-
-export interface ThesisSidebarProps {
-  sections: Section[];
-  activeSection: string;
-  onSectionSelect: (id: string) => void;
-  thesisId: string;
-  onUpdateSectionData: (section: Section) => void;
-  onAddSectionTask: (sectionId: string) => void;
-  onUpdateSectionTask: (sectionId: string, taskId: string, status: Task['status']) => void;
-  onChangeSectionTaskDescription: (sectionId: string, taskId: string, description: string) => void;
+export interface ManagerProps<T> extends BaseProps {
+  items: T[];
+  onAdd: (item: T) => void;
+  onRemove: (id: string) => void;
+  onUpdate: (item: T) => void;
 }

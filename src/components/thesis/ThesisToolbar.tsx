@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Eye, EyeOff, LogOut } from 'lucide-react';
 import { ThesisSaveButton } from './ThesisSaveButton';
 import { Thesis } from '@/types/thesis';
-import { generateThesisDocx } from '@/utils/docxExport';
+import { generateThesisDocx, generatePreviewDocx } from '@/utils/docxExport';
 import { Packer } from 'docx';
 import { useToast } from '@/hooks/use-toast';
 import { UserInfo } from './UserInfo';
@@ -25,12 +25,12 @@ interface ThesisToolbarProps {
   onTogglePreview: () => void;
 }
 
-export const ThesisToolbar: React.FC<ThesisToolbarProps> = ({
+export const ThesisToolbar = ({
   thesisId,
   thesisData,
   showPreview,
   onTogglePreview,
-}) => {
+}: ThesisToolbarProps) => {
   const { toast } = useToast();
   const { userEmail, userRole, handleLogout } = useUser();
   const {
@@ -42,10 +42,12 @@ export const ThesisToolbar: React.FC<ThesisToolbarProps> = ({
     error,
   } = useCollaboratorPermissions(thesisId);
 
-  const handleExport = async (type: 'academic') => {
+  const handleExport = async (type: 'academic' | 'preview') => {
     try {
       console.log(`Starting ${type} DOCX export with thesis data:`, thesisData);
-      const doc = await generateThesisDocx(thesisData);
+      const doc = type === 'academic' 
+        ? await generateThesisDocx(thesisData)
+        : await generatePreviewDocx(thesisData);
       console.log('Document generated, converting to blob...');
       
       const blob = await Packer.toBlob(doc);
@@ -54,7 +56,7 @@ export const ThesisToolbar: React.FC<ThesisToolbarProps> = ({
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${thesisData.frontMatter?.[0]?.title || 'thesis'}_${type}.docx`;
+      link.download = `${thesisData.frontMatter[0]?.title || 'thesis'}_${type}.docx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -91,13 +93,16 @@ export const ThesisToolbar: React.FC<ThesisToolbarProps> = ({
             <DropdownMenuItem onClick={() => handleExport('academic')}>
               Academic Format
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport('preview')}>
+              Preview Format
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         {userEmail && <UserInfo email={userEmail} role={userRole} />}
         <CollaboratorSection
           collaborators={collaborators as CollaboratorWithProfile[]}
           thesisId={thesisId}
-          thesisTitle={thesisData.frontMatter?.[0]?.title || 'Untitled Thesis'}
+          thesisTitle={thesisData.frontMatter[0]?.title || 'Untitled Thesis'}
           canManageCollaborators={canManageCollaboratorsProp}
           isAdmin={userProfile?.roles?.name === 'admin'}
         />

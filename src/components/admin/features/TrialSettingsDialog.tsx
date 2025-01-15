@@ -1,63 +1,98 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import React from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
-
-interface TrialSettings {
-  id: string;
-  trial_days: number;
-  created_at: string;
-  updated_at: string;
-}
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TrialSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentTrialDays: number;
-  onUpdate: () => Promise<any>;
+  onUpdate: () => void;
 }
 
-export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
+export const TrialSettingsDialog = ({
   open,
   onOpenChange,
   currentTrialDays,
-  onUpdate,
-}) => {
-  const [trialDays, setTrialDays] = useState<number>(currentTrialDays);
+  onUpdate
+}: TrialSettingsDialogProps) => {
+  const [trialDays, setTrialDays] = React.useState(currentTrialDays);
+  const [isUpdating, setIsUpdating] = React.useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await onUpdate();
-    onOpenChange(false);
+  const handleUpdate = async () => {
+    try {
+      setIsUpdating(true);
+      const { error } = await supabase
+        .from('trial_settings')
+        .update({ trial_days: trialDays })
+        .eq('id', 1);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Trial period settings updated successfully",
+      });
+      onUpdate();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error updating trial settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update trial settings",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Update Trial Settings</DialogTitle>
+          <DialogTitle>Trial Period Settings</DialogTitle>
+          <DialogDescription>
+            Set the number of days for the free trial period
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="trialDays" className="text-sm font-medium">
-              Trial Days
-            </label>
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="trialDays">Trial Days</Label>
             <Input
               id="trialDays"
               type="number"
               value={trialDays}
-              onChange={(e) => setTrialDays(Number(e.target.value))}
+              onChange={(e) => setTrialDays(parseInt(e.target.value))}
               min={1}
-              max={90}
+              max={365}
             />
           </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">Update</Button>
-          </div>
-        </form>
+        </div>
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUpdate}
+            disabled={isUpdating || trialDays === currentTrialDays}
+          >
+            {isUpdating ? 'Updating...' : 'Update'}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

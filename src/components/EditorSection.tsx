@@ -21,11 +21,10 @@ export const EditorSection: React.FC<SectionProps> = ({
 
   if (!isActive) return null;
 
-  const handleSectionDataUpdate = (updatedSection: Section) => {
+  const handleSectionUpdate = (updatedSection: Section) => {
     console.log('Updating section:', updatedSection);
     onContentChange(updatedSection.id, updatedSection.content);
-    onTitleChange(updatedSection.id, updatedSection.title);
-       
+    
     toast({
       title: "Success",
       description: "Section updated successfully",
@@ -42,15 +41,13 @@ export const EditorSection: React.FC<SectionProps> = ({
         />
         
         <SectionContent
-          section={section}
-          isActive={isActive}
+          content={section.content}
           onContentChange={(content) => onContentChange(section.id, content)}
-          onUpdateSectionData={handleSectionDataUpdate}
         />
 
         <SectionManagers
           section={section}
-          onSectionUpdate={handleSectionDataUpdate}
+          onSectionUpdate={handleSectionUpdate}
         />
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, FileText, AlertTriangle, Activity, Loader2, MessageSquare, MousePointer } from 'lucide-react';
+import { Users, FileText, AlertTriangle, Activity, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -42,65 +42,23 @@ export const SystemStats = () => {
           throw issuesError;
         }
 
-        // Get total feedback count
-        const { count: feedbackCount, error: feedbackError } = await supabase
-          .from('user_feedback')
-          .select('*', { count: 'exact', head: true });
-
-        if (feedbackError) {
-          console.error('Error fetching feedback count:', feedbackError);
-          throw feedbackError;
-        }
-
-        // Get active sessions count
-        const { count: activeSessionsCount, error: sessionsError } = await supabase
-          .from('active_sessions')
-          .select('*', { count: 'exact', head: true });
-
-        if (sessionsError) {
-          console.error('Error fetching sessions count:', sessionsError);
-          throw sessionsError;
-        }
-
-        // Get total chat messages count
-        const { count: messagesCount, error: messagesError } = await supabase
-          .from('chat_messages')
-          .select('*', { count: 'exact', head: true });
-
-        if (messagesError) {
-          console.error('Error fetching messages count:', messagesError);
-          throw messagesError;
-        }
-
         // Calculate system health (example metric: 100 - (issues/users * 100))
         const healthPercentage = usersCount 
           ? Math.max(0, Math.min(100, 100 - (issuesCount / usersCount * 100)))
           : 100;
 
-        // Calculate engagement rate (messages per user)
-        const engagementRate = usersCount 
-          ? (messagesCount / usersCount).toFixed(1)
-          : '0';
-
         console.log('System statistics fetched:', {
           usersCount,
           thesesCount,
           issuesCount,
-          healthPercentage,
-          activeSessionsCount,
-          messagesCount,
-          engagementRate
+          healthPercentage
         });
 
         return {
           users: usersCount || 0,
           theses: thesesCount || 0,
           issues: issuesCount || 0,
-          health: healthPercentage.toFixed(1),
-          activeSessions: activeSessionsCount || 0,
-          messages: messagesCount || 0,
-          engagement: engagementRate,
-          feedback: feedbackCount || 0
+          health: healthPercentage.toFixed(1)
         };
       } catch (error) {
         console.error('Error fetching system stats:', error);
@@ -108,8 +66,8 @@ export const SystemStats = () => {
       }
     },
     refetchInterval: 30000, // Refresh every 30 seconds
-    retry: 3,
-    staleTime: 10000,
+    retry: 3, // Retry failed requests 3 times
+    staleTime: 10000, // Consider data stale after 10 seconds
   });
 
   if (error) {
@@ -178,24 +136,6 @@ export const SystemStats = () => {
         icon={Users}
       />
       <StatCard
-        title="Active Sessions"
-        value={stats?.activeSessions || 0}
-        description="Currently active users"
-        icon={MousePointer}
-      />
-      <StatCard
-        title="Messages"
-        value={stats?.messages || 0}
-        description={`${stats?.engagement || 0} msgs/user`}
-        icon={MessageSquare}
-      />
-      <StatCard
-        title="System Health"
-        value={`${stats?.health || 0}%`}
-        description="Overall system status"
-        icon={Activity}
-      />
-      <StatCard
         title="Total Theses"
         value={stats?.theses || 0}
         description="Total theses in system"
@@ -208,15 +148,9 @@ export const SystemStats = () => {
         icon={AlertTriangle}
       />
       <StatCard
-        title="User Feedback"
-        value={stats?.feedback || 0}
-        description="Feedback submissions"
-        icon={MessageSquare}
-      />
-      <StatCard
-        title="Engagement Rate"
-        value={`${stats?.engagement || 0}`}
-        description="Messages per user"
+        title="System Health"
+        value={`${stats?.health || 0}%`}
+        description="Overall system status"
         icon={Activity}
       />
     </div>

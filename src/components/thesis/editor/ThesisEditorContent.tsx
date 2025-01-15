@@ -1,9 +1,7 @@
-import React, { useCallback, useMemo } from 'react';
-import { SectionEditor } from '@/components/SectionEditor';
-import { ChapterManager } from '@/components/ChapterManager';
-import { ChatMessages } from '@/components/collaboration/ChatMessages';
-import { useThrottledState } from '@/hooks/useThrottledState';
-import { Section, Chapter, Task } from '@/types/thesis';
+import React from 'react';
+import { ThesisContent } from '../ThesisContent';
+import { Chapter, Section } from '@/types/thesis';
+import { useParams } from 'react-router-dom';
 
 interface ThesisEditorContentProps {
   frontMatter: Section[];
@@ -14,13 +12,9 @@ interface ThesisEditorContentProps {
   onTitleChange: (id: string, title: string) => void;
   onUpdateChapter: (chapter: Chapter) => void;
   onAddChapter: (chapter: Chapter) => void;
-  onUpdateSectionData: (section: Section) => void;
-  onAddSectionTask: (sectionId: string) => void;
-  onUpdateSectionTask: (sectionId: string, taskId: string, status: Task['status']) => void;
-  onChangeSectionTaskDescription: (sectionId: string, taskId: string, description: string) => void;
 }
 
-export const ThesisEditorContent = React.memo(({
+export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
   frontMatter,
   chapters,
   backMatter,
@@ -28,63 +22,28 @@ export const ThesisEditorContent = React.memo(({
   onContentChange,
   onTitleChange,
   onUpdateChapter,
-  onAddChapter,
-  onUpdateSectionData,
-  onAddSectionTask,
-  onUpdateSectionTask,
-  onChangeSectionTaskDescription
-}: ThesisEditorContentProps) => {
-  const [localActiveSection, setLocalActiveSection] = useThrottledState<string>(activeSection);
+  onAddChapter
+}) => {
+  const { thesisId } = useParams<{ thesisId: string }>();
 
-  const renderSectionContent = useCallback((section: Section) => {
-    const isActive = localActiveSection === section.id;
-    if (!isActive) return null;
+  console.log('ThesisEditorContent rendering with thesisId:', thesisId);
 
-    return (
-      <SectionEditor
-        key={section.id}
-        section={section}
-        onTitleChange={onTitleChange}
-        onContentChange={onContentChange}
-        onUpdateSectionData={onUpdateSectionData}
-        onAddSectionTask={onAddSectionTask}
-        onUpdateSectionTask={onUpdateSectionTask}
-        onChangeSectionTaskDescription={onChangeSectionTaskDescription}
-      />
-    );
-  }, [localActiveSection, onTitleChange, onContentChange, onUpdateSectionData, onAddSectionTask, onUpdateSectionTask, onChangeSectionTaskDescription]);
-
-  const activeContent = useMemo(() => {
-    return [
-      ...frontMatter.map(section => renderSectionContent(section)),
-      ...backMatter.map(section => renderSectionContent(section))
-    ].filter(Boolean);
-  }, [frontMatter, backMatter, renderSectionContent]);
+  if (!thesisId) {
+    console.error('No thesis ID found in URL params');
+    return null;
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          {activeContent}
-          
-          <ChapterManager
-            chapters={chapters}
-            onUpdateChapter={onUpdateChapter}
-            onAddChapter={onAddChapter}
-          />
-        </div>
-        
-        <div className="lg:col-span-1">
-          {localActiveSection && (
-            <ChatMessages 
-              key={localActiveSection} 
-              thesisId={localActiveSection} 
-            />
-          )}
-        </div>
-      </div>
-    </div>
+    <ThesisContent
+      frontMatter={frontMatter}
+      chapters={chapters}
+      backMatter={backMatter}
+      activeSection={activeSection}
+      onContentChange={onContentChange}
+      onTitleChange={onTitleChange}
+      onUpdateChapter={onUpdateChapter}
+      onAddChapter={onAddChapter}
+      thesisId={thesisId}
+    />
   );
-});
-
-ThesisEditorContent.displayName = 'ThesisEditorContent';
+};

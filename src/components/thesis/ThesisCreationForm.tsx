@@ -26,7 +26,6 @@ export const ThesisCreationForm = () => {
       title: '',
       description: '',
       keywords: '',
-      supervisorEmail: '',
       universityName: '',
       departmentName: '',
       authorName: '',
@@ -44,11 +43,6 @@ export const ThesisCreationForm = () => {
       if (!values.keywords) {
         err.keywords = "Keywords are required";
       }
-      if (!values.supervisorEmail) {
-        err.supervisorEmail = "Supervisor email is required";
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.supervisorEmail)) {
-        err.supervisorEmail = "Invalid email address";
-      }
       return err;
     },
     onSubmit: async (values) => {
@@ -58,53 +52,12 @@ export const ThesisCreationForm = () => {
         return;
       }
 
-      // First, look up the supervisor's profile
-      const { data: supervisorProfile, error: supervisorError } = await supabase
-        .from('profiles')
-        .select('id, email')
-        .eq('email', values.supervisorEmail.toLowerCase())
-        .maybeSingle();
-
-      if (supervisorError) {
-        console.error('Error looking up supervisor:', supervisorError);
-        setError('Failed to find supervisor profile');
-        return;
-      }
-
-      if (!supervisorProfile) {
-        setError('Supervisor not found. Please ensure the email is correct.');
-        return;
-      }
-
-      // Create the thesis with supervisor_id
       const metadata = {
         ...values,
         keywords: values.keywords
       };
-
-      const result = await createThesis(metadata, session.user.id, supervisorProfile.id);
-
+      const result = await createThesis(metadata, session.user.id);
       if (result?.thesisId) {
-        // Create a notification for the supervisor
-        const { error: notificationError } = await supabase
-          .from('notifications')
-          .insert({
-            user_id: supervisorProfile.id,
-            thesis_id: result.thesisId,
-            type: 'supervisor_request',
-            message: `You have been assigned as supervisor for thesis "${values.title}"`
-          });
-
-        if (notificationError) {
-          console.error('Error creating notification:', notificationError);
-          toast({
-            title: "Warning",
-            description: "Thesis created but failed to notify supervisor",
-            variant: "destructive",
-          });
-        }
-
-        // Navigate to the thesis page
         navigate(`/thesis/${result.thesisId}`);
       }
     },
@@ -132,12 +85,12 @@ export const ThesisCreationForm = () => {
     checkAuth();
   }, [navigate, toast]);
 
+  const handleCommitteeMemberChange = (index: number, value: string) => {
+    handleArrayChange('committeeMembers', index, value)
+  }
+
   const handleCancel = () => {
     navigate(-1);
-  };
-
-  const handleCommitteeMemberChange = (index: number, value: string) => {
-    handleArrayChange('committeeMembers', index, value);
   };
 
   return (

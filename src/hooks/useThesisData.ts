@@ -4,7 +4,6 @@ import { Thesis } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
 import { validate as validateUUID } from 'uuid';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Json } from '@/integrations/supabase/types';
 
 export const useThesisData = (thesisId: string | undefined) => {
   const { toast } = useToast();
@@ -78,22 +77,21 @@ export const useThesisData = (thesisId: string | undefined) => {
           title: fetchedThesis.title,
           content: fetchedThesis.content,
           user_id: fetchedThesis.user_id,
-          createdAt: new Date(fetchedThesis.created_at),
-          updatedAt: new Date(fetchedThesis.updated_at),
-          metadata: parsedContent?.metadata || {},
-          frontMatter: parsedContent?.frontMatter?.map((section: any) => ({
-            ...section,
-            tasks: section.tasks || [],
-          })) || [],
-          chapters: parsedContent?.chapters?.map((chapter: any) => ({
-            ...chapter,
-            tasks: chapter.tasks || [],
-            sections: chapter.sections?.map((section: any) => ({
-              ...section,
-              tasks: section.tasks || []
-            })) || []
-          })) || [],
-          backMatter: parsedContent?.backMatter || [],
+          created_at: fetchedThesis.created_at,
+          updated_at: fetchedThesis.updated_at,
+          metadata: {
+            description: parsedContent?.metadata?.description || '',
+            keywords: parsedContent?.metadata?.keywords || [],
+            createdAt: parsedContent?.metadata?.createdAt || new Date().toISOString(),
+            universityName: parsedContent?.metadata?.universityName,
+            departmentName: parsedContent?.metadata?.departmentName,
+            authorName: parsedContent?.metadata?.authorName,
+            thesisDate: parsedContent?.metadata?.thesisDate,
+            committeeMembers: parsedContent?.metadata?.committeeMembers
+          },
+          frontMatter: parsedContent?.frontMatter || [],
+          chapters: parsedContent?.chapters || [],
+          backMatter: parsedContent?.backMatter || []
         };
 
         return formattedThesis;
@@ -107,8 +105,8 @@ export const useThesisData = (thesisId: string | undefined) => {
         throw err;
       }
     },
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
