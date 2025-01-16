@@ -59,8 +59,8 @@ const generateFooter = (): Paragraph => {
   });
 };
 
-const generateChapterSeparator = (chapterTitle: string): Paragraph[] => {
-  return [
+const generateChapterSeparator = (chapterTitle: string, chapterContent?: string): Paragraph[] => {
+  const paragraphs = [
     new Paragraph({
       children: [new TextRun({ break: 1 })],
       pageBreakBefore: true,
@@ -73,6 +73,27 @@ const generateChapterSeparator = (chapterTitle: string): Paragraph[] => {
       style: 'chapterTitle',
     }),
   ];
+
+  // Add chapter introduction if available
+  if (chapterContent) {
+    paragraphs.push(
+      new Paragraph({
+        text: chapterContent,
+        style: 'Normal',
+        spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
+      })
+    );
+  }
+
+  return paragraphs;
+};
+
+const generateFootnote = (footnote: any): Paragraph => {
+  return new Paragraph({
+    text: `${footnote.number}. ${footnote.content}`,
+    style: 'footnote',
+    spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
+  });
 };
 
 export const generateContent = ({ thesis, isPreview = false }: ContentGenerationOptions): Paragraph[] => {
@@ -100,8 +121,8 @@ export const generateContent = ({ thesis, isPreview = false }: ContentGeneration
 
   // Chapters with proper formatting and separation pages
   thesis.chapters.forEach(chapter => {
-    // Add chapter separator page
-    paragraphs.push(...generateChapterSeparator(chapter.title));
+    // Add chapter separator page with introduction
+    paragraphs.push(...generateChapterSeparator(chapter.title, chapter.content));
 
     chapter.sections.forEach(section => {
       paragraphs.push(
@@ -125,6 +146,20 @@ export const generateContent = ({ thesis, isPreview = false }: ContentGeneration
           );
         }
       });
+
+      // Add footnotes if available
+      if (section.footnotes && section.footnotes.length > 0) {
+        paragraphs.push(
+          new Paragraph({
+            text: 'Footnotes',
+            style: 'heading 3',
+            spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.5) },
+          })
+        );
+        section.footnotes.forEach(footnote => {
+          paragraphs.push(generateFootnote(footnote));
+        });
+      }
 
       // Handle figures with captions
       if (section.figures && section.figures.length > 0) {

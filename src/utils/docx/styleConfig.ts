@@ -1,73 +1,50 @@
-import { IStylesOptions, convertInchesToTwip } from 'docx';
+import { 
+  StylesOptions, 
+  convertInchesToTwip,
+  HeadingLevel,
+  AlignmentType
+} from 'docx';
 
-// Academic formatting constants
-const FONT_FAMILY = 'Times New Roman';
-const NORMAL_FONT_SIZE = 24; // 12pt
-const HEADING1_FONT_SIZE = 32; // 16pt
-const HEADING2_FONT_SIZE = 28; // 14pt
-const HEADING3_FONT_SIZE = 26; // 13pt
-const TITLE_FONT_SIZE = 36; // 18pt
-const LINE_SPACING = 480; // Double spacing (240 = single space)
-const PARAGRAPH_SPACING = 240; // 12pt
-
-// Border and color constants
-const BORDER_COLOR = '222222'; // Charcoal Gray
-const HEADER_COLOR = '7E69AB'; // Secondary Purple
-const BORDER_SIZE = 12; // 1pt
-
-export const defaultStyles: IStylesOptions = {
+export const defaultStyles: StylesOptions = {
   default: {
     document: {
       run: {
-        size: NORMAL_FONT_SIZE,
-        font: FONT_FAMILY,
+        font: 'Times New Roman',
+        size: 24,
       },
       paragraph: {
-        spacing: { 
-          line: LINE_SPACING,
-          before: PARAGRAPH_SPACING,
-          after: PARAGRAPH_SPACING,
-        },
-        border: {
-          top: { color: BORDER_COLOR, size: BORDER_SIZE, space: 1 },
-          right: { color: BORDER_COLOR, size: BORDER_SIZE, space: 1 },
-          bottom: { color: BORDER_COLOR, size: BORDER_SIZE, space: 1 },
-          left: { color: BORDER_COLOR, size: BORDER_SIZE, space: 1 },
-        },
+        spacing: { line: 360, before: 240, after: 240 },
       },
     },
     heading1: {
       run: {
-        size: HEADING1_FONT_SIZE,
+        font: 'Times New Roman',
+        size: 32,
         bold: true,
-        font: FONT_FAMILY,
-        color: HEADER_COLOR,
       },
       paragraph: {
-        spacing: { 
-          before: PARAGRAPH_SPACING * 2,
-          after: PARAGRAPH_SPACING,
-          line: LINE_SPACING,
-        },
-        keepNext: true,
-        keepLines: true,
+        spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.5) },
+        alignment: AlignmentType.CENTER,
       },
     },
     heading2: {
       run: {
-        size: HEADING2_FONT_SIZE,
+        font: 'Times New Roman',
+        size: 28,
         bold: true,
-        font: FONT_FAMILY,
-        color: HEADER_COLOR,
       },
       paragraph: {
-        spacing: { 
-          before: PARAGRAPH_SPACING * 1.5,
-          after: PARAGRAPH_SPACING,
-          line: LINE_SPACING,
-        },
-        keepNext: true,
-        keepLines: true,
+        spacing: { before: convertInchesToTwip(0.75), after: convertInchesToTwip(0.5) },
+      },
+    },
+    heading3: {
+      run: {
+        font: 'Times New Roman',
+        size: 26,
+        bold: true,
+      },
+      paragraph: {
+        spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(0.25) },
       },
     },
   },
@@ -77,156 +54,140 @@ export const defaultStyles: IStylesOptions = {
       name: 'Title',
       basedOn: 'Normal',
       next: 'Normal',
+      quickFormat: true,
       run: {
-        size: TITLE_FONT_SIZE,
+        font: 'Times New Roman',
+        size: 36,
         bold: true,
-        font: FONT_FAMILY,
-        color: HEADER_COLOR,
       },
       paragraph: {
-        spacing: { 
-          before: PARAGRAPH_SPACING * 2,
-          after: PARAGRAPH_SPACING * 2,
-          line: LINE_SPACING,
-        },
-        alignment: 'center',
-        border: {
-          top: { color: BORDER_COLOR, size: BORDER_SIZE * 2, space: 1 },
-          right: { color: BORDER_COLOR, size: BORDER_SIZE * 2, space: 1 },
-          bottom: { color: BORDER_COLOR, size: BORDER_SIZE * 2, space: 1 },
-          left: { color: BORDER_COLOR, size: BORDER_SIZE * 2, space: 1 },
-        },
+        alignment: AlignmentType.CENTER,
+        spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(1) },
       },
     },
     {
-      id: 'header',
-      name: 'Header',
+      id: 'subtitle',
+      name: 'Subtitle',
       basedOn: 'Normal',
       next: 'Normal',
+      quickFormat: true,
       run: {
-        size: NORMAL_FONT_SIZE,
-        font: FONT_FAMILY,
-        color: HEADER_COLOR,
+        font: 'Times New Roman',
+        size: 28,
+        italic: true,
       },
       paragraph: {
-        spacing: { 
-          line: LINE_SPACING,
-          before: PARAGRAPH_SPACING,
-          after: PARAGRAPH_SPACING,
-        },
-        alignment: 'center',
+        alignment: AlignmentType.CENTER,
+        spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(0.5) },
       },
     },
     {
-      id: 'footer',
-      name: 'Footer',
+      id: 'footnote',
+      name: 'Footnote',
       basedOn: 'Normal',
       next: 'Normal',
+      quickFormat: true,
       run: {
-        size: NORMAL_FONT_SIZE,
-        font: FONT_FAMILY,
+        font: 'Times New Roman',
+        size: 20,
       },
       paragraph: {
-        spacing: { 
-          line: LINE_SPACING,
-          before: PARAGRAPH_SPACING,
-          after: PARAGRAPH_SPACING,
-        },
-        alignment: 'center',
-      },
-    },
-    {
-      id: 'caption',
-      name: 'Caption',
-      basedOn: 'Normal',
-      next: 'Normal',
-      run: {
-        size: NORMAL_FONT_SIZE - 2,
-        font: FONT_FAMILY,
-        italics: true,
-      },
-      paragraph: {
-        spacing: { 
-          line: LINE_SPACING,
-          before: PARAGRAPH_SPACING / 2,
-          after: PARAGRAPH_SPACING,
-        },
-        alignment: 'center',
+        indent: { left: convertInchesToTwip(0.5) },
+        spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
       },
     },
   ],
 };
 
-// Preview formatting constants
-const PREVIEW_FONT_FAMILY = 'Arial';
-const PREVIEW_NORMAL_FONT_SIZE = 24;
-const PREVIEW_HEADING1_FONT_SIZE = 32;
-const PREVIEW_HEADING2_FONT_SIZE = 28;
-const PREVIEW_LINE_SPACING = 360;
-const PREVIEW_PARAGRAPH_SPACING = 240;
-
-export const previewStyles: IStylesOptions = {
+export const previewStyles: StylesOptions = {
   default: {
     document: {
       run: {
-        size: PREVIEW_NORMAL_FONT_SIZE,
-        font: PREVIEW_FONT_FAMILY,
+        font: 'Arial',
+        size: 24,
       },
       paragraph: {
-        spacing: { 
-          line: PREVIEW_LINE_SPACING,
-          before: PREVIEW_PARAGRAPH_SPACING,
-          after: PREVIEW_PARAGRAPH_SPACING,
-        },
+        spacing: { line: 360, before: 240, after: 240 },
       },
     },
     heading1: {
       run: {
-        size: PREVIEW_HEADING1_FONT_SIZE,
+        font: 'Arial',
+        size: 32,
         bold: true,
-        font: PREVIEW_FONT_FAMILY,
       },
       paragraph: {
-        spacing: { 
-          before: PREVIEW_PARAGRAPH_SPACING * 2,
-          after: PREVIEW_PARAGRAPH_SPACING,
-          line: PREVIEW_LINE_SPACING,
-        },
+        spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.5) },
+        alignment: AlignmentType.CENTER,
       },
     },
     heading2: {
       run: {
-        size: PREVIEW_HEADING2_FONT_SIZE,
+        font: 'Arial',
+        size: 28,
         bold: true,
-        font: PREVIEW_FONT_FAMILY,
       },
       paragraph: {
-        spacing: { 
-          before: PREVIEW_PARAGRAPH_SPACING * 1.5,
-          after: PREVIEW_PARAGRAPH_SPACING,
-          line: PREVIEW_LINE_SPACING,
-        },
+        spacing: { before: convertInchesToTwip(0.75), after: convertInchesToTwip(0.5) },
+      },
+    },
+    heading3: {
+      run: {
+        font: 'Arial',
+        size: 26,
+        bold: true,
+      },
+      paragraph: {
+        spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(0.25) },
       },
     },
   },
   paragraphStyles: [
     {
-      id: 'preview-caption',
-      name: 'Preview Caption',
+      id: 'title',
+      name: 'Title',
       basedOn: 'Normal',
       next: 'Normal',
+      quickFormat: true,
       run: {
-        size: PREVIEW_NORMAL_FONT_SIZE - 2,
-        font: PREVIEW_FONT_FAMILY,
-        italics: true,
+        font: 'Arial',
+        size: 36,
+        bold: true,
       },
       paragraph: {
-        spacing: { 
-          line: PREVIEW_LINE_SPACING,
-          before: PREVIEW_PARAGRAPH_SPACING / 2,
-          after: PREVIEW_PARAGRAPH_SPACING,
-        },
-        alignment: 'center',
+        alignment: AlignmentType.CENTER,
+        spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(1) },
+      },
+    },
+    {
+      id: 'subtitle',
+      name: 'Subtitle',
+      basedOn: 'Normal',
+      next: 'Normal',
+      quickFormat: true,
+      run: {
+        font: 'Arial',
+        size: 28,
+        italic: true,
+      },
+      paragraph: {
+        alignment: AlignmentType.CENTER,
+        spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(0.5) },
+      },
+    },
+    {
+      id: 'footnote',
+      name: 'Footnote',
+      basedOn: 'Normal',
+      next: 'Normal',
+      quickFormat: true,
+      run: {
+        font: 'Arial',
+        size: 20,
+      },
+      paragraph: {
+        indent: { left: convertInchesToTwip(0.5) },
+        spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
       },
     },
   ],
