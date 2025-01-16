@@ -7,8 +7,8 @@ export const Navbar = () => {
   const { t } = useTranslation();
 
   return (
-    <nav className="fixed w-full bg-[#1A1F2C] text-white z-50 py-4">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="fixed top-0 left-0 right-0 w-full bg-[#1A1F2C] text-white z-50 py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold text-[#9b87f5]">
             Thesis Visualizer
