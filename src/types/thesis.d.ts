@@ -7,6 +7,14 @@ export interface Citation {
   updated_at: string;
 }
 
+export interface Footnote {
+  id: string;
+  content: string;
+  number: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CitationManagerProps {
   citations: Citation[];
   onCitationSelect?: (citation: Citation) => void;
