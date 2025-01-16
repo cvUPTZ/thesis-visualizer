@@ -61,6 +61,15 @@ export interface Section {
   tables: Table[];
   citations: Citation[];
   references?: Reference[];
+  footnotes?: Footnote[];
+}
+
+export interface Footnote {
+  id: string;
+  content: string;
+  number: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Figure {
