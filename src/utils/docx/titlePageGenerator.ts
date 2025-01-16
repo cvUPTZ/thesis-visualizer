@@ -48,9 +48,33 @@ export const generateTitlePage = ({ thesis, language = 'en' }: TitlePageOptions)
       text: titleText,
       style: 'title',
       alignment: AlignmentType.CENTER,
-      spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(2) },
+      spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(1) },
     })
   );
+
+  // Description (if available)
+  if (metadata.description) {
+    paragraphs.push(
+      new Paragraph({
+        text: metadata.description,
+        alignment: AlignmentType.CENTER,
+        spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
+        style: 'subtitle',
+      })
+    );
+  }
+
+  // Keywords (if available)
+  if (metadata.keywords && metadata.keywords.length > 0) {
+    paragraphs.push(
+      new Paragraph({
+        text: 'Keywords: ' + metadata.keywords.join(', '),
+        alignment: AlignmentType.CENTER,
+        spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
+        style: 'subtitle',
+      })
+    );
+  }
 
   // Thesis Statement
   paragraphs.push(
@@ -113,14 +137,16 @@ export const generateTitlePage = ({ thesis, language = 'en' }: TitlePageOptions)
     );
 
     metadata.committeeMembers.forEach(member => {
-      paragraphs.push(
-        new Paragraph({
-          text: member,
-          alignment: AlignmentType.CENTER,
-          spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
-          style: 'Normal',
-        })
-      );
+      if (member) {
+        paragraphs.push(
+          new Paragraph({
+            text: member,
+            alignment: AlignmentType.CENTER,
+            spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
+            style: 'Normal',
+          })
+        );
+      }
     });
   }
 
