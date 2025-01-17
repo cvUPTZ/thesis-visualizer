@@ -66,6 +66,18 @@ export const ContentSection = ({
           </div>
         )}
       </div>
+
+      {/* Footnotes section */}
+      {section.footnotes && section.footnotes.length > 0 && (
+        <div className="thesis-footnotes">
+          {section.footnotes.map((footnote) => (
+            <div key={footnote.id} className="thesis-footnote">
+              {footnote.content}
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="thesis-footer">
         {!isSpecialSection && <span>Page <span className="page-number"></span></span>}
       </div>

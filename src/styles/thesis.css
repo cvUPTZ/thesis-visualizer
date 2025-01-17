@@ -3,21 +3,8 @@
   position: relative;
   background: white;
   margin: 0 auto;
-  counter-reset: page;
+  counter-reset: page footnote;
   transition: width 0.3s ease;
-}
-
-.thesis-page {
-  position: relative;
-  margin: 2rem auto;
-  padding: 2.5rem;
-  background: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  min-height: 297mm; /* A4 height */
-  box-sizing: border-box;
-  page-break-after: always;
-  border-radius: 4px;
-  transition: all 0.3s ease;
 }
 
 /* Header and Footer styles */
@@ -124,6 +111,28 @@
   font-size: 0.875rem;
   color: #6b7280;
   font-style: italic;
+}
+
+/* Footnote styles */
+.thesis-footnotes {
+  position: absolute;
+  bottom: 4rem;
+  left: 2rem;
+  right: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.thesis-footnote {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+  counter-increment: footnote;
+}
+
+.thesis-footnote::before {
+  content: counter(footnote) ". ";
+  font-weight: 600;
 }
 
 /* Print styles */
