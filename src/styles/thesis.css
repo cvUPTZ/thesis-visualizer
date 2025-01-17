@@ -7,6 +7,16 @@
   transition: width 0.3s ease;
 }
 
+.thesis-page {
+  position: relative;
+  min-height: 297mm; /* A4 height */
+  padding: 20mm;
+  margin-bottom: 8mm;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  page-break-after: always;
+}
+
 /* Header and Footer styles */
 .thesis-header {
   position: relative;
@@ -21,13 +31,13 @@
 
 .thesis-footer {
   position: absolute;
-  bottom: 2rem;
-  left: 0;
-  right: 0;
+  bottom: 20mm;
+  left: 20mm;
+  right: 20mm;
   text-align: center;
   font-size: 0.9rem;
   color: #6b7280;
-  padding: 0.5rem;
+  padding-top: 0.5rem;
   border-top: 1px solid #e5e7eb;
 }
 
@@ -39,10 +49,11 @@
 .thesis-content {
   position: relative;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: 0;
   line-height: 1.8;
   color: #111827;
-  max-width: 160mm; /* Consistent content width */
+  max-width: none;
+  min-height: calc(297mm - 40mm - 30mm); /* A4 height - margins - footer */
 }
 
 /* Typography styles */
@@ -67,19 +78,6 @@
   text-align: justify;
 }
 
-/* Page break styles */
-.page-break-before {
-  page-break-before: always;
-}
-
-.page-break-inside-avoid {
-  page-break-inside: avoid;
-}
-
-.page-break-after {
-  page-break-after: always;
-}
-
 /* Tables */
 .thesis-content table {
   width: 100%;
@@ -98,6 +96,7 @@
 .thesis-content figure {
   margin: 2rem 0;
   text-align: center;
+  break-inside: avoid;
 }
 
 .thesis-content figure img {
@@ -113,13 +112,14 @@
   font-style: italic;
 }
 
-/* Footnote styles */
+/* Footnotes */
 .thesis-footnotes {
   position: absolute;
-  bottom: 4rem;
-  left: 2rem;
-  right: 2rem;
+  bottom: 30mm;
+  left: 20mm;
+  right: 20mm;
   padding-top: 1rem;
+  margin-top: 2rem;
   border-top: 1px solid #e5e7eb;
 }
 
@@ -148,13 +148,10 @@
     padding: 20mm;
     box-shadow: none;
     border: none;
+    page-break-after: always;
   }
 
   .thesis-content {
     padding: 0;
-  }
-
-  .page-break-before {
-    margin: 0;
   }
 }

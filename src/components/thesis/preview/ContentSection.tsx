@@ -1,5 +1,5 @@
 import React from 'react';
-import { Section, Figure, Table, Citation } from '@/types/thesis';
+import { Section } from '@/types/thesis';
 import MDEditor from '@uiw/react-md-editor';
 import { cn } from '@/lib/utils';
 import { ContentElements } from './ContentElements';
@@ -30,23 +30,24 @@ export const ContentSection = ({
   const isSpecialSection = section.type === 'references' || section.type === 'table-of-contents';
 
   return (
-    <div key={section.id} className={cn(
-      "thesis-page relative mb-8 p-8",
-      isSpecialSection && "special-section",
-      section.type === 'table-of-contents' && "toc-section"
-    )}>
+    <div className="thesis-page">
       <div className="thesis-header">
         {chapterTitle ? `Chapter ${chapterTitle} - ${section.title}` : section.title}
       </div>
+      
       <div className={cn(
         "thesis-content",
         section.type === 'references' && "thesis-references",
-        "prose prose-sm max-w-none space-y-6"
+        "prose prose-sm max-w-none"
       )}>
         {section.type !== 'table-of-contents' && (
           <>
-            {chapterTitle && <h2 className="text-2xl font-serif mb-4 page-break-after-avoid">{section.title}</h2>}
-            <div className="page-break-inside-avoid">
+            {chapterTitle && (
+              <h2 className="text-2xl font-serif mb-4 break-after-avoid">
+                {section.title}
+              </h2>
+            )}
+            <div className="break-inside-avoid">
               <MDEditor.Markdown source={section.content} />
             </div>
             
@@ -60,14 +61,14 @@ export const ContentSection = ({
             />
           </>
         )}
+
         {section.type === 'table-of-contents' && (
-          <div className="toc-content page-break-inside-avoid">
+          <div className="toc-content break-inside-avoid">
             <h2 className="text-2xl font-serif mb-4">Table of Contents</h2>
           </div>
         )}
       </div>
 
-      {/* Footnotes section */}
       {section.footnotes && section.footnotes.length > 0 && (
         <div className="thesis-footnotes">
           {section.footnotes.map((footnote) => (
