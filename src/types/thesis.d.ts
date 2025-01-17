@@ -7,14 +7,6 @@ export interface Citation {
   updated_at: string;
 }
 
-export interface Footnote {
-  id: string;
-  content: string;
-  number: number;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface CitationManagerProps {
   citations: Citation[];
   onCitationSelect?: (citation: Citation) => void;
@@ -23,6 +15,9 @@ export interface CitationManagerProps {
   onCitationUpdate?: (citation: Citation) => void;
   onCitationDelete?: (citation: Citation) => void;
   thesisId: string;
+  onAddCitation?: (citation: any) => void;
+  onRemoveCitation?: (id: any) => void;
+  onUpdateCitation?: (citation: any) => void;
 }
 
 export interface CitationListProps {
