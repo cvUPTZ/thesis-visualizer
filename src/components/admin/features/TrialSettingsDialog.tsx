@@ -26,7 +26,7 @@ export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
     try {
       const { error } = await supabase
         .from('trial_settings')
-        .update({ trial_days: Number(trialDays) })
+        .update({ trial_days: parseInt(trialDays, 10) })
         .eq('id', 1);
 
       if (error) throw error;
