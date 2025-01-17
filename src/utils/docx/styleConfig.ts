@@ -74,7 +74,7 @@ export const defaultStyles: IStylesOptions = {
       run: {
         font: 'Times New Roman',
         size: 28,
-        italic: true,
+        italics: true,
       },
       paragraph: {
         alignment: AlignmentType.CENTER,
@@ -168,7 +168,7 @@ export const previewStyles: IStylesOptions = {
       run: {
         font: 'Arial',
         size: 28,
-        italic: true,
+        italics: true,
       },
       paragraph: {
         alignment: AlignmentType.CENTER,
