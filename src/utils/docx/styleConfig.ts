@@ -1,11 +1,11 @@
 import { 
-  StylesOptions, 
+  IStylesOptions, 
   convertInchesToTwip,
   HeadingLevel,
   AlignmentType
 } from 'docx';
 
-export const defaultStyles: StylesOptions = {
+export const defaultStyles: IStylesOptions = {
   default: {
     document: {
       run: {
@@ -99,7 +99,7 @@ export const defaultStyles: StylesOptions = {
   ],
 };
 
-export const previewStyles: StylesOptions = {
+export const previewStyles: IStylesOptions = {
   default: {
     document: {
       run: {

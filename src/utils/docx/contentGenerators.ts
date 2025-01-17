@@ -7,7 +7,8 @@ import {
   TableOfContents, 
   StyleLevel,
   convertInchesToTwip,
-  ImageRun
+  ImageRun,
+  IImageOptions
 } from 'docx';
 import { ContentGenerationOptions } from './types';
 import { defaultStyles, previewStyles } from './styleConfig';
@@ -72,21 +73,19 @@ const generateListOfFigures = (thesis: any): Paragraph[] => {
   ];
 
   let figureNumber = 1;
-  thesis.chapters.forEach(chapter => {
-    chapter.sections.forEach(section => {
-      if (section.figures && section.figures.length > 0) {
-        section.figures.forEach(figure => {
-          paragraphs.push(
-            new Paragraph({
-              text: `Figure ${figureNumber}: ${figure.caption}`,
-              spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
-              style: 'listItem'
-            })
-          );
-          figureNumber++;
-        });
-      }
-    });
+  thesis.chapters.forEach((chapter: any) => {
+    if (chapter.figures && chapter.figures.length > 0) {
+      chapter.figures.forEach((figure: any) => {
+        paragraphs.push(
+          new Paragraph({
+            text: `Figure ${figureNumber}: ${figure.caption}`,
+            spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
+            style: 'listItem'
+          })
+        );
+        figureNumber++;
+      });
+    }
   });
 
   return paragraphs;
@@ -103,21 +102,19 @@ const generateListOfTables = (thesis: any): Paragraph[] => {
   ];
 
   let tableNumber = 1;
-  thesis.chapters.forEach(chapter => {
-    chapter.sections.forEach(section => {
-      if (section.tables && section.tables.length > 0) {
-        section.tables.forEach(table => {
-          paragraphs.push(
-            new Paragraph({
-              text: `Table ${tableNumber}: ${table.caption || table.title}`,
-              spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
-              style: 'listItem'
-            })
-          );
-          tableNumber++;
-        });
-      }
-    });
+  thesis.chapters.forEach((chapter: any) => {
+    if (chapter.tables && chapter.tables.length > 0) {
+      chapter.tables.forEach((table: any) => {
+        paragraphs.push(
+          new Paragraph({
+            text: `Table ${tableNumber}: ${table.caption || table.title}`,
+            spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
+            style: 'listItem'
+          })
+        );
+        tableNumber++;
+      });
+    }
   });
 
   return paragraphs;
@@ -126,29 +123,37 @@ const generateListOfTables = (thesis: any): Paragraph[] => {
 const generateFigure = async (figure: any, figureNumber: number): Promise<Paragraph[]> => {
   const paragraphs: Paragraph[] = [];
   try {
-    const base64Image = await convertImageToBase64(figure.imageUrl);
-    
-    paragraphs.push(
-      new Paragraph({
-        children: [
-          new ImageRun({
-            data: base64Image,
-            transformation: {
-              width: 400,
-              height: 300
-            }
-          })
-        ],
-        alignment: AlignmentType.CENTER,
-        spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(0.25) }
-      }),
-      new Paragraph({
-        text: `Figure ${figureNumber}: ${figure.caption}`,
-        alignment: AlignmentType.CENTER,
-        style: 'caption',
-        spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.5) }
-      })
-    );
+    if (figure.imageUrl) {
+      const base64Image = await convertImageToBase64(figure.imageUrl);
+      
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new ImageRun({
+              data: base64Image,
+              transformation: {
+                width: 400,
+                height: 300
+              },
+              type: 'png',
+              fallback: {
+                type: 'png',
+                width: 400,
+                height: 300
+              }
+            } as IImageOptions)
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(0.25) }
+        }),
+        new Paragraph({
+          text: `Figure ${figureNumber}: ${figure.caption}`,
+          alignment: AlignmentType.CENTER,
+          style: 'caption',
+          spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.5) }
+        })
+      );
+    }
   } catch (error) {
     console.error('Error generating figure:', error);
     paragraphs.push(
@@ -166,80 +171,66 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
   const paragraphs: Paragraph[] = [];
   const styles = isPreview ? previewStyles : defaultStyles;
 
-  // Add List of Figures
-  paragraphs.push(...generateListOfFigures(thesis));
+  // Add List of Figures if there are any
+  if (thesis.chapters.some(chapter => chapter.figures?.length > 0)) {
+    paragraphs.push(...generateListOfFigures(thesis));
+  }
 
-  // Add List of Tables
-  paragraphs.push(...generateListOfTables(thesis));
+  // Add List of Tables if there are any
+  if (thesis.chapters.some(chapter => chapter.tables?.length > 0)) {
+    paragraphs.push(...generateListOfTables(thesis));
+  }
 
   // Front Matter
-  thesis.frontMatter.forEach(section => {
-    paragraphs.push(
-      new Paragraph({
-        text: section.title,
-        heading: HeadingLevel.HEADING_1,
-        pageBreakBefore: true,
-      })
-    );
-
-    if (section.content) {
-      paragraphs.push(
-        new Paragraph({
-          text: section.content,
-          style: 'Normal',
-          spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
-        })
-      );
-    }
-  });
-
-  let figureNumber = 1;
-  // Chapters with figures and tables
-  for (const chapter of thesis.chapters) {
-    paragraphs.push(
-      new Paragraph({
-        text: chapter.title,
-        heading: HeadingLevel.HEADING_1,
-        pageBreakBefore: true,
-      })
-    );
-
-    if (chapter.content) {
-      paragraphs.push(
-        new Paragraph({
-          text: chapter.content,
-          style: 'Normal',
-          spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
-        })
-      );
-    }
-
-    for (const section of chapter.sections) {
+  if (Array.isArray(thesis.frontMatter)) {
+    for (const section of thesis.frontMatter) {
       paragraphs.push(
         new Paragraph({
           text: section.title,
-          heading: HeadingLevel.HEADING_2,
-          spacing: styles.default.heading2.paragraph.spacing,
+          heading: HeadingLevel.HEADING_1,
+          pageBreakBefore: true,
         })
       );
 
-      // Add section content
-      const contentParagraphs = section.content.split('\n\n');
-      contentParagraphs.forEach(content => {
-        if (content.trim()) {
-          paragraphs.push(
-            new Paragraph({
-              text: content,
-              spacing: styles.default.document.paragraph.spacing,
-              style: 'Normal',
-            })
-          );
-        }
-      });
+      if (section.content) {
+        paragraphs.push(
+          new Paragraph({
+            text: section.content,
+            style: 'Normal',
+            spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
+          })
+        );
+      }
+    }
+  }
+
+  let figureNumber = 1;
+  // Chapters with figures and tables
+  if (Array.isArray(thesis.chapters)) {
+    for (const chapter of thesis.chapters) {
+      if (chapter.title) {
+        paragraphs.push(
+          new Paragraph({
+            text: chapter.title,
+            heading: HeadingLevel.HEADING_1,
+            pageBreakBefore: true,
+          })
+        );
+      }
+
+      if (chapter.content) {
+        paragraphs.push(
+          new Paragraph({
+            text: chapter.content,
+            style: 'Normal',
+            spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
+          })
+        );
+      }
 
       // Add figures
-      if (section.figures && section.figures.length > 0) {
-        for (const figure of section.figures) {
+      if (Array.isArray(chapter.figures)) {
+        for (const figure of chapter.figures) {
           const figureParagraphs = await generateFigure(figure, figureNumber);
           paragraphs.push(...figureParagraphs);
           figureNumber++;
@@ -247,8 +238,8 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
       }
 
       // Add tables
-      if (section.tables && section.tables.length > 0) {
-        section.tables.forEach(table => {
+      if (Array.isArray(chapter.tables)) {
+        chapter.tables.forEach(table => {
           paragraphs.push(
             new Paragraph({
               text: table.content,
@@ -264,7 +255,7 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
       }
 
       // Add footnotes
-      if (section.footnotes && section.footnotes.length > 0) {
+      if (Array.isArray(chapter.footnotes) && chapter.footnotes.length > 0) {
         paragraphs.push(
           new Paragraph({
             text: 'Footnotes',
@@ -272,7 +263,7 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
             spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.5) },
           })
         );
-        section.footnotes.forEach(footnote => {
+        chapter.footnotes.forEach(footnote => {
           paragraphs.push(
             new Paragraph({
               text: `${footnote.number}. ${footnote.content}`,
@@ -286,22 +277,24 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
   }
 
   // Back Matter
-  thesis.backMatter.forEach(section => {
-    paragraphs.push(
-      new Paragraph({
-        text: section.title,
-        heading: HeadingLevel.HEADING_1,
-        pageBreakBefore: true,
-        spacing: styles.default.heading1.paragraph.spacing,
-        style: 'heading 1',
-      }),
-      new Paragraph({
-        text: section.content,
-        spacing: styles.default.document.paragraph.spacing,
-        style: 'Normal',
-      })
-    );
-  });
+  if (Array.isArray(thesis.backMatter)) {
+    thesis.backMatter.forEach(section => {
+      paragraphs.push(
+        new Paragraph({
+          text: section.title,
+          heading: HeadingLevel.HEADING_1,
+          pageBreakBefore: true,
+          spacing: styles.default.heading1.paragraph.spacing,
+          style: 'heading 1',
+        }),
+        new Paragraph({
+          text: section.content,
+          spacing: styles.default.document.paragraph.spacing,
+          style: 'Normal',
+        })
+      );
+    });
+  }
 
   return paragraphs;
 };
