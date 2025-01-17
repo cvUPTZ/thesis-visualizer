@@ -6,10 +6,12 @@ import {
   AlignmentType, 
   TableOfContents, 
   StyleLevel,
-  convertInchesToTwip
+  convertInchesToTwip,
+  ImageRun
 } from 'docx';
 import { ContentGenerationOptions } from './types';
 import { defaultStyles, previewStyles } from './styleConfig';
+import { convertImageToBase64 } from './imageUtils';
 
 export const generateTableOfContents = (): TableOfContents => {
   return new TableOfContents("Table of Contents", {
@@ -59,81 +61,169 @@ const generateFooter = (): Paragraph => {
   });
 };
 
-const generateChapterSeparator = (chapterTitle: string, chapterContent?: string): Paragraph[] => {
-  const paragraphs = [
+const generateListOfFigures = (thesis: any): Paragraph[] => {
+  const paragraphs: Paragraph[] = [
     new Paragraph({
-      children: [new TextRun({ break: 1 })],
-      pageBreakBefore: true,
-    }),
-    new Paragraph({
-      text: chapterTitle,
+      text: "List of Figures",
       heading: HeadingLevel.HEADING_1,
-      alignment: AlignmentType.CENTER,
+      pageBreakBefore: true,
       spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(1) },
-      style: 'chapterTitle',
-    }),
+    })
   ];
 
-  // Add chapter introduction if available
-  if (chapterContent) {
-    paragraphs.push(
-      new Paragraph({
-        text: chapterContent,
-        style: 'Normal',
-        spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
-      })
-    );
-  }
+  let figureNumber = 1;
+  thesis.chapters.forEach(chapter => {
+    chapter.sections.forEach(section => {
+      if (section.figures && section.figures.length > 0) {
+        section.figures.forEach(figure => {
+          paragraphs.push(
+            new Paragraph({
+              text: `Figure ${figureNumber}: ${figure.caption}`,
+              spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
+              style: 'listItem'
+            })
+          );
+          figureNumber++;
+        });
+      }
+    });
+  });
 
   return paragraphs;
 };
 
-const generateFootnote = (footnote: any): Paragraph => {
-  return new Paragraph({
-    text: `${footnote.number}. ${footnote.content}`,
-    style: 'footnote',
-    spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
+const generateListOfTables = (thesis: any): Paragraph[] => {
+  const paragraphs: Paragraph[] = [
+    new Paragraph({
+      text: "List of Tables",
+      heading: HeadingLevel.HEADING_1,
+      pageBreakBefore: true,
+      spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(1) },
+    })
+  ];
+
+  let tableNumber = 1;
+  thesis.chapters.forEach(chapter => {
+    chapter.sections.forEach(section => {
+      if (section.tables && section.tables.length > 0) {
+        section.tables.forEach(table => {
+          paragraphs.push(
+            new Paragraph({
+              text: `Table ${tableNumber}: ${table.caption || table.title}`,
+              spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
+              style: 'listItem'
+            })
+          );
+          tableNumber++;
+        });
+      }
+    });
   });
+
+  return paragraphs;
 };
 
-export const generateContent = ({ thesis, isPreview = false }: ContentGenerationOptions): Paragraph[] => {
+const generateFigure = async (figure: any, figureNumber: number): Promise<Paragraph[]> => {
+  const paragraphs: Paragraph[] = [];
+  try {
+    const base64Image = await convertImageToBase64(figure.imageUrl);
+    
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new ImageRun({
+            data: base64Image,
+            transformation: {
+              width: 400,
+              height: 300
+            }
+          })
+        ],
+        alignment: AlignmentType.CENTER,
+        spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(0.25) }
+      }),
+      new Paragraph({
+        text: `Figure ${figureNumber}: ${figure.caption}`,
+        alignment: AlignmentType.CENTER,
+        style: 'caption',
+        spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.5) }
+      })
+    );
+  } catch (error) {
+    console.error('Error generating figure:', error);
+    paragraphs.push(
+      new Paragraph({
+        text: `[Figure ${figureNumber}: ${figure.caption}] - Image could not be loaded`,
+        alignment: AlignmentType.CENTER,
+        style: 'caption'
+      })
+    );
+  }
+  return paragraphs;
+};
+
+export const generateContent = async ({ thesis, isPreview = false }: ContentGenerationOptions): Promise<Paragraph[]> => {
   const paragraphs: Paragraph[] = [];
   const styles = isPreview ? previewStyles : defaultStyles;
 
-  // Front Matter with proper spacing and styling
+  // Add List of Figures
+  paragraphs.push(...generateListOfFigures(thesis));
+
+  // Add List of Tables
+  paragraphs.push(...generateListOfTables(thesis));
+
+  // Front Matter
   thesis.frontMatter.forEach(section => {
-    if (section.type !== 'title') {
+    paragraphs.push(
+      new Paragraph({
+        text: section.title,
+        heading: HeadingLevel.HEADING_1,
+        pageBreakBefore: true,
+      })
+    );
+
+    if (section.content) {
       paragraphs.push(
         new Paragraph({
-          text: section.title,
-          heading: HeadingLevel.HEADING_1,
-          style: 'heading 1',
-          pageBreakBefore: true,
-        }),
-        new Paragraph({
           text: section.content,
-          spacing: styles.default.document.paragraph.spacing,
           style: 'Normal',
+          spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
         })
       );
     }
   });
 
-  // Chapters with proper formatting and separation pages
-  thesis.chapters.forEach(chapter => {
-    // Add chapter separator page with introduction
-    paragraphs.push(...generateChapterSeparator(chapter.title, chapter.content));
+  let figureNumber = 1;
+  // Chapters with figures and tables
+  for (const chapter of thesis.chapters) {
+    paragraphs.push(
+      new Paragraph({
+        text: chapter.title,
+        heading: HeadingLevel.HEADING_1,
+        pageBreakBefore: true,
+      })
+    );
 
-    chapter.sections.forEach(section => {
+    if (chapter.content) {
+      paragraphs.push(
+        new Paragraph({
+          text: chapter.content,
+          style: 'Normal',
+          spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
+        })
+      );
+    }
+
+    for (const section of chapter.sections) {
       paragraphs.push(
         new Paragraph({
           text: section.title,
           heading: HeadingLevel.HEADING_2,
           spacing: styles.default.heading2.paragraph.spacing,
-          style: 'heading 2',
         })
       );
 
+      // Add section content
       const contentParagraphs = section.content.split('\n\n');
       contentParagraphs.forEach(content => {
         if (content.trim()) {
@@ -147,39 +237,16 @@ export const generateContent = ({ thesis, isPreview = false }: ContentGeneration
         }
       });
 
-      // Add footnotes if available
-      if (section.footnotes && section.footnotes.length > 0) {
-        paragraphs.push(
-          new Paragraph({
-            text: 'Footnotes',
-            style: 'heading 3',
-            spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.5) },
-          })
-        );
-        section.footnotes.forEach(footnote => {
-          paragraphs.push(generateFootnote(footnote));
-        });
-      }
-
-      // Handle figures with captions
+      // Add figures
       if (section.figures && section.figures.length > 0) {
-        section.figures.forEach(figure => {
-          paragraphs.push(
-            new Paragraph({
-              text: `[Figure ${figure.number}]`,
-              spacing: { before: 240, after: 120 },
-              alignment: AlignmentType.CENTER,
-            }),
-            new Paragraph({
-              text: figure.caption,
-              style: isPreview ? 'preview-caption' : 'caption',
-              spacing: { before: 120, after: 240 },
-            })
-          );
-        });
+        for (const figure of section.figures) {
+          const figureParagraphs = await generateFigure(figure, figureNumber);
+          paragraphs.push(...figureParagraphs);
+          figureNumber++;
+        }
       }
 
-      // Handle tables with captions
+      // Add tables
       if (section.tables && section.tables.length > 0) {
         section.tables.forEach(table => {
           paragraphs.push(
@@ -188,15 +255,35 @@ export const generateContent = ({ thesis, isPreview = false }: ContentGeneration
               spacing: { before: 240, after: 120 },
             }),
             new Paragraph({
-              text: `Table ${table.id}: ${table.caption}`,
+              text: table.caption || table.title,
               style: isPreview ? 'preview-caption' : 'caption',
               spacing: { before: 120, after: 240 },
             })
           );
         });
       }
-    });
-  });
+
+      // Add footnotes
+      if (section.footnotes && section.footnotes.length > 0) {
+        paragraphs.push(
+          new Paragraph({
+            text: 'Footnotes',
+            style: 'heading3',
+            spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.5) },
+          })
+        );
+        section.footnotes.forEach(footnote => {
+          paragraphs.push(
+            new Paragraph({
+              text: `${footnote.number}. ${footnote.content}`,
+              style: 'footnote',
+              spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
+            })
+          );
+        });
+      }
+    }
+  }
 
   // Back Matter
   thesis.backMatter.forEach(section => {
