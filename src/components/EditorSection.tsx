@@ -41,7 +41,8 @@ export const EditorSection: React.FC<SectionProps> = ({
     figures: [],
     tables: [],
     citations: [],
-    required: false
+    required: false,
+    references: []
   };
 
   return (
