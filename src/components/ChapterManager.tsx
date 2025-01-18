@@ -62,7 +62,6 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
       return;
     }
 
-    // Ensure chapter has an introduction section
     const introSection: Section = {
       id: Date.now().toString(),
       title: "Chapter Introduction",

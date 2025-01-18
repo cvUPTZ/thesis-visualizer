@@ -9,12 +9,14 @@ interface TrialSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentTrialDays: number;
+  onUpdate?: () => void;
 }
 
 export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
   open,
   onOpenChange,
-  currentTrialDays
+  currentTrialDays,
+  onUpdate
 }) => {
   const [trialDays, setTrialDays] = useState(currentTrialDays.toString());
   const { toast } = useToast();
@@ -33,6 +35,9 @@ export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
         description: "Trial days updated successfully",
       });
       
+      if (onUpdate) {
+        onUpdate();
+      }
       onOpenChange(false);
     } catch (error: any) {
       toast({
