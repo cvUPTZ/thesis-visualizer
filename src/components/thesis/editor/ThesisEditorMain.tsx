@@ -24,6 +24,11 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
   onUpdateChapter,
   onAddChapter
 }) => {
+  // Check if general introduction exists and has content
+  const hasGeneralIntroduction = thesis?.frontMatter.some(
+    section => section.type === 'introduction' && section.content.trim().length > 0
+  );
+
   return (
     <main className="flex-1 p-8 flex">
       <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
@@ -37,6 +42,7 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
             onTitleChange={onTitleChange}
             onUpdateChapter={onUpdateChapter}
             onAddChapter={onAddChapter}
+            hasGeneralIntroduction={hasGeneralIntroduction}
           />
         </div>
       </div>

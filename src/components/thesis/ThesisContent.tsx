@@ -15,6 +15,7 @@ interface ThesisContentProps {
   onUpdateChapter: (chapter: Chapter) => void;
   onAddChapter: (chapter: Chapter) => void;
   thesisId: string;
+  hasGeneralIntroduction?: boolean;
 }
 
 export const ThesisContent = ({
@@ -26,7 +27,8 @@ export const ThesisContent = ({
   onTitleChange,
   onUpdateChapter,
   onAddChapter,
-  thesisId
+  thesisId,
+  hasGeneralIntroduction
 }: ThesisContentProps) => {
   const renderSectionContent = (section: Section) => {
     const isActive = activeSection === section.id;
@@ -63,6 +65,7 @@ export const ThesisContent = ({
             chapters={chapters}
             onUpdateChapter={onUpdateChapter}
             onAddChapter={onAddChapter}
+            hasGeneralIntroduction={hasGeneralIntroduction}
           />
           
           {backMatter.map(section => renderSectionContent(section))}

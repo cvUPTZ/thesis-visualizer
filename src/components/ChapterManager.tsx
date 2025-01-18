@@ -21,13 +21,15 @@ interface ChapterManagerProps {
   onUpdateChapter: (chapter: Chapter) => void;
   onAddChapter: (chapter: Chapter) => void;
   onRemoveChapter?: (chapterId: string) => void;
+  hasGeneralIntroduction?: boolean;
 }
 
 export const ChapterManager: React.FC<ChapterManagerProps> = ({
   chapters,
   onUpdateChapter,
   onAddChapter,
-  onRemoveChapter
+  onRemoveChapter,
+  hasGeneralIntroduction = false
 }) => {
   const [openChapters, setOpenChapters] = React.useState<string[]>([]);
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
@@ -51,8 +53,37 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
   };
 
   const handleCreateChapter = (chapter: Chapter) => {
-    console.log('Handling chapter creation:', chapter);
-    onAddChapter(chapter);
+    if (!hasGeneralIntroduction) {
+      toast({
+        title: "General Introduction Required",
+        description: "Please add a general introduction before creating chapters",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Ensure chapter has an introduction section
+    const chapterWithIntro = {
+      ...chapter,
+      sections: [
+        {
+          id: Date.now().toString(),
+          title: "Chapter Introduction",
+          content: "",
+          type: "introduction",
+          order: 0,
+          required: true,
+          figures: [],
+          tables: [],
+          citations: [],
+          references: []
+        },
+        ...chapter.sections
+      ]
+    };
+
+    console.log('Handling chapter creation:', chapterWithIntro);
+    onAddChapter(chapterWithIntro);
     toast({
       title: "Chapter Added",
       description: "New chapter has been created successfully",
@@ -83,6 +114,11 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
           <h2 className="text-2xl font-serif font-semibold text-editor-text">Chapters</h2>
         </div>
         <div className="flex items-center gap-2">
+          {!hasGeneralIntroduction && (
+            <p className="text-sm text-destructive">
+              Please add a general introduction before creating chapters
+            </p>
+          )}
           {chaptersToDelete.length > 0 && (
             <Button 
               onClick={() => setChaptersToDelete([])}
@@ -95,6 +131,7 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
           <Button 
             onClick={() => setShowCreateDialog(true)} 
             className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white transition-colors duration-200 px-6 py-2 rounded-lg shadow-sm hover:shadow-md"
+            disabled={!hasGeneralIntroduction}
           >
             <PlusCircle className="w-5 h-5" />
             Add Chapter
