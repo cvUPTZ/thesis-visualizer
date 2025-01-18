@@ -4,7 +4,7 @@ import { Progress } from '@/components/ui/progress';
 import { Calendar, Clock, Target, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Thesis } from '@/types/thesis';
-import { format } from 'date-fns';
+import { format, differenceInDays, addMonths } from 'date-fns';
 
 interface ThesisPlanningProps {
   thesis: Thesis;
@@ -13,13 +13,30 @@ interface ThesisPlanningProps {
 export const ThesisPlanning: React.FC<ThesisPlanningProps> = ({ thesis }) => {
   const startDate = new Date(thesis.created_at);
   const today = new Date();
-  const estimatedEndDate = new Date(startDate);
-  estimatedEndDate.setMonth(estimatedEndDate.getMonth() + 6); // Default 6 months duration
   
-  const totalDays = Math.ceil((estimatedEndDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  const daysElapsed = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+  // Estimate end date as 6 months from start if not completed
+  const estimatedEndDate = addMonths(startDate, 6);
+  
+  const totalDays = differenceInDays(estimatedEndDate, startDate);
+  const daysElapsed = differenceInDays(today, startDate);
   const daysRemaining = Math.max(0, totalDays - daysElapsed);
-  const progress = Math.min(100, Math.round((daysElapsed / totalDays) * 100));
+  
+  // Calculate progress based on content
+  const calculateProgress = () => {
+    const allSections = [
+      ...thesis.frontMatter,
+      ...thesis.chapters.flatMap(chapter => chapter.sections),
+      ...thesis.backMatter
+    ];
+    
+    const completedSections = allSections.filter(section => 
+      section.content && section.content.trim().length > 100
+    ).length;
+    
+    return Math.min(100, Math.round((completedSections / allSections.length) * 100));
+  };
+
+  const progress = calculateProgress();
 
   return (
     <Card className="p-6 space-y-6 bg-white/50 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-xl">
@@ -76,10 +93,10 @@ export const ThesisPlanning: React.FC<ThesisPlanningProps> = ({ thesis }) => {
             </span>
           </div>
 
-          {daysRemaining < 30 && (
+          {daysRemaining < 30 && progress < 90 && (
             <div className="flex items-center gap-2 text-yellow-600 bg-yellow-50 p-3 rounded-lg">
               <AlertCircle className="w-4 h-4" />
-              <span className="text-sm">Less than a month remaining!</span>
+              <span className="text-sm">Less than a month remaining with {progress}% completion!</span>
             </div>
           )}
         </div>
