@@ -1,21 +1,32 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export default function TrialSettingsDialog() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [currentTrialDays, setCurrentTrialDays] = useState('14'); // Changed to string
+interface TrialSettingsDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  currentTrialDays: number;
+  onUpdate: () => void;
+}
+
+export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
+  open,
+  onOpenChange,
+  currentTrialDays,
+  onUpdate
+}) => {
+  const [trialDays, setTrialDays] = useState(currentTrialDays.toString());
   const { toast } = useToast();
 
   const handleSave = async () => {
     try {
       const { error } = await supabase
         .from('trial_settings')
-        .update({ trial_days: parseInt(currentTrialDays, 10) }) // Convert to number here
+        .update({ trial_days: parseInt(trialDays, 10) })
         .eq('id', 1);
 
       if (error) throw error;
@@ -24,7 +35,8 @@ export default function TrialSettingsDialog() {
         title: "Success",
         description: "Trial settings updated successfully",
       });
-      setIsOpen(false);
+      onUpdate();
+      onOpenChange(false);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -35,10 +47,7 @@ export default function TrialSettingsDialog() {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">Trial Settings</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Trial Settings</DialogTitle>
@@ -49,8 +58,8 @@ export default function TrialSettingsDialog() {
             <Input
               id="trialDays"
               type="number"
-              value={currentTrialDays}
-              onChange={(e) => setCurrentTrialDays(e.target.value)}
+              value={trialDays}
+              onChange={(e) => setTrialDays(e.target.value)}
               min="1"
               max="365"
             />
@@ -60,4 +69,4 @@ export default function TrialSettingsDialog() {
       </DialogContent>
     </Dialog>
   );
-}
+};

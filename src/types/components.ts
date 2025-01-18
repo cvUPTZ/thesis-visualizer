@@ -1,4 +1,4 @@
-import { Citation } from './thesis';
+import { Citation, Reference } from './thesis';
 
 export interface CitationManagerProps {
   citations: Citation[];
@@ -13,15 +13,22 @@ export interface CitationManagerProps {
   onUpdateCitation?: (citation: any) => void;
 }
 
+export interface ReferenceManagerProps {
+  items: Reference[];
+  onAdd: (reference: Reference) => void;
+  onRemove: (id: string) => void;
+  onUpdate: (reference: Reference) => void;
+}
+
 export interface SectionProps {
-  section: Section;
+  section: any;
   isActive: boolean;
   onContentChange: (id: string, content: string) => void;
   onTitleChange: (id: string, title: string) => void;
 }
 
 export interface ThesisProps {
-  thesis: Thesis;
+  thesis: any;
   activeSection: string;
   onSectionSelect: (id: string) => void;
 }
@@ -31,35 +38,35 @@ export interface ThesisEditorProps {
 }
 
 export interface ThesisPreviewProps {
-  thesis: Thesis;
+  thesis: any;
   language?: 'en' | 'fr';
 }
 
 export interface ThesisSidebarProps {
-  sections: Section[];
+  sections: any[];
   activeSection: string;
   onSectionSelect: (id: string) => void;
 }
 
 export interface ThesisContentProps {
-  frontMatter: Section[];
-  chapters: Chapter[];
-  backMatter: Section[];
+  frontMatter: any[];
+  chapters: any[];
+  backMatter: any[];
   activeSection: string;
   onContentChange: (id: string, content: string) => void;
   onTitleChange: (id: string, title: string) => void;
-  onUpdateChapter: (chapter: Chapter) => void;
-  onAddChapter: (chapter: Chapter) => void;
+  onUpdateChapter: (chapter: any) => void;
+  onAddChapter: (chapter: any) => void;
   thesisId: string;
 }
 
 export interface ThesisEditorMainProps {
-  thesis: Thesis | null;
+  thesis: any | null;
   activeSection: string;
   showPreview: boolean;
   previewRef: React.RefObject<HTMLDivElement>;
   onContentChange: (id: string, content: string) => void;
   onTitleChange: (id: string, title: string) => void;
-  onUpdateChapter: (chapter: Chapter) => void;
-  onAddChapter: (chapter: Chapter) => void;
+  onUpdateChapter: (chapter: any) => void;
+  onAddChapter: (chapter: any) => void;
 }
