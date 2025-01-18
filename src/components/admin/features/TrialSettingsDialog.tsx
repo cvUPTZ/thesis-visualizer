@@ -1,32 +1,21 @@
 import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
-interface TrialSettingsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  currentTrialDays: number;
-  onUpdate: () => void;
-}
-
-export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
-  open,
-  onOpenChange,
-  currentTrialDays,
-  onUpdate
-}) => {
-  const [trialDays, setTrialDays] = useState<string>(currentTrialDays.toString());
+export default function TrialSettingsDialog() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentTrialDays, setCurrentTrialDays] = useState('14'); // Changed to string
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async () => {
     try {
       const { error } = await supabase
         .from('trial_settings')
-        .update({ trial_days: parseInt(trialDays) })
+        .update({ trial_days: parseInt(currentTrialDays, 10) }) // Convert to number here
         .eq('id', 1);
 
       if (error) throw error;
@@ -35,43 +24,40 @@ export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
         title: "Success",
         description: "Trial settings updated successfully",
       });
-      onUpdate();
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error updating trial settings:', error);
+      setIsOpen(false);
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update trial settings",
+        description: error.message || "Failed to update trial settings",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">Trial Settings</Button>
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Update Trial Settings</DialogTitle>
+          <DialogTitle>Trial Settings</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium">Trial Days</label>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="trialDays">Trial Period (Days)</Label>
             <Input
+              id="trialDays"
               type="number"
-              value={trialDays}
-              onChange={(e) => setTrialDays(e.target.value)}
-              placeholder="Enter number of trial days"
-              required
+              value={currentTrialDays}
+              onChange={(e) => setCurrentTrialDays(e.target.value)}
+              min="1"
+              max="365"
             />
           </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">Save</Button>
-          </div>
-        </form>
+          <Button onClick={handleSave}>Save Changes</Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
-};
+}
