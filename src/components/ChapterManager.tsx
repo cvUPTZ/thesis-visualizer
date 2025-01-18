@@ -1,5 +1,5 @@
 import React from 'react';
-import { Chapter } from '@/types/thesis';
+import { Chapter, Section, ThesisSectionType } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { BookOpen, PlusCircle, Trash2 } from 'lucide-react';
 import { ChapterItem } from './editor/chapters/ChapterItem';
@@ -63,23 +63,22 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
     }
 
     // Ensure chapter has an introduction section
-    const chapterWithIntro = {
+    const introSection: Section = {
+      id: Date.now().toString(),
+      title: "Chapter Introduction",
+      content: "",
+      type: "introduction" as ThesisSectionType,
+      order: 0,
+      required: true,
+      figures: [],
+      tables: [],
+      citations: [],
+      references: []
+    };
+
+    const chapterWithIntro: Chapter = {
       ...chapter,
-      sections: [
-        {
-          id: Date.now().toString(),
-          title: "Chapter Introduction",
-          content: "",
-          type: "introduction",
-          order: 0,
-          required: true,
-          figures: [],
-          tables: [],
-          citations: [],
-          references: []
-        },
-        ...chapter.sections
-      ]
+      sections: [introSection, ...chapter.sections]
     };
 
     console.log('Handling chapter creation:', chapterWithIntro);

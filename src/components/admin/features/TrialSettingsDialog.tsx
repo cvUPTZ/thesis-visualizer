@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -10,16 +9,14 @@ interface TrialSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentTrialDays: number;
-  onUpdate: () => void;
 }
 
 export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
   open,
   onOpenChange,
-  currentTrialDays,
-  onUpdate
+  currentTrialDays
 }) => {
-  const [trialDays, setTrialDays] = useState(String(currentTrialDays));
+  const [trialDays, setTrialDays] = useState(currentTrialDays.toString());
   const { toast } = useToast();
 
   const handleSave = async () => {
@@ -33,15 +30,15 @@ export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
 
       toast({
         title: "Success",
-        description: "Trial settings updated successfully",
+        description: "Trial days updated successfully",
       });
-      onUpdate();
+      
       onOpenChange(false);
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to update trial settings",
-        variant: "destructive",
+        description: error.message,
+        variant: "destructive"
       });
     }
   };
@@ -53,18 +50,22 @@ export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
           <DialogTitle>Trial Settings</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="trialDays">Trial Period (Days)</Label>
+          <div>
+            <label htmlFor="trialDays" className="text-sm font-medium">
+              Trial Days
+            </label>
             <Input
               id="trialDays"
-              type="number"
               value={trialDays}
               onChange={(e) => setTrialDays(e.target.value)}
+              type="number"
               min="1"
-              max="365"
+              className="mt-1"
             />
           </div>
-          <Button onClick={handleSave}>Save Changes</Button>
+          <div className="flex justify-end">
+            <Button onClick={handleSave}>Save Changes</Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
