@@ -21,14 +21,22 @@ export interface ReferenceManagerProps {
 }
 
 export interface SectionProps {
-  section: any;
+  section: {
+    id: string;
+    title: string;
+    content: string;
+  };
   isActive: boolean;
   onContentChange: (id: string, content: string) => void;
   onTitleChange: (id: string, title: string) => void;
 }
 
 export interface ThesisProps {
-  thesis: any;
+  thesis: {
+    id: string;
+    title: string;
+    content: any;
+  };
   activeSection: string;
   onSectionSelect: (id: string) => void;
 }
@@ -38,20 +46,40 @@ export interface ThesisEditorProps {
 }
 
 export interface ThesisPreviewProps {
-  thesis: any;
+  thesis: {
+    id: string;
+    title: string;
+    content: any;
+  };
   language?: 'en' | 'fr';
 }
 
 export interface ThesisSidebarProps {
-  sections: any[];
+  sections: Array<{
+    id: string;
+    title: string;
+    content: string;
+  }>;
   activeSection: string;
   onSectionSelect: (id: string) => void;
 }
 
 export interface ThesisContentProps {
-  frontMatter: any[];
-  chapters: any[];
-  backMatter: any[];
+  frontMatter: Array<{
+    id: string;
+    title: string;
+    content: string;
+  }>;
+  chapters: Array<{
+    id: string;
+    title: string;
+    content: string;
+  }>;
+  backMatter: Array<{
+    id: string;
+    title: string;
+    content: string;
+  }>;
   activeSection: string;
   onContentChange: (id: string, content: string) => void;
   onTitleChange: (id: string, title: string) => void;
@@ -61,7 +89,11 @@ export interface ThesisContentProps {
 }
 
 export interface ThesisEditorMainProps {
-  thesis: any | null;
+  thesis: {
+    id: string;
+    title: string;
+    content: any;
+  } | null;
   activeSection: string;
   showPreview: boolean;
   previewRef: React.RefObject<HTMLDivElement>;

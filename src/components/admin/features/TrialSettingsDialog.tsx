@@ -19,7 +19,7 @@ export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
   currentTrialDays,
   onUpdate
 }) => {
-  const [trialDays, setTrialDays] = useState(currentTrialDays.toString());
+  const [trialDays, setTrialDays] = useState(String(currentTrialDays));
   const { toast } = useToast();
 
   const handleSave = async () => {
