@@ -27,6 +27,13 @@ export const ThesisContentManager: React.FC<ThesisContentManagerProps> = ({
   thesisId,
   hasGeneralIntroduction
 }) => {
+  console.log('🔄 ThesisContentManager rendering with:', { 
+    frontMatterCount: frontMatter.length,
+    chaptersCount: chapters.length,
+    backMatterCount: backMatter.length,
+    hasGeneralIntroduction 
+  });
+
   return (
     <ThesisContent
       frontMatter={frontMatter}
