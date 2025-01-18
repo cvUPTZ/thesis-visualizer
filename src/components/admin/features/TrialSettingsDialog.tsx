@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { supabase } from '@/integrations/supabase/client';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TrialSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentTrialDays: number;
-  onUpdate?: () => void;
+  onUpdate?: () => Promise<any>;
 }
 
 export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
@@ -36,14 +37,14 @@ export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
       });
       
       if (onUpdate) {
-        onUpdate();
+        await onUpdate();
       }
       onOpenChange(false);
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
-        variant: "destructive"
+        description: error.message || "Failed to update trial days",
+        variant: "destructive",
       });
     }
   };
@@ -54,23 +55,20 @@ export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Trial Settings</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="trialDays" className="text-sm font-medium">
-              Trial Days
-            </label>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="trialDays">Trial Period (Days)</Label>
             <Input
               id="trialDays"
               value={trialDays}
               onChange={(e) => setTrialDays(e.target.value)}
               type="number"
               min="1"
-              className="mt-1"
             />
           </div>
-          <div className="flex justify-end">
-            <Button onClick={handleSave}>Save Changes</Button>
-          </div>
+          <Button onClick={handleSave} className="w-full">
+            Save Changes
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
