@@ -18,7 +18,7 @@ interface ThesisContentProps {
   hasGeneralIntroduction?: boolean;
 }
 
-export const ThesisContent = ({
+export const ThesisContent: React.FC<ThesisContentProps> = ({
   frontMatter,
   chapters,
   backMatter,
@@ -29,7 +29,7 @@ export const ThesisContent = ({
   onAddChapter,
   thesisId,
   hasGeneralIntroduction
-}: ThesisContentProps) => {
+}) => {
   const renderSectionContent = (section: Section) => {
     const isActive = activeSection === section.id;
     if (!isActive) return null;
