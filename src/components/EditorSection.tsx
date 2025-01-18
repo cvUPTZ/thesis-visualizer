@@ -31,22 +31,35 @@ export const EditorSection: React.FC<SectionProps> = ({
     });
   };
 
+  // Create a complete Section object from the minimal section data
+  const fullSection: Section = {
+    id: section.id,
+    title: section.title,
+    content: section.content,
+    type: 'custom',
+    order: 0,
+    figures: [],
+    tables: [],
+    citations: [],
+    required: false
+  };
+
   return (
     <div className="editor-section">
       <div className="space-y-6">
         <SectionHeader
-          title={section.title}
-          required={section.required}
-          onTitleChange={(title) => onTitleChange(section.id, title)}
+          title={fullSection.title}
+          required={fullSection.required}
+          onTitleChange={(title) => onTitleChange(fullSection.id, title)}
         />
         
         <SectionContent
-          content={section.content}
-          onContentChange={(content) => onContentChange(section.id, content)}
+          content={fullSection.content}
+          onContentChange={(content) => onContentChange(fullSection.id, content)}
         />
 
         <SectionManagers
-          section={section}
+          section={fullSection}
           onSectionUpdate={handleSectionUpdate}
         />
       </div>
