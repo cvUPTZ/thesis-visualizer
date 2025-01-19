@@ -1,9 +1,10 @@
 import React from 'react';
-import { Section, Chapter, SectionTypes } from '@/types/thesis';
+import { Section, Chapter } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChapterCreationDialog } from '@/components/editor/chapters/ChapterCreationDialog';
+import { SectionTypes } from '@/types/thesis';
 
 interface MainContentProps {
   sections: Section[];
@@ -28,6 +29,28 @@ export const MainContentSections: React.FC<MainContentProps> = ({
   const handleAddChapter = (part: number) => {
     setSelectedPart(part);
     setShowChapterDialog(true);
+  };
+
+  // Find introduction and conclusion sections
+  const introSection = sections.find(s => s.type === SectionTypes.Introduction);
+  const conclusionSection = sections.find(s => s.type === SectionTypes.Conclusion);
+
+  const handleCreateChapter = (chapter: Chapter) => {
+    if (onAddChapter) {
+      const newChapter = {
+        ...chapter,
+        part: selectedPart
+      };
+      onAddChapter(newChapter);
+      setShowChapterDialog(false);
+    }
+  };
+
+  const handleCreateSection = (type: string) => {
+    console.log('Creating section:', type);
+    if (onAddSection) {
+      onAddSection(type);
+    }
   };
 
   const renderChapterSection = (title: string, partNumber: number) => (
@@ -62,10 +85,6 @@ export const MainContentSections: React.FC<MainContentProps> = ({
     </div>
   );
 
-  // Find introduction and conclusion sections
-  const introSection = sections.find(s => s.type === SectionTypes.Introduction);
-  const conclusionSection = sections.find(s => s.type === SectionTypes.Conclusion);
-
   return (
     <div className="space-y-4">
       <h3 className="font-medium text-sm px-2">Main Content</h3>
@@ -73,16 +92,25 @@ export const MainContentSections: React.FC<MainContentProps> = ({
       {/* Introduction Section */}
       <div className="pl-4 space-y-2">
         <h4 className="text-sm text-muted-foreground">Introduction</h4>
-        <button
-          onClick={() => introSection && onSectionSelect(introSection.id)}
-          className={cn(
-            "flex-1 text-left px-2 py-1 rounded-sm hover:bg-accent w-full",
-            introSection && activeSection === introSection.id && "bg-accent",
-            !introSection && "opacity-50 cursor-not-allowed"
-          )}
-        >
-          {introSection?.title || "General Introduction"}
-        </button>
+        {introSection ? (
+          <button
+            onClick={() => introSection && onSectionSelect(introSection.id)}
+            className={cn(
+              "flex-1 text-left px-2 py-1 rounded-sm hover:bg-accent w-full",
+              introSection && activeSection === introSection.id && "bg-accent"
+            )}
+          >
+            {introSection.title}
+          </button>
+        ) : (
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-muted-foreground"
+            onClick={() => handleCreateSection(SectionTypes.Introduction)}
+          >
+            Add General Introduction
+          </Button>
+        )}
       </div>
 
       {/* Literature Review Part */}
@@ -97,27 +125,31 @@ export const MainContentSections: React.FC<MainContentProps> = ({
       {/* Conclusion Section */}
       <div className="pl-4 space-y-2">
         <h4 className="text-sm text-muted-foreground">Conclusion</h4>
-        <button
-          onClick={() => conclusionSection && onSectionSelect(conclusionSection.id)}
-          className={cn(
-            "flex-1 text-left px-2 py-1 rounded-sm hover:bg-accent w-full",
-            conclusionSection && activeSection === conclusionSection.id && "bg-accent",
-            !conclusionSection && "opacity-50 cursor-not-allowed"
-          )}
-        >
-          {conclusionSection?.title || "General Conclusion"}
-        </button>
+        {conclusionSection ? (
+          <button
+            onClick={() => conclusionSection && onSectionSelect(conclusionSection.id)}
+            className={cn(
+              "flex-1 text-left px-2 py-1 rounded-sm hover:bg-accent w-full",
+              conclusionSection && activeSection === conclusionSection.id && "bg-accent"
+            )}
+          >
+            {conclusionSection.title}
+          </button>
+        ) : (
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-muted-foreground"
+            onClick={() => handleCreateSection(SectionTypes.Conclusion)}
+          >
+            Add General Conclusion
+          </Button>
+        )}
       </div>
 
       <ChapterCreationDialog
         open={showChapterDialog}
         onOpenChange={setShowChapterDialog}
-        onChapterCreate={(chapter) => {
-          if (onAddChapter) {
-            onAddChapter();
-          }
-          setShowChapterDialog(false);
-        }}
+        onChapterCreate={handleCreateChapter}
       />
     </div>
   );

@@ -100,10 +100,10 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     
     const newSection: Section = {
       id: Date.now().toString(),
-      title: `New ${type}`,
+      title: type === 'general-introduction' ? 'General Introduction' : 'General Conclusion',
       content: '',
       type: type,
-      order: thesis.frontMatter.length + 1,
+      order: type === 'general-introduction' ? 1 : thesis.frontMatter.length + 1,
       figures: [],
       tables: [],
       citations: [],
@@ -115,9 +115,34 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
       frontMatter: [...prev!.frontMatter, newSection]
     }));
 
+    setActiveSection(newSection.id);
+
     toast({
       title: "Section Added",
       description: `New ${type} section has been created`,
+    });
+  };
+
+  const handleAddChapter = (chapter: Chapter) => {
+    console.log('Adding new chapter:', chapter);
+    if (!thesis) return;
+
+    const newChapter = {
+      ...chapter,
+      sections: [],
+      figures: [],
+      tables: [],
+      footnotes: []
+    };
+
+    setThesis(prev => ({
+      ...prev!,
+      chapters: [...prev!.chapters, newChapter]
+    }));
+
+    toast({
+      title: "Chapter Added",
+      description: "New chapter has been created successfully",
     });
   };
 
@@ -175,6 +200,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
         onAddSection={handleAddSection}
+        onAddChapter={handleAddChapter}
       />
       
       <div className="flex-1 flex flex-col">
@@ -209,12 +235,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
               )
             }));
           }}
-          onAddChapter={(chapter) => {
-            setThesis(prev => ({
-              ...prev!,
-              chapters: [...(prev?.chapters || []), chapter]
-            }));
-          }}
+          onAddChapter={handleAddChapter}
         />
       </div>
 
