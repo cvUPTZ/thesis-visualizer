@@ -55,16 +55,19 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
             />
           </Card>
 
-          <ThesisEditorContent
-            frontMatter={thesis?.frontMatter || []}
-            chapters={thesis?.chapters || []}
-            backMatter={thesis?.backMatter || []}
-            activeSection={activeSection}
-            onContentChange={onContentChange}
-            onTitleChange={onTitleChange}
-            onUpdateChapter={onUpdateChapter}
-            onAddChapter={onAddChapter}
-          />
+          {thesis && (
+            <ThesisEditorContent
+              frontMatter={thesis.frontMatter}
+              chapters={thesis.chapters}
+              backMatter={thesis.backMatter}
+              activeSection={activeSection}
+              onContentChange={onContentChange}
+              onTitleChange={onTitleChange}
+              onUpdateChapter={onUpdateChapter}
+              onAddChapter={onAddChapter}
+              thesisId={thesis.id}
+            />
+          )}
         </div>
       </div>
       {showPreview && thesis && (

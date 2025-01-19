@@ -11,6 +11,7 @@ export interface ThesisEditorContentProps {
   onTitleChange: (id: string, title: string) => void;
   onUpdateChapter: (chapter: Chapter) => void;
   onAddChapter: (chapter: Chapter) => void;
+  thesisId: string;
 }
 
 export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
@@ -21,7 +22,8 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
   onContentChange,
   onTitleChange,
   onUpdateChapter,
-  onAddChapter
+  onAddChapter,
+  thesisId
 }) => {
   console.log('ThesisEditorContent rendering');
 
@@ -35,6 +37,7 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
       onTitleChange={onTitleChange}
       onUpdateChapter={onUpdateChapter}
       onAddChapter={onAddChapter}
+      thesisId={thesisId}
     />
   );
 };

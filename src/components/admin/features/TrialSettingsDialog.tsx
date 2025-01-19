@@ -3,35 +3,40 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TrialSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentTrialDays: number;
-  onUpdate: () => Promise<any>;
 }
 
 export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
   open,
   onOpenChange,
   currentTrialDays,
-  onUpdate
 }) => {
   const [trialDays, setTrialDays] = useState(currentTrialDays);
   const { toast } = useToast();
 
   const handleSave = async () => {
     try {
-      await onUpdate();
+      const { error } = await supabase
+        .from('trial_settings')
+        .update({ trial_days: trialDays })
+        .eq('id', 1);
+
+      if (error) throw error;
+
       toast({
         title: "Success",
         description: "Trial settings updated successfully",
       });
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update trial settings",
+        description: error.message,
         variant: "destructive",
       });
     }
