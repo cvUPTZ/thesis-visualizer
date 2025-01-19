@@ -10,9 +10,11 @@ interface ThesisEditorContentProps {
   activeSection: string;
   onContentChange: (id: string, content: string) => void;
   onTitleChange: (id: string, title: string) => void;
-  onUpdateChapter: (chapter: Chapter) => void;
-  onAddChapter: (chapter: Chapter) => void;
+  onUpdateChapter: (chapter: Chapter) => Promise<void>;
+  onAddChapter: (chapter: Chapter) => Promise<void>;
   hasGeneralIntroduction?: boolean;
+  onAddGeneralIntroduction: (intro: { title: string; content: string }) => Promise<void>;
+  onRemoveChapter: (chapterId: string) => Promise<void>;
 }
 
 export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
@@ -24,7 +26,9 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
   onTitleChange,
   onUpdateChapter,
   onAddChapter,
-  hasGeneralIntroduction = false
+  hasGeneralIntroduction = false,
+  onAddGeneralIntroduction,
+  onRemoveChapter
 }) => {
   const { thesisId } = useParams<{ thesisId: string }>();
 
@@ -44,6 +48,8 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
       onAddChapter={onAddChapter}
       thesisId={thesisId}
       hasGeneralIntroduction={hasGeneralIntroduction}
+      onAddGeneralIntroduction={onAddGeneralIntroduction}
+      onRemoveChapter={onRemoveChapter}
     />
   );
 };

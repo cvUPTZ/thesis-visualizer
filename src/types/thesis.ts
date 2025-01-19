@@ -140,26 +140,27 @@ export interface ThesisVersion {
   created_by: string;
 }
 
-export type ThesisSectionType = 
-  | 'title'
-  | 'preface'
-  | 'acknowledgments'
-  | 'abstract'
-  | 'table-of-contents'
-  | 'list-of-figures'
-  | 'list-of-tables'
-  | 'abbreviations'
-  | 'glossary'
-  | 'introduction'
-  | 'theoretical-framework'
-  | 'methodology'
-  | 'empirical-study'
-  | 'results'
-  | 'discussion'
-  | 'conclusion'
-  | 'recommendations'
-  | 'postface'
-  | 'references'
-  | 'appendix'
-  | 'advice'
-  | 'custom';
+export enum ThesisSectionType {
+  Title = 'title',
+  Preface = 'preface',
+  Acknowledgments = 'acknowledgments',
+  Abstract = 'abstract',
+  TableOfContents = 'table-of-contents',
+  ListOfFigures = 'list-of-figures',
+  ListOfTables = 'list-of-tables',
+  Abbreviations = 'abbreviations',
+  Glossary = 'glossary',
+  Introduction = 'introduction',
+  TheoreticalFramework = 'theoretical-framework',
+  Methodology = 'methodology',
+  EmpiricalStudy = 'empirical-study',
+  Results = 'results',
+  Discussion = 'discussion',
+  Conclusion = 'conclusion',
+  Recommendations = 'recommendations',
+  Postface = 'postface',
+  References = 'references',
+  Appendix = 'appendix',
+  Advice = 'advice',
+  Custom = 'custom'
+}

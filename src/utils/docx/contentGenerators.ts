@@ -6,19 +6,22 @@ import {
   AlignmentType,
   ImageRun,
   IImageOptions,
-  convertInchesToTwip
+  convertInchesToTwip,
+  StyleLevel
 } from 'docx';
 import { Chapter, Section, Thesis } from '@/types/thesis';
 
 export const generateTableOfContents = () => {
+  const styleLevel: StyleLevel[] = [
+    { level: 1, paragraphProperties: { indent: { left: convertInchesToTwip(0.5) } } },
+    { level: 2, paragraphProperties: { indent: { left: convertInchesToTwip(0.75) } } },
+    { level: 3, paragraphProperties: { indent: { left: convertInchesToTwip(1) } } }
+  ];
+
   return new TableOfContents("Table of Contents", {
     hyperlink: true,
     headingStyleRange: "1-5",
-    stylesWithLevels: [
-      { level: 1, styleId: "Heading1" },
-      { level: 2, styleId: "Heading2" },
-      { level: 3, styleId: "Heading3" },
-    ],
+    stylesWithLevels: styleLevel
   });
 };
 
@@ -58,17 +61,27 @@ export const generateContent = ({ thesis, isPreview = false }: { thesis: Thesis;
       if (section.figures && section.figures.length > 0) {
         for (const figure of section.figures) {
           try {
+            const imageOptions: IImageOptions = {
+              data: Buffer.from(figure.imageUrl),
+              transformation: {
+                width: figure.dimensions.width,
+                height: figure.dimensions.height
+              },
+              altText: {
+                title: figure.title,
+                description: figure.altText
+              },
+              type: 'png',
+              fallback: {
+                width: 300,
+                height: 200
+              }
+            };
+
             content.push(
               new Paragraph({
                 children: [
-                  new ImageRun({
-                    data: Buffer.from(figure.imageUrl),
-                    transformation: {
-                      width: figure.dimensions.width,
-                      height: figure.dimensions.height
-                    },
-                    altText: figure.altText
-                  } as IImageOptions)
+                  new ImageRun(imageOptions)
                 ],
                 alignment: AlignmentType.CENTER
               }),

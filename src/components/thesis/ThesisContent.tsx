@@ -12,10 +12,10 @@ interface ThesisContentProps {
   activeSection: string;
   onContentChange: (id: string, content: string) => void;
   onTitleChange: (id: string, title: string) => void;
-  onUpdateChapter: (chapter: Chapter) => void;
-  onAddChapter: (chapter: Chapter) => void;
+  onUpdateChapter: (chapter: Chapter) => Promise<void>;
+  onAddChapter: (chapter: Chapter) => Promise<void>;
   onAddGeneralIntroduction: (intro: { title: string; content: string }) => Promise<void>;
-  onRemoveChapter: (chapterId: string) => Promise<void>; // Add this if you need chapter deletion
+  onRemoveChapter: (chapterId: string) => Promise<void>;
   thesisId: string;
   hasGeneralIntroduction?: boolean;
 }
@@ -30,7 +30,9 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
   onUpdateChapter,
   onAddChapter,
   thesisId,
-  hasGeneralIntroduction
+  hasGeneralIntroduction = false,
+  onAddGeneralIntroduction,
+  onRemoveChapter
 }) => {
   const renderSectionContent = (section: Section) => {
     const isActive = activeSection === section.id;
@@ -67,7 +69,9 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
             chapters={chapters}
             onUpdateChapter={onUpdateChapter}
             onAddChapter={onAddChapter}
+            onRemoveChapter={onRemoveChapter}
             hasGeneralIntroduction={hasGeneralIntroduction}
+            onAddGeneralIntroduction={onAddGeneralIntroduction}
           />
           
           {backMatter.map(section => renderSectionContent(section))}
