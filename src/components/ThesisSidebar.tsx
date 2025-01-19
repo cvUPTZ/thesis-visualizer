@@ -20,8 +20,20 @@ export const ThesisSidebar: React.FC<ThesisSidebarProps> = ({
 }) => {
   console.log('Rendering ThesisSidebar with:', { 
     sectionsCount: sections?.length,
-    activeSection 
+    activeSection,
+    sections: sections?.map(s => ({ id: s.id, title: s.title, type: s.type }))
   });
+
+  const handleSectionSelect = (sectionId: string) => {
+    console.log('Section selected:', sectionId);
+    const section = sections.find(s => s.id === sectionId);
+    if (section) {
+      console.log('Found section:', { id: section.id, title: section.title, type: section.type });
+      onSectionSelect(sectionId);
+    } else {
+      console.warn('Section not found:', sectionId);
+    }
+  };
 
   return (
     <div className="w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -29,7 +41,7 @@ export const ThesisSidebar: React.FC<ThesisSidebarProps> = ({
         <TableOfContents
           sections={sections}
           activeSection={activeSection}
-          onSectionSelect={onSectionSelect}
+          onSectionSelect={handleSectionSelect}
           onAddSection={onAddSection}
           onAddChapter={onAddChapter}
         />

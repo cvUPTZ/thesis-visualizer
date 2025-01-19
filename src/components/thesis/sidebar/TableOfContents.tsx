@@ -21,20 +21,34 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
 }) => {
   console.log('TableOfContents rendering with:', { 
     sectionsCount: sections?.length,
-    activeSection 
+    activeSection,
+    sections: sections?.map(s => ({ id: s.id, title: s.title, type: s.type }))
   });
+
+  // Group sections by their type
+  const frontMatterSections = sections?.filter(s => 
+    ['title', 'acknowledgments', 'abstract', 'table-of-contents'].includes(s.type)
+  ) || [];
+
+  const mainContentSections = sections?.filter(s => 
+    !['title', 'acknowledgments', 'abstract', 'table-of-contents', 'bibliography', 'appendix'].includes(s.type)
+  ) || [];
+
+  const backMatterSections = sections?.filter(s => 
+    ['bibliography', 'appendix'].includes(s.type)
+  ) || [];
 
   return (
     <div className="space-y-6">
       <FrontMatterSections
-        sections={sections}
+        sections={frontMatterSections}
         activeSection={activeSection}
         onSectionSelect={onSectionSelect}
         onAddSection={onAddSection}
       />
       
       <MainContentSections
-        sections={sections}
+        sections={mainContentSections}
         chapters={[]}
         activeSection={activeSection}
         onSectionSelect={onSectionSelect}
@@ -43,7 +57,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
       />
       
       <BackMatterSections
-        sections={sections}
+        sections={backMatterSections}
         activeSection={activeSection}
         onSectionSelect={onSectionSelect}
         onAddSection={onAddSection}
