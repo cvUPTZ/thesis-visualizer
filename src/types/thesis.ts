@@ -31,7 +31,10 @@ export interface ThesisMetadata {
 export interface Thesis {
   id: string;
   title: string;
-  content?: any;
+  content: {
+    generalIntroduction?: string;
+    metadata?: ThesisMetadata;
+  };
   metadata: ThesisMetadata;
   frontMatter: Section[];
   chapters: Chapter[];
