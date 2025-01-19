@@ -19,13 +19,14 @@ const ChapterEditor = () => {
   const { toast } = useToast();
   const [chapter, setChapter] = React.useState<Chapter | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [thesisId, setThesisId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const fetchChapter = async () => {
       try {
         console.log('Fetching chapter with ID:', chapterId);
         
-        // First get all theses that the user has access to
+        // First get the thesis that contains this chapter
         const { data: thesesData, error: thesesError } = await supabase
           .from('theses')
           .select('id, content')
@@ -36,7 +37,7 @@ const ChapterEditor = () => {
           throw thesesError;
         }
 
-        // Then find the thesis that contains our chapter
+        // Find the thesis containing our chapter
         let foundChapter: Chapter | null = null;
         let foundThesisId: string | null = null;
 
@@ -49,7 +50,11 @@ const ChapterEditor = () => {
             continue;
           }
 
-          const chapter = content.chapters.find((ch: Chapter) => ch.id === chapterId);
+          // Try both the exact ID and a numeric conversion
+          const chapter = content.chapters.find((ch: Chapter) => 
+            ch.id === chapterId || ch.id === String(chapterId)
+          );
+
           if (chapter) {
             foundChapter = chapter;
             foundThesisId = thesis.id;
@@ -60,6 +65,7 @@ const ChapterEditor = () => {
         if (foundChapter && foundThesisId) {
           console.log('Found chapter in thesis:', foundThesisId);
           setChapter(foundChapter);
+          setThesisId(foundThesisId);
         } else {
           console.error('Chapter not found:', chapterId);
           toast({
@@ -86,36 +92,23 @@ const ChapterEditor = () => {
   }, [chapterId, toast]);
 
   const handleContentChange = async (content: string) => {
-    if (!chapter) return;
+    if (!chapter || !thesisId) return;
 
     try {
-      // Get all theses to find the one containing our chapter
-      const { data: thesesData, error: thesesError } = await supabase
+      // Get the thesis data directly using the stored thesis ID
+      const { data: thesisData, error: thesisError } = await supabase
         .from('theses')
-        .select('id, content')
-        .returns<ThesisData[]>();
+        .select('content')
+        .eq('id', thesisId)
+        .single();
 
-      if (thesesError) throw thesesError;
-
-      // Find the thesis containing our chapter
-      let foundThesis: ThesisData | null = null;
-      for (const thesis of thesesData) {
-        const existingContent = typeof thesis.content === 'string' 
-          ? JSON.parse(thesis.content) 
-          : thesis.content;
-
-        if (existingContent?.chapters?.some((ch: Chapter) => ch.id === chapter.id)) {
-          foundThesis = thesis;
-          break;
-        }
-      }
-
-      if (!foundThesis) throw new Error('Thesis not found');
+      if (thesisError) throw thesisError;
+      if (!thesisData) throw new Error('Thesis not found');
 
       // Parse the existing content
-      const existingContent = typeof foundThesis.content === 'string' 
-        ? JSON.parse(foundThesis.content) 
-        : foundThesis.content;
+      const existingContent = typeof thesisData.content === 'string' 
+        ? JSON.parse(thesisData.content) 
+        : thesisData.content;
 
       // Update the specific chapter
       const updatedChapters = existingContent.chapters.map((ch: Chapter) =>
@@ -133,7 +126,7 @@ const ChapterEditor = () => {
         .update({
           content: updatedContent
         })
-        .eq('id', foundThesis.id);
+        .eq('id', thesisId);
 
       if (updateError) throw updateError;
 
