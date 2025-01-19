@@ -1,40 +1,39 @@
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const StudentInfo = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
-  const { userEmail, userId } = useAuth();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const studentData = {
-      full_name: formData.get('full_name'),
-      student_id: formData.get('student_id'),
-      department: formData.get('department'),
-      program: formData.get('program'),
-      year_of_study: formData.get('year_of_study'),
-    };
-
+    
     try {
       const { error } = await supabase
         .from('profiles')
-        .update(studentData)
-        .eq('id', userId);
+        .update({
+          full_name: formData.get('full_name')?.toString(),
+          student_id: formData.get('student_id')?.toString(),
+          department: formData.get('department')?.toString(),
+          program: formData.get('program')?.toString(),
+          year_of_study: formData.get('year_of_study')?.toString()
+        })
+        .eq('id', user?.id);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Student information updated successfully.",
+        description: "Your information has been updated successfully.",
       });
     } catch (error) {
-      console.error('Error updating student information:', error);
+      console.error('Error updating profile:', error);
       toast({
         title: "Error",
-        description: "Failed to update student information. Please try again.",
+        description: "Failed to update your information. Please try again.",
         variant: "destructive",
       });
     }
