@@ -31,8 +31,12 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
       onAddChapter({
         id: Date.now().toString(),
         title: 'New Chapter',
+        content: '',
         sections: [],
-        order: sections.length + 1
+        part: sections.length + 1,
+        figures: [],
+        tables: [],
+        footnotes: []
       });
     }
   };
@@ -46,7 +50,7 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onAddSection('chapter')}
+              onClick={() => onAddSection('introduction')}
               className="h-8 px-2"
             >
               <PlusCircle className="h-4 w-4" />

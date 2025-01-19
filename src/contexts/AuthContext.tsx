@@ -1,25 +1,22 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { Session, User, AuthError } from '@supabase/supabase-js';
-import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
-  isAuthenticated: boolean;
-  loading: boolean;
   session: Session | null;
   user: User | null;
-  handleLogout: () => Promise<void>;
-  userId: string | null;
+  loading: boolean;
+  isAuthenticated: boolean;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
-  isAuthenticated: false,
-  loading: true,
   session: null,
   user: null,
-  handleLogout: async () => {},
-  userId: null,
+  loading: true,
+  isAuthenticated: false,
+  signOut: async () => {},
 });
 
 export const useAuth = () => {
@@ -32,48 +29,38 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('Setting up auth state listener...');
-    
-    const initializeAuth = async () => {
+    const fetchSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         if (error) throw error;
         
-        setSession(session);
-        setLoading(false);
-        
-        if (!session) {
-          console.log('No active session, redirecting to auth...');
-          navigate('/auth');
-        }
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
       } catch (error) {
-        console.error('Error in initializeAuth:', error);
-        handleAuthError(error as AuthError);
+        console.error('Error fetching session:', error);
+      } finally {
         setLoading(false);
-        navigate('/auth');
       }
     };
 
-    initializeAuth();
+    fetchSession();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       console.log('Auth state changed:', event);
-      
-      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-        setSession(null);
-        navigate('/auth');
-      } else if (session) {
-        setSession(session);
-      }
-      
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
       setLoading(false);
+
+      if (event === 'SIGNED_IN') {
+        navigate('/');
+      } else if (event === 'SIGNED_OUT') {
+        navigate('/auth');
+      }
     });
 
     return () => {
@@ -81,54 +68,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [navigate]);
 
-  const handleAuthError = (error: AuthError) => {
-    console.error('Auth error:', error);
-    let message = 'An authentication error occurred';
-    
-    if (error.message.includes('refresh_token_not_found')) {
-      message = 'Your session has expired. Please sign in again.';
-      handleLogout();
-    }
-    
-    toast({
-      title: "Authentication Error",
-      description: message,
-      variant: "destructive",
-    });
-  };
-
-  const handleLogout = async () => {
+  const signOut = async () => {
     try {
-      setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      
-      setSession(null);
       navigate('/auth');
-      
-      toast({
-        title: "Logged out successfully",
-        description: "You have been signed out of your account.",
-      });
-    } catch (error: any) {
-      console.error('Error during logout:', error);
-      toast({
-        title: "Error signing out",
-        description: error.message || "An unexpected error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Error signing out:', error);
     }
   };
 
   const value = {
-    isAuthenticated: !!session,
-    loading,
     session,
-    user: session?.user ?? null,
-    handleLogout,
-    userId: session?.user?.id ?? null,
+    user,
+    loading,
+    isAuthenticated: !!session,
+    signOut,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

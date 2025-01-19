@@ -5,7 +5,6 @@ import { Profile } from '@/types/profile';
 import { CommentThread, Comment } from '@/types/thesis';
 import { CommentList } from './CommentList';
 import { CommentInput } from './CommentInput';
-import { transformComment } from '@/utils/commentTransforms';
 
 interface ReviewerInterfaceProps {
   thesisId: string;
@@ -44,8 +43,10 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
         const threadMap = new Map<string | null, Comment[]>();
         commentsData.forEach((comment: any) => {
           const transformedComment = {
-            ...comment,
+            id: comment.id,
             content: typeof comment.content === 'string' ? comment.content : comment.content.text,
+            reviewer_id: comment.reviewer_id,
+            created_at: comment.created_at,
             profiles: comment.profiles
           };
           const parentId = comment.parent_id || null;
@@ -59,7 +60,7 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
           comment,
           replies: threadMap.get(comment.id) || [],
           id: comment.id,
-          content: typeof comment.content === 'string' ? comment.content : comment.content.text,
+          content: comment.content,
           author: comment.profiles?.email || 'Unknown',
           created_at: comment.created_at
         }));
@@ -123,8 +124,10 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
 
       const newThread: CommentThread = {
         comment: {
-          ...data,
+          id: data.id,
           content: { text: content },
+          reviewer_id: profile?.id || '',
+          created_at: data.created_at,
           profiles: data.profiles
         },
         replies: [],

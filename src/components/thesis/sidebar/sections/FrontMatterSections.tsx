@@ -1,78 +1,74 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Section, ThesisSectionType } from '@/types/thesis';
-import { getSectionsByGroup, getSectionConfig } from '@/utils/sectionTypes';
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface FrontMatterSectionsProps {
   sections: Section[];
   activeSection: string;
   onSectionSelect: (id: string) => void;
   onAddSection?: (type: ThesisSectionType) => void;
+  completedSections: string[];
+  onSectionComplete: (id: string, completed: boolean) => void;
 }
 
 export const FrontMatterSections: React.FC<FrontMatterSectionsProps> = ({
   sections,
   activeSection,
   onSectionSelect,
-  onAddSection
+  onAddSection,
+  completedSections,
+  onSectionComplete
 }) => {
-  console.log('FrontMatterSections rendering with:', { sections, activeSection });
-
-  const frontMatterTypes = getSectionsByGroup('frontMatter');
-  const existingSectionTypes = new Set(sections.map(s => s.type));
-
-  const renderAddButton = (type: ThesisSectionType) => {
-    const config = getSectionConfig(type);
-    const Icon = config.icon;
-
-    return (
-      <Button
-        key={`add-${type}`}
-        variant="ghost"
-        size="sm"
-        className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-primary/5 gap-2"
-        onClick={() => {
-          console.log('Adding front matter section:', type);
-          onAddSection?.(type);
-        }}
-      >
-        <Icon className="h-4 w-4" />
-        Add {config.label}
-      </Button>
-    );
-  };
-
   return (
-    <div className="space-y-1">
-      <h2 className="font-semibold text-sm px-2 py-1">Front Matter</h2>
+    <div className="px-3">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-lg font-semibold">Front Matter</h2>
+        {onAddSection && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onAddSection('acknowledgments')}
+            className="h-8 px-2"
+          >
+            <PlusCircle className="h-4 w-4" />
+            <span className="sr-only">Add Section</span>
+          </Button>
+        )}
+      </div>
+
       <div className="space-y-1">
         {sections.map((section) => {
-          const config = getSectionConfig(section.type);
-          const Icon = config.icon;
+          const isCompleted = completedSections.includes(section.id);
           
           return (
-            <Button
+            <div
               key={section.id}
-              variant="ghost"
-              size="sm"
               className={cn(
-                "w-full justify-start gap-2",
-                activeSection === section.id
-                  ? "bg-primary/10 text-primary hover:bg-primary/20"
-                  : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
+                "flex items-center gap-2 px-2 py-1.5 rounded-md text-sm",
+                activeSection === section.id && "bg-accent text-accent-foreground",
+                "hover:bg-accent/50 transition-colors"
               )}
-              onClick={() => onSectionSelect(section.id)}
             >
-              <Icon className="h-4 w-4" />
-              {section.title}
-            </Button>
+              <Checkbox
+                checked={isCompleted}
+                onCheckedChange={(checked) => onSectionComplete(section.id, checked as boolean)}
+                className="h-4 w-4"
+              />
+              <button
+                onClick={() => onSectionSelect(section.id)}
+                className={cn(
+                  "flex-1 text-left",
+                  isCompleted && "line-through opacity-50"
+                )}
+              >
+                {section.title}
+              </button>
+            </div>
           );
         })}
-        
-        {frontMatterTypes
-          .filter(config => !existingSectionTypes.has(config.type))
-          .map(config => renderAddButton(config.type))}
       </div>
     </div>
   );

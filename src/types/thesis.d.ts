@@ -1,15 +1,3 @@
-export interface Chapter {
-  id: string;
-  title: string;
-  content: string;
-  sections: Section[];
-  part: number;
-  order: number;
-  figures: Figure[];
-  tables: Table[];
-  footnotes: Footnote[];
-}
-
 export type ThesisSectionType = 
   | 'title'
   | 'table-of-contents'
@@ -42,6 +30,18 @@ export interface Comment {
       name: string;
     };
   };
+}
+
+export interface Chapter {
+  id: string;
+  title: string;
+  content: string;
+  sections: Section[];
+  part: number;
+  order: number;
+  figures: Figure[];
+  tables: Table[];
+  footnotes: Footnote[];
 }
 
 export interface CommentThread {
