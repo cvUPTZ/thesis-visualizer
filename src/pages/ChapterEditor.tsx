@@ -24,9 +24,13 @@ const ChapterEditor = () => {
   React.useEffect(() => {
     const fetchChapter = async () => {
       try {
+        if (!chapterId) {
+          throw new Error('No chapter ID provided');
+        }
+
         console.log('Fetching chapter with ID:', chapterId);
         
-        // First get the thesis that contains this chapter
+        // Get all theses that contain this chapter
         const { data: thesesData, error: thesesError } = await supabase
           .from('theses')
           .select('id, content')
@@ -50,9 +54,12 @@ const ChapterEditor = () => {
             continue;
           }
 
-          // Try both the exact ID and a numeric conversion
+          // Try both string and numeric ID matching
+          const numericChapterId = Number(chapterId);
           const chapter = content.chapters.find((ch: Chapter) => 
-            ch.id === chapterId || ch.id === String(chapterId)
+            ch.id === chapterId || 
+            ch.id === String(numericChapterId) || 
+            String(ch.id) === chapterId
           );
 
           if (chapter) {
@@ -100,7 +107,7 @@ const ChapterEditor = () => {
         .from('theses')
         .select('content')
         .eq('id', thesisId)
-        .single();
+        .maybeSingle();
 
       if (thesisError) throw thesisError;
       if (!thesisData) throw new Error('Thesis not found');
