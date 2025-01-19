@@ -44,7 +44,7 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
         commentsData.forEach((comment: any) => {
           const transformedComment = {
             id: comment.id,
-            content: typeof comment.content === 'string' ? comment.content : comment.content.text,
+            content: comment.content.text || comment.content,
             reviewer_id: comment.reviewer_id,
             created_at: comment.created_at,
             profiles: comment.profiles
@@ -60,7 +60,7 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
           comment,
           replies: threadMap.get(comment.id) || [],
           id: comment.id,
-          content: comment.content,
+          content: typeof comment.content === 'string' ? comment.content : comment.content.text,
           author: comment.profiles?.email || 'Unknown',
           created_at: comment.created_at
         }));

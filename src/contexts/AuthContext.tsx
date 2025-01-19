@@ -9,6 +9,8 @@ interface AuthContextType {
   loading: boolean;
   isAuthenticated: boolean;
   signOut: () => Promise<void>;
+  handleLogout: () => Promise<void>;
+  userId: string | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,6 +19,8 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   isAuthenticated: false,
   signOut: async () => {},
+  handleLogout: async () => {},
+  userId: null,
 });
 
 export const useAuth = () => {
@@ -68,13 +72,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [navigate]);
 
-  const signOut = async () => {
+  const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       navigate('/auth');
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Error during logout:', error);
+      throw error;
     }
   };
 
@@ -83,7 +88,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     loading,
     isAuthenticated: !!session,
-    signOut,
+    signOut: handleLogout,
+    handleLogout,
+    userId: user?.id || null,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
