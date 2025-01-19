@@ -12,6 +12,7 @@ import { ChapterTables } from './ChapterTables';
 import { ChapterCitations } from './ChapterCitations';
 import { ChapterReferences } from './ChapterReferences';
 import { FootnoteManager } from './FootnoteManager';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface ChapterItemProps {
   chapter: Chapter;
@@ -95,12 +96,16 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
   };
 
   return (
-    <div className={cn(
-      "border rounded-xl bg-white shadow-sm transition-all duration-200",
-      "hover:shadow-md",
-      isOpen && "ring-2 ring-primary/10",
-      isSelected && "ring-2 ring-primary"
-    )}>
+    <Collapsible
+      open={isOpen}
+      onOpenChange={onToggle}
+      className={cn(
+        "border rounded-xl bg-white shadow-sm transition-all duration-200",
+        "hover:shadow-md",
+        isOpen && "ring-2 ring-primary/10",
+        isSelected && "ring-2 ring-primary"
+      )}
+    >
       <div className="p-4 flex items-center justify-between group">
         <div className="flex items-center gap-3">
           <Checkbox
@@ -127,22 +132,23 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
           <span className="text-sm text-gray-500">
             {chapter.sections.length} {chapter.sections.length === 1 ? 'section' : 'sections'}
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggle}
-            className="p-2"
-          >
-            {isOpen ? (
-              <ChevronUp className="w-5 h-5 text-gray-500" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-gray-500" />
-            )}
-          </Button>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2"
+            >
+              {isOpen ? (
+                <ChevronUp className="w-5 h-5 text-gray-500" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-500" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
         </div>
       </div>
 
-      {isOpen && (
+      <CollapsibleContent>
         <div className="p-4 pt-0 space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-6">
@@ -206,7 +212,7 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
             </TabsContent>
           </Tabs>
         </div>
-      )}
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 };
