@@ -24,15 +24,11 @@ export type ThesisSectionType =
   | 'thesis-structure'
   | 'statistical-tests'
   | 'general-context'
-  | 'general-conclusion'
-  | 'primary-sources'
-  | 'secondary-sources'
-  | 'electronic-sources'
-  | 'collection-tools'
-  | 'raw-data'
-  | 'detailed-analysis'
-  | 'supporting-documents'
-  | 'reference-tables'
-  | 'index'
-  | 'glossary'
-  | 'detailed-toc';
+  | 'general-conclusion';
+
+export interface Comment {
+  id: string;
+  content: string;
+  reviewer_id: string;
+  created_at: string;
+}

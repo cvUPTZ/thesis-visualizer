@@ -14,7 +14,7 @@ interface MainContentSectionsProps {
   onAddSection?: (type: ThesisSectionType) => void;
   onAddChapter?: (chapter: Chapter) => void;
   completedSections: string[];
-  onSectionComplete?: (id: string, completed: boolean) => void;
+  onSectionComplete: (id: string, completed: boolean) => void;
   isReadOnly?: boolean;
 }
 
@@ -53,7 +53,7 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onAddSection('chapter')}
+                onClick={() => onAddSection('introduction')}
                 className="h-8 px-2"
               >
                 <PlusCircle className="h-4 w-4" />
@@ -77,7 +77,7 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
 
       <div className="space-y-1">
         {sections.map((section) => {
-          const config = getSectionConfig(section.type as ThesisSectionType);
+          const config = getSectionConfig(section.type);
           const isCompleted = completedSections.includes(section.id);
           
           return (
@@ -89,7 +89,7 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
                 "hover:bg-accent/50 transition-colors"
               )}
             >
-              {!isReadOnly && onSectionComplete && (
+              {!isReadOnly && (
                 <Checkbox
                   checked={isCompleted}
                   onCheckedChange={(checked) => onSectionComplete(section.id, checked as boolean)}
