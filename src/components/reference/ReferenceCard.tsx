@@ -27,7 +27,7 @@ export const ReferenceCard = ({ reference, onRemove, onUpdate }: ReferenceCardPr
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">
           <BookOpen className="w-4 h-4 inline mr-2" />
-          {reference.type.charAt(0).toUpperCase() + reference.type.slice(1)}
+          {reference.style} Style
         </CardTitle>
         <div className="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
           <Button
@@ -52,21 +52,20 @@ export const ReferenceCard = ({ reference, onRemove, onUpdate }: ReferenceCardPr
         {isEditing ? (
           <div className="space-y-4 animate-fade-in">
             <Select
-              value={reference.type}
-              onValueChange={(value: any) =>
-                onUpdate({ ...reference, type: value })
+              value={reference.style}
+              onValueChange={(value: 'APA' | 'MLA' | 'Chicago' | 'Vancouver' | 'Harvard') =>
+                onUpdate({ ...reference, style: value })
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Type" />
+                <SelectValue placeholder="Style" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="article">Article</SelectItem>
-                <SelectItem value="book">Book</SelectItem>
-                <SelectItem value="conference">Conference</SelectItem>
-                <SelectItem value="thesis">Thesis</SelectItem>
-                <SelectItem value="website">Website</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="APA">APA</SelectItem>
+                <SelectItem value="MLA">MLA</SelectItem>
+                <SelectItem value="Chicago">Chicago</SelectItem>
+                <SelectItem value="Vancouver">Vancouver</SelectItem>
+                <SelectItem value="Harvard">Harvard</SelectItem>
               </SelectContent>
             </Select>
             <Input
@@ -90,56 +89,50 @@ export const ReferenceCard = ({ reference, onRemove, onUpdate }: ReferenceCardPr
                 onUpdate({ ...reference, year: e.target.value })
               }
             />
-            {reference.type === 'article' && (
-              <div className="space-y-2">
-                <Input
-                  placeholder="DOI"
-                  value={reference.doi}
-                  onChange={(e) =>
-                    onUpdate({ ...reference, doi: e.target.value })
-                  }
-                />
-                <Input
-                  placeholder="Journal"
-                  value={reference.journal}
-                  onChange={(e) =>
-                    onUpdate({ ...reference, journal: e.target.value })
-                  }
-                />
-                <div className="grid grid-cols-3 gap-2">
-                  <Input
-                    placeholder="Volume"
-                    value={reference.volume}
-                    onChange={(e) =>
-                      onUpdate({ ...reference, volume: e.target.value })
-                    }
-                  />
-                  <Input
-                    placeholder="Issue"
-                    value={reference.issue}
-                    onChange={(e) =>
-                      onUpdate({ ...reference, issue: e.target.value })
-                    }
-                  />
-                  <Input
-                    placeholder="Pages"
-                    value={reference.pages}
-                    onChange={(e) =>
-                      onUpdate({ ...reference, pages: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-            )}
-            {(reference.type === 'website' || reference.type === 'other') && (
+            <Input
+              placeholder="DOI"
+              value={reference.doi}
+              onChange={(e) =>
+                onUpdate({ ...reference, doi: e.target.value })
+              }
+            />
+            <Input
+              placeholder="Journal"
+              value={reference.journal}
+              onChange={(e) =>
+                onUpdate({ ...reference, journal: e.target.value })
+              }
+            />
+            <div className="grid grid-cols-3 gap-2">
               <Input
-                placeholder="URL"
-                value={reference.url}
+                placeholder="Volume"
+                value={reference.volume}
                 onChange={(e) =>
-                  onUpdate({ ...reference, url: e.target.value })
+                  onUpdate({ ...reference, volume: e.target.value })
                 }
               />
-            )}
+              <Input
+                placeholder="Issue"
+                value={reference.issue}
+                onChange={(e) =>
+                  onUpdate({ ...reference, issue: e.target.value })
+                }
+              />
+              <Input
+                placeholder="Pages"
+                value={reference.pages}
+                onChange={(e) =>
+                  onUpdate({ ...reference, pages: e.target.value })
+                }
+              />
+            </div>
+            <Input
+              placeholder="URL"
+              value={reference.url}
+              onChange={(e) =>
+                onUpdate({ ...reference, url: e.target.value })
+              }
+            />
             <div className="flex justify-end gap-2">
               <Button
                 variant="outline"

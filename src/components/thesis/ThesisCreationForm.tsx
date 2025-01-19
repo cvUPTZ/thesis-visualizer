@@ -15,7 +15,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const ThesisCreationForm = () => {
-  const [referenceType, setReferenceType] = useState<'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other'>('article');
+  const [referenceStyle, setReferenceStyle] = useState<'APA' | 'MLA' | 'Chicago' | 'Vancouver' | 'Harvard'>('APA');
   const {
     values,
     errors,
@@ -57,7 +57,7 @@ export const ThesisCreationForm = () => {
       const metadata = {
         ...values,
         keywords: values.keywords,
-        referenceType // Include the reference type in metadata
+        referenceStyle // Include the reference style in metadata
       };
       const result = await createThesis(metadata, session.user.id);
       if (result?.thesisId) {
@@ -128,18 +128,17 @@ export const ThesisCreationForm = () => {
             />
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">Default Reference Type</label>
-              <Select value={referenceType} onValueChange={(value: any) => setReferenceType(value)}>
+              <label className="text-sm font-medium">Default Reference Style</label>
+              <Select value={referenceStyle} onValueChange={(value: 'APA' | 'MLA' | 'Chicago' | 'Vancouver' | 'Harvard') => setReferenceStyle(value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select reference type" />
+                  <SelectValue placeholder="Select reference style" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="article">Article</SelectItem>
-                  <SelectItem value="book">Book</SelectItem>
-                  <SelectItem value="conference">Conference</SelectItem>
-                  <SelectItem value="thesis">Thesis</SelectItem>
-                  <SelectItem value="website">Website</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="APA">APA</SelectItem>
+                  <SelectItem value="MLA">MLA</SelectItem>
+                  <SelectItem value="Chicago">Chicago</SelectItem>
+                  <SelectItem value="Vancouver">Vancouver</SelectItem>
+                  <SelectItem value="Harvard">Harvard</SelectItem>
                 </SelectContent>
               </Select>
             </div>
