@@ -125,6 +125,34 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
     group: 'mainContent',
     type: 'general-conclusion'
   },
+  'bibliography': {
+    label: 'Bibliography',
+    icon: BookOpenCheck,
+    description: 'List of references',
+    group: 'backMatter',
+    type: 'bibliography'
+  },
+  'appendix': {
+    label: 'Appendix',
+    icon: ScrollText,
+    description: 'Additional materials',
+    group: 'backMatter',
+    type: 'appendix'
+  },
+  'references': {
+    label: 'References',
+    icon: ClipboardCheck,
+    description: 'Citations and references',
+    group: 'backMatter',
+    type: 'references'
+  },
+  'chapter': {
+    label: 'Chapter',
+    icon: BookOpen,
+    description: 'Thesis chapter',
+    group: 'mainContent',
+    type: 'chapter'
+  },
   'research-questions': {
     label: 'Research Questions',
     icon: FileText,
@@ -174,6 +202,13 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
     group: 'mainContent',
     type: 'general-context'
   },
+  'custom': {
+    label: 'Custom Section',
+    icon: FileText,
+    description: 'Custom section type',
+    group: 'mainContent',
+    type: 'custom'
+  }
 };
 
 export const getSectionsByGroup = (group: 'frontMatter' | 'mainContent' | 'backMatter'): SectionTypeConfig[] => {
