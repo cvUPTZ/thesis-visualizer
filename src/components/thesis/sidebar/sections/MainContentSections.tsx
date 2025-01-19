@@ -12,7 +12,7 @@ interface MainContentProps {
   onSectionSelect: (id: string) => void;
   activeSection: string;
   onAddSection?: (type: string) => void;
-  onAddChapter?: () => void;
+  onAddChapter?: (chapter: Chapter) => void;
 }
 
 export const MainContentSections: React.FC<MainContentProps> = ({
@@ -26,16 +26,18 @@ export const MainContentSections: React.FC<MainContentProps> = ({
   const [showChapterDialog, setShowChapterDialog] = React.useState(false);
   const [selectedPart, setSelectedPart] = React.useState<number>(0);
 
-  const handleAddChapter = (part: number) => {
-    setSelectedPart(part);
-    setShowChapterDialog(true);
-  };
+  console.log('Rendering MainContentSections with:', { 
+    sectionsCount: sections.length,
+    chaptersCount: chapters.length,
+    activeSection 
+  });
 
   // Find introduction and conclusion sections
-  const introSection = sections.find(s => s.type === SectionTypes.Introduction);
-  const conclusionSection = sections.find(s => s.type === SectionTypes.Conclusion);
+  const introSection = sections.find(s => s.type === SectionTypes.introduction);
+  const conclusionSection = sections.find(s => s.type === SectionTypes.conclusion);
 
   const handleCreateChapter = (chapter: Chapter) => {
+    console.log('Creating chapter with part:', selectedPart);
     if (onAddChapter) {
       const newChapter = {
         ...chapter,
@@ -46,17 +48,18 @@ export const MainContentSections: React.FC<MainContentProps> = ({
     }
   };
 
-  const handleCreateSection = (type: string) => {
-    console.log('Creating section:', type);
-    if (onAddSection) {
-      onAddSection(type);
-    }
+  const handleAddChapter = (part: number) => {
+    setSelectedPart(part);
+    setShowChapterDialog(true);
   };
 
-  const renderChapterSection = (title: string, partNumber: number) => (
-    <div className="pl-4 space-y-2">
+  const renderChapterSection = (title: string, partNumber: number, description: string) => (
+    <div className="space-y-2 border-l-2 border-muted pl-4 py-2">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm text-muted-foreground">{title}</h4>
+        <div>
+          <h4 className="text-sm font-medium text-foreground">{title}</h4>
+          <p className="text-xs text-muted-foreground">{description}</p>
+        </div>
         {onAddChapter && (
           <Button
             variant="ghost"
@@ -65,85 +68,104 @@ export const MainContentSections: React.FC<MainContentProps> = ({
             onClick={() => handleAddChapter(partNumber)}
           >
             <Plus className="h-4 w-4" />
+            <span className="sr-only">Add Chapter</span>
           </Button>
         )}
       </div>
-      {chapters
-        .filter(chapter => chapter.part === partNumber)
-        .map(chapter => (
-          <button
-            key={chapter.id}
-            onClick={() => onSectionSelect(chapter.id)}
-            className={cn(
-              "flex-1 text-left px-2 py-1 rounded-sm hover:bg-accent w-full",
-              activeSection === chapter.id && "bg-accent"
-            )}
-          >
-            {chapter.title}
-          </button>
-        ))}
+      <div className="space-y-1">
+        {chapters
+          .filter(chapter => chapter.part === partNumber)
+          .map(chapter => (
+            <button
+              key={chapter.id}
+              onClick={() => onSectionSelect(chapter.id)}
+              className={cn(
+                "flex w-full items-center rounded-md px-2 py-1.5 text-sm hover:bg-accent",
+                activeSection === chapter.id && "bg-accent text-accent-foreground font-medium"
+              )}
+            >
+              {chapter.title}
+            </button>
+          ))}
+      </div>
     </div>
   );
 
   return (
-    <div className="space-y-4">
-      <h3 className="font-medium text-sm px-2">Main Content</h3>
-      
-      {/* Introduction Section */}
-      <div className="pl-4 space-y-2">
-        <h4 className="text-sm text-muted-foreground">Introduction</h4>
-        {introSection ? (
-          <button
-            onClick={() => introSection && onSectionSelect(introSection.id)}
-            className={cn(
-              "flex-1 text-left px-2 py-1 rounded-sm hover:bg-accent w-full",
-              introSection && activeSection === introSection.id && "bg-accent"
-            )}
-          >
-            {introSection.title}
-          </button>
-        ) : (
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-muted-foreground"
-            onClick={() => handleCreateSection(SectionTypes.Introduction)}
-          >
-            Add General Introduction
-          </Button>
-        )}
-      </div>
+    <div className="space-y-6">
+      <div className="px-2">
+        <h3 className="mb-4 text-sm font-semibold">Main Content</h3>
+        
+        {/* Introduction Section */}
+        <div className="mb-6 space-y-2">
+          <h4 className="text-sm font-medium text-muted-foreground">Introduction</h4>
+          {introSection ? (
+            <button
+              onClick={() => introSection && onSectionSelect(introSection.id)}
+              className={cn(
+                "flex w-full items-center rounded-md px-2 py-1.5 text-sm hover:bg-accent",
+                introSection && activeSection === introSection.id && "bg-accent text-accent-foreground font-medium"
+              )}
+            >
+              {introSection.title}
+            </button>
+          ) : (
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-muted-foreground hover:text-foreground"
+              onClick={() => onAddSection?.(SectionTypes.introduction)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add General Introduction
+            </Button>
+          )}
+        </div>
 
-      {/* Literature Review Part */}
-      {renderChapterSection("Part One: Literature Review", 1)}
-      
-      {/* Methodology Part */}
-      {renderChapterSection("Part Two: Methodology", 2)}
-      
-      {/* Results and Discussion Part */}
-      {renderChapterSection("Part Three: Results and Discussion", 3)}
-      
-      {/* Conclusion Section */}
-      <div className="pl-4 space-y-2">
-        <h4 className="text-sm text-muted-foreground">Conclusion</h4>
-        {conclusionSection ? (
-          <button
-            onClick={() => conclusionSection && onSectionSelect(conclusionSection.id)}
-            className={cn(
-              "flex-1 text-left px-2 py-1 rounded-sm hover:bg-accent w-full",
-              conclusionSection && activeSection === conclusionSection.id && "bg-accent"
-            )}
-          >
-            {conclusionSection.title}
-          </button>
-        ) : (
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-muted-foreground"
-            onClick={() => handleCreateSection(SectionTypes.Conclusion)}
-          >
-            Add General Conclusion
-          </Button>
+        {/* Literature Review Part */}
+        {renderChapterSection(
+          "Literature Review",
+          1,
+          "Theoretical framework and state of the art"
         )}
+        
+        {/* Methodology Part */}
+        {renderChapterSection(
+          "Methodology",
+          2,
+          "Research design and data collection"
+        )}
+        
+        {/* Results and Discussion Part */}
+        {renderChapterSection(
+          "Results & Discussion",
+          3,
+          "Findings analysis and interpretation"
+        )}
+
+        {/* Conclusion Section */}
+        <div className="mt-6 space-y-2">
+          <h4 className="text-sm font-medium text-muted-foreground">Conclusion</h4>
+          {conclusionSection ? (
+            <button
+              onClick={() => conclusionSection && onSectionSelect(conclusionSection.id)}
+              className={cn(
+                "flex w-full items-center rounded-md px-2 py-1.5 text-sm hover:bg-accent",
+                conclusionSection && activeSection === conclusionSection.id && "bg-accent text-accent-foreground font-medium"
+              )}
+            >
+              {conclusionSection.title}
+            </button>
+          ) : (
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-muted-foreground hover:text-foreground"
+              onClick={() => onAddSection?.(SectionTypes.conclusion)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add General Conclusion
+            </Button>
+          )}
+        </div>
       </div>
 
       <ChapterCreationDialog
