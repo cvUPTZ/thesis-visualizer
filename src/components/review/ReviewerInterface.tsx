@@ -42,9 +42,9 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
         
         const threadMap = new Map<string | null, Comment[]>();
         commentsData.forEach((comment: any) => {
-          const transformedComment = {
+          const transformedComment: Comment = {
             id: comment.id,
-            content: comment.content.text || comment.content,
+            content: typeof comment.content === 'string' ? comment.content : comment.content.text,
             reviewer_id: comment.reviewer_id,
             created_at: comment.created_at,
             profiles: comment.profiles
