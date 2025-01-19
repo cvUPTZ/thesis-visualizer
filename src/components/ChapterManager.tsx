@@ -6,6 +6,7 @@ import { ChapterItem } from './editor/chapters/ChapterItem';
 import { useToast } from '@/hooks/use-toast';
 import { ChapterCreationDialog } from './editor/chapters/ChapterCreationDialog';
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/integrations/supabase/types';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,14 +58,26 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
       // First, add the chapter to the local state
       onAddChapter(chapter);
       
+      // Convert chapters array to a JSON-compatible format
+      const chaptersJson = [...chapters, chapter].map(ch => ({
+        id: ch.id,
+        title: ch.title,
+        content: ch.content,
+        sections: ch.sections,
+        part: ch.part,
+        figures: ch.figures,
+        tables: ch.tables,
+        footnotes: ch.footnotes
+      }));
+
       // Then persist it to Supabase
       const { error } = await supabase
         .from('theses')
         .update({
           content: {
-            chapters: [...chapters, chapter]
+            chapters: chaptersJson
           }
-        })
+        } as { content: Json })
         .eq('id', chapter.id);
 
       if (error) throw error;
@@ -93,10 +106,19 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
           onRemoveChapter(chapterId);
         });
 
-        // Then update in Supabase
-        const updatedChapters = chapters.filter(
-          chapter => !chaptersToDelete.includes(chapter.id)
-        );
+        // Convert remaining chapters to JSON-compatible format
+        const updatedChapters = chapters
+          .filter(chapter => !chaptersToDelete.includes(chapter.id))
+          .map(ch => ({
+            id: ch.id,
+            title: ch.title,
+            content: ch.content,
+            sections: ch.sections,
+            part: ch.part,
+            figures: ch.figures,
+            tables: ch.tables,
+            footnotes: ch.footnotes
+          }));
 
         const { error } = await supabase
           .from('theses')
@@ -104,8 +126,8 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
             content: {
               chapters: updatedChapters
             }
-          })
-          .eq('id', chapters[0]?.id); // Assuming all chapters belong to the same thesis
+          } as { content: Json })
+          .eq('id', chapters[0]?.id);
 
         if (error) throw error;
 
