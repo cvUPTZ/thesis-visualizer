@@ -45,6 +45,7 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
               onTitleChange={onTitleChange}
               onUpdateChapter={onUpdateChapter}
               onAddChapter={onAddChapter}
+              thesisId={thesis.id}
             />
           )}
         </div>

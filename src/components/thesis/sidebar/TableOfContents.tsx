@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, ChevronRight, BookOpen, Image, Table } from 'lucide-react';
+import { ChevronDown, ChevronRight, BookOpen, Image, Table, FileIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Section } from '@/types/thesis';
 import {
@@ -22,7 +22,6 @@ export const TableOfContents = ({
 }: TableOfContentsProps) => {
   const [openSections, setOpenSections] = React.useState<string[]>(['frontMatter', 'mainContent', 'backMatter', 'figures', 'tables']);
 
-  // Group sections by type
   const frontMatterSections = sections.filter(section => 
     ['title', 'abstract', 'acknowledgments'].includes(section.type || '')
   );
@@ -153,36 +152,9 @@ export const TableOfContents = ({
         activeSection === section.id && "bg-editor-active text-editor-accent font-medium"
       )}
     >
-      <FileText className="w-4 h-4 text-editor-text group-hover:text-editor-accent transition-colors" />
+      <FileIcon className="w-4 h-4 text-editor-text group-hover:text-editor-accent transition-colors" />
       <span className="truncate">{section.title || 'Untitled Section'}</span>
     </button>
-  );
-
-  const renderCollapsibleSection = (
-    title: string,
-    sectionsList: Section[],
-    sectionKey: string,
-    icon: React.ReactNode
-  ) => (
-    <Collapsible
-      key={sectionKey}
-      open={openSections.includes(sectionKey)}
-      onOpenChange={() => toggleSection(sectionKey)}
-      className="space-y-1"
-    >
-      <CollapsibleTrigger className="flex items-center w-full p-2 text-sm font-medium hover:bg-editor-hover rounded-md">
-        {openSections.includes(sectionKey) ? (
-          <ChevronDown className="w-4 h-4 mr-2" />
-        ) : (
-          <ChevronRight className="w-4 h-4 mr-2" />
-        )}
-        {icon}
-        {title}
-      </CollapsibleTrigger>
-      <CollapsibleContent className="pl-4 space-y-1">
-        {sectionsList.map(renderSectionItem)}
-      </CollapsibleContent>
-    </Collapsible>
   );
 
   const renderElementsList = (
@@ -225,6 +197,33 @@ export const TableOfContents = ({
             </span>
           </button>
         ))}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+
+  const renderCollapsibleSection = (
+    title: string,
+    sectionsList: Section[],
+    sectionKey: string,
+    icon: React.ReactNode
+  ) => (
+    <Collapsible
+      key={sectionKey}
+      open={openSections.includes(sectionKey)}
+      onOpenChange={() => toggleSection(sectionKey)}
+      className="space-y-1"
+    >
+      <CollapsibleTrigger className="flex items-center w-full p-2 text-sm font-medium hover:bg-editor-hover rounded-md">
+        {openSections.includes(sectionKey) ? (
+          <ChevronDown className="w-4 h-4 mr-2" />
+        ) : (
+          <ChevronRight className="w-4 h-4 mr-2" />
+        )}
+        {icon}
+        {title}
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pl-4 space-y-1">
+        {sectionsList.map(renderSectionItem)}
       </CollapsibleContent>
     </Collapsible>
   );
