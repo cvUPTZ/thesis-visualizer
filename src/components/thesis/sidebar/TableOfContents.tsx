@@ -10,6 +10,8 @@ interface TableOfContentsProps {
   onSectionSelect: (id: string) => void;
   onAddSection?: (type: ThesisSectionType) => void;
   onAddChapter?: (chapter: Chapter) => void;
+  completedSections: string[];
+  onSectionComplete: (id: string, completed: boolean) => void;
 }
 
 export const TableOfContents: React.FC<TableOfContentsProps> = ({
@@ -17,7 +19,9 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
   activeSection,
   onSectionSelect,
   onAddSection,
-  onAddChapter
+  onAddChapter,
+  completedSections,
+  onSectionComplete
 }) => {
   console.log('TableOfContents rendering with:', { 
     sectionsCount: sections?.length,
@@ -25,7 +29,6 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     sections: sections?.map(s => ({ id: s.id, title: s.title, type: s.type }))
   });
 
-  // Group sections by their type
   const frontMatterSections = sections?.filter(s => 
     ['title', 'acknowledgments', 'abstract', 'table-of-contents'].includes(s.type)
   ) || [];
@@ -38,40 +41,35 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     ['bibliography', 'appendix'].includes(s.type)
   ) || [];
 
-  const handleSectionSelect = (sectionId: string) => {
-    console.log('TableOfContents - Section selected:', sectionId);
-    const section = sections.find(s => s.id === sectionId);
-    if (section) {
-      console.log('TableOfContents - Found section:', { id: section.id, title: section.title, type: section.type });
-      onSectionSelect(sectionId);
-    } else {
-      console.warn('TableOfContents - Section not found:', sectionId);
-    }
-  };
-
   return (
     <div className="space-y-6">
       <FrontMatterSections
         sections={frontMatterSections}
         activeSection={activeSection}
-        onSectionSelect={handleSectionSelect}
+        onSectionSelect={onSectionSelect}
         onAddSection={onAddSection}
+        completedSections={completedSections}
+        onSectionComplete={onSectionComplete}
       />
       
       <MainContentSections
         sections={mainContentSections}
         chapters={[]}
         activeSection={activeSection}
-        onSectionSelect={handleSectionSelect}
+        onSectionSelect={onSectionSelect}
         onAddSection={onAddSection}
         onAddChapter={onAddChapter}
+        completedSections={completedSections}
+        onSectionComplete={onSectionComplete}
       />
       
       <BackMatterSections
         sections={backMatterSections}
         activeSection={activeSection}
-        onSectionSelect={handleSectionSelect}
+        onSectionSelect={onSectionSelect}
         onAddSection={onAddSection}
+        completedSections={completedSections}
+        onSectionComplete={onSectionComplete}
       />
     </div>
   );
