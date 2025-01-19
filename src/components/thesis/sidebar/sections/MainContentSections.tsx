@@ -103,12 +103,7 @@ export const MainContentSections: React.FC<MainContentProps> = ({
       title: "Conclusion",
       icon: Presentation,
       types: [
-        { type: 'conclusion', label: 'Conclusion', icon: Presentation },
-        { type: 'general-summary', label: 'General Summary', icon: ScrollText },
-        { type: 'main-contributions', label: 'Main Contributions', icon: Target },
-        { type: 'overall-limitations', label: 'Overall Limitations', icon: List },
-        { type: 'future-perspectives', label: 'Future Perspectives', icon: Lightbulb },
-        { type: 'recommendations', label: 'Recommendations', icon: ArrowRight }
+        { type: 'conclusion', label: 'Conclusion', icon: Presentation }
       ]
     }
   ];
