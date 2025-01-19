@@ -1,4 +1,5 @@
 export type ThesisSectionType = 
+  // Front Matter
   | 'title'
   | 'acknowledgments'
   | 'abstract'
@@ -6,6 +7,7 @@ export type ThesisSectionType =
   | 'list-of-figures'
   | 'list-of-tables'
   | 'list-of-abbreviations'
+  // Main Content - Introduction
   | 'general-introduction'
   | 'general-context'
   | 'problem-statement'
@@ -13,6 +15,7 @@ export type ThesisSectionType =
   | 'objectives'
   | 'hypotheses'
   | 'thesis-structure'
+  // Literature Review
   | 'literature-review'
   | 'theoretical-framework'
   | 'main-theories'
@@ -24,6 +27,7 @@ export type ThesisSectionType =
   | 'selected-variables'
   | 'hypothetical-relationships'
   | 'reference-framework'
+  // Methodology
   | 'methodology'
   | 'research-design'
   | 'methodological-approach'
@@ -35,6 +39,7 @@ export type ThesisSectionType =
   | 'analysis-methods'
   | 'validity-reliability'
   | 'ethical-considerations'
+  // Results & Discussion
   | 'results'
   | 'descriptive-analysis'
   | 'statistical-tests'
@@ -46,12 +51,14 @@ export type ThesisSectionType =
   | 'theoretical-implications'
   | 'practical-implications'
   | 'study-limitations'
+  // Conclusion
   | 'conclusion'
   | 'general-summary'
   | 'main-contributions'
   | 'overall-limitations'
   | 'future-perspectives'
   | 'recommendations'
+  // Back Matter
   | 'bibliography'
   | 'primary-sources'
   | 'secondary-sources'
