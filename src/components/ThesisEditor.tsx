@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Chapter, Section, Thesis } from '@/types/thesis';
+import { Chapter, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
 import { useParams } from 'react-router-dom';
@@ -16,6 +16,7 @@ import { ChatMessages } from './collaboration/ChatMessages';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ThesisSidebar } from './thesis/ThesisSidebar';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -36,6 +37,26 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   useThesisAutosave(thesis);
   useThesisInitialization(thesis);
   useThesisRealtime(currentThesisId, thesis, setThesis);
+
+  const handleUpdateChapter = (updatedChapter: Chapter) => {
+    if (!thesis) return;
+    
+    setThesis(prevThesis => ({
+      ...prevThesis!,
+      chapters: prevThesis!.chapters.map(chapter =>
+        chapter.id === updatedChapter.id ? updatedChapter : chapter
+      )
+    }));
+  };
+
+  const handleAddChapter = (newChapter: Chapter) => {
+    if (!thesis) return;
+    
+    setThesis(prevThesis => ({
+      ...prevThesis!,
+      chapters: [...prevThesis!.chapters, newChapter]
+    }));
+  };
 
   const calculateProgress = () => {
     if (!thesis) return 0;
@@ -138,8 +159,10 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="flex-1">
+    <div className="min-h-screen bg-background flex">
+      <ThesisSidebar />
+      
+      <div className="flex-1 flex flex-col">
         <ThesisEditorHeader
           thesis={thesis}
           showPreview={showPreview}
@@ -163,6 +186,8 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
           previewRef={previewRef}
           onContentChange={handleContentChange}
           onTitleChange={handleTitleChange}
+          onUpdateChapter={handleUpdateChapter}
+          onAddChapter={handleAddChapter}
         />
       </div>
 
