@@ -14,20 +14,18 @@ import { useToast } from '@/hooks/use-toast';
 
 interface ReferenceDialogProps {
   onAddReference: (reference: Reference) => void;
-  defaultType?: 'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other';
+  defaultStyle?: 'APA' | 'MLA' | 'Chicago' | 'Vancouver' | 'Harvard';
 }
 
-export const ReferenceDialog = ({ onAddReference, defaultType = 'article' }: ReferenceDialogProps) => {
+export const ReferenceDialog = ({ onAddReference, defaultStyle = 'APA' }: ReferenceDialogProps) => {
   const [text, setText] = React.useState('');
   const { toast } = useToast();
 
-  const parseReference = (text: string, type: string) => {
-    // Basic parsing logic - this can be enhanced based on the reference type
-    const parts = text.split('.');
-    let reference: Partial<Reference> = {
+  const parseReference = (text: string, style: string) => {
+    const reference: Partial<Reference> = {
       id: Date.now().toString(),
       text,
-      type,
+      style: style as Reference['style'],
       authors: [],
       year: '',
       title: '',
@@ -35,37 +33,62 @@ export const ReferenceDialog = ({ onAddReference, defaultType = 'article' }: Ref
     };
 
     try {
-      switch (type) {
-        case 'article':
-          // Author(s). (Year). Title. Journal, Volume(Issue), Pages.
-          if (parts.length >= 3) {
-            reference.authors = parts[0].split(',').map(a => a.trim());
-            const yearMatch = parts[1].match(/\((\d{4})\)/);
-            reference.year = yearMatch ? yearMatch[1] : '';
-            reference.title = parts[2].trim();
-            if (parts[3]) {
-              reference.source = parts[3].trim();
-            }
+      switch (style) {
+        case 'APA':
+          // Author, A. A., & Author, B. B. (Year). Title of article. Title of Journal, volume(issue), pages.
+          const apaMatch = text.match(/^(.*?)\((.*?)\)\.(.*?)\.(.*)$/);
+          if (apaMatch) {
+            reference.authors = apaMatch[1].split(',').map(a => a.trim());
+            reference.year = apaMatch[2].trim();
+            reference.title = apaMatch[3].trim();
+            reference.source = apaMatch[4].trim();
           }
           break;
-        case 'book':
-          // Author(s). (Year). Title. Publisher.
-          if (parts.length >= 3) {
-            reference.authors = parts[0].split(',').map(a => a.trim());
-            const yearMatch = parts[1].match(/\((\d{4})\)/);
-            reference.year = yearMatch ? yearMatch[1] : '';
-            reference.title = parts[2].trim();
-            if (parts[3]) {
-              reference.publisher = parts[3].trim();
-            }
+
+        case 'MLA':
+          // Author. "Title." Journal Name, Volume, Issue, Year, Pages.
+          const mlaMatch = text.match(/^(.*?)\."(.*?)".(.*?),(.*)$/);
+          if (mlaMatch) {
+            reference.authors = [mlaMatch[1].trim()];
+            reference.title = mlaMatch[2].trim();
+            reference.source = mlaMatch[3].trim();
+            const details = mlaMatch[4].split(',').map(s => s.trim());
+            reference.year = details.find(d => /^\d{4}$/.test(d)) || '';
           }
           break;
-        default:
-          // Basic fallback parsing
-          if (parts.length >= 2) {
-            reference.title = parts[0].trim();
-            reference.source = parts[1].trim();
+
+        case 'Chicago':
+          // Author. Title. Place of Publication: Publisher, Year.
+          const chicagoMatch = text.match(/^(.*?)\.(.*?)\.(.*?):\s*(.*?),\s*(.*)$/);
+          if (chicagoMatch) {
+            reference.authors = [chicagoMatch[1].trim()];
+            reference.title = chicagoMatch[2].trim();
+            reference.publisher = chicagoMatch[4].trim();
+            reference.year = chicagoMatch[5].trim();
           }
+          break;
+
+        case 'Vancouver':
+          // Author AA, Author BB. Title. Journal. Year;Volume(Issue):Pages.
+          const vancouverMatch = text.match(/^(.*?)\.(.*?)\.(.*?)\.(.*?);(.*)$/);
+          if (vancouverMatch) {
+            reference.authors = vancouverMatch[1].split(',').map(a => a.trim());
+            reference.title = vancouverMatch[2].trim();
+            reference.source = vancouverMatch[3].trim();
+            reference.year = vancouverMatch[4].trim();
+          }
+          break;
+
+        case 'Harvard':
+          // Author, A.A. and Author, B.B. (Year) Title. Journal, Volume(Issue), pages.
+          const harvardMatch = text.match(/^(.*?)\((.*?)\)(.*?)\.(.*?)$/);
+          if (harvardMatch) {
+            reference.authors = harvardMatch[1].split('and').map(a => a.trim());
+            reference.year = harvardMatch[2].trim();
+            reference.title = harvardMatch[3].trim();
+            reference.source = harvardMatch[4].trim();
+          }
+          break;
       }
     } catch (error) {
       console.error('Error parsing reference:', error);
@@ -90,7 +113,7 @@ export const ReferenceDialog = ({ onAddReference, defaultType = 'article' }: Ref
       return;
     }
 
-    const reference = parseReference(text, defaultType);
+    const reference = parseReference(text, defaultStyle);
     onAddReference(reference);
     setText('');
   };
@@ -105,7 +128,7 @@ export const ReferenceDialog = ({ onAddReference, defaultType = 'article' }: Ref
       </DialogTrigger>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
-          <DialogTitle>Add New Reference</DialogTitle>
+          <DialogTitle>Add New Reference ({defaultStyle} Style)</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -113,11 +136,11 @@ export const ReferenceDialog = ({ onAddReference, defaultType = 'article' }: Ref
             <Textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Enter the complete reference text..."
+              placeholder={`Enter the complete reference text in ${defaultStyle} format...`}
               className="min-h-[100px]"
             />
             <p className="text-sm text-muted-foreground">
-              Format: Author(s). (Year). Title. Source.
+              Format will be parsed according to {defaultStyle} style guidelines
             </p>
           </div>
           <div className="flex justify-end">

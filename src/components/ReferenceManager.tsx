@@ -13,7 +13,7 @@ export const ReferenceManager: React.FC<ReferenceManagerProps> = ({
   onAdd,
   onRemove,
   onUpdate,
-  defaultType = 'article'
+  defaultStyle = 'APA'
 }) => {
   console.log('ReferenceManager rendering with items:', items);
 
@@ -31,7 +31,7 @@ export const ReferenceManager: React.FC<ReferenceManagerProps> = ({
           </div>
           <h3 className="text-lg font-serif font-medium text-primary">References</h3>
         </div>
-        <ReferenceDialog onAddReference={onAdd} defaultType={defaultType} />
+        <ReferenceDialog onAddReference={onAdd} defaultStyle={defaultStyle} />
       </motion.div>
 
       <ScrollArea className="h-[600px] pr-4">

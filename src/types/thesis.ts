@@ -120,7 +120,7 @@ export interface Reference {
   source: string;
   authors: string[];
   year: string;
-  type: 'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other';
+  style: 'APA' | 'MLA' | 'Chicago' | 'Vancouver' | 'Harvard';
   doi?: string;
   url?: string;
   journal?: string;

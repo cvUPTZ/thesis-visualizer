@@ -18,6 +18,7 @@ export interface ReferenceManagerProps {
   onAdd: (reference: Reference) => void;
   onRemove: (id: string) => void;
   onUpdate: (reference: Reference) => void;
+  defaultStyle?: 'APA' | 'MLA' | 'Chicago' | 'Vancouver' | 'Harvard';
 }
 
 export interface SectionProps {
