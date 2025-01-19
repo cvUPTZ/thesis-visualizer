@@ -4,21 +4,32 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { TrialSettingsDialog } from './features/TrialSettingsDialog';
 
-const FeatureManagement = () => {
+export const FeatureManagement: React.FC = () => {
   const [isTrialSettingsOpen, setIsTrialSettingsOpen] = useState(false);
-  const [currentTrialDays, setCurrentTrialDays] = useState(30); // Default value
+  const [currentTrialDays, setCurrentTrialDays] = useState(30);
   const { toast } = useToast();
 
-  const handleUpdateTrialSettings = async (days: number) => {
-    const { data, error } = await supabase
-      .from('trial_settings')
-      .update({ trial_days: days })
-      .eq('id', 'trialSettingsId') // Replace with actual trial settings ID
-      .select()
-      .single();
+  const handleUpdateTrialSettings = async (days: number): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from('trial_settings')
+        .update({ trial_days: days })
+        .eq('id', 'trialSettingsId');
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Trial settings updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating trial settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update trial settings",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -34,5 +45,3 @@ const FeatureManagement = () => {
     </div>
   );
 };
-
-export default FeatureManagement;
