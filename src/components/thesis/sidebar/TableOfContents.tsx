@@ -46,10 +46,9 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     }
   };
 
-  const renderSectionItem = (section: Section) => {
+  const renderSectionItem = (section: Section, showAddButton = false) => {
     const isExpanded = expandedSections.includes(section.id);
     const isActive = section.id === activeSection;
-    const showAddButton = canHaveMultipleInstances(section.type);
 
     return (
       <div key={section.id} className="space-y-1">
@@ -92,47 +91,128 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
   const frontMatterSections = sections.filter(s => 
     ['title', 'acknowledgments', 'abstract', 'table-of-contents'].includes(s.type)
   );
-  const mainContentSections = sections.filter(s => 
-    ['introduction', 'literature-review', 'methodology', 'results', 'discussion'].includes(s.type)
-  );
-  const backMatterSections = sections.filter(s => 
-    ['conclusion', 'bibliography', 'appendix'].includes(s.type)
-  );
 
-  // Add a special section for Chapters
-  const chaptersSection = (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between px-2">
-        <h3 className="font-medium text-sm">Chapters</h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0"
-          onClick={() => handleAddSection('chapter' as ThesisSectionType)}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
+  const mainContentSections = [
+    { type: 'general-introduction', title: 'General Introduction' },
+    { type: 'general-context', title: 'General Context' },
+    { type: 'problem-statement', title: 'Problem Statement' },
+    { type: 'research-questions', title: 'Research Questions' },
+    { type: 'objectives', title: 'Objectives' },
+    { type: 'hypotheses', title: 'Hypotheses' },
+    { type: 'thesis-structure', title: 'Thesis Structure' },
+  ];
+
+  const literatureReviewSections = [
+    { type: 'main-theories', title: 'Main Theories' },
+    { type: 'key-concepts', title: 'Key Concepts' },
+    { type: 'state-of-art', title: 'State of the Art' },
+    { type: 'critical-synthesis', title: 'Critical Synthesis' },
+  ];
+
+  const methodologySections = [
+    { type: 'methodological-approach', title: 'Methodological Approach' },
+    { type: 'population-sample', title: 'Population and Sample' },
+    { type: 'research-field', title: 'Research Field' },
+    { type: 'data-collection', title: 'Data Collection Tools' },
+    { type: 'collection-procedures', title: 'Collection Procedures' },
+    { type: 'analysis-methods', title: 'Analysis Methods' },
+    { type: 'validity-reliability', title: 'Validity and Reliability' },
+    { type: 'ethical-considerations', title: 'Ethical Considerations' },
+  ];
+
+  const resultsDiscussionSections = [
+    { type: 'descriptive-analysis', title: 'Descriptive Analysis' },
+    { type: 'statistical-tests', title: 'Statistical Tests' },
+    { type: 'hypothesis-testing', title: 'Hypothesis Testing' },
+    { type: 'results-summary', title: 'Results Summary' },
+    { type: 'results-interpretation', title: 'Results Interpretation' },
+    { type: 'literature-comparison', title: 'Literature Comparison' },
+    { type: 'theoretical-implications', title: 'Theoretical Implications' },
+    { type: 'practical-implications', title: 'Practical Implications' },
+    { type: 'study-limitations', title: 'Study Limitations' },
+  ];
+
+  const conclusionSections = [
+    { type: 'general-summary', title: 'General Summary' },
+    { type: 'main-contributions', title: 'Main Contributions' },
+    { type: 'overall-limitations', title: 'Overall Limitations' },
+    { type: 'future-perspectives', title: 'Future Perspectives' },
+    { type: 'recommendations', title: 'Recommendations' },
+  ];
+
+  const backMatterSections = sections.filter(s => 
+    ['bibliography', 'appendix'].includes(s.type)
   );
 
   return (
     <div className="space-y-6">
       <div className="space-y-2">
         <h3 className="font-medium text-sm px-2">Front Matter</h3>
-        {frontMatterSections.map(renderSectionItem)}
+        {frontMatterSections.map(section => renderSectionItem(section))}
       </div>
       
-      {chaptersSection}
-      
-      <div className="space-y-2">
+      <div className="space-y-4">
         <h3 className="font-medium text-sm px-2">Main Content</h3>
-        {mainContentSections.map(renderSectionItem)}
+        
+        <div className="pl-4 space-y-2">
+          <h4 className="text-sm text-muted-foreground">Introduction</h4>
+          {mainContentSections.map(section => renderSectionItem(section as Section))}
+        </div>
+
+        <div className="pl-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm text-muted-foreground">Part One: Literature Review</h4>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => handleAddSection('chapter' as ThesisSectionType)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          {literatureReviewSections.map(section => renderSectionItem(section as Section))}
+        </div>
+
+        <div className="pl-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm text-muted-foreground">Part Two: Methodology</h4>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => handleAddSection('chapter' as ThesisSectionType)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          {methodologySections.map(section => renderSectionItem(section as Section))}
+        </div>
+
+        <div className="pl-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm text-muted-foreground">Part Three: Results and Discussion</h4>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => handleAddSection('chapter' as ThesisSectionType)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          {resultsDiscussionSections.map(section => renderSectionItem(section as Section))}
+        </div>
+
+        <div className="pl-4 space-y-2">
+          <h4 className="text-sm text-muted-foreground">Conclusion</h4>
+          {conclusionSections.map(section => renderSectionItem(section as Section))}
+        </div>
       </div>
       
       <div className="space-y-2">
         <h3 className="font-medium text-sm px-2">Back Matter</h3>
-        {backMatterSections.map(renderSectionItem)}
+        {backMatterSections.map(section => renderSectionItem(section))}
       </div>
     </div>
   );
