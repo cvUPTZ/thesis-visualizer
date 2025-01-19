@@ -32,6 +32,12 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
     showPreview 
   });
 
+  const handleGeneralIntroChange = (value: string | undefined) => {
+    if (thesis) {
+      onContentChange('generalIntroduction', value || '');
+    }
+  };
+
   return (
     <main className="flex-1 p-8 flex">
       <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
@@ -44,11 +50,7 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
             </p>
             <MarkdownEditor
               value={thesis?.content?.generalIntroduction || ''}
-              onChange={(value) => {
-                if (thesis) {
-                  onContentChange('generalIntroduction', value || '');
-                }
-              }}
+              onChange={handleGeneralIntroChange}
               placeholder="Start writing your general introduction..."
             />
           </Card>
