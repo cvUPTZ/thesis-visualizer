@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
-  LayoutDashboard, 
-  Image, 
-  Table as TableIcon, 
-  BookOpen,
+  BookOpen, 
+  FileText,
+  ListTodo,
+  Quote,
+  Table2,
+  Image,
   Library,
   ChevronRight,
   ChevronLeft
@@ -18,10 +20,12 @@ export const ThesisSidebar = () => {
   const navigate = useNavigate();
 
   const navItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: FileText, label: 'Abstract', path: '/abstract' },
+    { icon: Quote, label: 'Statement', path: '/statement' },
+    { icon: ListTodo, label: 'Preface', path: '/preface' },
     { icon: BookOpen, label: 'Chapters', path: '/chapters' },
     { icon: Image, label: 'Figures', path: '/figures' },
-    { icon: TableIcon, label: 'Tables', path: '/tables' },
+    { icon: Table2, label: 'Tables', path: '/tables' },
     { icon: Library, label: 'Bibliography', path: '/bibliography' }
   ];
 

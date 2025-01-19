@@ -32,9 +32,9 @@ const Routes = () => {
     );
   }
 
-  const AuthenticatedLayout = ({ children }: { children: React.ReactNode }) => (
+  const AuthenticatedLayout = ({ children, showSidebar = true }: { children: React.ReactNode, showSidebar?: boolean }) => (
     <div className="flex min-h-screen bg-background">
-      <ThesisSidebar />
+      {showSidebar && <ThesisSidebar />}
       <div className="flex-1">
         {children}
       </div>
@@ -45,13 +45,13 @@ const Routes = () => {
     <RouterRoutes>
       {isAuthenticated ? (
         <>
-          <Route path="/" element={<AuthenticatedLayout><Index /></AuthenticatedLayout>} />
-          <Route path="/create-thesis" element={<AuthenticatedLayout><CreateThesis /></AuthenticatedLayout>} />
-          <Route path="/admin" element={<AuthenticatedLayout><AdminPanel /></AuthenticatedLayout>} />
+          <Route path="/" element={<AuthenticatedLayout showSidebar={false}><Index /></AuthenticatedLayout>} />
+          <Route path="/create-thesis" element={<AuthenticatedLayout showSidebar={false}><CreateThesis /></AuthenticatedLayout>} />
+          <Route path="/admin" element={<AuthenticatedLayout showSidebar={false}><AdminPanel /></AuthenticatedLayout>} />
           <Route path="/thesis/:thesisId" element={<AuthenticatedLayout><ThesisEditor /></AuthenticatedLayout>} />
-          <Route path="/student-info" element={<AuthenticatedLayout><StudentInfo /></AuthenticatedLayout>} />
-          <Route path="/supervisor-info" element={<AuthenticatedLayout><SupervisorInfo /></AuthenticatedLayout>} />
-          <Route path="/thesis-info" element={<AuthenticatedLayout><ThesisInfo /></AuthenticatedLayout>} />
+          <Route path="/student-info" element={<AuthenticatedLayout showSidebar={false}><StudentInfo /></AuthenticatedLayout>} />
+          <Route path="/supervisor-info" element={<AuthenticatedLayout showSidebar={false}><SupervisorInfo /></AuthenticatedLayout>} />
+          <Route path="/thesis-info" element={<AuthenticatedLayout showSidebar={false}><ThesisInfo /></AuthenticatedLayout>} />
           <Route path="/abstract" element={<AuthenticatedLayout><AbstractPage /></AuthenticatedLayout>} />
           <Route path="/statement" element={<AuthenticatedLayout><StatementPage /></AuthenticatedLayout>} />
           <Route path="/preface" element={<AuthenticatedLayout><PrefacePage /></AuthenticatedLayout>} />
@@ -60,7 +60,7 @@ const Routes = () => {
           <Route path="/figures" element={<AuthenticatedLayout><FiguresPage /></AuthenticatedLayout>} />
           <Route path="/tables" element={<AuthenticatedLayout><TablesPage /></AuthenticatedLayout>} />
           <Route path="/bibliography" element={<AuthenticatedLayout><BibliographyPage /></AuthenticatedLayout>} />
-          <Route path="*" element={<AuthenticatedLayout><Index /></AuthenticatedLayout>} />
+          <Route path="*" element={<AuthenticatedLayout showSidebar={false}><Index /></AuthenticatedLayout>} />
         </>
       ) : (
         <>
