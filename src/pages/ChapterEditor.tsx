@@ -7,6 +7,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Chapter } from '@/types/thesis';
 import { Skeleton } from '@/components/ui/skeleton';
 
+interface ThesisData {
+  id: string;
+  content: {
+    chapters: Chapter[];
+  };
+}
+
 const ChapterEditor = () => {
   const { chapterId } = useParams();
   const { toast } = useToast();
@@ -20,7 +27,7 @@ const ChapterEditor = () => {
         
         const { data: thesisData, error: thesisError } = await supabase
           .from('theses')
-          .select('content')
+          .select('id, content')
           .maybeSingle();
 
         if (thesisError) {
@@ -81,7 +88,7 @@ const ChapterEditor = () => {
     try {
       const { data: thesisData, error: thesisError } = await supabase
         .from('theses')
-        .select('content')
+        .select('id, content')
         .maybeSingle();
 
       if (thesisError) throw thesisError;
