@@ -1,5 +1,5 @@
 import React from 'react';
-import { Chapter, Section } from '@/types/thesis';
+import { Chapter, Section, ThesisSectionType } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
@@ -8,7 +8,7 @@ import { SectionItem } from '../sections/SectionItem';
 
 interface ChapterContentProps {
   chapter: Chapter;
-  onUpdateChapter: (chapter: Chapter) => void;
+  onUpdateChapter: (chapter: Chapter) => Promise<void>;
 }
 
 export const ChapterContent: React.FC<ChapterContentProps> = ({
@@ -17,12 +17,12 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
 }) => {
   const { toast } = useToast();
 
-  const handleAddSection = () => {
+  const handleAddSection = async () => {
     const newSection: Section = {
       id: Date.now().toString(),
       title: 'New Section',
       content: '',
-      type: 'custom',
+      type: ThesisSectionType.Custom,
       order: chapter.sections.length + 1,
       figures: [],
       tables: [],
@@ -30,7 +30,7 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
       references: []
     };
 
-    onUpdateChapter({
+    await onUpdateChapter({
       ...chapter,
       sections: [...chapter.sections, newSection]
     });
@@ -41,8 +41,8 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
     });
   };
 
-  const handleRemoveSection = (sectionId: string) => {
-    onUpdateChapter({
+  const handleRemoveSection = async (sectionId: string) => {
+    await onUpdateChapter({
       ...chapter,
       sections: chapter.sections.filter(s => s.id !== sectionId)
     });
@@ -59,10 +59,12 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
         <label className="text-sm font-medium text-gray-700">Chapter Introduction</label>
         <MarkdownEditor
           value={chapter.content || ''}
-          onChange={(value) => onUpdateChapter({
-            ...chapter,
-            content: value || ''
-          })}
+          onChange={async (value) => {
+            await onUpdateChapter({
+              ...chapter,
+              content: value || ''
+            });
+          }}
           placeholder="Write your chapter introduction here..."
         />
       </div>
@@ -95,8 +97,8 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
               <SectionItem
                 section={section}
                 sectionNumber={index + 1}
-                onUpdateSection={(updatedSection) => {
-                  onUpdateChapter({
+                onUpdateSection={async (updatedSection) => {
+                  await onUpdateChapter({
                     ...chapter,
                     sections: chapter.sections.map((s) =>
                       s.id === updatedSection.id ? updatedSection : s

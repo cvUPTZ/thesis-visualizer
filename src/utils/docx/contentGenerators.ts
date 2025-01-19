@@ -13,9 +13,9 @@ import { Chapter, Section, Thesis } from '@/types/thesis';
 
 export const generateTableOfContents = () => {
   const styleLevel: StyleLevel[] = [
-    { level: 1, paragraphProperties: { indent: { left: convertInchesToTwip(0.5) } } },
-    { level: 2, paragraphProperties: { indent: { left: convertInchesToTwip(0.75) } } },
-    { level: 3, paragraphProperties: { indent: { left: convertInchesToTwip(1) } } }
+    { level: 1, style: "Heading1" },
+    { level: 2, style: "Heading2" },
+    { level: 3, style: "Heading3" }
   ];
 
   return new TableOfContents("Table of Contents", {
@@ -98,48 +98,6 @@ export const generateContent = ({ thesis, isPreview = false }: { thesis: Thesis;
             );
           } catch (error) {
             console.error('Error processing figure:', error);
-          }
-        }
-      }
-    }
-  }
-
-  // Generate chapter content
-  if (thesis.chapters) {
-    for (const chapter of thesis.chapters) {
-      content.push(
-        new Paragraph({
-          text: chapter.title,
-          heading: HeadingLevel.HEADING_1,
-          spacing: { before: 400, after: 200 }
-        })
-      );
-
-      if (chapter.sections) {
-        for (const section of chapter.sections) {
-          content.push(
-            new Paragraph({
-              text: section.title,
-              heading: HeadingLevel.HEADING_2,
-              spacing: { before: 300, after: 200 }
-            })
-          );
-
-          const paragraphs = section.content.split('\n');
-          for (const paragraph of paragraphs) {
-            if (paragraph.trim()) {
-              content.push(
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: paragraph.trim(),
-                      size: 24
-                    })
-                  ],
-                  spacing: { before: 200, after: 200 }
-                })
-              );
-            }
           }
         }
       }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Section } from '@/types/thesis';
+import { Section, ThesisSectionType } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
 import { SectionHeader } from './editor/SectionHeader';
 import { SectionContent } from './editor/SectionContent';
@@ -36,7 +36,7 @@ export const EditorSection: React.FC<SectionProps> = ({
     id: section.id,
     title: section.title,
     content: section.content,
-    type: 'custom',
+    type: ThesisSectionType.Custom,
     order: 0,
     figures: [],
     tables: [],
