@@ -14,38 +14,14 @@ import { defaultStyles, previewStyles } from './styleConfig';
 import { convertImageToBase64 } from './imageUtils';
 
 export const generateContent = async ({ thesis, isPreview = false }: ContentGenerationOptions): Promise<Paragraph[]> => {
+  console.log('Generating content with thesis:', thesis);
   const paragraphs: Paragraph[] = [];
   const styles = isPreview ? previewStyles : defaultStyles;
-
-  // Add General Introduction if it exists
-  if (thesis.content?.generalIntroduction) {
-    paragraphs.push(
-      new Paragraph({
-        text: "General Introduction",
-        heading: HeadingLevel.HEADING_1,
-        pageBreakBefore: true,
-      }),
-      new Paragraph({
-        text: thesis.content.generalIntroduction,
-        style: 'Normal',
-        spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
-      })
-    );
-  }
-
-  // Add List of Figures if there are any
-  if (thesis.chapters.some(chapter => chapter.figures?.length > 0)) {
-    paragraphs.push(...generateListOfFigures(thesis));
-  }
-
-  // Add List of Tables if there are any
-  if (thesis.chapters.some(chapter => chapter.tables?.length > 0)) {
-    paragraphs.push(...generateListOfTables(thesis));
-  }
 
   // Front Matter
   if (Array.isArray(thesis.frontMatter)) {
     for (const section of thesis.frontMatter) {
+      console.log('Processing front matter section:', section.title);
       paragraphs.push(
         new Paragraph({
           text: section.title,
@@ -69,16 +45,15 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
   // Main Content (Chapters)
   if (Array.isArray(thesis.chapters)) {
     for (const chapter of thesis.chapters) {
+      console.log('Processing chapter:', chapter.title);
       // Add chapter title
-      if (chapter.title) {
-        paragraphs.push(
-          new Paragraph({
-            text: chapter.title,
-            heading: HeadingLevel.HEADING_1,
-            pageBreakBefore: true,
-          })
-        );
-      }
+      paragraphs.push(
+        new Paragraph({
+          text: chapter.title,
+          heading: HeadingLevel.HEADING_1,
+          pageBreakBefore: true,
+        })
+      );
 
       // Add chapter content
       if (chapter.content) {
@@ -91,8 +66,9 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
         );
       }
 
-      // Add sections
+      // Process sections within the chapter
       for (const section of chapter.sections) {
+        console.log('Processing section:', section.title);
         paragraphs.push(
           new Paragraph({
             text: section.title,
@@ -135,6 +111,32 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
             );
           });
         }
+
+        // Add citations
+        if (Array.isArray(section.citations)) {
+          section.citations.forEach(citation => {
+            paragraphs.push(
+              new Paragraph({
+                text: citation.text,
+                style: 'citation',
+                spacing: { before: 120, after: 120 },
+              })
+            );
+          });
+        }
+
+        // Add footnotes
+        if (Array.isArray(section.footnotes)) {
+          section.footnotes.forEach(footnote => {
+            paragraphs.push(
+              new Paragraph({
+                text: footnote.content,
+                style: 'footnote',
+                spacing: { before: 120, after: 120 },
+              })
+            );
+          });
+        }
       }
     }
   }
@@ -142,6 +144,7 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
   // Back Matter
   if (Array.isArray(thesis.backMatter)) {
     for (const section of thesis.backMatter) {
+      console.log('Processing back matter section:', section.title);
       paragraphs.push(
         new Paragraph({
           text: section.title,
@@ -180,95 +183,6 @@ export const generateTableOfContents = (): TableOfContents => {
       }
     ],
   });
-};
-
-const generateHeader = (title: string): Paragraph => {
-  return new Paragraph({
-    children: [
-      new TextRun({
-        text: title,
-        size: 20,
-        font: "Times New Roman",
-      }),
-    ],
-    alignment: AlignmentType.CENTER,
-    style: 'header',
-  });
-};
-
-const generateFooter = (): Paragraph => {
-  return new Paragraph({
-    children: [
-      new TextRun("Page "),
-      new TextRun({
-        children: ["PAGE"],
-      }),
-      new TextRun(" of "),
-      new TextRun({
-        children: ["NUMPAGES"],
-      }),
-    ],
-    alignment: AlignmentType.CENTER,
-    style: 'footer',
-  });
-};
-
-const generateListOfFigures = (thesis: any): Paragraph[] => {
-  const paragraphs: Paragraph[] = [
-    new Paragraph({
-      text: "List of Figures",
-      heading: HeadingLevel.HEADING_1,
-      pageBreakBefore: true,
-      spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(1) },
-    })
-  ];
-
-  let figureNumber = 1;
-  thesis.chapters.forEach((chapter: any) => {
-    if (chapter.figures && chapter.figures.length > 0) {
-      chapter.figures.forEach((figure: any) => {
-        paragraphs.push(
-          new Paragraph({
-            text: `Figure ${figureNumber}: ${figure.caption}`,
-            spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
-            style: 'listItem'
-          })
-        );
-        figureNumber++;
-      });
-    }
-  });
-
-  return paragraphs;
-};
-
-const generateListOfTables = (thesis: any): Paragraph[] => {
-  const paragraphs: Paragraph[] = [
-    new Paragraph({
-      text: "List of Tables",
-      heading: HeadingLevel.HEADING_1,
-      pageBreakBefore: true,
-      spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(1) },
-    })
-  ];
-
-  let tableNumber = 1;
-  thesis.chapters.forEach((chapter: any) => {
-    if (chapter.tables && chapter.tables.length > 0) {
-      chapter.tables.forEach((table: any) => {
-        paragraphs.push(
-          new Paragraph({
-            text: `Table ${tableNumber}: ${table.caption || table.title}`,
-            spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
-            style: 'listItem'
-          })
-        );
-        tableNumber++;
-      });
-    }
-  });
-
-  return paragraphs;
 };
 
 const generateFigure = async (figure: any, figureNumber: number): Promise<Paragraph[]> => {
