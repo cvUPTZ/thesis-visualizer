@@ -96,14 +96,17 @@ export interface ThesisComment {
 // Section types as const enum
 
 export const SectionTypes = {
-  // Front Matter
+  // Auto-generated Front Matter
   'title': 'title',
-  'acknowledgments': 'acknowledgments',
-  'abstract': 'abstract',
   'table-of-contents': 'table-of-contents',
   'list-of-figures': 'list-of-figures',
   'list-of-tables': 'list-of-tables',
+  
+  // User-created Front Matter
+  'acknowledgments': 'acknowledgments',
+  'abstract': 'abstract',
   'list-of-abbreviations': 'list-of-abbreviations',
+  
   // Main Content
   'general-introduction': 'general-introduction',
   'introduction': 'introduction',
@@ -112,6 +115,8 @@ export const SectionTypes = {
   'results': 'results',
   'discussion': 'discussion',
   'conclusion': 'conclusion',
+  'references': 'references',
+  
   // Back Matter
   'bibliography': 'bibliography',
   'primary-sources': 'primary-sources',
@@ -125,7 +130,8 @@ export const SectionTypes = {
   'reference-tables': 'reference-tables',
   'index': 'index',
   'glossary': 'glossary',
-  'detailed-toc': 'detailed-toc'
+  'detailed-toc': 'detailed-toc',
+  'custom': 'custom'
 } as const;
 
 export type ThesisSectionType = keyof typeof SectionTypes;

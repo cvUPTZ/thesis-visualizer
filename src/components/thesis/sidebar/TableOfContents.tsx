@@ -1,5 +1,5 @@
 import React from 'react';
-import { Section, ThesisSectionType } from '@/types/thesis';
+import { Section, ThesisSectionType, Chapter } from '@/types/thesis';
 import { FrontMatterSections } from './sections/FrontMatterSections';
 import { MainContentSections } from './sections/MainContentSections';
 import { BackMatterSections } from './sections/BackMatterSections';
@@ -9,24 +9,20 @@ interface TableOfContentsProps {
   activeSection: string;
   onSectionSelect: (id: string) => void;
   onAddSection?: (type: ThesisSectionType) => void;
+  onAddChapter?: (chapter: Chapter) => void;
 }
 
 export const TableOfContents: React.FC<TableOfContentsProps> = ({
   sections,
   activeSection,
   onSectionSelect,
-  onAddSection
+  onAddSection,
+  onAddChapter
 }) => {
   console.log('TableOfContents rendering with:', { 
     sectionsCount: sections?.length,
     activeSection 
   });
-
-  const handleAddChapter = () => {
-    if (onAddSection) {
-      onAddSection('chapter' as ThesisSectionType);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -39,17 +35,18 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
       
       <MainContentSections
         sections={sections}
-        chapters={[]} // This will be populated from the thesis data
+        chapters={[]}
         activeSection={activeSection}
         onSectionSelect={onSectionSelect}
         onAddSection={onAddSection}
-        onAddChapter={handleAddChapter}
+        onAddChapter={onAddChapter}
       />
       
       <BackMatterSections
         sections={sections}
         activeSection={activeSection}
         onSectionSelect={onSectionSelect}
+        onAddSection={onAddSection}
       />
     </div>
   );
