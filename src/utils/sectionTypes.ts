@@ -90,6 +90,13 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
     group: 'mainContent',
     type: 'introduction'
   },
+  'literature-review': {
+    label: 'Literature Review',
+    icon: BookOpen,
+    description: 'Review of existing literature',
+    group: 'mainContent',
+    type: 'literature-review'
+  },
   'methodology': {
     label: 'Methodology',
     icon: GraduationCap,
@@ -118,6 +125,13 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
     group: 'mainContent',
     type: 'conclusion'
   },
+  'references': {
+    label: 'References',
+    icon: ClipboardCheck,
+    description: 'Citations and references',
+    group: 'backMatter',
+    type: 'references'
+  },
   'bibliography': {
     label: 'Bibliography',
     icon: BookOpenCheck,
@@ -132,86 +146,14 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
     group: 'backMatter',
     type: 'appendix'
   },
-  'references': {
-    label: 'References',
-    icon: ClipboardCheck,
-    description: 'Citations and references',
-    group: 'backMatter',
-    type: 'references'
-  },
-  'chapter': {
-    label: 'Chapter',
-    icon: BookOpen,
-    description: 'Thesis chapter',
-    group: 'mainContent',
-    type: 'chapter'
-  },
-  'research-questions': {
-    label: 'Research Questions',
-    icon: FileText,
-    description: 'Research questions',
-    group: 'mainContent',
-    type: 'research-questions'
-  },
-  'hypotheses': {
-    label: 'Hypotheses',
-    icon: FileText,
-    description: 'Research hypotheses',
-    group: 'mainContent',
-    type: 'hypotheses'
-  },
-  'objectives': {
-    label: 'Objectives',
-    icon: FileText,
-    description: 'Research objectives',
-    group: 'mainContent',
-    type: 'objectives'
-  },
-  'problem-statement': {
-    label: 'Problem Statement',
-    icon: FileText,
-    description: 'Problem statement',
-    group: 'mainContent',
-    type: 'problem-statement'
-  },
-  'thesis-structure': {
-    label: 'Thesis Structure',
-    icon: FileText,
-    description: 'Thesis structure overview',
-    group: 'mainContent',
-    type: 'thesis-structure'
-  },
-  'statistical-tests': {
-    label: 'Statistical Tests',
-    icon: FileText,
-    description: 'Statistical analysis methods',
-    group: 'mainContent',
-    type: 'statistical-tests'
-  },
-  'general-context': {
-    label: 'General Context',
-    icon: FileText,
-    description: 'Research context',
-    group: 'mainContent',
-    type: 'general-context'
-  },
   'custom': {
     label: 'Custom Section',
     icon: FileText,
     description: 'Custom section type',
     group: 'mainContent',
     type: 'custom'
-  },
-  'general-conclusion': {
-    label: 'General Conclusion',
-    icon: BookCheck,
-    description: 'Final thesis conclusion',
-    group: 'mainContent',
-    type: 'general-conclusion'
   }
 };
-
-// ... keep existing code
 
 export const getSectionsByGroup = (group: 'frontMatter' | 'mainContent' | 'backMatter'): SectionTypeConfig[] => {
   return Object.entries(sectionTypes)
