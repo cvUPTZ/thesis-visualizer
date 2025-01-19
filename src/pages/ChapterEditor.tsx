@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Chapter } from '@/types/thesis';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ChapterEditor = () => {
   const { chapterId } = useParams();
@@ -15,30 +16,53 @@ const ChapterEditor = () => {
   React.useEffect(() => {
     const fetchChapter = async () => {
       try {
-        const { data: theses, error } = await supabase
+        console.log('Fetching chapter with ID:', chapterId);
+        
+        const { data: thesisData, error: thesisError } = await supabase
           .from('theses')
           .select('content')
-          .single();
+          .maybeSingle();
 
-        if (error) throw error;
+        if (thesisError) {
+          console.error('Error fetching thesis:', thesisError);
+          throw thesisError;
+        }
 
-        const chapters = theses.content.chapters || [];
-        const foundChapter = chapters.find((ch: Chapter) => ch.id === chapterId);
+        if (!thesisData) {
+          console.error('No thesis found');
+          throw new Error('Thesis not found');
+        }
+
+        // Parse the content properly
+        const content = typeof thesisData.content === 'string' 
+          ? JSON.parse(thesisData.content) 
+          : thesisData.content;
+
+        console.log('Thesis content:', content);
+
+        if (!content || !Array.isArray(content.chapters)) {
+          console.error('Invalid thesis content structure');
+          throw new Error('Invalid thesis structure');
+        }
+
+        const foundChapter = content.chapters.find((ch: Chapter) => ch.id === chapterId);
 
         if (foundChapter) {
+          console.log('Found chapter:', foundChapter);
           setChapter(foundChapter);
         } else {
+          console.error('Chapter not found:', chapterId);
           toast({
             title: "Error",
             description: "Chapter not found",
             variant: "destructive"
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching chapter:', error);
         toast({
           title: "Error",
-          description: "Failed to load chapter",
+          description: error.message || "Failed to load chapter",
           variant: "destructive"
         });
       } finally {
@@ -46,30 +70,55 @@ const ChapterEditor = () => {
       }
     };
 
-    fetchChapter();
+    if (chapterId) {
+      fetchChapter();
+    }
   }, [chapterId, toast]);
 
   const handleContentChange = async (content: string) => {
     if (!chapter) return;
 
     try {
-      const updatedChapter = { ...chapter, content };
-      setChapter(updatedChapter);
+      const { data: thesisData, error: thesisError } = await supabase
+        .from('theses')
+        .select('content')
+        .maybeSingle();
 
-      const { error } = await supabase
+      if (thesisError) throw thesisError;
+      if (!thesisData) throw new Error('Thesis not found');
+
+      // Parse the existing content
+      const existingContent = typeof thesisData.content === 'string' 
+        ? JSON.parse(thesisData.content) 
+        : thesisData.content;
+
+      // Update the specific chapter
+      const updatedChapters = existingContent.chapters.map((ch: Chapter) =>
+        ch.id === chapter.id ? { ...ch, content } : ch
+      );
+
+      // Prepare the updated content
+      const updatedContent = {
+        ...existingContent,
+        chapters: updatedChapters
+      };
+
+      const { error: updateError } = await supabase
         .from('theses')
         .update({
-          content: JSON.parse(JSON.stringify({ chapters: [updatedChapter] }))
+          content: updatedContent
         })
-        .eq('id', chapter.id);
+        .eq('id', thesisData.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      setChapter({ ...chapter, content });
 
       toast({
         title: "Success",
         description: "Chapter content updated",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating chapter:', error);
       toast({
         title: "Error",
@@ -80,11 +129,25 @@ const ChapterEditor = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <Skeleton className="h-8 w-64" />
+        <Card className="p-6">
+          <Skeleton className="h-[400px] w-full" />
+        </Card>
+      </div>
+    );
   }
 
   if (!chapter) {
-    return <div>Chapter not found</div>;
+    return (
+      <div className="container mx-auto p-6 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-semibold text-destructive">Chapter Not Found</h2>
+          <p className="text-muted-foreground">The requested chapter could not be found.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
