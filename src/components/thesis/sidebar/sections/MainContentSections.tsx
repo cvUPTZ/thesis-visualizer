@@ -9,6 +9,7 @@ import {
   Presentation, ArrowRight, Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface MainContentProps {
   sections: Section[];
@@ -101,62 +102,85 @@ export const MainContentSections: React.FC<MainContentProps> = ({
   ];
 
   const renderSectionButton = (section: Section, icon: React.ElementType) => (
-    <button
+    <motion.button
       key={section.id}
       onClick={() => onSectionSelect(section.id)}
       className={cn(
-        "flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors",
-        "hover:bg-primary/5",
-        activeSection === section.id && "bg-primary/10 text-primary font-medium"
+        "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-all",
+        "hover:bg-primary/5 hover:shadow-sm",
+        activeSection === section.id && "bg-primary/10 text-primary font-medium shadow-sm"
       )}
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
     >
       {React.createElement(icon, { className: "h-4 w-4 opacity-70" })}
       <span className="truncate">{section.title}</span>
-    </button>
+    </motion.button>
   );
 
   const renderAddButton = (type: ThesisSectionType, label: string, Icon: React.ElementType) => {
     if (sections.some(s => s.type === type)) return null;
     
     return (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-primary/5 gap-2"
-        onClick={() => onAddSection?.(type)}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
       >
-        <Plus className="h-4 w-4" />
-        <Icon className="h-4 w-4" />
-        <span>Add {label}</span>
-      </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-primary/5 gap-2"
+          onClick={() => onAddSection?.(type)}
+        >
+          <Plus className="h-4 w-4" />
+          <Icon className="h-4 w-4" />
+          <span>Add {label}</span>
+        </Button>
+      </motion.div>
     );
   };
 
   return (
     <div className="space-y-6">
-      {mainContentGroups.map((group) => (
-        <div key={group.title} className="px-3">
-          <div className="flex items-center gap-2 mb-4">
-            {React.createElement(group.icon, { className: "h-5 w-5 text-primary/70" })}
-            <h3 className="text-sm font-semibold text-primary">{group.title}</h3>
-          </div>
-          
-          <div className="space-y-2">
-            {sections
-              .filter(section => 
-                group.types.some(type => type.type === section.type)
-              )
-              .map(section => {
-                const typeInfo = group.types.find(t => t.type === section.type);
-                return renderSectionButton(section, typeInfo?.icon || FileText);
+      <AnimatePresence mode="wait">
+        {mainContentGroups.map((group) => (
+          <motion.div
+            key={group.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="px-3"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              {React.createElement(group.icon, { 
+                className: "h-5 w-5 text-primary/70" 
               })}
+              <h3 className="text-sm font-semibold text-primary">{group.title}</h3>
+            </div>
             
-            {group.types.map(({ type, label, icon }) => 
-              renderAddButton(type as ThesisSectionType, label, icon)
-            )}
-          </div>
-        </div>
-      ))}
+            <div className="space-y-1">
+              <AnimatePresence mode="wait">
+                {sections
+                  .filter(section => 
+                    group.types.some(type => type.type === section.type)
+                  )
+                  .map(section => {
+                    const typeInfo = group.types.find(t => t.type === section.type);
+                    return renderSectionButton(section, typeInfo?.icon || FileText);
+                  })}
+                
+                {group.types.map(({ type, label, icon }) => 
+                  renderAddButton(type as ThesisSectionType, label, icon)
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 };
