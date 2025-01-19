@@ -6,7 +6,6 @@ import { ChapterItem } from './editor/chapters/ChapterItem';
 import { useToast } from '@/hooks/use-toast';
 import { ChapterCreationDialog } from './editor/chapters/ChapterCreationDialog';
 import { supabase } from '@/integrations/supabase/client';
-import { Json } from '@/integrations/supabase/types';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,9 +73,9 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
       const { error } = await supabase
         .from('theses')
         .update({
-          content: { chapters: chaptersJson } as Json
+          content: JSON.parse(JSON.stringify({ chapters: chaptersJson }))
         })
-        .eq('id', chapter.id);
+        .eq('id', chapters[0]?.id); // Use the thesis ID from the first chapter
 
       if (error) throw error;
 
@@ -121,7 +120,7 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
         const { error } = await supabase
           .from('theses')
           .update({
-            content: { chapters: updatedChapters } as Json
+            content: JSON.parse(JSON.stringify({ chapters: updatedChapters }))
           })
           .eq('id', chapters[0]?.id);
 
