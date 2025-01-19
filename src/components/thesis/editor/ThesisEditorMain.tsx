@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
 
-const MIN_CHARS_FOR_CHAPTERS = 500; // Minimum characters required to enable chapter creation
+const MIN_CHARS_FOR_CHAPTERS = 500;
 
 interface ThesisEditorMainProps {
   thesis: Thesis | null;
@@ -17,8 +17,8 @@ interface ThesisEditorMainProps {
   previewRef: React.RefObject<HTMLDivElement>;
   onContentChange: (id: string, content: string) => void;
   onTitleChange: (id: string, title: string) => void;
-  onUpdateChapter: (chapter: Chapter) => void;
-  onAddChapter: (chapter: Chapter) => void;
+  onUpdateChapter: (chapter: Chapter) => Promise<void>;
+  onAddChapter: (chapter: Chapter) => Promise<void>;
 }
 
 export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
@@ -48,9 +48,10 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
     references: []
   };
 
-  const handleIntroContentChange = (content: string) => {
+  const handleIntroContentChange = (content: string | undefined) => {
     if (!thesis) return;
-    onContentChange(introSection.id, content);
+    console.log('Handling intro content change:', content);
+    onContentChange(introSection.id, content || '');
   };
 
   // Check if introduction content is long enough to enable chapter creation
@@ -85,7 +86,7 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
               <div className="space-y-4">
                 <MarkdownEditor
                   value={introSection.content}
-                  onChange={(value) => handleIntroContentChange(value || '')}
+                  onChange={handleIntroContentChange}
                   placeholder="Start writing your general introduction..."
                 />
                 
@@ -106,9 +107,15 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
               activeSection={activeSection}
               onContentChange={onContentChange}
               onTitleChange={onTitleChange}
-              onUpdateChapter={onUpdateChapter}
-              onAddChapter={onAddChapter}
+              onUpdateChapter={async (chapter) => {
+                await onUpdateChapter(chapter);
+              }}
+              onAddChapter={async (chapter) => {
+                await onAddChapter(chapter);
+              }}
               hasGeneralIntroduction={hasEnoughContent}
+              onAddGeneralIntroduction={async () => {}}
+              onRemoveChapter={async () => {}}
             />
           )}
         </div>
