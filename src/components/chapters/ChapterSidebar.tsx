@@ -2,6 +2,7 @@ import React from 'react';
 import { Chapter } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Image, 
@@ -29,6 +30,7 @@ export const ChapterSidebar: React.FC<ChapterSidebarProps> = ({
 }) => {
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleCreateChapter = async (chapter: Chapter) => {
     try {
@@ -59,9 +61,12 @@ export const ChapterSidebar: React.FC<ChapterSidebarProps> = ({
 
       setShowCreateDialog(false);
       toast({
-        title: "Chapter Added",
-        description: "New chapter has been created successfully",
+        title: "Chapter Created",
+        description: "Redirecting to chapter editor...",
       });
+
+      // Navigate to the new chapter's editor page
+      navigate(`/chapter/${chapter.id}`);
 
     } catch (error) {
       console.error('Error creating chapter:', error);
@@ -96,6 +101,7 @@ export const ChapterSidebar: React.FC<ChapterSidebarProps> = ({
                 key={chapter.id}
                 variant="ghost"
                 className="w-full justify-start gap-2"
+                onClick={() => navigate(`/chapter/${chapter.id}`)}
               >
                 <BookOpen className="h-5 w-5" />
                 Chapter {index + 1}: {chapter.title}
