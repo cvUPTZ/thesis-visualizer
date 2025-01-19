@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
-import { Chapter, Thesis } from '@/types/thesis';
+import { Chapter, Section, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useParams } from 'react-router-dom';
 import { useThesisData } from '@/hooks/useThesisData';
@@ -32,7 +32,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   const previewRef = useRef<HTMLDivElement>(null);
 
   useThesisAutosave(currentThesisId, thesis);
-  useThesisRealtime(currentThesisId, thesis, setThesis);
+  useThesisRealtime(currentThesisId);
 
   const handleUpdateChapter = async (chapter: Chapter): Promise<void> => {
     if (!thesis) return;
@@ -58,6 +58,84 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     });
   };
 
+  const handleContentChange = (id: string, content: string) => {
+    if (!thesis) return;
+    
+    // Update frontMatter
+    const frontMatterIndex = thesis.frontMatter.findIndex(section => section.id === id);
+    if (frontMatterIndex !== -1) {
+      const updatedFrontMatter = [...thesis.frontMatter];
+      updatedFrontMatter[frontMatterIndex] = {
+        ...updatedFrontMatter[frontMatterIndex],
+        content
+      };
+      setThesis({ ...thesis, frontMatter: updatedFrontMatter });
+      return;
+    }
+
+    // Update chapters
+    const chapterIndex = thesis.chapters.findIndex(chapter => chapter.id === id);
+    if (chapterIndex !== -1) {
+      const updatedChapters = [...thesis.chapters];
+      updatedChapters[chapterIndex] = {
+        ...updatedChapters[chapterIndex],
+        content
+      };
+      setThesis({ ...thesis, chapters: updatedChapters });
+      return;
+    }
+
+    // Update backMatter
+    const backMatterIndex = thesis.backMatter.findIndex(section => section.id === id);
+    if (backMatterIndex !== -1) {
+      const updatedBackMatter = [...thesis.backMatter];
+      updatedBackMatter[backMatterIndex] = {
+        ...updatedBackMatter[backMatterIndex],
+        content
+      };
+      setThesis({ ...thesis, backMatter: updatedBackMatter });
+    }
+  };
+
+  const handleTitleChange = (id: string, title: string) => {
+    if (!thesis) return;
+    
+    // Update frontMatter
+    const frontMatterIndex = thesis.frontMatter.findIndex(section => section.id === id);
+    if (frontMatterIndex !== -1) {
+      const updatedFrontMatter = [...thesis.frontMatter];
+      updatedFrontMatter[frontMatterIndex] = {
+        ...updatedFrontMatter[frontMatterIndex],
+        title
+      };
+      setThesis({ ...thesis, frontMatter: updatedFrontMatter });
+      return;
+    }
+
+    // Update chapters
+    const chapterIndex = thesis.chapters.findIndex(chapter => chapter.id === id);
+    if (chapterIndex !== -1) {
+      const updatedChapters = [...thesis.chapters];
+      updatedChapters[chapterIndex] = {
+        ...updatedChapters[chapterIndex],
+        title
+      };
+      setThesis({ ...thesis, chapters: updatedChapters });
+      return;
+    }
+
+    // Update backMatter
+    const backMatterIndex = thesis.backMatter.findIndex(section => section.id === id);
+    if (backMatterIndex !== -1) {
+      const updatedBackMatter = [...thesis.backMatter];
+      updatedBackMatter[backMatterIndex] = {
+        ...updatedBackMatter[backMatterIndex],
+        title
+      };
+      setThesis({ ...thesis, backMatter: updatedBackMatter });
+    }
+  };
+
   if (isLoading) {
     return <Skeleton className="w-full h-screen" />;
   }
@@ -78,10 +156,26 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     );
   }
 
+  const sections: Section[] = [
+    ...thesis.frontMatter,
+    ...thesis.chapters.map(chapter => ({
+      id: chapter.id,
+      title: chapter.title,
+      content: chapter.content || '',
+      type: 'chapter',
+      order: chapter.order,
+      figures: chapter.figures || [],
+      tables: chapter.tables || [],
+      citations: [],
+      references: []
+    })),
+    ...thesis.backMatter
+  ];
+
   return (
     <div className="flex h-screen overflow-hidden">
       <ThesisSidebar 
-        sections={[...thesis.frontMatter, ...thesis.chapters, ...thesis.backMatter]}
+        sections={sections}
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
       />
@@ -101,6 +195,8 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
             onAddChapter={handleAddChapter}
             showPreview={showPreview}
             previewRef={previewRef}
+            onContentChange={handleContentChange}
+            onTitleChange={handleTitleChange}
           />
           
           <div className="w-80 border-l flex flex-col">
