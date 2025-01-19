@@ -11,7 +11,7 @@ interface CollaboratorPresenceProps {
   }>;
 }
 
-export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ collaborators }) => {
+export const CollaboratorPresence = ({ collaborators }: CollaboratorPresenceProps) => {
   return (
     <div className="flex -space-x-2">
       <AnimatePresence>
