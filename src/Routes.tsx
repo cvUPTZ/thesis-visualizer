@@ -13,6 +13,7 @@ import AbstractPage from '@/pages/AbstractPage';
 import StatementPage from '@/pages/StatementPage';
 import PrefacePage from '@/pages/PrefacePage';
 import AcknowledgmentsPage from '@/pages/AcknowledgmentsPage';
+import { ThesisSidebar } from '@/components/thesis/ThesisSidebar';
 
 const Routes = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -27,22 +28,31 @@ const Routes = () => {
     );
   }
 
+  const AuthenticatedLayout = ({ children }: { children: React.ReactNode }) => (
+    <div className="flex min-h-screen bg-background">
+      <ThesisSidebar />
+      <div className="flex-1">
+        {children}
+      </div>
+    </div>
+  );
+
   return (
     <RouterRoutes>
       {isAuthenticated ? (
         <>
-          <Route path="/" element={<Index />} />
-          <Route path="/create-thesis" element={<CreateThesis />} />
-          <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/thesis/:thesisId" element={<ThesisEditor />} />
-          <Route path="/student-info" element={<StudentInfo />} />
-          <Route path="/supervisor-info" element={<SupervisorInfo />} />
-          <Route path="/thesis-info" element={<ThesisInfo />} />
-          <Route path="/abstract" element={<AbstractPage />} />
-          <Route path="/statement" element={<StatementPage />} />
-          <Route path="/preface" element={<PrefacePage />} />
-          <Route path="/acknowledgments" element={<AcknowledgmentsPage />} />
-          <Route path="*" element={<Index />} />
+          <Route path="/" element={<AuthenticatedLayout><Index /></AuthenticatedLayout>} />
+          <Route path="/create-thesis" element={<AuthenticatedLayout><CreateThesis /></AuthenticatedLayout>} />
+          <Route path="/admin" element={<AuthenticatedLayout><AdminPanel /></AuthenticatedLayout>} />
+          <Route path="/thesis/:thesisId" element={<AuthenticatedLayout><ThesisEditor /></AuthenticatedLayout>} />
+          <Route path="/student-info" element={<AuthenticatedLayout><StudentInfo /></AuthenticatedLayout>} />
+          <Route path="/supervisor-info" element={<AuthenticatedLayout><SupervisorInfo /></AuthenticatedLayout>} />
+          <Route path="/thesis-info" element={<AuthenticatedLayout><ThesisInfo /></AuthenticatedLayout>} />
+          <Route path="/abstract" element={<AuthenticatedLayout><AbstractPage /></AuthenticatedLayout>} />
+          <Route path="/statement" element={<AuthenticatedLayout><StatementPage /></AuthenticatedLayout>} />
+          <Route path="/preface" element={<AuthenticatedLayout><PrefacePage /></AuthenticatedLayout>} />
+          <Route path="/acknowledgments" element={<AuthenticatedLayout><AcknowledgmentsPage /></AuthenticatedLayout>} />
+          <Route path="*" element={<AuthenticatedLayout><Index /></AuthenticatedLayout>} />
         </>
       ) : (
         <>
