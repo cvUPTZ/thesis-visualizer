@@ -10,8 +10,9 @@ interface TableOfContentsProps {
   onSectionSelect: (id: string) => void;
   onAddSection?: (type: ThesisSectionType) => void;
   onAddChapter?: (chapter: Chapter) => void;
-  completedSections: string[];
-  onSectionComplete: (id: string, completed: boolean) => void;
+  completedSections?: string[];
+  onSectionComplete?: (id: string, completed: boolean) => void;
+  isReadOnly?: boolean;
 }
 
 export const TableOfContents: React.FC<TableOfContentsProps> = ({
@@ -20,13 +21,14 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
   onSectionSelect,
   onAddSection,
   onAddChapter,
-  completedSections,
-  onSectionComplete
+  completedSections = [],
+  onSectionComplete,
+  isReadOnly = false
 }) => {
   console.log('TableOfContents rendering with:', { 
     sectionsCount: sections?.length,
     activeSection,
-    sections: sections?.map(s => ({ id: s.id, title: s.title, type: s.type }))
+    isReadOnly
   });
 
   const frontMatterSections = sections?.filter(s => 
@@ -47,9 +49,10 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
         sections={frontMatterSections}
         activeSection={activeSection}
         onSectionSelect={onSectionSelect}
-        onAddSection={onAddSection}
+        onAddSection={!isReadOnly ? onAddSection : undefined}
         completedSections={completedSections}
         onSectionComplete={onSectionComplete}
+        isReadOnly={isReadOnly}
       />
       
       <MainContentSections
@@ -57,19 +60,21 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
         chapters={[]}
         activeSection={activeSection}
         onSectionSelect={onSectionSelect}
-        onAddSection={onAddSection}
-        onAddChapter={onAddChapter}
+        onAddSection={!isReadOnly ? onAddSection : undefined}
+        onAddChapter={!isReadOnly ? onAddChapter : undefined}
         completedSections={completedSections}
         onSectionComplete={onSectionComplete}
+        isReadOnly={isReadOnly}
       />
       
       <BackMatterSections
         sections={backMatterSections}
         activeSection={activeSection}
         onSectionSelect={onSectionSelect}
-        onAddSection={onAddSection}
+        onAddSection={!isReadOnly ? onAddSection : undefined}
         completedSections={completedSections}
         onSectionComplete={onSectionComplete}
+        isReadOnly={isReadOnly}
       />
     </div>
   );

@@ -12,6 +12,7 @@ interface FrontMatterSectionsProps {
   onAddSection?: (type: ThesisSectionType) => void;
   completedSections: string[];
   onSectionComplete: (id: string, completed: boolean) => void;
+  isReadOnly?: boolean;
 }
 
 export const FrontMatterSections: React.FC<FrontMatterSectionsProps> = ({
@@ -20,13 +21,14 @@ export const FrontMatterSections: React.FC<FrontMatterSectionsProps> = ({
   onSectionSelect,
   onAddSection,
   completedSections,
-  onSectionComplete
+  onSectionComplete,
+  isReadOnly = false
 }) => {
   return (
     <div className="px-3">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-lg font-semibold">Front Matter</h2>
-        {onAddSection && (
+        {!isReadOnly && onAddSection && (
           <Button
             variant="ghost"
             size="sm"
@@ -52,11 +54,13 @@ export const FrontMatterSections: React.FC<FrontMatterSectionsProps> = ({
                 "hover:bg-accent/50 transition-colors"
               )}
             >
-              <Checkbox
-                checked={isCompleted}
-                onCheckedChange={(checked) => onSectionComplete(section.id, checked as boolean)}
-                className="h-4 w-4"
-              />
+              {!isReadOnly && (
+                <Checkbox
+                  checked={isCompleted}
+                  onCheckedChange={(checked) => onSectionComplete(section.id, checked as boolean)}
+                  className="h-4 w-4"
+                />
+              )}
               <button
                 onClick={() => onSectionSelect(section.id)}
                 className={cn(

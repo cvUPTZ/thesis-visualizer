@@ -12,6 +12,7 @@ interface BackMatterSectionsProps {
   onAddSection?: (type: ThesisSectionType) => void;
   completedSections: string[];
   onSectionComplete: (id: string, completed: boolean) => void;
+  isReadOnly?: boolean;
 }
 
 export const BackMatterSections: React.FC<BackMatterSectionsProps> = ({
@@ -20,13 +21,14 @@ export const BackMatterSections: React.FC<BackMatterSectionsProps> = ({
   onSectionSelect,
   onAddSection,
   completedSections,
-  onSectionComplete
+  onSectionComplete,
+  isReadOnly = false
 }) => {
   return (
     <div className="px-3">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-lg font-semibold">Back Matter</h2>
-        {onAddSection && (
+        {!isReadOnly && onAddSection && (
           <Button
             variant="ghost"
             size="sm"
@@ -52,11 +54,13 @@ export const BackMatterSections: React.FC<BackMatterSectionsProps> = ({
                 "hover:bg-accent/50 transition-colors"
               )}
             >
-              <Checkbox
-                checked={isCompleted}
-                onCheckedChange={(checked) => onSectionComplete(section.id, checked as boolean)}
-                className="h-4 w-4"
-              />
+              {!isReadOnly && (
+                <Checkbox
+                  checked={isCompleted}
+                  onCheckedChange={(checked) => onSectionComplete(section.id, checked as boolean)}
+                  className="h-4 w-4"
+                />
+              )}
               <button
                 onClick={() => onSectionSelect(section.id)}
                 className={cn(
