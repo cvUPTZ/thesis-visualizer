@@ -63,11 +63,19 @@ export interface Footnote {
   updated_at: string;
 }
 
+export interface Comment {
+  id: string;
+  reviewer_id: string;
+  content: string;
+  created_at: string;
+}
+
 export interface CommentThread {
   id: string;
   content: string;
   author: string;
   created_at: string;
+  comment: Comment;
   replies: Comment[];
 }
 
@@ -87,12 +95,16 @@ export interface ThesisComment {
 
 // Section types as const enum
 export const SectionTypes = {
+  Title: 'title',
+  Abstract: 'abstract',
+  TableOfContents: 'table-of-contents',
   Introduction: 'introduction',
   LiteratureReview: 'literature-review',
   Methodology: 'methodology',
   Results: 'results',
   Discussion: 'discussion',
   Conclusion: 'conclusion',
+  References: 'references',
   Custom: 'custom'
 } as const;
 
@@ -132,6 +144,7 @@ export interface ThesisMetadata {
   committeeMembers: string[];
   description?: string;
   keywords?: string[];
+  createdAt: string;
 }
 
 export interface Thesis {
