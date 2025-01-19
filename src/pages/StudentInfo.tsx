@@ -1,137 +1,71 @@
 import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useForm } from '@/hooks/useForm';
 import { supabase } from '@/integrations/supabase/client';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { useUser } from '@/hooks/useUser';
 
 const StudentInfo = () => {
   const { toast } = useToast();
-  const { user } = useUser();
-  const { data: profile, refetch } = useUserProfile(user?.id ?? null);
+  const { userEmail, userId } = useAuth();
 
-  const { values, handleChange, handleSubmit, isSubmitting } = useForm({
-    initialValues: {
-      fullName: profile?.full_name ?? '',
-      studentId: profile?.student_id ?? '',
-      email: profile?.email ?? '',
-      department: profile?.department ?? '',
-      program: profile?.program ?? '',
-      yearOfStudy: profile?.year_of_study ?? ''
-    },
-    onSubmit: async (values) => {
-      console.log('📝 Submitting student info:', values);
-      
-      if (!user?.id) {
-        console.error('❌ No user ID available');
-        toast({
-          title: "Error",
-          description: "You must be logged in to update your information",
-          variant: "destructive"
-        });
-        return;
-      }
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const studentData = {
+      full_name: formData.get('full_name'),
+      student_id: formData.get('student_id'),
+      department: formData.get('department'),
+      program: formData.get('program'),
+      year_of_study: formData.get('year_of_study'),
+    };
 
+    try {
       const { error } = await supabase
         .from('profiles')
-        .update({
-          full_name: values.fullName,
-          student_id: values.studentId,
-          department: values.department,
-          program: values.program,
-          year_of_study: values.yearOfStudy
-        })
-        .eq('id', user.id);
+        .update(studentData)
+        .eq('id', userId);
 
-      if (error) {
-        console.error('❌ Error updating profile:', error);
-        toast({
-          title: "Error",
-          description: "Failed to save your information. Please try again.",
-          variant: "destructive"
-        });
-        return;
-      }
+      if (error) throw error;
 
-      console.log('✅ Profile updated successfully');
       toast({
         title: "Success",
-        description: "Your information has been saved",
+        description: "Student information updated successfully.",
       });
-      
-      refetch();
+    } catch (error) {
+      console.error('Error updating student information:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update student information. Please try again.",
+        variant: "destructive",
+      });
     }
-  });
+  };
 
   return (
-    <div className="container max-w-2xl py-10">
-      <Card className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Student Information</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Full Name</label>
-            <Input
-              name="fullName"
-              value={values.fullName}
-              onChange={handleChange}
-              placeholder="Enter your full name"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Student ID</label>
-            <Input
-              name="studentId"
-              value={values.studentId}
-              onChange={handleChange}
-              placeholder="Enter your student ID"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <Input
-              name="email"
-              type="email"
-              value={values.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              disabled
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Department</label>
-            <Input
-              name="department"
-              value={values.department}
-              onChange={handleChange}
-              placeholder="Enter your department"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Program</label>
-            <Input
-              name="program"
-              value={values.program}
-              onChange={handleChange}
-              placeholder="Enter your program"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Year of Study</label>
-            <Input
-              name="yearOfStudy"
-              value={values.yearOfStudy}
-              onChange={handleChange}
-              placeholder="Enter your year of study"
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : 'Save Information'}
-          </Button>
-        </form>
-      </Card>
+    <div className="p-8">
+      <h1 className="text-2xl font-bold mb-6">Student Information</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="full_name" className="block text-sm font-medium">Full Name</label>
+          <input type="text" name="full_name" id="full_name" required className="mt-1 block w-full border border-gray-300 rounded-md p-2" />
+        </div>
+        <div>
+          <label htmlFor="student_id" className="block text-sm font-medium">Student ID</label>
+          <input type="text" name="student_id" id="student_id" required className="mt-1 block w-full border border-gray-300 rounded-md p-2" />
+        </div>
+        <div>
+          <label htmlFor="department" className="block text-sm font-medium">Department</label>
+          <input type="text" name="department" id="department" required className="mt-1 block w-full border border-gray-300 rounded-md p-2" />
+        </div>
+        <div>
+          <label htmlFor="program" className="block text-sm font-medium">Program</label>
+          <input type="text" name="program" id="program" required className="mt-1 block w-full border border-gray-300 rounded-md p-2" />
+        </div>
+        <div>
+          <label htmlFor="year_of_study" className="block text-sm font-medium">Year of Study</label>
+          <input type="text" name="year_of_study" id="year_of_study" required className="mt-1 block w-full border border-gray-300 rounded-md p-2" />
+        </div>
+        <button type="submit" className="mt-4 bg-blue-500 text-white py-2 px-4 rounded">Update Information</button>
+      </form>
     </div>
   );
 };

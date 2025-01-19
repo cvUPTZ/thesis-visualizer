@@ -8,4 +8,7 @@ export interface Profile {
   year_of_study?: string;
   role_id?: string;
   created_at?: string;
+  roles?: {
+    name: string;
+  };
 }
