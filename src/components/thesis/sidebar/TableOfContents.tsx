@@ -38,12 +38,23 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     ['bibliography', 'appendix'].includes(s.type)
   ) || [];
 
+  const handleSectionSelect = (sectionId: string) => {
+    console.log('TableOfContents - Section selected:', sectionId);
+    const section = sections.find(s => s.id === sectionId);
+    if (section) {
+      console.log('TableOfContents - Found section:', { id: section.id, title: section.title, type: section.type });
+      onSectionSelect(sectionId);
+    } else {
+      console.warn('TableOfContents - Section not found:', sectionId);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <FrontMatterSections
         sections={frontMatterSections}
         activeSection={activeSection}
-        onSectionSelect={onSectionSelect}
+        onSectionSelect={handleSectionSelect}
         onAddSection={onAddSection}
       />
       
@@ -51,7 +62,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
         sections={mainContentSections}
         chapters={[]}
         activeSection={activeSection}
-        onSectionSelect={onSectionSelect}
+        onSectionSelect={handleSectionSelect}
         onAddSection={onAddSection}
         onAddChapter={onAddChapter}
       />
@@ -59,7 +70,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
       <BackMatterSections
         sections={backMatterSections}
         activeSection={activeSection}
-        onSectionSelect={onSectionSelect}
+        onSectionSelect={handleSectionSelect}
         onAddSection={onAddSection}
       />
     </div>

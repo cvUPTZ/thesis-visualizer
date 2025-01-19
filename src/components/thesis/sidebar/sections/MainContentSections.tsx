@@ -31,8 +31,20 @@ export const MainContentSections: React.FC<MainContentProps> = ({
   console.log('MainContentSections rendering with:', {
     sectionsCount: sections?.length,
     chaptersCount: chapters?.length,
-    activeSection
+    activeSection,
+    sections: sections?.map(s => ({ id: s.id, title: s.title, type: s.type }))
   });
+
+  const handleSectionSelect = (sectionId: string) => {
+    console.log('MainContentSections - Section selected:', sectionId);
+    const section = sections.find(s => s.id === sectionId);
+    if (section) {
+      console.log('MainContentSections - Found section:', { id: section.id, title: section.title, type: section.type });
+      onSectionSelect(sectionId);
+    } else {
+      console.warn('MainContentSections - Section not found:', sectionId);
+    }
+  };
 
   const mainContentGroups = [
     {
@@ -104,7 +116,7 @@ export const MainContentSections: React.FC<MainContentProps> = ({
   const renderSectionButton = (section: Section, icon: React.ElementType) => (
     <motion.button
       key={section.id}
-      onClick={() => onSectionSelect(section.id)}
+      onClick={() => handleSectionSelect(section.id)}
       className={cn(
         "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-all",
         "hover:bg-primary/5 hover:shadow-sm",
