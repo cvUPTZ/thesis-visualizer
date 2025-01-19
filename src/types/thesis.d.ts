@@ -24,7 +24,9 @@ export type ThesisSectionType =
   | 'thesis-structure'
   | 'statistical-tests'
   | 'general-context'
-  | 'general-conclusion';
+  | 'general-conclusion'
+  | 'statement'
+  | 'preface';
 
 export interface Comment {
   id: string;
