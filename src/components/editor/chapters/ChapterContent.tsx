@@ -30,27 +30,63 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
       references: []
     };
 
-    await onUpdateChapter({
-      ...chapter,
-      sections: [...chapter.sections, newSection]
-    });
+    try {
+      await onUpdateChapter({
+        ...chapter,
+        sections: [...chapter.sections, newSection]
+      });
 
-    toast({
-      title: "Section Added",
-      description: "New section has been added to the chapter",
-    });
+      toast({
+        title: "Section Added",
+        description: "New section has been added to the chapter",
+      });
+    } catch (error) {
+      console.error('Error adding section:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add new section. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleRemoveSection = async (sectionId: string) => {
-    await onUpdateChapter({
-      ...chapter,
-      sections: chapter.sections.filter(s => s.id !== sectionId)
-    });
+    try {
+      await onUpdateChapter({
+        ...chapter,
+        sections: chapter.sections.filter(s => s.id !== sectionId)
+      });
 
-    toast({
-      title: "Section Removed",
-      description: "Section has been removed from the chapter",
-    });
+      toast({
+        title: "Section Removed",
+        description: "Section has been removed from the chapter",
+      });
+    } catch (error) {
+      console.error('Error removing section:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove section. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleUpdateSection = async (updatedSection: Section) => {
+    try {
+      await onUpdateChapter({
+        ...chapter,
+        sections: chapter.sections.map((s) =>
+          s.id === updatedSection.id ? updatedSection : s
+        ),
+      });
+    } catch (error) {
+      console.error('Error updating section:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update section. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -97,14 +133,7 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
               <SectionItem
                 section={section}
                 sectionNumber={index + 1}
-                onUpdateSection={async (updatedSection) => {
-                  await onUpdateChapter({
-                    ...chapter,
-                    sections: chapter.sections.map((s) =>
-                      s.id === updatedSection.id ? updatedSection : s
-                    ),
-                  });
-                }}
+                onUpdateSection={handleUpdateSection}
               />
             </div>
           ))}
