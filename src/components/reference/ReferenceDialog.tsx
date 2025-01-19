@@ -1,7 +1,7 @@
 import React from 'react';
 import { Reference } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -10,112 +10,45 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { PlusCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { TagInput } from '@/components/ui/tag-input';
 
 interface ReferenceDialogProps {
   onAddReference: (reference: Reference) => void;
-  defaultStyle?: 'APA' | 'MLA' | 'Chicago' | 'Vancouver' | 'Harvard';
 }
 
-export const ReferenceDialog = ({ onAddReference, defaultStyle = 'APA' }: ReferenceDialogProps) => {
+export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
+  const [title, setTitle] = React.useState('');
+  const [authors, setAuthors] = React.useState<string[]>(['']);
+  const [year, setYear] = React.useState('');
+  const [type, setType] = React.useState<'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other'>('article');
   const [text, setText] = React.useState('');
-  const { toast } = useToast();
-
-  const parseReference = (text: string, style: string) => {
-    const reference: Partial<Reference> = {
-      id: Date.now().toString(),
-      text,
-      style: style as Reference['style'],
-      authors: [],
-      year: '',
-      title: '',
-      source: ''
-    };
-
-    try {
-      switch (style) {
-        case 'APA':
-          // Author, A. A., & Author, B. B. (Year). Title of article. Title of Journal, volume(issue), pages.
-          const apaMatch = text.match(/^(.*?)\((.*?)\)\.(.*?)\.(.*)$/);
-          if (apaMatch) {
-            reference.authors = apaMatch[1].split(',').map(a => a.trim());
-            reference.year = apaMatch[2].trim();
-            reference.title = apaMatch[3].trim();
-            reference.source = apaMatch[4].trim();
-          }
-          break;
-
-        case 'MLA':
-          // Author. "Title." Journal Name, Volume, Issue, Year, Pages.
-          const mlaMatch = text.match(/^(.*?)\."(.*?)".(.*?),(.*)$/);
-          if (mlaMatch) {
-            reference.authors = [mlaMatch[1].trim()];
-            reference.title = mlaMatch[2].trim();
-            reference.source = mlaMatch[3].trim();
-            const details = mlaMatch[4].split(',').map(s => s.trim());
-            reference.year = details.find(d => /^\d{4}$/.test(d)) || '';
-          }
-          break;
-
-        case 'Chicago':
-          // Author. Title. Place of Publication: Publisher, Year.
-          const chicagoMatch = text.match(/^(.*?)\.(.*?)\.(.*?):\s*(.*?),\s*(.*)$/);
-          if (chicagoMatch) {
-            reference.authors = [chicagoMatch[1].trim()];
-            reference.title = chicagoMatch[2].trim();
-            reference.publisher = chicagoMatch[4].trim();
-            reference.year = chicagoMatch[5].trim();
-          }
-          break;
-
-        case 'Vancouver':
-          // Author AA, Author BB. Title. Journal. Year;Volume(Issue):Pages.
-          const vancouverMatch = text.match(/^(.*?)\.(.*?)\.(.*?)\.(.*?);(.*)$/);
-          if (vancouverMatch) {
-            reference.authors = vancouverMatch[1].split(',').map(a => a.trim());
-            reference.title = vancouverMatch[2].trim();
-            reference.source = vancouverMatch[3].trim();
-            reference.year = vancouverMatch[4].trim();
-          }
-          break;
-
-        case 'Harvard':
-          // Author, A.A. and Author, B.B. (Year) Title. Journal, Volume(Issue), pages.
-          const harvardMatch = text.match(/^(.*?)\((.*?)\)(.*?)\.(.*?)$/);
-          if (harvardMatch) {
-            reference.authors = harvardMatch[1].split('and').map(a => a.trim());
-            reference.year = harvardMatch[2].trim();
-            reference.title = harvardMatch[3].trim();
-            reference.source = harvardMatch[4].trim();
-          }
-          break;
-      }
-    } catch (error) {
-      console.error('Error parsing reference:', error);
-      toast({
-        title: "Parsing Error",
-        description: "Could not parse the reference text. Please check the format.",
-        variant: "destructive"
-      });
-    }
-
-    return reference as Reference;
-  };
+  const [source, setSource] = React.useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!text.trim()) {
-      toast({
-        title: "Error",
-        description: "Reference text is required",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const reference = parseReference(text, defaultStyle);
-    onAddReference(reference);
+    const newReference: Reference = {
+      id: Date.now().toString(),
+      title,
+      authors,
+      year,
+      type,
+      text,
+      source
+    };
+    onAddReference(newReference);
+    setTitle('');
+    setAuthors(['']);
+    setYear('');
+    setType('article');
     setText('');
+    setSource('');
   };
 
   return (
@@ -128,20 +61,64 @@ export const ReferenceDialog = ({ onAddReference, defaultStyle = 'APA' }: Refere
       </DialogTrigger>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
-          <DialogTitle>Add New Reference ({defaultStyle} Style)</DialogTitle>
+          <DialogTitle>Add New Reference</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Reference Text</label>
-            <Textarea
+            <label className="text-sm font-medium">Type</label>
+            <Select value={type} onValueChange={(value: any) => setType(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="article">Article</SelectItem>
+                <SelectItem value="book">Book</SelectItem>
+                <SelectItem value="conference">Conference</SelectItem>
+                <SelectItem value="thesis">Thesis</SelectItem>
+                <SelectItem value="website">Website</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Title</label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter reference title..."
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Text</label>
+            <Input
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder={`Enter the complete reference text in ${defaultStyle} format...`}
-              className="min-h-[100px]"
+              placeholder="Enter reference text..."
             />
-            <p className="text-sm text-muted-foreground">
-              Format will be parsed according to {defaultStyle} style guidelines
-            </p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Source</label>
+            <Input
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+              placeholder="Enter reference source..."
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Authors</label>
+            <TagInput
+              placeholder="Add authors (press Enter or comma to add)"
+              tags={authors}
+              onChange={setAuthors}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Year</label>
+            <Input
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              placeholder="Publication year..."
+            />
           </div>
           <div className="flex justify-end">
             <Button type="submit">Add Reference</Button>

@@ -1,8 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
-import { Chapter, Section, Thesis } from '@/types/thesis';
+import { Chapter, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
+import { useThesisInitialization } from '@/hooks/useThesisInitialization';
 import { useParams } from 'react-router-dom';
+import { ThesisCreationModal } from './thesis/ThesisCreationModal';
+import { ThesisList } from './thesis/ThesisList';
 import { useThesisData } from '@/hooks/useThesisData';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -31,207 +34,185 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   const [showTracker, setShowTracker] = useState(true);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  useThesisAutosave(currentThesisId, thesis);
-  useThesisRealtime(currentThesisId);
+  useThesisAutosave(thesis);
+  useThesisInitialization(thesis);
+  useThesisRealtime(currentThesisId, thesis, setThesis);
 
-  const handleUpdateChapter = async (chapter: Chapter): Promise<void> => {
-    if (!thesis) return;
-    console.log('Updating chapter:', chapter);
+  const calculateProgress = () => {
+    if (!thesis) return 0;
+    const allSections = [
+      ...thesis.frontMatter,
+      ...thesis.chapters.flatMap(chapter => chapter.sections),
+      ...thesis.backMatter
+    ];
     
-    const updatedChapters = thesis.chapters.map(ch => 
-      ch.id === chapter.id ? chapter : ch
-    );
+    const completedSections = allSections.filter(section => 
+      section.content && section.content.trim().length > 0
+    ).length;
     
-    setThesis({
-      ...thesis,
-      chapters: updatedChapters
-    });
+    return Math.round((completedSections / allSections.length) * 100);
   };
 
-  const handleAddChapter = async (chapter: Chapter): Promise<void> => {
-    if (!thesis) return;
-    console.log('Adding chapter:', chapter);
-    
-    setThesis({
-      ...thesis,
-      chapters: [...thesis.chapters, chapter]
-    });
-  };
+  const progress = calculateProgress();
 
   const handleContentChange = (id: string, content: string) => {
     if (!thesis) return;
     
-    // Update frontMatter
-    const frontMatterIndex = thesis.frontMatter.findIndex(section => section.id === id);
-    if (frontMatterIndex !== -1) {
-      const updatedFrontMatter = [...thesis.frontMatter];
-      updatedFrontMatter[frontMatterIndex] = {
-        ...updatedFrontMatter[frontMatterIndex],
-        content
-      };
-      setThesis({ ...thesis, frontMatter: updatedFrontMatter });
-      return;
-    }
-
-    // Update chapters
-    const chapterIndex = thesis.chapters.findIndex(chapter => chapter.id === id);
-    if (chapterIndex !== -1) {
-      const updatedChapters = [...thesis.chapters];
-      updatedChapters[chapterIndex] = {
-        ...updatedChapters[chapterIndex],
-        content
-      };
-      setThesis({ ...thesis, chapters: updatedChapters });
-      return;
-    }
-
-    // Update backMatter
-    const backMatterIndex = thesis.backMatter.findIndex(section => section.id === id);
-    if (backMatterIndex !== -1) {
-      const updatedBackMatter = [...thesis.backMatter];
-      updatedBackMatter[backMatterIndex] = {
-        ...updatedBackMatter[backMatterIndex],
-        content
-      };
-      setThesis({ ...thesis, backMatter: updatedBackMatter });
-    }
+    setThesis(prevThesis => ({
+      ...prevThesis!,
+      frontMatter: prevThesis!.frontMatter.map(section =>
+        section.id === id ? { ...section, content } : section
+      ),
+      chapters: prevThesis!.chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.map(section =>
+          section.id === id ? { ...section, content } : section
+        )
+      })),
+      backMatter: prevThesis!.backMatter.map(section =>
+        section.id === id ? { ...section, content } : section
+      )
+    }));
   };
 
   const handleTitleChange = (id: string, title: string) => {
     if (!thesis) return;
-    
-    // Update frontMatter
-    const frontMatterIndex = thesis.frontMatter.findIndex(section => section.id === id);
-    if (frontMatterIndex !== -1) {
-      const updatedFrontMatter = [...thesis.frontMatter];
-      updatedFrontMatter[frontMatterIndex] = {
-        ...updatedFrontMatter[frontMatterIndex],
-        title
-      };
-      setThesis({ ...thesis, frontMatter: updatedFrontMatter });
-      return;
-    }
 
-    // Update chapters
-    const chapterIndex = thesis.chapters.findIndex(chapter => chapter.id === id);
-    if (chapterIndex !== -1) {
-      const updatedChapters = [...thesis.chapters];
-      updatedChapters[chapterIndex] = {
-        ...updatedChapters[chapterIndex],
-        title
-      };
-      setThesis({ ...thesis, chapters: updatedChapters });
-      return;
-    }
-
-    // Update backMatter
-    const backMatterIndex = thesis.backMatter.findIndex(section => section.id === id);
-    if (backMatterIndex !== -1) {
-      const updatedBackMatter = [...thesis.backMatter];
-      updatedBackMatter[backMatterIndex] = {
-        ...updatedBackMatter[backMatterIndex],
-        title
-      };
-      setThesis({ ...thesis, backMatter: updatedBackMatter });
-    }
+    setThesis(prevThesis => ({
+      ...prevThesis!,
+      frontMatter: prevThesis!.frontMatter.map(section =>
+        section.id === id ? { ...section, title } : section
+      ),
+      chapters: prevThesis!.chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.map(section =>
+          section.id === id ? { ...section, title } : section
+        )
+      })),
+      backMatter: prevThesis!.backMatter.map(section =>
+        section.id === id ? { ...section, title } : section
+      )
+    }));
   };
 
   if (isLoading) {
-    return <Skeleton className="w-full h-screen" />;
-  }
-
-  if (error) {
     return (
-      <div className="p-4">
-        <p className="text-red-500">Error loading thesis: {error.message}</p>
+      <div className="min-h-screen bg-background p-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
       </div>
     );
   }
 
-  if (!thesis) {
+  if (error || (!thesis && currentThesisId)) {
+    console.error('Error loading thesis:', error);
+    toast({
+      title: "Error Loading Thesis",
+      description: error?.message || "Could not load thesis. Please try again.",
+      variant: "destructive",
+    });
     return (
-      <div className="p-4">
-        <p className="text-red-500">No thesis found</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-semibold text-destructive">Error Loading Thesis</h2>
+          <p className="text-muted-foreground">{error?.message || "Thesis not found"}</p>
+        </div>
       </div>
     );
   }
 
-  const sections: Section[] = [
-    ...thesis.frontMatter,
-    ...thesis.chapters.map(chapter => ({
-      id: chapter.id,
-      title: chapter.title,
-      content: chapter.content || '',
-      type: 'chapter',
-      order: chapter.order,
-      figures: chapter.figures || [],
-      tables: chapter.tables || [],
-      citations: [],
-      references: []
-    })),
-    ...thesis.backMatter
-  ];
+  if (!thesis && !currentThesisId) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex justify-between p-4 items-center">
+          <ThesisCreationModal onThesisCreated={() => {}} />
+          <ThesisList />
+        </div>
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-muted-foreground text-lg">No thesis loaded</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <ThesisSidebar 
-        sections={sections}
+    <div className="min-h-screen bg-background flex">
+      <ThesisSidebar
+        sections={[
+          ...(thesis?.frontMatter || []),
+          ...(thesis?.chapters || []).flatMap(chapter => chapter.sections),
+          ...(thesis?.backMatter || [])
+        ]}
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
       />
       
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <ThesisEditorHeader 
+      <div className="flex-1 flex flex-col">
+        <ThesisEditorHeader
           thesis={thesis}
           showPreview={showPreview}
           onTogglePreview={() => setShowPreview(!showPreview)}
         />
         
-        <div className="flex-1 flex overflow-hidden">
-          <ThesisEditorMain
+        <div className="px-8 py-4">
+          <ThesisEditorStatus
             thesis={thesis}
-            activeSection={activeSection}
-            onUpdateChapter={handleUpdateChapter}
-            onAddChapter={handleAddChapter}
-            showPreview={showPreview}
-            previewRef={previewRef}
-            onContentChange={handleContentChange}
-            onTitleChange={handleTitleChange}
+            thesisId={currentThesisId!}
+            progress={progress}
+            showTracker={showTracker}
+            setShowTracker={setShowTracker}
           />
-          
-          <div className="w-80 border-l flex flex-col">
-            <Collapsible defaultOpen className="border-b">
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full flex justify-between p-4">
-                  Chat
-                  {showChat ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <ChatMessages thesisId={thesis.id} />
-              </CollapsibleContent>
-            </Collapsible>
-            
-            <Collapsible defaultOpen>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full flex justify-between p-4">
-                  Progress Tracker
-                  {showTracker ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <ThesisEditorStatus 
-                  thesis={thesis}
-                  thesisId={thesis.id}
-                  progress={0}
-                  showTracker={showTracker}
-                  setShowTracker={setShowTracker}
-                />
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
         </div>
+
+        <ThesisEditorMain
+          thesis={thesis}
+          activeSection={activeSection}
+          showPreview={showPreview}
+          previewRef={previewRef}
+          onContentChange={handleContentChange}
+          onTitleChange={handleTitleChange}
+          onUpdateChapter={(chapter: Chapter) => {
+            setThesis(prev => ({
+              ...prev!,
+              chapters: prev!.chapters.map(c =>
+                c.id === chapter.id ? chapter : c
+              )
+            }));
+          }}
+          onAddChapter={(chapter) => {
+            setThesis(prev => ({
+              ...prev!,
+              chapters: [...(prev?.chapters || []), chapter]
+            }));
+          }}
+        />
       </div>
+
+      <Collapsible
+        open={showChat}
+        onOpenChange={setShowChat}
+        className="fixed bottom-4 right-4 w-[400px] z-50"
+      >
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="absolute -top-10 right-0 bg-background shadow-md"
+          >
+            {showChat ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronUp className="h-4 w-4" />
+            )}
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          {currentThesisId && <ChatMessages thesisId={currentThesisId} />}
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 };

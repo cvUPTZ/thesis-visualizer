@@ -1,4 +1,3 @@
-// ThesisContent.tsx
 import React from 'react';
 import { Chapter, Section } from '@/types/thesis';
 import { ChapterManager } from '../ChapterManager';
@@ -13,15 +12,12 @@ interface ThesisContentProps {
   activeSection: string;
   onContentChange: (id: string, content: string) => void;
   onTitleChange: (id: string, title: string) => void;
-  onUpdateChapter: (chapter: Chapter) => Promise<void>;
-  onAddChapter: (chapter: Chapter) => Promise<void>;
-  onAddGeneralIntroduction: (intro: { title: string; content: string }) => Promise<void>;
-  onRemoveChapter: (chapterId: string) => Promise<void>;
+  onUpdateChapter: (chapter: Chapter) => void;
+  onAddChapter: (chapter: Chapter) => void;
   thesisId: string;
-  hasGeneralIntroduction?: boolean;
 }
 
-export const ThesisContent: React.FC<ThesisContentProps> = ({
+export const ThesisContent = ({
   frontMatter,
   chapters,
   backMatter,
@@ -30,14 +26,12 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
   onTitleChange,
   onUpdateChapter,
   onAddChapter,
-  onAddGeneralIntroduction, // Make sure this is included
-  onRemoveChapter,
-  thesisId,
-  hasGeneralIntroduction = false
-}) => {
+  thesisId
+}: ThesisContentProps) => {
   const renderSectionContent = (section: Section) => {
     const isActive = activeSection === section.id;
     if (!isActive) return null;
+
     return (
       <div key={section.id} className="editor-section space-y-6">
         <div className="flex items-center gap-3 mb-4">
@@ -69,9 +63,6 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
             chapters={chapters}
             onUpdateChapter={onUpdateChapter}
             onAddChapter={onAddChapter}
-            onRemoveChapter={onRemoveChapter}
-            hasGeneralIntroduction={hasGeneralIntroduction}
-            onAddGeneralIntroduction={onAddGeneralIntroduction} // Pass this through
           />
           
           {backMatter.map(section => renderSectionContent(section))}

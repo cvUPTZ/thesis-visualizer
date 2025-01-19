@@ -1,7 +1,7 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { ThesisContent } from '../ThesisContent';
 import { Chapter, Section } from '@/types/thesis';
-import { ThesisContentManager } from './ThesisContentManager';
+import { useParams } from 'react-router-dom';
 
 interface ThesisEditorContentProps {
   frontMatter: Section[];
@@ -10,11 +10,8 @@ interface ThesisEditorContentProps {
   activeSection: string;
   onContentChange: (id: string, content: string) => void;
   onTitleChange: (id: string, title: string) => void;
-  onUpdateChapter: (chapter: Chapter) => Promise<void>;
-  onAddChapter: (chapter: Chapter) => Promise<void>;
-  hasGeneralIntroduction?: boolean;
-  onAddGeneralIntroduction: (intro: { title: string; content: string }) => Promise<void>;
-  onRemoveChapter: (chapterId: string) => Promise<void>;
+  onUpdateChapter: (chapter: Chapter) => void;
+  onAddChapter: (chapter: Chapter) => void;
 }
 
 export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
@@ -25,19 +22,19 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
   onContentChange,
   onTitleChange,
   onUpdateChapter,
-  onAddChapter,
-  hasGeneralIntroduction = false,
-  onAddGeneralIntroduction,
-  onRemoveChapter
+  onAddChapter
 }) => {
   const { thesisId } = useParams<{ thesisId: string }>();
 
+  console.log('ThesisEditorContent rendering with thesisId:', thesisId);
+
   if (!thesisId) {
+    console.error('No thesis ID found in URL params');
     return null;
   }
 
   return (
-    <ThesisContentManager
+    <ThesisContent
       frontMatter={frontMatter}
       chapters={chapters}
       backMatter={backMatter}
@@ -47,9 +44,6 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
       onUpdateChapter={onUpdateChapter}
       onAddChapter={onAddChapter}
       thesisId={thesisId}
-      hasGeneralIntroduction={hasGeneralIntroduction}
-      onAddGeneralIntroduction={onAddGeneralIntroduction}
-      onRemoveChapter={onRemoveChapter}
     />
   );
 };

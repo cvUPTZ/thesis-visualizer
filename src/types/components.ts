@@ -1,6 +1,32 @@
-import { Citation, Reference } from './thesis';
+import { BaseProps } from './common';
+import { Chapter, Section, Citation, Figure, Table, Reference } from './thesis';
 
-export interface CitationManagerProps {
+export interface EditorProps extends BaseProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}
+
+export interface SectionProps extends BaseProps {
+  section: Section;
+  isActive: boolean;
+  onContentChange: (id: string, content: string) => void;
+  onTitleChange: (id: string, title: string) => void;
+}
+
+export interface ChapterProps extends BaseProps {
+  chapter: Chapter;
+  onUpdateChapter: (chapter: Chapter) => void;
+}
+
+export interface CitationProps extends BaseProps {
+  citation: Citation;
+  onRemove: (id: string) => void;
+  onUpdate: (citation: Citation) => void;
+  onPreview?: () => void;
+}
+
+export interface CitationManagerProps extends BaseProps {
   citations: Citation[];
   onCitationSelect?: (citation: Citation) => void;
   selectedCitation?: Citation | null;
@@ -13,93 +39,53 @@ export interface CitationManagerProps {
   onUpdateCitation?: (citation: any) => void;
 }
 
-export interface ReferenceManagerProps {
+export interface CitationListProps extends BaseProps {
+  citations: Citation[];
+  onRemove: (id: string) => void;
+  onUpdate: (citation: Citation) => void;
+  onPreview: (citation: Citation) => void;
+}
+
+export interface CitationSearchProps {
+  onCitationSelect: (citation: Citation) => void;
+}
+
+export interface CitationPreviewProps {
+  citation: Citation;
+  onClose: () => void;
+  onEdit: (citation: Citation) => void;
+  onDelete: (citation: Citation) => void;
+}
+
+export interface FigureProps extends BaseProps {
+  figure: Figure;
+  onRemove: (id: string) => void;
+  onUpdate: (figure: Figure) => void;
+  onPreview?: () => void;
+}
+
+export interface TableProps extends BaseProps {
+  table: Table;
+  onRemove: (id: string) => void;
+  onUpdate: (table: Table) => void;
+}
+
+export interface ReferenceProps extends BaseProps {
+  reference: Reference;
+  onRemove: (id: string) => void;
+  onUpdate: (reference: Reference) => void;
+}
+
+export interface ReferenceManagerProps extends BaseProps {
   items: Reference[];
   onAdd: (reference: Reference) => void;
   onRemove: (id: string) => void;
   onUpdate: (reference: Reference) => void;
-  defaultStyle?: 'APA' | 'MLA' | 'Chicago' | 'Vancouver' | 'Harvard';
 }
 
-export interface SectionProps {
-  section: {
-    id: string;
-    title: string;
-    content: string;
-  };
-  isActive: boolean;
-  onContentChange: (id: string, content: string) => void;
-  onTitleChange: (id: string, title: string) => void;
-}
-
-export interface ThesisProps {
-  thesis: {
-    id: string;
-    title: string;
-    content: any;
-  };
-  activeSection: string;
-  onSectionSelect: (id: string) => void;
-}
-
-export interface ThesisEditorProps {
-  thesisId?: string;
-}
-
-export interface ThesisPreviewProps {
-  thesis: {
-    id: string;
-    title: string;
-    content: any;
-  };
-  language?: 'en' | 'fr';
-}
-
-export interface ThesisSidebarProps {
-  sections: Array<{
-    id: string;
-    title: string;
-    content: string;
-  }>;
-  activeSection: string;
-  onSectionSelect: (id: string) => void;
-}
-
-export interface ThesisContentProps {
-  frontMatter: Array<{
-    id: string;
-    title: string;
-    content: string;
-  }>;
-  chapters: Array<{
-    id: string;
-    title: string;
-    content: string;
-  }>;
-  backMatter: Array<{
-    id: string;
-    title: string;
-    content: string;
-  }>;
-  activeSection: string;
-  onContentChange: (id: string, content: string) => void;
-  onTitleChange: (id: string, title: string) => void;
-  onUpdateChapter: (chapter: any) => void;
-  onAddChapter: (chapter: any) => void;
-  thesisId: string;
-}
-
-export interface ThesisEditorMainProps {
-  thesis: {
-    id: string;
-    title: string;
-    content: any;
-  } | null;
-  activeSection: string;
-  showPreview: boolean;
-  previewRef: React.RefObject<HTMLDivElement>;
-  onContentChange: (id: string, content: string) => void;
-  onTitleChange: (id: string, title: string) => void;
-  onUpdateChapter: (chapter: any) => void;
-  onAddChapter: (chapter: any) => void;
+export interface ManagerProps<T> extends BaseProps {
+  items: T[];
+  onAdd: (item: T) => void;
+  onRemove: (id: string) => void;
+  onUpdate: (item: T) => void;
 }

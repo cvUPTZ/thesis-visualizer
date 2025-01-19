@@ -12,10 +12,8 @@ import { InstitutionFields } from './form/InstitutionFields';
 import { AuthorFields } from './form/AuthorFields';
 import { CommitteeFields } from './form/CommitteeFields';
 import { ArrowLeft } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const ThesisCreationForm = () => {
-  const [referenceStyle, setReferenceStyle] = useState<'APA' | 'MLA' | 'Chicago' | 'Vancouver' | 'Harvard'>('APA');
   const {
     values,
     errors,
@@ -56,8 +54,7 @@ export const ThesisCreationForm = () => {
 
       const metadata = {
         ...values,
-        keywords: values.keywords,
-        referenceStyle // Include the reference style in metadata
+        keywords: values.keywords
       };
       const result = await createThesis(metadata, session.user.id);
       if (result?.thesisId) {
@@ -126,22 +123,6 @@ export const ThesisCreationForm = () => {
               committeeMembers={values.committeeMembers}
               handleCommitteeMemberChange={handleCommitteeMemberChange}
             />
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Default Reference Style</label>
-              <Select value={referenceStyle} onValueChange={(value: 'APA' | 'MLA' | 'Chicago' | 'Vancouver' | 'Harvard') => setReferenceStyle(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select reference style" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="APA">APA</SelectItem>
-                  <SelectItem value="MLA">MLA</SelectItem>
-                  <SelectItem value="Chicago">Chicago</SelectItem>
-                  <SelectItem value="Vancouver">Vancouver</SelectItem>
-                  <SelectItem value="Harvard">Harvard</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
             
             <div className="flex gap-4">
               <Button 

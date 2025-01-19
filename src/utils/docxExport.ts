@@ -151,6 +151,45 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
     ],
   });
 
+  // Table of Contents with preview styling
+  sections.push({
+    properties: {
+      page: {
+        margin: {
+          top: convertInchesToTwip(1),
+          right: convertInchesToTwip(1),
+          bottom: convertInchesToTwip(1),
+          left: convertInchesToTwip(1),
+        },
+      },
+    },
+    headers: {
+      default: new Header({
+        children: [
+          new Paragraph({
+            text: thesis.frontMatter[0]?.title || "Untitled Thesis",
+            alignment: AlignmentType.CENTER,
+          }),
+        ],
+      }),
+    },
+    footers: {
+      default: new Footer({
+        children: [
+          createPageNumberParagraph(),
+        ],
+      }),
+    },
+    children: [
+      new Paragraph({
+        text: "Table of Contents",
+        heading: HeadingLevel.HEADING_1,
+        spacing: { before: 240, after: 240 },
+      }),
+      generateTableOfContents(),
+    ],
+  });
+
   // Content with preview styling
   sections.push({
     properties: {
@@ -175,7 +214,9 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
     },
     footers: {
       default: new Footer({
-        children: [createPageNumberParagraph()],
+        children: [
+          createPageNumberParagraph(),
+        ],
       }),
     },
     children: generateContent({ thesis, isPreview: true }),

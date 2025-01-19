@@ -1,5 +1,5 @@
 import React from 'react';
-import { Chapter, Section, ThesisSectionType } from '@/types/thesis';
+import { Chapter, Section } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
@@ -8,7 +8,7 @@ import { SectionItem } from '../sections/SectionItem';
 
 interface ChapterContentProps {
   chapter: Chapter;
-  onUpdateChapter: (chapter: Chapter) => Promise<void>;
+  onUpdateChapter: (chapter: Chapter) => void;
 }
 
 export const ChapterContent: React.FC<ChapterContentProps> = ({
@@ -17,12 +17,12 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
 }) => {
   const { toast } = useToast();
 
-  const handleAddSection = async () => {
+  const handleAddSection = () => {
     const newSection: Section = {
       id: Date.now().toString(),
       title: 'New Section',
       content: '',
-      type: ThesisSectionType.Custom,
+      type: 'custom',
       order: chapter.sections.length + 1,
       figures: [],
       tables: [],
@@ -30,63 +30,27 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
       references: []
     };
 
-    try {
-      await onUpdateChapter({
-        ...chapter,
-        sections: [...chapter.sections, newSection]
-      });
+    onUpdateChapter({
+      ...chapter,
+      sections: [...chapter.sections, newSection]
+    });
 
-      toast({
-        title: "Section Added",
-        description: "New section has been added to the chapter",
-      });
-    } catch (error) {
-      console.error('Error adding section:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add new section. Please try again.",
-        variant: "destructive"
-      });
-    }
+    toast({
+      title: "Section Added",
+      description: "New section has been added to the chapter",
+    });
   };
 
-  const handleRemoveSection = async (sectionId: string) => {
-    try {
-      await onUpdateChapter({
-        ...chapter,
-        sections: chapter.sections.filter(s => s.id !== sectionId)
-      });
+  const handleRemoveSection = (sectionId: string) => {
+    onUpdateChapter({
+      ...chapter,
+      sections: chapter.sections.filter(s => s.id !== sectionId)
+    });
 
-      toast({
-        title: "Section Removed",
-        description: "Section has been removed from the chapter",
-      });
-    } catch (error) {
-      console.error('Error removing section:', error);
-      toast({
-        title: "Error",
-        description: "Failed to remove section. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleUpdateSection = async (updatedSection: Section) => {
-    try {
-      await onUpdateChapter({
-        ...chapter,
-        sections: chapter.sections.map((s) =>
-          s.id === updatedSection.id ? updatedSection : s
-        ),
-      });
-    } catch (error) {
-      console.error('Error updating section:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update section. Please try again.",
-        variant: "destructive"
-      });
-    }
+    toast({
+      title: "Section Removed",
+      description: "Section has been removed from the chapter",
+    });
   };
 
   return (
@@ -95,24 +59,22 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
         <label className="text-sm font-medium text-gray-700">Chapter Introduction</label>
         <MarkdownEditor
           value={chapter.content || ''}
-          onChange={async (value) => {
-            await onUpdateChapter({
-              ...chapter,
-              content: value || ''
-            });
-          }}
+          onChange={(value) => onUpdateChapter({
+            ...chapter,
+            content: value || ''
+          })}
           placeholder="Write your chapter introduction here..."
         />
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between py-4">
+        <div className="flex items-center justify-between">
           <h3 className="text-lg font-medium text-gray-900">Sections</h3>
           <Button
             onClick={handleAddSection}
-            variant="default"
+            variant="outline"
             size="sm"
-            className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+            className="gap-2"
           >
             <PlusCircle className="w-4 h-4" />
             Add Section
@@ -133,7 +95,14 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
               <SectionItem
                 section={section}
                 sectionNumber={index + 1}
-                onUpdateSection={handleUpdateSection}
+                onUpdateSection={(updatedSection) => {
+                  onUpdateChapter({
+                    ...chapter,
+                    sections: chapter.sections.map((s) =>
+                      s.id === updatedSection.id ? updatedSection : s
+                    ),
+                  });
+                }}
               />
             </div>
           ))}

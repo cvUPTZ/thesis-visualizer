@@ -1,5 +1,5 @@
 import React from 'react';
-import { Section, ThesisSectionType } from '@/types/thesis';
+import { Section } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
 import { SectionHeader } from './editor/SectionHeader';
 import { SectionContent } from './editor/SectionContent';
@@ -31,36 +31,22 @@ export const EditorSection: React.FC<SectionProps> = ({
     });
   };
 
-  // Create a complete Section object from the minimal section data
-  const fullSection: Section = {
-    id: section.id,
-    title: section.title,
-    content: section.content,
-    type: ThesisSectionType.Custom,
-    order: 0,
-    figures: [],
-    tables: [],
-    citations: [],
-    required: false,
-    references: []
-  };
-
   return (
     <div className="editor-section">
       <div className="space-y-6">
         <SectionHeader
-          title={fullSection.title}
-          required={fullSection.required}
-          onTitleChange={(title) => onTitleChange(fullSection.id, title)}
+          title={section.title}
+          required={section.required}
+          onTitleChange={(title) => onTitleChange(section.id, title)}
         />
         
         <SectionContent
-          content={fullSection.content}
-          onContentChange={(content) => onContentChange(fullSection.id, content)}
+          content={section.content}
+          onContentChange={(content) => onContentChange(section.id, content)}
         />
 
         <SectionManagers
-          section={fullSection}
+          section={section}
           onSectionUpdate={handleSectionUpdate}
         />
       </div>

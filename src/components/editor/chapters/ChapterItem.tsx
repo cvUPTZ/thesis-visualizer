@@ -12,14 +12,13 @@ import { ChapterTables } from './ChapterTables';
 import { ChapterCitations } from './ChapterCitations';
 import { ChapterReferences } from './ChapterReferences';
 import { FootnoteManager } from './FootnoteManager';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface ChapterItemProps {
   chapter: Chapter;
   chapterNumber: number;
   isOpen: boolean;
   onToggle: () => void;
-  onUpdateChapter: (chapter: Chapter) => Promise<void>;
+  onUpdateChapter: (chapter: Chapter) => void;
   isSelected?: boolean;
   onSelect?: () => void;
 }
@@ -35,8 +34,8 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('content');
 
-  const handleTitleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    await onUpdateChapter({
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onUpdateChapter({
       ...chapter,
       title: e.target.value
     });
@@ -96,16 +95,12 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
   };
 
   return (
-    <Collapsible
-      open={isOpen}
-      onOpenChange={onToggle}
-      className={cn(
-        "border rounded-xl bg-white shadow-sm transition-all duration-200",
-        "hover:shadow-md",
-        isOpen && "ring-2 ring-primary/10",
-        isSelected && "ring-2 ring-primary"
-      )}
-    >
+    <div className={cn(
+      "border rounded-xl bg-white shadow-sm transition-all duration-200",
+      "hover:shadow-md",
+      isOpen && "ring-2 ring-primary/10",
+      isSelected && "ring-2 ring-primary"
+    )}>
       <div className="p-4 flex items-center justify-between group">
         <div className="flex items-center gap-3">
           <Checkbox
@@ -132,23 +127,22 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
           <span className="text-sm text-gray-500">
             {chapter.sections.length} {chapter.sections.length === 1 ? 'section' : 'sections'}
           </span>
-          <CollapsibleTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2"
-            >
-              {isOpen ? (
-                <ChevronUp className="w-5 h-5 text-gray-500" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-500" />
-              )}
-            </Button>
-          </CollapsibleTrigger>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggle}
+            className="p-2"
+          >
+            {isOpen ? (
+              <ChevronUp className="w-5 h-5 text-gray-500" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-500" />
+            )}
+          </Button>
         </div>
       </div>
 
-      <CollapsibleContent>
+      {isOpen && (
         <div className="p-4 pt-0 space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-6">
@@ -212,7 +206,7 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
             </TabsContent>
           </Tabs>
         </div>
-      </CollapsibleContent>
-    </Collapsible>
+      )}
+    </div>
   );
 };
