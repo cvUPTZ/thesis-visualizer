@@ -19,7 +19,7 @@ import {
   Database,
   FileSearch,
   Globe,
-  Tool,
+  Wrench, // Changed from Tool to Wrench which exists in lucide-react
   ChartBar,
   FileSpreadsheet,
   Layers,
@@ -180,7 +180,7 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
   },
   'collection-tools': {
     label: 'Collection Tools',
-    icon: Tool,
+    icon: Wrench, // Updated icon
     description: 'Research tools and instruments',
     group: 'backMatter',
     type: 'collection-tools'
