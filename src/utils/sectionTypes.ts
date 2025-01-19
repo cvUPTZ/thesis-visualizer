@@ -10,7 +10,13 @@ import {
   FolderOpen,
   BookmarkPlus,
   ListChecks,
-  FileStack
+  FileStack,
+  BookOpenCheck,
+  ScrollText,
+  ClipboardCheck,
+  BookCheck,
+  CheckCircle,
+  FileCheck
 } from 'lucide-react';
 import { ThesisSectionType } from '@/types/thesis';
 
@@ -19,6 +25,7 @@ export interface SectionTypeConfig {
   icon: any;
   description: string;
   group: 'frontMatter' | 'mainContent' | 'backMatter';
+  type: ThesisSectionType;
 }
 
 export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
@@ -26,103 +33,134 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
     label: 'Title Page',
     icon: BookOpen,
     description: 'The main title page of your thesis',
-    group: 'frontMatter'
+    group: 'frontMatter',
+    type: 'title'
   },
   'table-of-contents': {
     label: 'Table of Contents',
     icon: ListOrdered,
     description: 'Organized list of thesis contents',
-    group: 'frontMatter'
+    group: 'frontMatter',
+    type: 'table-of-contents'
   },
   'list-of-figures': {
     label: 'List of Figures',
     icon: Image,
     description: 'Catalog of all figures',
-    group: 'frontMatter'
+    group: 'frontMatter',
+    type: 'list-of-figures'
   },
   'list-of-tables': {
     label: 'List of Tables',
     icon: Table,
     description: 'Catalog of all tables',
-    group: 'frontMatter'
+    group: 'frontMatter',
+    type: 'list-of-tables'
   },
   'acknowledgments': {
     label: 'Acknowledgments',
     icon: Heart,
     description: 'Thank you notes and acknowledgments',
-    group: 'frontMatter'
+    group: 'frontMatter',
+    type: 'acknowledgments'
   },
   'abstract': {
     label: 'Abstract',
     icon: FileText,
     description: 'Brief summary of your thesis',
-    group: 'frontMatter'
+    group: 'frontMatter',
+    type: 'abstract'
   },
   'list-of-abbreviations': {
     label: 'List of Abbreviations',
     icon: ListChecks,
     description: 'Glossary of abbreviations used',
-    group: 'frontMatter'
+    group: 'frontMatter',
+    type: 'list-of-abbreviations'
   },
   'general-introduction': {
     label: 'General Introduction',
     icon: BookMarked,
     description: 'Main introduction to your thesis',
-    group: 'mainContent'
+    group: 'mainContent',
+    type: 'general-introduction'
   },
   'introduction': {
     label: 'Introduction',
     icon: BookOpen,
     description: 'Chapter introduction',
-    group: 'mainContent'
+    group: 'mainContent',
+    type: 'introduction'
   },
   'methodology': {
     label: 'Methodology',
     icon: GraduationCap,
     description: 'Research methods and approach',
-    group: 'mainContent'
+    group: 'mainContent',
+    type: 'methodology'
   },
   'results': {
     label: 'Results',
     icon: FileStack,
     description: 'Research findings and data',
-    group: 'mainContent'
+    group: 'mainContent',
+    type: 'results'
   },
   'discussion': {
     label: 'Discussion',
     icon: BookmarkPlus,
     description: 'Analysis and interpretation',
-    group: 'mainContent'
+    group: 'mainContent',
+    type: 'discussion'
   },
   'conclusion': {
     label: 'Conclusion',
     icon: BookMarked,
     description: 'Chapter conclusion',
-    group: 'mainContent'
+    group: 'mainContent',
+    type: 'conclusion'
   },
   'general-conclusion': {
     label: 'General Conclusion',
-    icon: BookMarked,
+    icon: BookCheck,
     description: 'Final thesis conclusion',
-    group: 'mainContent'
+    group: 'mainContent',
+    type: 'general-conclusion'
   },
   'bibliography': {
     label: 'Bibliography',
     icon: BookOpen,
     description: 'List of references',
-    group: 'backMatter'
+    group: 'backMatter',
+    type: 'bibliography'
   },
   'appendix': {
     label: 'Appendix',
     icon: FolderOpen,
     description: 'Additional materials and data',
-    group: 'backMatter'
+    group: 'backMatter',
+    type: 'appendix'
   },
   'custom': {
     label: 'Custom Section',
     icon: FileText,
     description: 'Custom content section',
-    group: 'mainContent'
+    group: 'mainContent',
+    type: 'custom'
+  },
+  'references': {
+    label: 'References',
+    icon: ScrollText,
+    description: 'Reference list',
+    group: 'mainContent',
+    type: 'references'
+  },
+  'chapter': {
+    label: 'Chapter',
+    icon: BookOpenCheck,
+    description: 'Thesis chapter',
+    group: 'mainContent',
+    type: 'chapter'
   }
 };
 
@@ -136,5 +174,13 @@ export const getSectionsByGroup = (group: 'frontMatter' | 'mainContent' | 'backM
 };
 
 export const getSectionConfig = (type: ThesisSectionType): SectionTypeConfig => {
-  return sectionTypes[type];
+  const config = sectionTypes[type];
+  if (!config) {
+    console.error('No configuration found for section type:', type);
+    return sectionTypes.custom; // Fallback to custom section type
+  }
+  return {
+    ...config,
+    type
+  };
 };

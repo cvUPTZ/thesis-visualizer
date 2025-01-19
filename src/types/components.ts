@@ -1,6 +1,34 @@
 import { BaseProps } from './common';
 import { Chapter, Section, Citation, Figure, Table, Reference } from './thesis';
 
+export interface Comment {
+  id: string;
+  reviewer_id: string;
+  content: {
+    text: string;
+  };
+  created_at: string;
+}
+
+export interface ThesisComment {
+  id: string;
+  content: {
+    text: string;
+  } | string;
+  author: string;
+  created_at: string;
+  reviewer_id: string;
+}
+
+export interface CommentThread {
+  id: string;
+  content: string;
+  author: string;
+  created_at: string;
+  comment: Comment;
+  replies: Comment[];
+}
+
 export interface EditorProps extends BaseProps {
   value: string;
   onChange: (value: string) => void;
