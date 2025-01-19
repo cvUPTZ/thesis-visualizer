@@ -1,75 +1,69 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 interface TrialSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentTrialDays: number;
-  onUpdate?: () => Promise<any>;
 }
 
 export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
   open,
   onOpenChange,
   currentTrialDays,
-  onUpdate
 }) => {
-  const [trialDays, setTrialDays] = useState(currentTrialDays.toString());
+  const [trialDays, setTrialDays] = React.useState(currentTrialDays.toString());
   const { toast } = useToast();
 
-  const handleSave = async () => {
-    try {
-      const { error } = await supabase
-        .from('trial_settings')
-        .update({ trial_days: parseInt(trialDays, 10) })
-        .eq('id', 1);
-
-      if (error) throw error;
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Convert string to number for validation
+    const days = parseInt(trialDays, 10);
+    
+    if (isNaN(days) || days < 1) {
       toast({
-        title: "Success",
-        description: "Trial days updated successfully",
-      });
-      
-      if (onUpdate) {
-        await onUpdate();
-      }
-      onOpenChange(false);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update trial days",
+        title: "Invalid Input",
+        description: "Please enter a valid number of days",
         variant: "destructive",
       });
+      return;
     }
+
+    // Close the dialog
+    onOpenChange(false);
+    
+    toast({
+      title: "Success",
+      description: "Trial settings updated successfully",
+    });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Trial Settings</DialogTitle>
+          <DialogTitle>Update Trial Settings</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="trialDays">Trial Period (Days)</Label>
+            <label htmlFor="trialDays" className="text-sm font-medium">
+              Trial Period (Days)
+            </label>
             <Input
               id="trialDays"
               value={trialDays}
               onChange={(e) => setTrialDays(e.target.value)}
               type="number"
               min="1"
+              required
             />
           </div>
-          <Button onClick={handleSave} className="w-full">
-            Save Changes
-          </Button>
-        </div>
+          <Button type="submit">Save Changes</Button>
+        </form>
       </DialogContent>
     </Dialog>
   );

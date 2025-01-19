@@ -28,6 +28,7 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
   onAddChapter
 }) => {
   const { toast } = useToast();
+  const [showIntroEditor, setShowIntroEditor] = React.useState(false);
   
   // Check if general introduction exists and has content
   const hasGeneralIntroduction = thesis?.frontMatter.some(
@@ -50,11 +51,15 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
       references: []
     };
 
-    const updatedFrontMatter = [...thesis.frontMatter, newIntroduction];
+    // Add the new introduction to frontMatter
+    const updatedFrontMatter = [...(thesis.frontMatter || []), newIntroduction];
     
     // Update the thesis with the new front matter
-    // Note: This assumes you have a way to update the entire thesis object
-    // You'll need to implement this in the parent component
+    if (onContentChange) {
+      onContentChange(newIntroduction.id, "");
+    }
+    
+    setShowIntroEditor(true);
     
     toast({
       title: "General Introduction Added",
@@ -66,7 +71,7 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
     <main className="flex-1 p-8 flex">
       <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
         <div className="max-w-4xl mx-auto space-y-6">
-          {!hasGeneralIntroduction && (
+          {!hasGeneralIntroduction && !showIntroEditor && (
             <div className="bg-muted/50 p-6 rounded-lg shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
