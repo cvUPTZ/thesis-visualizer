@@ -125,41 +125,55 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
     group: 'mainContent',
     type: 'general-conclusion'
   },
-  'bibliography': {
-    label: 'Bibliography',
-    icon: BookOpen,
-    description: 'List of references',
-    group: 'backMatter',
-    type: 'bibliography'
-  },
-  'appendix': {
-    label: 'Appendix',
-    icon: FolderOpen,
-    description: 'Additional materials and data',
-    group: 'backMatter',
-    type: 'appendix'
-  },
-  'custom': {
-    label: 'Custom Section',
+  'research-questions': {
+    label: 'Research Questions',
     icon: FileText,
-    description: 'Custom content section',
+    description: 'Research questions',
     group: 'mainContent',
-    type: 'custom'
+    type: 'research-questions'
   },
-  'references': {
-    label: 'References',
-    icon: ScrollText,
-    description: 'Reference list',
+  'hypotheses': {
+    label: 'Hypotheses',
+    icon: FileText,
+    description: 'Research hypotheses',
     group: 'mainContent',
-    type: 'references'
+    type: 'hypotheses'
   },
-  'chapter': {
-    label: 'Chapter',
-    icon: BookOpenCheck,
-    description: 'Thesis chapter',
+  'objectives': {
+    label: 'Objectives',
+    icon: FileText,
+    description: 'Research objectives',
     group: 'mainContent',
-    type: 'chapter'
-  }
+    type: 'objectives'
+  },
+  'problem-statement': {
+    label: 'Problem Statement',
+    icon: FileText,
+    description: 'Problem statement',
+    group: 'mainContent',
+    type: 'problem-statement'
+  },
+  'thesis-structure': {
+    label: 'Thesis Structure',
+    icon: FileText,
+    description: 'Thesis structure overview',
+    group: 'mainContent',
+    type: 'thesis-structure'
+  },
+  'statistical-tests': {
+    label: 'Statistical Tests',
+    icon: FileText,
+    description: 'Statistical analysis methods',
+    group: 'mainContent',
+    type: 'statistical-tests'
+  },
+  'general-context': {
+    label: 'General Context',
+    icon: FileText,
+    description: 'Research context',
+    group: 'mainContent',
+    type: 'general-context'
+  },
 };
 
 export const getSectionsByGroup = (group: 'frontMatter' | 'mainContent' | 'backMatter'): SectionTypeConfig[] => {

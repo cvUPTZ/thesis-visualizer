@@ -15,6 +15,7 @@ interface MainContentSectionsProps {
   onAddChapter?: (chapter: Chapter) => void;
   completedSections: string[];
   onSectionComplete: (id: string, completed: boolean) => void;
+  isReadOnly?: boolean;
 }
 
 export const MainContentSections: React.FC<MainContentSectionsProps> = ({
@@ -24,7 +25,8 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
   onAddSection,
   onAddChapter,
   completedSections,
-  onSectionComplete
+  onSectionComplete,
+  isReadOnly = false
 }) => {
   const handleAddChapter = () => {
     if (onAddChapter) {
@@ -45,30 +47,32 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
     <div className="px-3">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-lg font-semibold">Main Content</h2>
-        <div className="space-x-2">
-          {onAddSection && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onAddSection('introduction')}
-              className="h-8 px-2"
-            >
-              <PlusCircle className="h-4 w-4" />
-              <span className="sr-only">Add Section</span>
-            </Button>
-          )}
-          {onAddChapter && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleAddChapter}
-              className="h-8 px-2"
-            >
-              <PlusCircle className="h-4 w-4" />
-              <span className="sr-only">Add Chapter</span>
-            </Button>
-          )}
-        </div>
+        {!isReadOnly && (
+          <div className="space-x-2">
+            {onAddSection && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onAddSection('introduction')}
+                className="h-8 px-2"
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span className="sr-only">Add Section</span>
+              </Button>
+            )}
+            {onAddChapter && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleAddChapter}
+                className="h-8 px-2"
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span className="sr-only">Add Chapter</span>
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="space-y-1">
@@ -85,11 +89,13 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
                 "hover:bg-accent/50 transition-colors"
               )}
             >
-              <Checkbox
-                checked={isCompleted}
-                onCheckedChange={(checked) => onSectionComplete(section.id, checked as boolean)}
-                className="h-4 w-4"
-              />
+              {!isReadOnly && (
+                <Checkbox
+                  checked={isCompleted}
+                  onCheckedChange={(checked) => onSectionComplete(section.id, checked as boolean)}
+                  className="h-4 w-4"
+                />
+              )}
               <button
                 onClick={() => onSectionSelect(section.id)}
                 className={cn(

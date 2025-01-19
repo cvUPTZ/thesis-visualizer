@@ -17,7 +17,14 @@ export type ThesisSectionType =
   | 'appendix'
   | 'custom'
   | 'references'
-  | 'chapter';
+  | 'chapter'
+  | 'research-questions'
+  | 'hypotheses'
+  | 'objectives'
+  | 'problem-statement'
+  | 'thesis-structure'
+  | 'statistical-tests'
+  | 'general-context';
 
 export interface Comment {
   id: string;
@@ -30,25 +37,4 @@ export interface Comment {
       name: string;
     };
   };
-}
-
-export interface Chapter {
-  id: string;
-  title: string;
-  content: string;
-  sections: Section[];
-  part: number;
-  order: number;
-  figures: Figure[];
-  tables: Table[];
-  footnotes: Footnote[];
-}
-
-export interface CommentThread {
-  id: string;
-  content: string | { text: string };
-  author: string;
-  created_at: string;
-  comment: Comment;
-  replies: Comment[];
 }
