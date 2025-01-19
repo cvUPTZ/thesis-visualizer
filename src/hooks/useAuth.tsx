@@ -2,19 +2,18 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { Profile } from '@/types/profile';
 
 export interface AuthContextType {
   user: any;
-  userEmail: string;
-  userRole: string;
+  profile: Profile | null;
   isLoading: boolean;
   handleLogout: () => Promise<void>;
 }
 
 export const useAuth = (): AuthContextType => {
-  const [userEmail, setUserEmail] = useState<string>('');
-  const [userRole, setUserRole] = useState<string>('');
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -40,16 +39,16 @@ export const useAuth = (): AuthContextType => {
 
         setUser(session.user);
 
-        const { data: profile, error } = await supabase
+        const { data: profileData, error } = await supabase
           .from('profiles')
           .select(`
-            email,
+            *,
             roles (
               name
             )
           `)
           .eq('id', session.user.id)
-          .maybeSingle();
+          .single();
 
         if (error) {
           console.error('Error loading profile:', error);
@@ -63,10 +62,9 @@ export const useAuth = (): AuthContextType => {
           return;
         }
 
-        if (profile && mounted) {
-          console.log('Profile loaded:', profile);
-          setUserEmail(profile.email);
-          setUserRole(profile.roles?.name || '');
+        if (profileData && mounted) {
+          console.log('Profile loaded:', profileData);
+          setProfile(profileData);
         }
       } catch (error) {
         console.error('Error in loadProfile:', error);
@@ -87,8 +85,7 @@ export const useAuth = (): AuthContextType => {
       
       if (event === 'SIGNED_OUT') {
         if (mounted) {
-          setUserEmail('');
-          setUserRole('');
+          setProfile(null);
           setUser(null);
           setIsLoading(false);
           navigate('/auth');
@@ -110,8 +107,7 @@ export const useAuth = (): AuthContextType => {
   const handleLogout = async () => {
     try {
       setIsLoading(true);
-      setUserEmail('');
-      setUserRole('');
+      setProfile(null);
       setUser(null);
       
       const { error } = await supabase.auth.signOut();
@@ -140,5 +136,5 @@ export const useAuth = (): AuthContextType => {
     }
   };
 
-  return { user, userEmail, userRole, isLoading, handleLogout };
+  return { user, profile, isLoading, handleLogout };
 };

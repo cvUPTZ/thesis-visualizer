@@ -9,8 +9,17 @@ import FiguresPage from './pages/FiguresPage';
 import TablesPage from './pages/TablesPage';
 import BibliographyPage from './pages/BibliographyPage';
 import { ThesisSidebar } from './components/ThesisSidebar';
+import { Section } from './types/thesis';
 
 const Routes = () => {
+  const [sections, setSections] = React.useState<Section[]>([]);
+  const [activeSection, setActiveSection] = React.useState('');
+
+  const handleSectionSelect = (id: string) => {
+    setActiveSection(id);
+    console.log('Section selected:', id);
+  };
+
   return (
     <RouterRoutes>
       <Route path="/" element={<LandingPage />} />
@@ -19,9 +28,9 @@ const Routes = () => {
       {/* Protected Routes */}
       <Route path="/thesis" element={
         <ThesisSidebar 
-          sections={[]}
-          activeSection=""
-          onSectionSelect={(id: string) => console.log('Section selected:', id)}
+          sections={sections}
+          activeSection={activeSection}
+          onSectionSelect={handleSectionSelect}
         />
       }>
         <Route path="create" element={<CreateThesis />} />

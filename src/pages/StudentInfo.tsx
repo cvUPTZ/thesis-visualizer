@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 
 const StudentInfo = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -52,6 +52,7 @@ const StudentInfo = () => {
             type="text"
             name="full_name"
             id="full_name"
+            defaultValue={profile?.full_name || ''}
             required
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
           />
@@ -65,6 +66,7 @@ const StudentInfo = () => {
             type="text"
             name="student_id"
             id="student_id"
+            defaultValue={profile?.student_id || ''}
             required
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
           />
@@ -78,6 +80,7 @@ const StudentInfo = () => {
             type="text"
             name="department"
             id="department"
+            defaultValue={profile?.department || ''}
             required
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
           />
@@ -91,6 +94,7 @@ const StudentInfo = () => {
             type="text"
             name="program"
             id="program"
+            defaultValue={profile?.program || ''}
             required
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
           />
@@ -104,6 +108,7 @@ const StudentInfo = () => {
             type="text"
             name="year_of_study"
             id="year_of_study"
+            defaultValue={profile?.year_of_study || ''}
             required
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
           />

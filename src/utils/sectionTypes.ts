@@ -8,7 +8,8 @@ import {
   Library,
   LayoutDashboard,
   BookText,
-  Settings
+  Settings,
+  ChevronRight
 } from 'lucide-react';
 import { ThesisSectionType } from '@/types/thesis';
 
@@ -55,7 +56,7 @@ export const SectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
     group: 'frontMatter'
   },
   'chapter': {
-    icon: BookText,
+    icon: ChevronRight,
     label: 'Chapter',
     description: 'A chapter in the thesis',
     required: false,
@@ -117,6 +118,46 @@ export const SectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
     required: false,
     order: 12,
     group: 'mainContent'
+  },
+  'list-of-figures': {
+    icon: Image,
+    label: 'List of Figures',
+    description: 'List of figures in the thesis',
+    required: false,
+    order: 13,
+    group: 'frontMatter'
+  },
+  'list-of-tables': {
+    icon: Table,
+    label: 'List of Tables',
+    description: 'List of tables in the thesis',
+    required: false,
+    order: 14,
+    group: 'frontMatter'
+  },
+  'list-of-abbreviations': {
+    icon: ListTodo,
+    label: 'List of Abbreviations',
+    description: 'List of abbreviations used',
+    required: false,
+    order: 15,
+    group: 'frontMatter'
+  },
+  'general-introduction': {
+    icon: BookOpen,
+    label: 'General Introduction',
+    description: 'General introduction to the thesis',
+    required: false,
+    order: 16,
+    group: 'mainContent'
+  },
+  'detailed-toc': {
+    icon: ListTodo,
+    label: 'Detailed Table of Contents',
+    description: 'Detailed table of contents',
+    required: false,
+    order: 17,
+    group: 'frontMatter'
   }
 } as const;
 
