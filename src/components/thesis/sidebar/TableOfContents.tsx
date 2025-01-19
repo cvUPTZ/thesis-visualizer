@@ -1,6 +1,11 @@
 import React from 'react';
 import { Section } from '@/types/thesis';
-import { FileText, BookOpen, List, Book, Database, FileQuestion, ScrollText, Users, Lightbulb, Target, HelpCircle, LayoutList, LineChart, MessageSquare } from 'lucide-react';
+import { 
+  FileText, BookOpen, List, Book, Database, 
+  FileQuestion, ScrollText, Users, Lightbulb, 
+  Target, HelpCircle, LayoutList, LineChart, 
+  MessageSquare, ChevronDown, ChevronUp
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -17,6 +22,11 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
   activeSection,
   onSectionSelect
 }) => {
+  console.log('Rendering TableOfContents:', { 
+    sectionsCount: sections?.length,
+    activeSection 
+  });
+
   const frontMatterSections = sections.filter(s => [
     'title',
     'acknowledgments',
@@ -172,6 +182,9 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
             {icon}
             <span className="font-medium">{title}</span>
           </div>
+          {sections.length > 0 && (
+            <ChevronDown className="h-4 w-4 transition-transform ui-expanded:rotate-180" />
+          )}
         </CollapsibleTrigger>
         <CollapsibleContent className="pl-4 space-y-1">
           {sections.map(renderSectionItem)}
