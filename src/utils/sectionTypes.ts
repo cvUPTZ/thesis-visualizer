@@ -118,7 +118,6 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
     group: 'mainContent',
     type: 'conclusion'
   },
-
   'general-conclusion': {
     label: 'General Conclusion',
     icon: BookCheck,
@@ -176,7 +175,7 @@ export const getSectionConfig = (type: ThesisSectionType): SectionTypeConfig => 
   const config = sectionTypes[type];
   if (!config) {
     console.error('No configuration found for section type:', type);
-    return sectionTypes.custom; // Fallback to custom section type
+    return sectionTypes.custom;
   }
   return {
     ...config,

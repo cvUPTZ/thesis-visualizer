@@ -25,6 +25,10 @@ export const CommentThread = ({
   const [showReplyForm, setShowReplyForm] = useState(false);
   const { toast } = useToast();
 
+  const getCommentContent = (content: string | { text: string }) => {
+    return typeof content === 'string' ? content : content.text;
+  };
+
   const handleReply = async () => {
     if (!currentUser || !replyContent.trim()) return;
 
@@ -72,9 +76,7 @@ export const CommentThread = ({
           </Avatar>
           <div className="flex-1">
             <div className="prose prose-sm">
-              <p>{typeof thread.comment.content === 'string' ? 
-                thread.comment.content : 
-                thread.comment.content.text}</p>
+              <p>{getCommentContent(thread.comment.content)}</p>
             </div>
             <Button
               variant="ghost"
@@ -96,9 +98,7 @@ export const CommentThread = ({
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 prose prose-sm">
-              <p>{typeof reply.content === 'string' ? 
-                reply.content : 
-                reply.content.text}</p>
+              <p>{getCommentContent(reply.content)}</p>
             </div>
           </div>
         </Card>
