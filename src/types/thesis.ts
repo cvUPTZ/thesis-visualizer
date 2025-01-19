@@ -1,78 +1,104 @@
-export type ThesisSectionType = 
-  // Front Matter
-  | 'title'
-  | 'acknowledgments'
-  | 'abstract'
-  | 'table-of-contents'
-  | 'list-of-figures'
-  | 'list-of-tables'
-  | 'list-of-abbreviations'
-  // Main Content - Introduction
-  | 'general-introduction'
-  | 'general-context'
-  | 'problem-statement'
-  | 'research-questions'
-  | 'objectives'
-  | 'hypotheses'
-  | 'thesis-structure'
-  // Literature Review
-  | 'literature-review'
-  | 'theoretical-framework'
-  | 'main-theories'
-  | 'key-concepts'
-  | 'state-of-art'
-  | 'critical-synthesis'
-  | 'conceptual-framework'
-  | 'analysis-model'
-  | 'selected-variables'
-  | 'hypothetical-relationships'
-  | 'reference-framework'
-  // Methodology
-  | 'methodology'
-  | 'research-design'
-  | 'methodological-approach'
-  | 'population-sample'
-  | 'research-field'
-  | 'data-collection'
-  | 'research-protocol'
-  | 'collection-procedures'
-  | 'analysis-methods'
-  | 'validity-reliability'
-  | 'ethical-considerations'
-  // Results & Discussion
-  | 'results'
-  | 'descriptive-analysis'
-  | 'statistical-tests'
-  | 'hypothesis-testing'
-  | 'results-summary'
-  | 'discussion'
-  | 'results-interpretation'
-  | 'literature-comparison'
-  | 'theoretical-implications'
-  | 'practical-implications'
-  | 'study-limitations'
-  // Conclusion
-  | 'conclusion'
-  | 'general-summary'
-  | 'main-contributions'
-  | 'overall-limitations'
-  | 'future-perspectives'
-  | 'recommendations'
-  // Back Matter
-  | 'bibliography'
-  | 'primary-sources'
-  | 'secondary-sources'
-  | 'electronic-sources'
-  | 'appendix'
-  | 'collection-tools'
-  | 'raw-data'
-  | 'detailed-analysis'
-  | 'supporting-documents'
-  | 'reference-tables'
-  | 'index'
-  | 'glossary'
-  | 'detailed-toc';
+// Basic types
+export interface Figure {
+  id: string;
+  imageUrl: string;
+  title: string;
+  caption: string;
+  altText: string;
+  number: number;
+  dimensions: {
+    width: number;
+    height: number;
+  };
+}
 
+export interface Table {
+  id: string;
+  title?: string;
+  content: string;
+  caption?: string;
+}
+
+export interface Citation {
+  id: string;
+  text: string;
+  source: string;
+  authors: string[];
+  year: string;
+  type: string;
+  doi?: string;
+  url?: string;
+  journal?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  publisher?: string;
+  thesis_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Reference {
+  id: string;
+  text: string;
+  title: string;
+  source: string;
+  authors: string[];
+  year: string;
+  type: string;
+  doi?: string;
+  url?: string;
+  journal?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  publisher?: string;
+}
+
+export interface Footnote {
+  id: string;
+  content: string;
+  number: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CommentThread {
+  id: string;
+  content: string;
+  author: string;
+  created_at: string;
+  replies: Comment[];
+}
+
+export interface ThesisVersion {
+  id: string;
+  version_number: number;
+  created_at: string;
+  description?: string;
+}
+
+export interface ThesisComment {
+  id: string;
+  content: string;
+  author: string;
+  created_at: string;
+}
+
+// Section types as const enum
+export const SectionTypes = {
+  Introduction: 'introduction',
+  LiteratureReview: 'literature-review',
+  Methodology: 'methodology',
+  Results: 'results',
+  Discussion: 'discussion',
+  Conclusion: 'conclusion',
+  Custom: 'custom'
+} as const;
+
+export type ThesisSectionType = typeof SectionTypes[keyof typeof SectionTypes];
+
+// Main interfaces
 export interface Section {
   id: string;
   title: string;
@@ -90,8 +116,12 @@ export interface Section {
 export interface Chapter {
   id: string;
   title: string;
+  content: string;
   sections: Section[];
-  part: number;  // Added this property
+  part: number;
+  figures: Figure[];
+  tables: Table[];
+  footnotes: Footnote[];
 }
 
 export interface ThesisMetadata {
@@ -100,19 +130,22 @@ export interface ThesisMetadata {
   authorName: string;
   thesisDate: string;
   committeeMembers: string[];
+  description?: string;
+  keywords?: string[];
 }
 
 export interface Thesis {
   id: string;
+  title: string;
+  content: {
+    generalIntroduction: string;
+    metadata: ThesisMetadata;
+  };
   metadata: ThesisMetadata;
   frontMatter: Section[];
   chapters: Chapter[];
   backMatter: Section[];
+  user_id: string;
+  created_at: string;
+  updated_at: string;
 }
-
-export const SectionTypes = {
-  Introduction: 'introduction',
-  Conclusion: 'conclusion'
-} as const;
-
-export type ThesisSectionType = typeof SectionTypes[keyof typeof SectionTypes];
