@@ -6,7 +6,7 @@ import {
   CheckSquare, GraduationCap, Library, Beaker, PieChart,
   ScrollText, Lightbulb, Target, List, GitBranch, Search,
   BookMarked, BookCopy, Compass, Database, LineChart, Brain,
-  Presentation, ArrowRight, Plus
+  Presentation, ArrowRight, Plus, FolderOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -58,8 +58,7 @@ export const MainContentSections: React.FC<MainContentProps> = ({
         { type: 'main-theories', label: 'Main Theories', icon: Brain },
         { type: 'key-concepts', label: 'Key Concepts', icon: Lightbulb },
         { type: 'state-of-art', label: 'State of Art', icon: Compass },
-        { type: 'critical-synthesis', label: 'Critical Synthesis', icon: MessageSquare },
-        { type: 'conceptual-framework', label: 'Conceptual Framework', icon: GitBranch }
+        { type: 'critical-synthesis', label: 'Critical Synthesis', icon: MessageSquare }
       ]
     },
     {
@@ -93,6 +92,13 @@ export const MainContentSections: React.FC<MainContentProps> = ({
       icon: Presentation,
       types: [
         { type: 'conclusion', label: 'General Conclusion', icon: Presentation }
+      ]
+    },
+    {
+      title: "Appendices",
+      icon: FolderOpen,
+      types: [
+        { type: 'appendix', label: 'Appendix', icon: FolderOpen }
       ]
     }
   ];
@@ -145,7 +151,7 @@ export const MainContentSections: React.FC<MainContentProps> = ({
 
   return (
     <div className="space-y-6">
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="sync">
         {mainContentGroups.map((group) => (
           <motion.div
             key={group.title}
@@ -162,7 +168,7 @@ export const MainContentSections: React.FC<MainContentProps> = ({
             </div>
             
             <div className="space-y-1">
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="sync">
                 {sections
                   .filter(section => 
                     group.types.some(type => type.type === section.type)
