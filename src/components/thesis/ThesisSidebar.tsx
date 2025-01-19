@@ -13,14 +13,10 @@ import {
   Heart,
   ChevronRight,
   ChevronLeft,
-  GraduationCap
+  GraduationCap,
+  BookText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 
 export const ThesisSidebar = () => {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
@@ -38,6 +34,10 @@ export const ThesisSidebar = () => {
     { icon: Quote, label: 'Statement', path: '/statement' },
     { icon: PenTool, label: 'Preface', path: '/preface' },
     { icon: Heart, label: 'Acknowledgments', path: '/acknowledgments' },
+  ];
+
+  const mainContentItems = [
+    { icon: BookText, label: 'Chapters', path: '/chapters' },
   ];
 
   return (
@@ -83,6 +83,28 @@ export const ThesisSidebar = () => {
             )}
             
             {frontMatterItems.map((item) => (
+              <Button
+                key={item.path}
+                variant="ghost"
+                className={cn(
+                  "justify-start gap-2",
+                  isCollapsed && "justify-center"
+                )}
+                onClick={() => navigate(item.path)}
+              >
+                <item.icon className="h-5 w-5" />
+                {!isCollapsed && <span>{item.label}</span>}
+              </Button>
+            ))}
+
+            {/* Main Content Section */}
+            {!isCollapsed && (
+              <div className="mt-4 px-2">
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">Main Content</h4>
+              </div>
+            )}
+            
+            {mainContentItems.map((item) => (
               <Button
                 key={item.path}
                 variant="ghost"
