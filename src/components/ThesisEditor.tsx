@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
-import { Chapter, Thesis } from '@/types/thesis';
+import { Chapter, Section, Thesis, ThesisSectionType } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
 import { useParams } from 'react-router-dom';
@@ -95,6 +95,32 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     }));
   };
 
+  const handleAddSection = (type: ThesisSectionType) => {
+    if (!thesis) return;
+    
+    const newSection: Section = {
+      id: Date.now().toString(),
+      title: `New ${type}`,
+      content: '',
+      type: type,
+      order: thesis.frontMatter.length + 1,
+      figures: [],
+      tables: [],
+      citations: [],
+      references: []
+    };
+
+    setThesis(prev => ({
+      ...prev!,
+      frontMatter: [...prev!.frontMatter, newSection]
+    }));
+
+    toast({
+      title: "Section Added",
+      description: `New ${type} section has been created`,
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background p-8">
@@ -148,6 +174,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
         ]}
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
+        onAddSection={handleAddSection}
       />
       
       <div className="flex-1 flex flex-col">
