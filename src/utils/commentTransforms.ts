@@ -1,16 +1,11 @@
-import { ThesisComment } from '@/types/thesis';
+import { Comment, ThesisComment } from '@/types/components';
 
-export const transformComment = (rawComment: any): ThesisComment => {
+export const transformComment = (comment: ThesisComment): Comment => {
   return {
-    id: rawComment.id,
-    content: typeof rawComment.content === 'string' ? rawComment.content : rawComment.content?.text || '',
-    reviewer_id: rawComment.reviewer_id,
-    status: (rawComment.status === 'pending' || rawComment.status === 'resolved') 
-      ? rawComment.status 
-      : 'pending',
-    created_at: rawComment.created_at,
-    updated_at: rawComment.updated_at,
-    section_id: rawComment.section_id,
-    parent_id: rawComment.parent_id
+    id: comment.id,
+    content: typeof comment.content === 'string' ? comment.content : comment.content.text,
+    author: comment.author,
+    created_at: comment.created_at,
+    reviewer_id: comment.reviewer_id
   };
 };

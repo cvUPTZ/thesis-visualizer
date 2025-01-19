@@ -103,7 +103,7 @@ export const MainContentSections: React.FC<MainContentProps> = ({
       title: "Conclusion",
       icon: Presentation,
       types: [
-        { type: 'conclusion', label: 'Conclusion', icon: Presentation }
+        { type: 'conclusion', label: 'General Conclusion', icon: Presentation }
       ]
     }
   ];
