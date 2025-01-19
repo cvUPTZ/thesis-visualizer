@@ -1,7 +1,7 @@
 import React from 'react';
 import { Section, Chapter } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, BookOpen, FileText, FlaskConical, LineChart, BookmarkPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChapterCreationDialog } from '@/components/editor/chapters/ChapterCreationDialog';
 import { SectionTypes } from '@/types/thesis';
@@ -26,18 +26,10 @@ export const MainContentSections: React.FC<MainContentProps> = ({
   const [showChapterDialog, setShowChapterDialog] = React.useState(false);
   const [selectedPart, setSelectedPart] = React.useState<number>(0);
 
-  console.log('Rendering MainContentSections with:', { 
-    sectionsCount: sections.length,
-    chaptersCount: chapters.length,
-    activeSection 
-  });
-
-  // Find introduction and conclusion sections
   const introSection = sections.find(s => s.type === SectionTypes.introduction);
   const conclusionSection = sections.find(s => s.type === SectionTypes.conclusion);
 
   const handleCreateChapter = (chapter: Chapter) => {
-    console.log('Creating chapter with part:', selectedPart);
     if (onAddChapter) {
       const newChapter = {
         ...chapter,
@@ -53,18 +45,21 @@ export const MainContentSections: React.FC<MainContentProps> = ({
     setShowChapterDialog(true);
   };
 
-  const renderChapterSection = (title: string, partNumber: number, description: string) => (
-    <div className="space-y-2 border-l-2 border-muted pl-4 py-2">
+  const renderChapterSection = (title: string, partNumber: number, description: string, icon: React.ReactNode) => (
+    <div className="space-y-2 border-l-2 border-primary/10 pl-4 py-3 hover:border-primary/30 transition-colors">
       <div className="flex items-center justify-between">
-        <div>
-          <h4 className="text-sm font-medium text-foreground">{title}</h4>
-          <p className="text-xs text-muted-foreground">{description}</p>
+        <div className="flex items-center gap-2">
+          {icon}
+          <div>
+            <h4 className="text-sm font-medium text-foreground">{title}</h4>
+            <p className="text-xs text-muted-foreground">{description}</p>
+          </div>
         </div>
         {onAddChapter && (
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 hover:bg-primary/5"
             onClick={() => handleAddChapter(partNumber)}
           >
             <Plus className="h-4 w-4" />
@@ -72,7 +67,7 @@ export const MainContentSections: React.FC<MainContentProps> = ({
           </Button>
         )}
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1 mt-2">
         {chapters
           .filter(chapter => chapter.part === partNumber)
           .map(chapter => (
@@ -80,10 +75,12 @@ export const MainContentSections: React.FC<MainContentProps> = ({
               key={chapter.id}
               onClick={() => onSectionSelect(chapter.id)}
               className={cn(
-                "flex w-full items-center rounded-md px-2 py-1.5 text-sm hover:bg-accent",
-                activeSection === chapter.id && "bg-accent text-accent-foreground font-medium"
+                "flex w-full items-center rounded-md px-3 py-1.5 text-sm transition-colors",
+                "hover:bg-primary/5",
+                activeSection === chapter.id && "bg-primary/10 text-primary font-medium"
               )}
             >
+              <BookmarkPlus className="mr-2 h-4 w-4 opacity-70" />
               {chapter.title}
             </button>
           ))}
@@ -93,18 +90,21 @@ export const MainContentSections: React.FC<MainContentProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="px-2">
-        <h3 className="mb-4 text-sm font-semibold">Main Content</h3>
+      <div className="px-3">
+        <h3 className="mb-4 text-sm font-semibold text-primary">Main Content</h3>
         
-        {/* Introduction Section */}
-        <div className="mb-6 space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground">Introduction</h4>
+        <div className="mb-6 space-y-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+            <FileText className="h-4 w-4" />
+            Introduction
+          </div>
           {introSection ? (
             <button
               onClick={() => introSection && onSectionSelect(introSection.id)}
               className={cn(
-                "flex w-full items-center rounded-md px-2 py-1.5 text-sm hover:bg-accent",
-                introSection && activeSection === introSection.id && "bg-accent text-accent-foreground font-medium"
+                "flex w-full items-center rounded-md px-3 py-1.5 text-sm transition-colors",
+                "hover:bg-primary/5",
+                introSection && activeSection === introSection.id && "bg-primary/10 text-primary font-medium"
               )}
             >
               {introSection.title}
@@ -112,7 +112,7 @@ export const MainContentSections: React.FC<MainContentProps> = ({
           ) : (
             <Button
               variant="ghost"
-              className="w-full justify-start text-muted-foreground hover:text-foreground"
+              className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-primary/5"
               onClick={() => onAddSection?.(SectionTypes.introduction)}
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -121,36 +121,39 @@ export const MainContentSections: React.FC<MainContentProps> = ({
           )}
         </div>
 
-        {/* Literature Review Part */}
         {renderChapterSection(
           "Literature Review",
           1,
-          "Theoretical framework and state of the art"
+          "Theoretical framework and state of the art",
+          <BookOpen className="h-4 w-4 text-primary/70" />
         )}
         
-        {/* Methodology Part */}
         {renderChapterSection(
           "Methodology",
           2,
-          "Research design and data collection"
+          "Research design and data collection",
+          <FlaskConical className="h-4 w-4 text-primary/70" />
         )}
         
-        {/* Results and Discussion Part */}
         {renderChapterSection(
           "Results & Discussion",
           3,
-          "Findings analysis and interpretation"
+          "Findings analysis and interpretation",
+          <LineChart className="h-4 w-4 text-primary/70" />
         )}
 
-        {/* Conclusion Section */}
-        <div className="mt-6 space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground">Conclusion</h4>
+        <div className="mt-6 space-y-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+            <FileText className="h-4 w-4" />
+            Conclusion
+          </div>
           {conclusionSection ? (
             <button
               onClick={() => conclusionSection && onSectionSelect(conclusionSection.id)}
               className={cn(
-                "flex w-full items-center rounded-md px-2 py-1.5 text-sm hover:bg-accent",
-                conclusionSection && activeSection === conclusionSection.id && "bg-accent text-accent-foreground font-medium"
+                "flex w-full items-center rounded-md px-3 py-1.5 text-sm transition-colors",
+                "hover:bg-primary/5",
+                conclusionSection && activeSection === conclusionSection.id && "bg-primary/10 text-primary font-medium"
               )}
             >
               {conclusionSection.title}
@@ -158,7 +161,7 @@ export const MainContentSections: React.FC<MainContentProps> = ({
           ) : (
             <Button
               variant="ghost"
-              className="w-full justify-start text-muted-foreground hover:text-foreground"
+              className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-primary/5"
               onClick={() => onAddSection?.(SectionTypes.conclusion)}
             >
               <Plus className="mr-2 h-4 w-4" />
