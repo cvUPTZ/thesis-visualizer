@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, ChevronRight, FileText, BookOpen, Image, Table } from 'lucide-react';
+import { ChevronDown, ChevronRight, BookOpen, Image, Table } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Section } from '@/types/thesis';
 import {
@@ -27,13 +27,77 @@ export const TableOfContents = ({
     ['title', 'abstract', 'acknowledgments'].includes(section.type || '')
   );
   
+  const defaultSections: Section[] = [
+    { 
+      id: 'introduction', 
+      title: 'Introduction', 
+      type: 'introduction',
+      content: '',
+      order: 1,
+      figures: [],
+      tables: [],
+      citations: [],
+      references: []
+    },
+    { 
+      id: 'literature-review', 
+      title: 'Literature Review', 
+      type: 'literature-review',
+      content: '',
+      order: 2,
+      figures: [],
+      tables: [],
+      citations: [],
+      references: []
+    },
+    { 
+      id: 'methodology', 
+      title: 'Methodology', 
+      type: 'methodology',
+      content: '',
+      order: 3,
+      figures: [],
+      tables: [],
+      citations: [],
+      references: []
+    },
+    { 
+      id: 'results', 
+      title: 'Results', 
+      type: 'results',
+      content: '',
+      order: 4,
+      figures: [],
+      tables: [],
+      citations: [],
+      references: []
+    },
+    { 
+      id: 'discussion', 
+      title: 'Discussion', 
+      type: 'discussion',
+      content: '',
+      order: 5,
+      figures: [],
+      tables: [],
+      citations: [],
+      references: []
+    },
+    { 
+      id: 'conclusion', 
+      title: 'Conclusion', 
+      type: 'conclusion',
+      content: '',
+      order: 6,
+      figures: [],
+      tables: [],
+      citations: [],
+      references: []
+    }
+  ];
+
   const mainContentSections = [
-    { id: 'introduction', title: 'Introduction', type: 'introduction' },
-    { id: 'literature-review', title: 'Literature Review', type: 'literature-review' },
-    { id: 'methodology', title: 'Methodology', type: 'methodology' },
-    { id: 'results', title: 'Results', type: 'results' },
-    { id: 'discussion', title: 'Discussion', type: 'discussion' },
-    { id: 'conclusion', title: 'Conclusion', type: 'conclusion' },
+    ...defaultSections,
     ...sections.filter(section =>
       !['title', 'abstract', 'acknowledgments', 'references', 'appendix'].includes(section.type || '')
     )
@@ -43,7 +107,6 @@ export const TableOfContents = ({
     ['references', 'appendix'].includes(section.type || '')
   );
 
-  // Extract figures and tables from all sections
   const allFigures = sections.flatMap(section => 
     section.figures?.map(figure => ({
       id: figure.id,
