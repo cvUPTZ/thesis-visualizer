@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo, useReducer } from 'react';
 import { Chapter, Section, ThesisSectionType } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { BookOpen, PlusCircle, Trash2 } from 'lucide-react';
@@ -16,13 +16,71 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface ChapterManagerProps {
-  chapters: Chapter[];
-  onUpdateChapter: (chapter: Chapter) => void;
-  onAddChapter: (chapter: Chapter) => void;
-  onRemoveChapter?: (chapterId: string) => void;
-  hasGeneralIntroduction?: boolean;
+interface ChapterManagerState {
+  openChapters: string[];
+  showCreateDialog: boolean;
+  chaptersToDelete: string[];
+  isDeleting: boolean;
+  isCreating: boolean;
 }
+
+type ChapterManagerAction = 
+  | { type: 'TOGGLE_CHAPTER'; payload: string }
+  | { type: 'SET_CREATE_DIALOG'; payload: boolean }
+  | { type: 'TOGGLE_CHAPTER_SELECTION'; payload: string }
+  | { type: 'CLEAR_SELECTION' }
+  | { type: 'SET_DELETING'; payload: boolean }
+  | { type: 'SET_CREATING'; payload: boolean };
+
+const initialState: ChapterManagerState = {
+  openChapters: [],
+  showCreateDialog: false,
+  chaptersToDelete: [],
+  isDeleting: false,
+  isCreating: false,
+};
+
+function chapterManagerReducer(state: ChapterManagerState, action: ChapterManagerAction): ChapterManagerState {
+  switch (action.type) {
+    case 'TOGGLE_CHAPTER':
+      return {
+        ...state,
+        openChapters: state.openChapters.includes(action.payload)
+          ? state.openChapters.filter(id => id !== action.payload)
+          : [...state.openChapters, action.payload]
+      };
+    case 'SET_CREATE_DIALOG':
+      return { ...state, showCreateDialog: action.payload };
+    case 'TOGGLE_CHAPTER_SELECTION':
+      return {
+        ...state,
+        chaptersToDelete: state.chaptersToDelete.includes(action.payload)
+          ? state.chaptersToDelete.filter(id => id !== action.payload)
+          : [...state.chaptersToDelete, action.payload]
+      };
+    case 'CLEAR_SELECTION':
+      return { ...state, chaptersToDelete: [] };
+    case 'SET_DELETING':
+      return { ...state, isDeleting: action.payload };
+    case 'SET_CREATING':
+      return { ...state, isCreating: action.payload };
+    default:
+      return state;
+  }
+}
+
+const createIntroductionSection = (): Section => ({
+  id: Date.now().toString(),
+  title: "Chapter Introduction",
+  content: "",
+  type: ThesisSectionType.Introduction,
+  order: 0,
+  required: true,
+  figures: [],
+  tables: [],
+  citations: [],
+  references: []
+});
 
 export const ChapterManager: React.FC<ChapterManagerProps> = ({
   chapters,
@@ -31,28 +89,23 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
   onRemoveChapter,
   hasGeneralIntroduction = false
 }) => {
-  const [openChapters, setOpenChapters] = React.useState<string[]>([]);
-  const [showCreateDialog, setShowCreateDialog] = React.useState(false);
-  const [chaptersToDelete, setChaptersToDelete] = React.useState<string[]>([]);
+  const [state, dispatch] = useReducer(chapterManagerReducer, initialState);
   const { toast } = useToast();
 
-  const toggleChapter = (chapterId: string) => {
-    setOpenChapters(prev => 
-      prev.includes(chapterId) 
-        ? prev.filter(id => id !== chapterId)
-        : [...prev, chapterId]
-    );
-  };
+  const chapterNumbers = useMemo(() => 
+    Object.fromEntries(chapters.map((chapter, index) => [chapter.id, index + 1])),
+    [chapters]
+  );
 
-  const toggleChapterSelection = (chapterId: string) => {
-    setChaptersToDelete(prev =>
-      prev.includes(chapterId)
-        ? prev.filter(id => id !== chapterId)
-        : [...prev, chapterId]
-    );
-  };
+  const toggleChapter = useCallback((chapterId: string) => {
+    dispatch({ type: 'TOGGLE_CHAPTER', payload: chapterId });
+  }, []);
 
-  const handleCreateChapter = (chapter: Chapter) => {
+  const toggleChapterSelection = useCallback((chapterId: string) => {
+    dispatch({ type: 'TOGGLE_CHAPTER_SELECTION', payload: chapterId });
+  }, []);
+
+  const handleCreateChapter = useCallback(async (chapter: Chapter) => {
     if (!hasGeneralIntroduction) {
       toast({
         title: "General Introduction Required",
@@ -62,48 +115,57 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
       return;
     }
 
-    const introSection: Section = {
-      id: Date.now().toString(),
-      title: "Chapter Introduction",
-      content: "",
-      type: "introduction" as ThesisSectionType,
-      order: 0,
-      required: true,
-      figures: [],
-      tables: [],
-      citations: [],
-      references: []
-    };
-
-    const chapterWithIntro: Chapter = {
-      ...chapter,
-      sections: [introSection, ...chapter.sections]
-    };
-
-    console.log('Handling chapter creation:', chapterWithIntro);
-    onAddChapter(chapterWithIntro);
-    toast({
-      title: "Chapter Added",
-      description: "New chapter has been created successfully",
-    });
-  };
-
-  const handleDeleteChapters = () => {
-    if (onRemoveChapter && chaptersToDelete.length > 0) {
-      console.log('Deleting chapters:', chaptersToDelete);
-      chaptersToDelete.forEach(chapterId => {
-        onRemoveChapter(chapterId);
+    try {
+      dispatch({ type: 'SET_CREATING', payload: true });
+      const chapterWithIntro: Chapter = {
+        ...chapter,
+        sections: [createIntroductionSection(), ...chapter.sections]
+      };
+      
+      await onAddChapter(chapterWithIntro);
+      toast({
+        title: "Chapter Added",
+        description: "New chapter has been created successfully",
       });
-      setChaptersToDelete([]);
+    } catch (error) {
+      toast({
+        title: "Error Creating Chapter",
+        description: "Failed to create new chapter. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      dispatch({ type: 'SET_CREATING', payload: false });
+      dispatch({ type: 'SET_CREATE_DIALOG', payload: false });
+    }
+  }, [hasGeneralIntroduction, onAddChapter, toast]);
+
+  const handleDeleteChapters = useCallback(async () => {
+    if (!onRemoveChapter || state.chaptersToDelete.length === 0) return;
+
+    try {
+      dispatch({ type: 'SET_DELETING', payload: true });
+      await Promise.all(
+        state.chaptersToDelete.map(chapterId => onRemoveChapter(chapterId))
+      );
       toast({
         title: "Chapters Deleted",
-        description: `${chaptersToDelete.length} chapter(s) have been removed successfully`,
+        description: `${state.chaptersToDelete.length} chapter(s) have been removed successfully`,
       });
+      dispatch({ type: 'CLEAR_SELECTION' });
+    } catch (error) {
+      toast({
+        title: "Error Deleting Chapters",
+        description: "Failed to delete one or more chapters. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      dispatch({ type: 'SET_DELETING', payload: false });
     }
-  };
+  }, [onRemoveChapter, state.chaptersToDelete, toast]);
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Header section */}
       <div className="flex justify-between items-center bg-editor-bg p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/10 rounded-full">
@@ -117,82 +179,74 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
               Please add a general introduction before creating chapters
             </p>
           )}
-          {chaptersToDelete.length > 0 && (
+          {state.chaptersToDelete.length > 0 && (
             <Button 
-              onClick={() => setChaptersToDelete([])}
+              onClick={() => dispatch({ type: 'CLEAR_SELECTION' })}
               variant="ghost"
               className="text-muted-foreground"
             >
-              Clear Selection ({chaptersToDelete.length})
+              Clear Selection ({state.chaptersToDelete.length})
             </Button>
           )}
           <Button 
-            onClick={() => setShowCreateDialog(true)} 
+            onClick={() => dispatch({ type: 'SET_CREATE_DIALOG', payload: true })}
             className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white transition-colors duration-200 px-6 py-2 rounded-lg shadow-sm hover:shadow-md"
-            disabled={!hasGeneralIntroduction}
+            disabled={!hasGeneralIntroduction || state.isCreating}
           >
             <PlusCircle className="w-5 h-5" />
-            Add Chapter
+            {state.isCreating ? 'Creating...' : 'Add Chapter'}
           </Button>
         </div>
       </div>
 
+      {/* Chapters list */}
       <div className="space-y-4">
         {chapters.map((chapter) => (
           <ChapterItem
             key={chapter.id}
             chapter={chapter}
-            chapterNumber={chapters.findIndex(c => c.id === chapter.id) + 1}
-            isOpen={openChapters.includes(chapter.id)}
+            chapterNumber={chapterNumbers[chapter.id]}
+            isOpen={state.openChapters.includes(chapter.id)}
             onToggle={() => toggleChapter(chapter.id)}
             onUpdateChapter={onUpdateChapter}
-            isSelected={chaptersToDelete.includes(chapter.id)}
+            isSelected={state.chaptersToDelete.includes(chapter.id)}
             onSelect={() => toggleChapterSelection(chapter.id)}
           />
         ))}
       </div>
 
-      {chaptersToDelete.length > 0 && (
+      {/* Delete action button */}
+      {state.chaptersToDelete.length > 0 && !state.isDeleting && (
         <div className="fixed bottom-4 right-4 bg-background border rounded-lg shadow-lg p-4 animate-slide-in-right">
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium">
-              {chaptersToDelete.length} chapter(s) selected
-            </span>
-            <Button
-              onClick={() => handleDeleteChapters()}
-              variant="destructive"
-              className="flex items-center gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              Delete Selected
-            </Button>
-          </div>
+          <Button
+            onClick={() => handleDeleteChapters()}
+            variant="destructive"
+            className="flex items-center gap-2"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete {state.chaptersToDelete.length} Selected
+          </Button>
         </div>
       )}
 
+      {/* Dialogs */}
       <ChapterCreationDialog
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
+        open={state.showCreateDialog}
+        onOpenChange={(open) => dispatch({ type: 'SET_CREATE_DIALOG', payload: open })}
         onChapterCreate={handleCreateChapter}
       />
 
-      <AlertDialog open={chaptersToDelete.length > 0} onOpenChange={(open) => !open && setChaptersToDelete([])}>
+      <AlertDialog 
+        open={state.isDeleting} 
+        onOpenChange={(open) => !open && dispatch({ type: 'SET_DELETING', payload: false })}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Deleting Chapters</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete {chaptersToDelete.length} chapter(s) and all their contents.
+              Removing {state.chaptersToDelete.length} chapter(s)...
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteChapters}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
