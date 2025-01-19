@@ -40,7 +40,7 @@ const ChapterEditor = () => {
 
         console.log('Thesis content:', content);
 
-        if (!content || !Array.isArray(content.chapters)) {
+        if (!content?.chapters || !Array.isArray(content.chapters)) {
           console.error('Invalid thesis content structure');
           throw new Error('Invalid thesis structure');
         }

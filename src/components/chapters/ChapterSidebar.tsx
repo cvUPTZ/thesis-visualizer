@@ -2,7 +2,6 @@ import React from 'react';
 import { Chapter } from '@/types/thesis';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChapterManager } from '@/components/ChapterManager';
-import { cn } from '@/lib/utils';
 
 interface ChapterSidebarProps {
   chapters: Chapter[];
