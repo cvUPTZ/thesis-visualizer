@@ -1,3 +1,4 @@
+import { ThesisSectionType } from '@/types/thesis';
 import { 
   BookOpen, 
   ListOrdered, 
@@ -16,7 +17,6 @@ import {
   ClipboardCheck,
   BookCheck
 } from 'lucide-react';
-import { ThesisSectionType } from '@/types/thesis';
 
 export interface SectionTypeConfig {
   label: string;

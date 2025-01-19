@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Profile } from '@/types/profile';
-import { CommentThread } from '@/types/thesis';
+import { CommentThread, Comment } from '@/types/thesis';
 import { CommentList } from './CommentList';
 import { CommentInput } from './CommentInput';
 import { transformComment } from '@/utils/commentTransforms';
@@ -37,17 +37,17 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
           .eq('section_id', sectionId)
           .order('created_at', { ascending: true });
 
-        if (commentsError) {
-          console.error('Error fetching comments:', commentsError);
-          throw commentsError;
-        }
+        if (commentsError) throw commentsError;
 
         console.log('Fetched comments:', commentsData);
         
-        // Transform the flat comments into a thread structure
-        const threadMap = new Map<string | null, CommentThread['comment'][]>();
+        const threadMap = new Map<string | null, Comment[]>();
         commentsData.forEach((comment: any) => {
-          const transformedComment = transformComment(comment);
+          const transformedComment = {
+            ...comment,
+            content: typeof comment.content === 'string' ? comment.content : comment.content.text,
+            profiles: comment.profiles
+          };
           const parentId = comment.parent_id || null;
           if (!threadMap.has(parentId)) {
             threadMap.set(parentId, []);
@@ -55,13 +55,12 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
           threadMap.get(parentId)?.push(transformedComment);
         });
 
-        // Create thread objects
         const threads: CommentThread[] = (threadMap.get(null) || []).map(comment => ({
           comment,
           replies: threadMap.get(comment.id) || [],
           id: comment.id,
-          content: comment.content.text,
-          author: comment.profiles.email,
+          content: typeof comment.content === 'string' ? comment.content : comment.content.text,
+          author: comment.profiles?.email || 'Unknown',
           created_at: comment.created_at
         }));
 
@@ -78,12 +77,8 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
           .eq('id', (await supabase.auth.getUser()).data.user?.id)
           .single();
 
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-          throw profileError;
-        }
+        if (profileError) throw profileError;
 
-        console.log('Fetched profile:', profileData);
         setProfile(profileData);
       } catch (error) {
         console.error('Error in fetchComments:', error);
@@ -102,7 +97,6 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
 
   const handleSubmitComment = async (content: string) => {
     try {
-      console.log('Submitting new comment');
       const { data, error } = await supabase
         .from('thesis_reviews')
         .insert([
@@ -127,14 +121,15 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
 
       if (error) throw error;
 
-      console.log('New comment submitted:', data);
-      
-      // Add the new comment as a new thread
       const newThread: CommentThread = {
-        comment: transformComment(data),
+        comment: {
+          ...data,
+          content: { text: content },
+          profiles: data.profiles
+        },
         replies: [],
         id: data.id,
-        content: data.content.text,
+        content: content,
         author: profile?.email || 'Unknown',
         created_at: data.created_at
       };
