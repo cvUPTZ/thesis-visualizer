@@ -211,6 +211,8 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
   }
 };
 
+// ... keep existing code
+
 export const getSectionsByGroup = (group: 'frontMatter' | 'mainContent' | 'backMatter'): SectionTypeConfig[] => {
   return Object.entries(sectionTypes)
     .filter(([_, config]) => config.group === group)
