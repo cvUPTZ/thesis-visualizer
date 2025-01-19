@@ -59,6 +59,7 @@ export const BackMatterSections: React.FC<BackMatterProps> = ({
     
     return (
       <Button
+        key={`add-${type}`}
         variant="ghost"
         size="sm"
         className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-primary/5 gap-2"
