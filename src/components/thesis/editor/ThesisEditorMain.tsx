@@ -36,7 +36,6 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
     <main className="flex-1 p-8 flex">
       <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
         <div className="max-w-4xl mx-auto space-y-6">
-          {/* General Introduction Section */}
           <Card className="p-6">
             <h2 className="text-2xl font-serif font-medium mb-4">General Introduction</h2>
             <p className="text-muted-foreground mb-4">
@@ -63,7 +62,6 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
             onTitleChange={onTitleChange}
             onUpdateChapter={onUpdateChapter}
             onAddChapter={onAddChapter}
-            thesisId={thesis?.id || ''}
           />
         </div>
       </div>
