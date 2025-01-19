@@ -12,8 +12,10 @@ import { InstitutionFields } from './form/InstitutionFields';
 import { AuthorFields } from './form/AuthorFields';
 import { CommitteeFields } from './form/CommitteeFields';
 import { ArrowLeft } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const ThesisCreationForm = () => {
+  const [referenceType, setReferenceType] = useState<'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other'>('article');
   const {
     values,
     errors,
@@ -54,7 +56,8 @@ export const ThesisCreationForm = () => {
 
       const metadata = {
         ...values,
-        keywords: values.keywords
+        keywords: values.keywords,
+        referenceType // Include the reference type in metadata
       };
       const result = await createThesis(metadata, session.user.id);
       if (result?.thesisId) {
@@ -123,6 +126,23 @@ export const ThesisCreationForm = () => {
               committeeMembers={values.committeeMembers}
               handleCommitteeMemberChange={handleCommitteeMemberChange}
             />
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Default Reference Type</label>
+              <Select value={referenceType} onValueChange={(value: any) => setReferenceType(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select reference type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="article">Article</SelectItem>
+                  <SelectItem value="book">Book</SelectItem>
+                  <SelectItem value="conference">Conference</SelectItem>
+                  <SelectItem value="thesis">Thesis</SelectItem>
+                  <SelectItem value="website">Website</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             
             <div className="flex gap-4">
               <Button 
