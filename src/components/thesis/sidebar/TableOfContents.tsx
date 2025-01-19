@@ -11,6 +11,18 @@ interface TableOfContentsProps {
   onAddSection?: (type: ThesisSectionType) => void;
 }
 
+// Helper function to determine if a section type can have multiple instances
+const canHaveMultipleInstances = (type: ThesisSectionType): boolean => {
+  const singleInstanceTypes = [
+    'title',
+    'abstract',
+    'table-of-contents',
+    'general-introduction',
+    'conclusion'
+  ];
+  return !singleInstanceTypes.includes(type);
+};
+
 export const TableOfContents: React.FC<TableOfContentsProps> = ({
   sections,
   activeSection,
@@ -37,6 +49,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
   const renderSectionItem = (section: Section) => {
     const isExpanded = expandedSections.includes(section.id);
     const isActive = section.id === activeSection;
+    const showAddButton = canHaveMultipleInstances(section.type);
 
     return (
       <div key={section.id} className="space-y-1">
@@ -60,14 +73,16 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
           >
             {section.title}
           </button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={() => handleAddSection(section.type)}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          {showAddButton && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => handleAddSection(section.type)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -84,12 +99,31 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     ['conclusion', 'bibliography', 'appendix'].includes(s.type)
   );
 
+  // Add a special section for Chapters
+  const chaptersSection = (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between px-2">
+        <h3 className="font-medium text-sm">Chapters</h3>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={() => handleAddSection('chapter' as ThesisSectionType)}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
         <h3 className="font-medium text-sm px-2">Front Matter</h3>
         {frontMatterSections.map(renderSectionItem)}
       </div>
+      
+      {chaptersSection}
       
       <div className="space-y-2">
         <h3 className="font-medium text-sm px-2">Main Content</h3>
