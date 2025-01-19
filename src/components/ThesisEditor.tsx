@@ -2,10 +2,7 @@ import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
 import { Chapter, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
-import { useThesisInitialization } from '@/hooks/useThesisInitialization';
 import { useParams } from 'react-router-dom';
-import { ThesisCreationModal } from './thesis/ThesisCreationModal';
-import { ThesisList } from './thesis/ThesisList';
 import { useThesisData } from '@/hooks/useThesisData';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -35,10 +32,11 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   const previewRef = useRef<HTMLDivElement>(null);
 
   useThesisAutosave(currentThesisId, thesis);
+  useThesisRealtime(currentThesisId, thesis, setThesis);
 
   const handleUpdateChapter = async (chapter: Chapter): Promise<void> => {
-    console.log('Updating chapter:', chapter);
     if (!thesis) return;
+    console.log('Updating chapter:', chapter);
     
     const updatedChapters = thesis.chapters.map(ch => 
       ch.id === chapter.id ? chapter : ch
@@ -51,8 +49,8 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   };
 
   const handleAddChapter = async (chapter: Chapter): Promise<void> => {
-    console.log('Adding chapter:', chapter);
     if (!thesis) return;
+    console.log('Adding chapter:', chapter);
     
     setThesis({
       ...thesis,
@@ -72,25 +70,37 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     );
   }
 
+  if (!thesis) {
+    return (
+      <div className="p-4">
+        <p className="text-red-500">No thesis found</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen overflow-hidden">
-      <ThesisSidebar />
+      <ThesisSidebar 
+        sections={[...thesis.frontMatter, ...thesis.chapters, ...thesis.backMatter]}
+        activeSection={activeSection}
+        onSectionSelect={setActiveSection}
+      />
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <ThesisEditorHeader 
           thesis={thesis}
           showPreview={showPreview}
-          setShowPreview={setShowPreview}
+          onTogglePreview={() => setShowPreview(!showPreview)}
         />
         
         <div className="flex-1 flex overflow-hidden">
           <ThesisEditorMain
             thesis={thesis}
-            setThesis={setThesis}
             activeSection={activeSection}
-            setActiveSection={setActiveSection}
             onUpdateChapter={handleUpdateChapter}
             onAddChapter={handleAddChapter}
+            showPreview={showPreview}
+            previewRef={previewRef}
           />
           
           <div className="w-80 border-l flex flex-col">
@@ -102,7 +112,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                {thesis && <ChatMessages thesisId={thesis.id} />}
+                <ChatMessages thesisId={thesis.id} />
               </CollapsibleContent>
             </Collapsible>
             
@@ -114,7 +124,13 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                {thesis && <ThesisEditorStatus thesis={thesis} />}
+                <ThesisEditorStatus 
+                  thesis={thesis}
+                  thesisId={thesis.id}
+                  progress={0}
+                  showTracker={showTracker}
+                  setShowTracker={setShowTracker}
+                />
               </CollapsibleContent>
             </Collapsible>
           </div>
