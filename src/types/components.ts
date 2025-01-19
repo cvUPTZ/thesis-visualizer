@@ -81,6 +81,7 @@ export interface ReferenceManagerProps extends BaseProps {
   onAdd: (reference: Reference) => void;
   onRemove: (id: string) => void;
   onUpdate: (reference: Reference) => void;
+  referenceStyle?: string;
 }
 
 export interface ManagerProps<T> extends BaseProps {

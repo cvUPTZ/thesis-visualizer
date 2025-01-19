@@ -20,7 +20,8 @@ export const ThesisCreationForm = () => {
     isSubmitting,
     handleChange,
     handleSubmit,
-    handleArrayChange
+    handleArrayChange,
+    setFieldValue
   } = useForm({
     initialValues: {
       title: '',
@@ -31,6 +32,7 @@ export const ThesisCreationForm = () => {
       authorName: '',
       thesisDate: '',
       committeeMembers: ['', '', ''],
+      referenceStyle: 'APA'
     },
     validate: (values) => {
       const err: any = {};
@@ -116,7 +118,11 @@ export const ThesisCreationForm = () => {
           )}
 
           <div className="space-y-6">
-            <BasicThesisFields values={values} handleChange={handleChange} />
+            <BasicThesisFields 
+              values={values} 
+              handleChange={handleChange}
+              setFieldValue={setFieldValue}
+            />
             <InstitutionFields values={values} handleChange={handleChange} />
             <AuthorFields values={values} handleChange={handleChange} />
             <CommitteeFields
