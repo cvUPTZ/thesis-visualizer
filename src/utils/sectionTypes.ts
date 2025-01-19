@@ -15,7 +15,18 @@ import {
   BookOpenCheck,
   ScrollText,
   ClipboardCheck,
-  BookCheck
+  BookCheck,
+  Database,
+  FileSearch,
+  Globe,
+  Tool,
+  ChartBar,
+  FileSpreadsheet,
+  Layers,
+  BookCopy,
+  FileQuestion,
+  FileCode,
+  FileJson
 } from 'lucide-react';
 
 export interface SectionTypeConfig {
@@ -145,6 +156,97 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
     description: 'Additional materials',
     group: 'backMatter',
     type: 'appendix'
+  },
+  'primary-sources': {
+    label: 'Primary Sources',
+    icon: Database,
+    description: 'Original research materials',
+    group: 'backMatter',
+    type: 'primary-sources'
+  },
+  'secondary-sources': {
+    label: 'Secondary Sources',
+    icon: FileSearch,
+    description: 'Supporting research materials',
+    group: 'backMatter',
+    type: 'secondary-sources'
+  },
+  'electronic-sources': {
+    label: 'Electronic Sources',
+    icon: Globe,
+    description: 'Digital and online references',
+    group: 'backMatter',
+    type: 'electronic-sources'
+  },
+  'collection-tools': {
+    label: 'Collection Tools',
+    icon: Tool,
+    description: 'Research tools and instruments',
+    group: 'backMatter',
+    type: 'collection-tools'
+  },
+  'raw-data': {
+    label: 'Raw Data',
+    icon: FileSpreadsheet,
+    description: 'Unprocessed research data',
+    group: 'backMatter',
+    type: 'raw-data'
+  },
+  'detailed-analysis': {
+    label: 'Detailed Analysis',
+    icon: ChartBar,
+    description: 'In-depth data analysis',
+    group: 'backMatter',
+    type: 'detailed-analysis'
+  },
+  'supporting-documents': {
+    label: 'Supporting Documents',
+    icon: FileCode,
+    description: 'Additional documentation',
+    group: 'backMatter',
+    type: 'supporting-documents'
+  },
+  'reference-tables': {
+    label: 'Reference Tables',
+    icon: Table,
+    description: 'Supplementary tables',
+    group: 'backMatter',
+    type: 'reference-tables'
+  },
+  'index': {
+    label: 'Index',
+    icon: FileJson,
+    description: 'Alphabetical index of terms',
+    group: 'backMatter',
+    type: 'index'
+  },
+  'glossary': {
+    label: 'Glossary',
+    icon: BookCopy,
+    description: 'Definition of terms',
+    group: 'backMatter',
+    type: 'glossary'
+  },
+  'detailed-toc': {
+    label: 'Detailed Table of Contents',
+    icon: Layers,
+    description: 'Expanded table of contents',
+    group: 'backMatter',
+    type: 'detailed-toc'
+  },
+  'chapter': {
+    label: 'Chapter',
+    icon: BookOpen,
+    description: 'Thesis chapter',
+    group: 'mainContent',
+    type: 'chapter'
+  },
+  'research-questions': {
+    label: 'Research Questions',
+    icon: FileQuestion,
+    description: 'Research questions and objectives',
+    group: 'mainContent',
+    type: 'research-questions'
   },
   'custom': {
     label: 'Custom Section',
