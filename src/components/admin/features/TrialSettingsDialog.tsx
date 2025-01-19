@@ -1,69 +1,59 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface TrialSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentTrialDays: number;
+  onSave: (days: number) => void;
 }
 
 export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
   open,
   onOpenChange,
   currentTrialDays,
+  onSave
 }) => {
-  const [trialDays, setTrialDays] = React.useState(currentTrialDays.toString());
-  const { toast } = useToast();
+  const [trialDays, setTrialDays] = React.useState(currentTrialDays);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Convert string to number for validation
-    const days = parseInt(trialDays, 10);
-    
-    if (isNaN(days) || days < 1) {
-      toast({
-        title: "Invalid Input",
-        description: "Please enter a valid number of days",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Close the dialog
+  const handleSave = () => {
+    onSave(trialDays);
     onOpenChange(false);
-    
-    toast({
-      title: "Success",
-      description: "Trial settings updated successfully",
-    });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Update Trial Settings</DialogTitle>
+          <DialogTitle>Trial Settings</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <label htmlFor="trialDays" className="text-sm font-medium">
-              Trial Period (Days)
-            </label>
+            <Label htmlFor="trialDays">Trial Period (days)</Label>
             <Input
               id="trialDays"
-              value={trialDays}
-              onChange={(e) => setTrialDays(e.target.value)}
               type="number"
-              min="1"
-              required
+              value={trialDays}
+              onChange={(e) => setTrialDays(parseInt(e.target.value))}
+              min={1}
             />
           </div>
-          <Button type="submit">Save Changes</Button>
-        </form>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave}>Save Changes</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -2,9 +2,13 @@ import React from 'react';
 import { ThesisEditorContent } from './ThesisEditorContent';
 import { ThesisEditorPreview } from './ThesisEditorPreview';
 import { Chapter, Section, Thesis } from '@/types/thesis';
-import { Button } from '@/components/ui/button';
-import { FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Button } from '@/components/ui/button';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
+
+const MIN_CHARS_FOR_CHAPTERS = 500; // Minimum characters required to enable chapter creation
 
 interface ThesisEditorMainProps {
   thesis: Thesis | null;
@@ -28,82 +32,88 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
   onAddChapter
 }) => {
   const { toast } = useToast();
-  const [showIntroEditor, setShowIntroEditor] = React.useState(false);
+  const [showIntroEditor, setShowIntroEditor] = React.useState(true);
   
-  // Check if general introduction exists and has content
-  const hasGeneralIntroduction = thesis?.frontMatter.some(
-    section => section.type === 'introduction' && section.content.trim().length > 0
-  );
-
-  const handleAddGeneralIntroduction = () => {
-    if (!thesis) return;
-
-    const newIntroduction: Section = {
-      id: Date.now().toString(),
-      title: "General Introduction",
-      content: "",
-      type: "introduction",
-      order: thesis.frontMatter.length,
-      required: true,
-      figures: [],
-      tables: [],
-      citations: [],
-      references: []
-    };
-
-    // Add the new introduction to frontMatter
-    const updatedFrontMatter = [...(thesis.frontMatter || []), newIntroduction];
-    
-    // Update the thesis with the new front matter
-    if (onContentChange) {
-      onContentChange(newIntroduction.id, "");
-    }
-    
-    setShowIntroEditor(true);
-    
-    toast({
-      title: "General Introduction Added",
-      description: "You can now start writing your general introduction",
-    });
+  // Find or create general introduction section
+  const introSection = thesis?.frontMatter.find(section => section.type === 'introduction') || {
+    id: Date.now().toString(),
+    title: "General Introduction",
+    content: "",
+    type: "introduction",
+    order: thesis?.frontMatter.length || 0,
+    required: true,
+    figures: [],
+    tables: [],
+    citations: [],
+    references: []
   };
+
+  const handleIntroContentChange = (content: string) => {
+    if (!thesis) return;
+    onContentChange(introSection.id, content);
+  };
+
+  // Check if introduction content is long enough to enable chapter creation
+  const hasEnoughContent = (introSection.content?.length || 0) >= MIN_CHARS_FOR_CHAPTERS;
+  
+  // Calculate remaining characters needed
+  const remainingChars = Math.max(0, MIN_CHARS_FOR_CHAPTERS - (introSection.content?.length || 0));
 
   return (
     <main className="flex-1 p-8 flex">
       <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
         <div className="max-w-4xl mx-auto space-y-6">
-          {!hasGeneralIntroduction && !showIntroEditor && (
-            <div className="bg-muted/50 p-6 rounded-lg shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <h3 className="text-lg font-medium">Start with a General Introduction</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Before adding chapters, you need to write a general introduction for your thesis.
-                  </p>
-                </div>
-                <Button
-                  onClick={handleAddGeneralIntroduction}
-                  className="flex items-center gap-2"
-                >
-                  <FileText className="w-4 h-4" />
-                  Add General Introduction
+          <Collapsible
+            open={showIntroEditor}
+            onOpenChange={setShowIntroEditor}
+            className="w-full bg-background rounded-lg shadow-sm"
+          >
+            <div className="p-4 flex items-center justify-between">
+              <h3 className="text-lg font-medium">General Introduction</h3>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  {showIntroEditor ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
                 </Button>
-              </div>
+              </CollapsibleTrigger>
             </div>
-          )}
+            
+            <CollapsibleContent className="p-4">
+              <div className="space-y-4">
+                <MarkdownEditor
+                  value={introSection.content}
+                  onChange={(value) => handleIntroContentChange(value || '')}
+                  placeholder="Start writing your general introduction..."
+                />
+                
+                {!hasEnoughContent && (
+                  <p className="text-sm text-muted-foreground">
+                    Write {remainingChars} more characters to enable chapter creation
+                  </p>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
           
-          <ThesisEditorContent
-            frontMatter={thesis?.frontMatter || []}
-            chapters={thesis?.chapters || []}
-            backMatter={thesis?.backMatter || []}
-            activeSection={activeSection}
-            onContentChange={onContentChange}
-            onTitleChange={onTitleChange}
-            onUpdateChapter={onUpdateChapter}
-            onAddChapter={onAddChapter}
-            hasGeneralIntroduction={hasGeneralIntroduction}
-          />
+          {hasEnoughContent && (
+            <ThesisEditorContent
+              frontMatter={thesis?.frontMatter || []}
+              chapters={thesis?.chapters || []}
+              backMatter={thesis?.backMatter || []}
+              activeSection={activeSection}
+              onContentChange={onContentChange}
+              onTitleChange={onTitleChange}
+              onUpdateChapter={onUpdateChapter}
+              onAddChapter={onAddChapter}
+              hasGeneralIntroduction={hasEnoughContent}
+            />
+          )}
         </div>
       </div>
+      
       {showPreview && thesis && (
         <div className="w-1/2 pl-8 border-l">
           <ThesisEditorPreview thesis={thesis} previewRef={previewRef} />

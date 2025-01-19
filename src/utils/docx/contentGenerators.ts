@@ -1,177 +1,168 @@
-import { 
-  Document, 
-  Paragraph, 
-  TextRun, 
-  HeadingLevel, 
-  AlignmentType, 
-  TableOfContents, 
-  StyleLevel,
-  convertInchesToTwip,
-  ImageRun,
-  IImageOptions
-} from 'docx';
-import { ContentGenerationOptions } from './types';
-import { defaultStyles, previewStyles } from './styleConfig';
-import { convertImageToBase64 } from './imageUtils';
+import { Document, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, AlignmentType, ImageRun } from 'docx';
+import { Chapter, Section, ThesisSectionType } from '@/types/thesis';
 
-export const generateTableOfContents = (): TableOfContents => {
-  return new TableOfContents("Table of Contents", {
-    hyperlink: true,
-    headingStyleRange: "1-5",
-    stylesWithLevels: [
-      {
-        level: 1,
-        styleName: "heading 1",
-      } as StyleLevel,
-      {
-        level: 2,
-        styleName: "heading 2",
-      } as StyleLevel,
-    ],
-  });
-};
+export const generateContent = async (
+  frontMatter: Section[],
+  chapters: Chapter[],
+  backMatter: Section[]
+) => {
+  const content: any[] = [];
 
-export const generateContent = async ({ thesis, isPreview = false }: ContentGenerationOptions): Promise<Paragraph[]> => {
-  const paragraphs: Paragraph[] = [];
-  const styles = isPreview ? previewStyles : defaultStyles;
-
-  // Front Matter (including General Introduction)
-  if (Array.isArray(thesis.frontMatter)) {
-    for (const section of thesis.frontMatter) {
-      // Special handling for General Introduction
-      if (section.type === 'introduction') {
-        paragraphs.push(
-          new Paragraph({
-            text: section.title,
-            heading: HeadingLevel.HEADING_1,
-            pageBreakBefore: true,
-            spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(1) },
-          })
-        );
-
-        if (section.content) {
-          paragraphs.push(
-            new Paragraph({
-              text: section.content,
-              style: 'Normal',
-              spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
-            })
-          );
+  // Generate front matter content
+  for (const section of frontMatter) {
+    content.push(
+      new Paragraph({
+        text: section.title,
+        heading: HeadingLevel.HEADING_1,
+        spacing: {
+          before: 400,
+          after: 200
         }
-        continue;
-      }
+      })
+    );
 
-      // Handle other front matter sections
-      paragraphs.push(
-        new Paragraph({
-          text: section.title,
-          heading: HeadingLevel.HEADING_1,
-          pageBreakBefore: true,
-        })
-      );
-
-      if (section.content) {
-        paragraphs.push(
+    // Split content into paragraphs
+    const paragraphs = section.content.split('\n');
+    for (const paragraph of paragraphs) {
+      if (paragraph.trim()) {
+        content.push(
           new Paragraph({
-            text: section.content,
-            style: 'Normal',
-            spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
+            children: [
+              new TextRun({
+                text: paragraph.trim(),
+                size: 24
+              })
+            ],
+            spacing: {
+              before: 200,
+              after: 200
+            }
           })
         );
       }
     }
-  }
 
-  // Chapters with figures and tables
-  if (Array.isArray(thesis.chapters)) {
-    for (const chapter of thesis.chapters) {
-      if (chapter.title) {
-        paragraphs.push(
-          new Paragraph({
-            text: chapter.title,
-            heading: HeadingLevel.HEADING_1,
-            pageBreakBefore: true,
-          })
-        );
-      }
-
-      if (chapter.content) {
-        paragraphs.push(
-          new Paragraph({
-            text: chapter.content,
-            style: 'Normal',
-            spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
-          })
-        );
-      }
-
-      // Add figures
-      if (Array.isArray(chapter.figures)) {
-        for (const figure of chapter.figures) {
-          const figureParagraphs = await generateFigure(figure, figureNumber);
-          paragraphs.push(...figureParagraphs);
-          figureNumber++;
-        }
-      }
-
-      // Add tables
-      if (Array.isArray(chapter.tables)) {
-        chapter.tables.forEach(table => {
-          paragraphs.push(
+    // Add figures if present
+    if (section.figures && section.figures.length > 0) {
+      for (const figure of section.figures) {
+        try {
+          const imageBlob = await fetch(figure.imageUrl).then(r => r.blob());
+          const buffer = await imageBlob.arrayBuffer();
+          
+          content.push(
             new Paragraph({
-              text: table.content,
-              spacing: { before: 240, after: 120 },
+              children: [
+                new ImageRun({
+                  data: buffer,
+                  transformation: {
+                    width: figure.dimensions.width,
+                    height: figure.dimensions.height
+                  }
+                })
+              ],
+              alignment: AlignmentType.CENTER
             }),
             new Paragraph({
-              text: table.caption || table.title,
-              style: isPreview ? 'preview-caption' : 'caption',
-              spacing: { before: 120, after: 240 },
+              children: [
+                new TextRun({
+                  text: `Figure ${figure.number}: ${figure.caption}`,
+                  italics: true
+                })
+              ],
+              alignment: AlignmentType.CENTER,
+              spacing: {
+                before: 100,
+                after: 400
+              }
             })
           );
-        });
-      }
-
-      // Add footnotes
-      if (Array.isArray(chapter.footnotes) && chapter.footnotes.length > 0) {
-        paragraphs.push(
-          new Paragraph({
-            text: 'Footnotes',
-            style: 'heading3',
-            spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.5) },
-          })
-        );
-        chapter.footnotes.forEach(footnote => {
-          paragraphs.push(
-            new Paragraph({
-              text: `${footnote.number}. ${footnote.content}`,
-              style: 'footnote',
-              spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
-            })
-          );
-        });
+        } catch (error) {
+          console.error('Error processing figure:', error);
+        }
       }
     }
   }
 
-  // Back Matter
-  if (Array.isArray(thesis.backMatter)) {
-    thesis.backMatter.forEach(section => {
-      paragraphs.push(
+  // Generate chapter content
+  for (const chapter of chapters) {
+    content.push(
+      new Paragraph({
+        text: chapter.title,
+        heading: HeadingLevel.HEADING_1,
+        spacing: {
+          before: 400,
+          after: 200
+        }
+      })
+    );
+
+    for (const section of chapter.sections) {
+      content.push(
         new Paragraph({
           text: section.title,
-          heading: HeadingLevel.HEADING_1,
-          pageBreakBefore: true,
-          spacing: styles.default.heading1.paragraph.spacing,
-          style: 'heading 1',
-        }),
-        new Paragraph({
-          text: section.content,
-          spacing: styles.default.document.paragraph.spacing,
-          style: 'Normal',
+          heading: HeadingLevel.HEADING_2,
+          spacing: {
+            before: 300,
+            after: 200
+          }
         })
       );
-    });
+
+      const paragraphs = section.content.split('\n');
+      for (const paragraph of paragraphs) {
+        if (paragraph.trim()) {
+          content.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: paragraph.trim(),
+                  size: 24
+                })
+              ],
+              spacing: {
+                before: 200,
+                after: 200
+              }
+            })
+          );
+        }
+      }
+    }
   }
 
-  return paragraphs;
+  // Generate back matter content
+  for (const section of backMatter) {
+    content.push(
+      new Paragraph({
+        text: section.title,
+        heading: HeadingLevel.HEADING_1,
+        spacing: {
+          before: 400,
+          after: 200
+        }
+      })
+    );
+
+    const paragraphs = section.content.split('\n');
+    for (const paragraph of paragraphs) {
+      if (paragraph.trim()) {
+        content.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: paragraph.trim(),
+                size: 24
+              })
+            ],
+            spacing: {
+              before: 200,
+              after: 200
+            }
+          })
+        );
+      }
+    }
+  }
+
+  return content;
 };
