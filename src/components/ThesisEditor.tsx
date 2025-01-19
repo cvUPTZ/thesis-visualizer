@@ -17,6 +17,7 @@ import { ChatMessages } from './collaboration/ChatMessages';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ThesisStructureNavbar } from './thesis/ThesisStructureNavbar';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -100,7 +101,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     
     const newSection: Section = {
       id: Date.now().toString(),
-      title: type === 'general-introduction' ? 'General Introduction' : 'General Conclusion',
+      title: type.charAt(0).toUpperCase() + type.slice(1).replace(/-/g, ' '),
       content: '',
       type: type,
       order: type === 'general-introduction' ? 1 : thesis.frontMatter.length + 1,
@@ -110,10 +111,30 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
       references: []
     };
 
-    setThesis(prev => ({
-      ...prev!,
-      frontMatter: [...prev!.frontMatter, newSection]
-    }));
+    setThesis(prev => {
+      if (!prev) return prev;
+
+      let updatedThesis = { ...prev };
+
+      if (['title', 'table-of-contents', 'list-of-figures', 'list-of-tables', 'acknowledgments', 'abstract'].includes(type)) {
+        updatedThesis.frontMatter = [...prev.frontMatter, newSection];
+      } else if (['bibliography', 'appendix'].includes(type)) {
+        updatedThesis.backMatter = [...prev.backMatter, newSection];
+      } else {
+        updatedThesis.chapters = [...prev.chapters, {
+          id: Date.now().toString(),
+          title: 'New Chapter',
+          content: '',
+          sections: [newSection],
+          part: prev.chapters.length + 1,
+          figures: [],
+          tables: [],
+          footnotes: []
+        }];
+      }
+
+      return updatedThesis;
+    });
 
     setActiveSection(newSection.id);
 
@@ -190,53 +211,55 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <ThesisSidebar
-        sections={[
-          ...(thesis?.frontMatter || []),
-          ...(thesis?.chapters || []).flatMap(chapter => chapter.sections),
-          ...(thesis?.backMatter || [])
-        ]}
-        activeSection={activeSection}
-        onSectionSelect={setActiveSection}
-        onAddSection={handleAddSection}
-        onAddChapter={handleAddChapter}
-      />
-      
-      <div className="flex-1 flex flex-col">
-        <ThesisEditorHeader
-          thesis={thesis}
-          showPreview={showPreview}
-          onTogglePreview={() => setShowPreview(!showPreview)}
+    <div className="min-h-screen bg-background flex flex-col">
+      <ThesisStructureNavbar onAddSection={handleAddSection} />
+      <div className="flex flex-1">
+        <ThesisSidebar
+          sections={[
+            ...(thesis?.frontMatter || []),
+            ...(thesis?.chapters || []).flatMap(chapter => chapter.sections),
+            ...(thesis?.backMatter || [])
+          ]}
+          activeSection={activeSection}
+          onSectionSelect={setActiveSection}
+          className="hidden lg:block"
         />
         
-        <div className="px-8 py-4">
-          <ThesisEditorStatus
+        <div className="flex-1 flex flex-col">
+          <ThesisEditorHeader
             thesis={thesis}
-            thesisId={currentThesisId!}
-            progress={progress}
-            showTracker={showTracker}
-            setShowTracker={setShowTracker}
+            showPreview={showPreview}
+            onTogglePreview={() => setShowPreview(!showPreview)}
+          />
+          
+          <div className="px-8 py-4">
+            <ThesisEditorStatus
+              thesis={thesis}
+              thesisId={currentThesisId!}
+              progress={progress}
+              showTracker={showTracker}
+              setShowTracker={setShowTracker}
+            />
+          </div>
+
+          <ThesisEditorMain
+            thesis={thesis}
+            activeSection={activeSection}
+            showPreview={showPreview}
+            previewRef={previewRef}
+            onContentChange={handleContentChange}
+            onTitleChange={handleTitleChange}
+            onUpdateChapter={(chapter: Chapter) => {
+              setThesis(prev => ({
+                ...prev!,
+                chapters: prev!.chapters.map(c =>
+                  c.id === chapter.id ? chapter : c
+                )
+              }));
+            }}
+            onAddChapter={handleAddChapter}
           />
         </div>
-
-        <ThesisEditorMain
-          thesis={thesis}
-          activeSection={activeSection}
-          showPreview={showPreview}
-          previewRef={previewRef}
-          onContentChange={handleContentChange}
-          onTitleChange={handleTitleChange}
-          onUpdateChapter={(chapter: Chapter) => {
-            setThesis(prev => ({
-              ...prev!,
-              chapters: prev!.chapters.map(c =>
-                c.id === chapter.id ? chapter : c
-              )
-            }));
-          }}
-          onAddChapter={handleAddChapter}
-        />
       </div>
 
       <Collapsible

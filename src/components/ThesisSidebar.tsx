@@ -1,5 +1,5 @@
 import React from 'react';
-import { Section, ThesisSectionType } from '@/types/thesis';
+import { Section } from '@/types/thesis';
 import { ScrollArea } from './ui/scroll-area';
 import { TableOfContents } from './thesis/sidebar/TableOfContents';
 import { cn } from '@/lib/utils';
