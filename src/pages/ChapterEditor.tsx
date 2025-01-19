@@ -25,37 +25,40 @@ const ChapterEditor = () => {
       try {
         console.log('Fetching chapter with ID:', chapterId);
         
-        const { data: thesisData, error: thesisError } = await supabase
+        // First get all theses that the user has access to
+        const { data: thesesData, error: thesesError } = await supabase
           .from('theses')
           .select('id, content')
-          .maybeSingle();
+          .returns<ThesisData[]>();
 
-        if (thesisError) {
-          console.error('Error fetching thesis:', thesisError);
-          throw thesisError;
+        if (thesesError) {
+          console.error('Error fetching theses:', thesesError);
+          throw thesesError;
         }
 
-        if (!thesisData) {
-          console.error('No thesis found');
-          throw new Error('Thesis not found');
+        // Then find the thesis that contains our chapter
+        let foundChapter: Chapter | null = null;
+        let foundThesisId: string | null = null;
+
+        for (const thesis of thesesData) {
+          const content = typeof thesis.content === 'string' 
+            ? JSON.parse(thesis.content) 
+            : thesis.content;
+
+          if (!content?.chapters || !Array.isArray(content.chapters)) {
+            continue;
+          }
+
+          const chapter = content.chapters.find((ch: Chapter) => ch.id === chapterId);
+          if (chapter) {
+            foundChapter = chapter;
+            foundThesisId = thesis.id;
+            break;
+          }
         }
 
-        // Parse the content properly
-        const content = typeof thesisData.content === 'string' 
-          ? JSON.parse(thesisData.content) 
-          : thesisData.content;
-
-        console.log('Thesis content:', content);
-
-        if (!content?.chapters || !Array.isArray(content.chapters)) {
-          console.error('Invalid thesis content structure');
-          throw new Error('Invalid thesis structure');
-        }
-
-        const foundChapter = content.chapters.find((ch: Chapter) => ch.id === chapterId);
-
-        if (foundChapter) {
-          console.log('Found chapter:', foundChapter);
+        if (foundChapter && foundThesisId) {
+          console.log('Found chapter in thesis:', foundThesisId);
           setChapter(foundChapter);
         } else {
           console.error('Chapter not found:', chapterId);
@@ -86,18 +89,33 @@ const ChapterEditor = () => {
     if (!chapter) return;
 
     try {
-      const { data: thesisData, error: thesisError } = await supabase
+      // Get all theses to find the one containing our chapter
+      const { data: thesesData, error: thesesError } = await supabase
         .from('theses')
         .select('id, content')
-        .maybeSingle();
+        .returns<ThesisData[]>();
 
-      if (thesisError) throw thesisError;
-      if (!thesisData) throw new Error('Thesis not found');
+      if (thesesError) throw thesesError;
+
+      // Find the thesis containing our chapter
+      let foundThesis: ThesisData | null = null;
+      for (const thesis of thesesData) {
+        const existingContent = typeof thesis.content === 'string' 
+          ? JSON.parse(thesis.content) 
+          : thesis.content;
+
+        if (existingContent?.chapters?.some((ch: Chapter) => ch.id === chapter.id)) {
+          foundThesis = thesis;
+          break;
+        }
+      }
+
+      if (!foundThesis) throw new Error('Thesis not found');
 
       // Parse the existing content
-      const existingContent = typeof thesisData.content === 'string' 
-        ? JSON.parse(thesisData.content) 
-        : thesisData.content;
+      const existingContent = typeof foundThesis.content === 'string' 
+        ? JSON.parse(foundThesis.content) 
+        : foundThesis.content;
 
       // Update the specific chapter
       const updatedChapters = existingContent.chapters.map((ch: Chapter) =>
@@ -115,7 +133,7 @@ const ChapterEditor = () => {
         .update({
           content: updatedContent
         })
-        .eq('id', thesisData.id);
+        .eq('id', foundThesis.id);
 
       if (updateError) throw updateError;
 
