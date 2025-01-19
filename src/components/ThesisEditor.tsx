@@ -16,7 +16,6 @@ import { ChatMessages } from './collaboration/ChatMessages';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { ThesisSidebar } from './thesis/ThesisSidebar';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -159,37 +158,33 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <ThesisSidebar />
+    <div className="min-h-screen bg-background flex flex-col">
+      <ThesisEditorHeader
+        thesis={thesis}
+        showPreview={showPreview}
+        onTogglePreview={() => setShowPreview(!showPreview)}
+      />
       
-      <div className="flex-1 flex flex-col">
-        <ThesisEditorHeader
+      <div className="px-8 py-4">
+        <ThesisEditorStatus
           thesis={thesis}
-          showPreview={showPreview}
-          onTogglePreview={() => setShowPreview(!showPreview)}
-        />
-        
-        <div className="px-8 py-4">
-          <ThesisEditorStatus
-            thesis={thesis}
-            thesisId={currentThesisId!}
-            progress={progress}
-            showTracker={showTracker}
-            setShowTracker={setShowTracker}
-          />
-        </div>
-
-        <ThesisEditorMain
-          thesis={thesis}
-          activeSection={activeSection}
-          showPreview={showPreview}
-          previewRef={previewRef}
-          onContentChange={handleContentChange}
-          onTitleChange={handleTitleChange}
-          onUpdateChapter={handleUpdateChapter}
-          onAddChapter={handleAddChapter}
+          thesisId={currentThesisId!}
+          progress={progress}
+          showTracker={showTracker}
+          setShowTracker={setShowTracker}
         />
       </div>
+
+      <ThesisEditorMain
+        thesis={thesis}
+        activeSection={activeSection}
+        showPreview={showPreview}
+        previewRef={previewRef}
+        onContentChange={handleContentChange}
+        onTitleChange={handleTitleChange}
+        onUpdateChapter={handleUpdateChapter}
+        onAddChapter={handleAddChapter}
+      />
 
       <Collapsible
         open={showChat}
