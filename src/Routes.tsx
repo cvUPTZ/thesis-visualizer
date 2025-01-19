@@ -13,6 +13,7 @@ import AbstractPage from '@/pages/AbstractPage';
 import StatementPage from '@/pages/StatementPage';
 import PrefacePage from '@/pages/PrefacePage';
 import AcknowledgmentsPage from '@/pages/AcknowledgmentsPage';
+import ChaptersPage from '@/pages/ChaptersPage';
 import { ThesisSidebar } from '@/components/thesis/ThesisSidebar';
 
 const Routes = () => {
@@ -52,6 +53,7 @@ const Routes = () => {
           <Route path="/statement" element={<AuthenticatedLayout><StatementPage /></AuthenticatedLayout>} />
           <Route path="/preface" element={<AuthenticatedLayout><PrefacePage /></AuthenticatedLayout>} />
           <Route path="/acknowledgments" element={<AuthenticatedLayout><AcknowledgmentsPage /></AuthenticatedLayout>} />
+          <Route path="/chapters" element={<AuthenticatedLayout><ChaptersPage /></AuthenticatedLayout>} />
           <Route path="*" element={<AuthenticatedLayout><Index /></AuthenticatedLayout>} />
         </>
       ) : (
