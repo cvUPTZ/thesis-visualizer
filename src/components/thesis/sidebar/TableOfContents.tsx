@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, ChevronRight, BookOpen, Image, Table, FileIcon } from 'lucide-react';
+import { ChevronDown, ChevronRight, BookOpen, Image, Table as TableIcon, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Section } from '@/types/thesis';
 import {
@@ -152,7 +152,7 @@ export const TableOfContents = ({
         activeSection === section.id && "bg-editor-active text-editor-accent font-medium"
       )}
     >
-      <FileIcon className="w-4 h-4 text-editor-text group-hover:text-editor-accent transition-colors" />
+      <FileText className="w-4 h-4 text-editor-text group-hover:text-editor-accent transition-colors" />
       <span className="truncate">{section.title || 'Untitled Section'}</span>
     </button>
   );
@@ -268,7 +268,7 @@ export const TableOfContents = ({
             'Tables',
             allTables,
             'tables',
-            <Table className="w-4 h-4 mr-2" />
+            <TableIcon className="w-4 h-4 mr-2" />
           )
         )}
       </div>
