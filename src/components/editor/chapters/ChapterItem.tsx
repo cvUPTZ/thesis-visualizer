@@ -18,7 +18,7 @@ interface ChapterItemProps {
   chapterNumber: number;
   isOpen: boolean;
   onToggle: () => void;
-  onUpdateChapter: (chapter: Chapter) => void;
+  onUpdateChapter: (chapter: Chapter) => Promise<void>;
   isSelected?: boolean;
   onSelect?: () => void;
 }
@@ -34,8 +34,8 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('content');
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onUpdateChapter({
+  const handleTitleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    await onUpdateChapter({
       ...chapter,
       title: e.target.value
     });
