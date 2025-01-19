@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Settings, Plus, LogOut } from 'lucide-react';
+import { Settings, Plus, LogOut, Loader2 } from 'lucide-react';
 import { ThesisList } from '@/components/thesis/ThesisList';
 import { GettingStartedWizard } from '@/components/onboarding/GettingStartedWizard';
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { QuickTips } from '@/components/dashboard/QuickTips';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Index = () => {
   console.log('📊 Dashboard page rendering');
@@ -32,7 +32,10 @@ const Index = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#1a1f2c] via-[#2d364d] to-[#1a1f2c] text-gray-100 flex items-center justify-center">
-        <div className="animate-pulse">Loading dashboard data...</div>
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-lg font-medium text-primary/80">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -40,7 +43,20 @@ const Index = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#1a1f2c] via-[#2d364d] to-[#1a1f2c] text-gray-100 flex items-center justify-center">
-        <p>Error loading dashboard: {error.message}</p>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-500/10 text-red-200 p-6 rounded-lg max-w-md text-center"
+        >
+          <p className="text-lg">Error loading dashboard: {error.message}</p>
+          <Button 
+            variant="outline" 
+            className="mt-4 border-red-200/20 hover:bg-red-500/20"
+            onClick={() => window.location.reload()}
+          >
+            Try Again
+          </Button>
+        </motion.div>
       </div>
     );
   }
@@ -50,7 +66,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1f2c] via-[#2d364d] to-[#1a1f2c] text-gray-100 relative overflow-hidden">
       {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-full h-full">
           {[...Array(20)].map((_, i) => (
             <motion.div
@@ -78,7 +94,11 @@ const Index = () => {
 
       <div className="container mx-auto px-4 py-8 space-y-8 relative z-10">
         {/* Header Section */}
-        <div className="flex justify-between items-center">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-between items-center"
+        >
           <div className="space-y-1">
             <h1 className="text-4xl font-serif font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#9b87f5] to-[#D6BCFA]">
               Dashboard
@@ -91,7 +111,7 @@ const Index = () => {
             <Button 
               onClick={handleLogout}
               variant="outline"
-              className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-400/20 font-sans"
+              className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-400/20 font-sans transition-all duration-300"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Logout
@@ -100,21 +120,21 @@ const Index = () => {
               <Button 
                 onClick={() => navigate('/admin')} 
                 variant="outline"
-                className="bg-[#7E69AB]/10 hover:bg-[#7E69AB]/20 text-[#D6BCFA] border-[#D6BCFA]/20 font-sans"
+                className="bg-[#7E69AB]/10 hover:bg-[#7E69AB]/20 text-[#D6BCFA] border-[#D6BCFA]/20 font-sans transition-all duration-300"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Admin Panel
               </Button>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* User Profile Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6 transition-all duration-200 hover:bg-white/10"
+          className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6 transition-all duration-300 hover:bg-white/10 hover:border-white/20"
         >
           <UserProfile 
             email={userProfile?.email || 'Loading...'}
@@ -149,20 +169,20 @@ const Index = () => {
             transition={{ duration: 0.5, delay: 0.6 }}
             className="space-y-6"
           >
-            <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6">
+            <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6 transition-all duration-300 hover:bg-white/10 hover:border-white/20">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-serif font-semibold text-[#D6BCFA]">
                   Thesis Management
                 </h2>
                 <Button
                   onClick={handleCreateThesis}
-                  className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white font-sans"
+                  className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white font-sans transition-all duration-300 group"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
                   Create New Thesis
                 </Button>
               </div>
-              <Card className="bg-white/5 border-[#D6BCFA]/20">
+              <Card className="bg-white/5 border-[#D6BCFA]/20 transition-all duration-300 hover:bg-white/10">
                 <ThesisList />
               </Card>
             </div>
@@ -175,12 +195,24 @@ const Index = () => {
             transition={{ duration: 0.5, delay: 0.8 }}
             className="space-y-6"
           >
-            <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6">
-              <QuickTips />
-            </div>
-            <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6">
-              <GettingStartedWizard />
-            </div>
+            <AnimatePresence>
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6 transition-all duration-300 hover:bg-white/10 hover:border-white/20"
+              >
+                <QuickTips />
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6 transition-all duration-300 hover:bg-white/10 hover:border-white/20"
+              >
+                <GettingStartedWizard />
+              </motion.div>
+            </AnimatePresence>
           </motion.div>
         </div>
       </div>
