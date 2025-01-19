@@ -19,7 +19,7 @@ import {
   Database,
   FileSearch,
   Globe,
-  Wrench,
+  Tool,
   ChartBar,
   FileSpreadsheet,
   Layers,
@@ -180,7 +180,7 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
   },
   'collection-tools': {
     label: 'Collection Tools',
-    icon: Wrench,
+    icon: Tool,
     description: 'Research tools and instruments',
     group: 'backMatter',
     type: 'collection-tools'

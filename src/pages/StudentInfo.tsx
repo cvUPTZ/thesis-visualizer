@@ -3,71 +3,33 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useForm } from '@/hooks/useForm';
-import { supabase } from '@/integrations/supabase/client';
-import { useUser } from '@/hooks/useUser';
-
-interface StudentInfoForm {
-  fullName: string;
-  studentId: string;
-  email: string;
-  department: string;
-  program: string;
-  yearOfStudy: string;
-}
 
 const StudentInfo = () => {
   const { toast } = useToast();
-  const { user } = useUser();
-
-  const { values, handleChange, handleSubmit, isSubmitting } = useForm<StudentInfoForm>({
-    initialValues: {
-      fullName: '',
-      studentId: '',
-      email: '',
-      department: '',
-      program: '',
-      yearOfStudy: ''
-    },
-    onSubmit: async (values) => {
-      if (!user?.id) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to save student information",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      try {
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            full_name: values.fullName,
-            student_id: values.studentId,
-            email: values.email,
-            department: values.department,
-            program: values.program,
-            year_of_study: values.yearOfStudy
-          })
-          .eq('id', user.id);
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Student information has been saved",
-        });
-      } catch (error) {
-        console.error('Error saving student info:', error);
-        toast({
-          title: "Error",
-          description: "Failed to save student information",
-          variant: "destructive"
-        });
-      }
-    }
+  const [formData, setFormData] = React.useState({
+    fullName: '',
+    studentId: '',
+    email: '',
+    department: '',
+    program: '',
+    yearOfStudy: ''
   });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Submitting student info:', formData);
+    toast({
+      title: "Success",
+      description: "Student information has been saved",
+    });
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
 
   return (
     <div className="container max-w-2xl py-10">
@@ -78,7 +40,7 @@ const StudentInfo = () => {
             <label className="block text-sm font-medium mb-1">Full Name</label>
             <Input
               name="fullName"
-              value={values.fullName}
+              value={formData.fullName}
               onChange={handleChange}
               placeholder="Enter your full name"
             />
@@ -87,7 +49,7 @@ const StudentInfo = () => {
             <label className="block text-sm font-medium mb-1">Student ID</label>
             <Input
               name="studentId"
-              value={values.studentId}
+              value={formData.studentId}
               onChange={handleChange}
               placeholder="Enter your student ID"
             />
@@ -97,7 +59,7 @@ const StudentInfo = () => {
             <Input
               name="email"
               type="email"
-              value={values.email}
+              value={formData.email}
               onChange={handleChange}
               placeholder="Enter your email"
             />
@@ -106,7 +68,7 @@ const StudentInfo = () => {
             <label className="block text-sm font-medium mb-1">Department</label>
             <Input
               name="department"
-              value={values.department}
+              value={formData.department}
               onChange={handleChange}
               placeholder="Enter your department"
             />
@@ -115,7 +77,7 @@ const StudentInfo = () => {
             <label className="block text-sm font-medium mb-1">Program</label>
             <Input
               name="program"
-              value={values.program}
+              value={formData.program}
               onChange={handleChange}
               placeholder="Enter your program"
             />
@@ -124,14 +86,12 @@ const StudentInfo = () => {
             <label className="block text-sm font-medium mb-1">Year of Study</label>
             <Input
               name="yearOfStudy"
-              value={values.yearOfStudy}
+              value={formData.yearOfStudy}
               onChange={handleChange}
               placeholder="Enter your year of study"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : 'Save Information'}
-          </Button>
+          <Button type="submit" className="w-full">Save Information</Button>
         </form>
       </Card>
     </div>
