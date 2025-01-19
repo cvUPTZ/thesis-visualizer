@@ -6,22 +6,10 @@ import {
   Table, 
   BookMarked,
   Library,
-  LayoutDashboard
+  LayoutDashboard,
+  BookText
 } from 'lucide-react';
-
-export type ThesisSectionType = 
-  | 'title'
-  | 'table-of-contents'
-  | 'acknowledgments'
-  | 'abstract'
-  | 'chapter'
-  | 'introduction'
-  | 'methodology'
-  | 'results'
-  | 'discussion'
-  | 'conclusion'
-  | 'bibliography'
-  | 'custom';
+import { ThesisSectionType } from '@/types/thesis';
 
 export const SectionTypes = {
   'title': {
@@ -56,12 +44,20 @@ export const SectionTypes = {
     order: 4,
     group: 'frontMatter'
   },
+  'chapter': {
+    icon: BookText,
+    label: 'Chapter',
+    description: 'A chapter in the thesis',
+    required: false,
+    order: 5,
+    group: 'mainContent'
+  },
   'introduction': {
     icon: BookOpen,
     label: 'Introduction',
     description: 'Introduction chapter',
     required: true,
-    order: 5,
+    order: 6,
     group: 'mainContent'
   },
   'methodology': {
@@ -69,7 +65,7 @@ export const SectionTypes = {
     label: 'Methodology',
     description: 'Methodology chapter',
     required: true,
-    order: 6,
+    order: 7,
     group: 'mainContent'
   },
   'results': {
@@ -77,7 +73,7 @@ export const SectionTypes = {
     label: 'Results',
     description: 'Results chapter',
     required: true,
-    order: 7,
+    order: 8,
     group: 'mainContent'
   },
   'discussion': {
@@ -85,7 +81,7 @@ export const SectionTypes = {
     label: 'Discussion',
     description: 'Discussion chapter',
     required: true,
-    order: 8,
+    order: 9,
     group: 'mainContent'
   },
   'conclusion': {
@@ -93,7 +89,7 @@ export const SectionTypes = {
     label: 'Conclusion',
     description: 'Conclusion chapter',
     required: true,
-    order: 9,
+    order: 10,
     group: 'mainContent'
   },
   'bibliography': {
@@ -101,16 +97,8 @@ export const SectionTypes = {
     label: 'Bibliography',
     description: 'Bibliography section',
     required: true,
-    order: 10,
-    group: 'backMatter'
-  },
-  'chapter': {
-    icon: BookOpen,
-    label: 'Chapter',
-    description: 'A chapter in the thesis',
-    required: false,
     order: 11,
-    group: 'mainContent'
+    group: 'backMatter'
   },
   'custom': {
     icon: FileText,
@@ -123,7 +111,7 @@ export const SectionTypes = {
 } as const;
 
 export const getSectionConfig = (type: ThesisSectionType) => {
-  return SectionTypes[type];
+  return SectionTypes[type as keyof typeof SectionTypes];
 };
 
 export const getSectionsByGroup = (group: 'frontMatter' | 'mainContent' | 'backMatter') => {

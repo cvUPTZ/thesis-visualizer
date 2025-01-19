@@ -53,7 +53,7 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onAddSection('introduction' as ThesisSectionType)}
+                onClick={() => onAddSection('chapter')}
                 className="h-8 px-2"
               >
                 <PlusCircle className="h-4 w-4" />
