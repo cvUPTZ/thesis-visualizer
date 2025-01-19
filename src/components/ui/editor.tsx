@@ -2,39 +2,24 @@ import React from 'react';
 import { ThesisSectionType } from '@/types/thesis';
 
 interface EditorProps {
-  section: {
-    id: string;
-    title: string;
-    content: string;
-    type: ThesisSectionType;
-  };
-  onUpdate: (updatedSection: any) => void;
+  content: string;
+  onChange: (content: string) => void;
+  type: ThesisSectionType;
 }
 
-export const Editor: React.FC<EditorProps> = ({ section, onUpdate }) => {
-  const handleNewSection = () => {
-    const newSection = {
-      id: Date.now().toString(),
-      title: 'New Section',
-      content: '',
-      type: ThesisSectionType.Custom,
-      order: 0,
-      figures: [],
-      tables: [],
-      citations: [],
-      references: []
-    };
-    onUpdate(newSection);
+export const Editor: React.FC<EditorProps> = ({ content, onChange, type }) => {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(e.target.value);
   };
 
   return (
-    <div>
-      <h2>{section.title}</h2>
+    <div className="w-full">
       <textarea
-        value={section.content}
-        onChange={(e) => onUpdate({ ...section, content: e.target.value })}
+        value={content}
+        onChange={handleChange}
+        className="w-full min-h-[200px] p-4 border rounded-md"
+        placeholder={`Write your ${type} content here...`}
       />
-      <button onClick={handleNewSection}>Add Section</button>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-<lov-code>
 import React, { useState, useRef } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
 import { Chapter, Thesis } from '@/types/thesis';
@@ -35,4 +34,92 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   const [showTracker, setShowTracker] = useState(true);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  useThesisAutosave
+  useThesisAutosave(currentThesisId, thesis);
+
+  const handleUpdateChapter = async (chapter: Chapter): Promise<void> => {
+    console.log('Updating chapter:', chapter);
+    if (!thesis) return;
+    
+    const updatedChapters = thesis.chapters.map(ch => 
+      ch.id === chapter.id ? chapter : ch
+    );
+    
+    setThesis({
+      ...thesis,
+      chapters: updatedChapters
+    });
+  };
+
+  const handleAddChapter = async (chapter: Chapter): Promise<void> => {
+    console.log('Adding chapter:', chapter);
+    if (!thesis) return;
+    
+    setThesis({
+      ...thesis,
+      chapters: [...thesis.chapters, chapter]
+    });
+  };
+
+  if (isLoading) {
+    return <Skeleton className="w-full h-screen" />;
+  }
+
+  if (error) {
+    return (
+      <div className="p-4">
+        <p className="text-red-500">Error loading thesis: {error.message}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      <ThesisSidebar />
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <ThesisEditorHeader 
+          thesis={thesis}
+          showPreview={showPreview}
+          setShowPreview={setShowPreview}
+        />
+        
+        <div className="flex-1 flex overflow-hidden">
+          <ThesisEditorMain
+            thesis={thesis}
+            setThesis={setThesis}
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+            onUpdateChapter={handleUpdateChapter}
+            onAddChapter={handleAddChapter}
+          />
+          
+          <div className="w-80 border-l flex flex-col">
+            <Collapsible defaultOpen className="border-b">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full flex justify-between p-4">
+                  Chat
+                  {showChat ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                {thesis && <ChatMessages thesisId={thesis.id} />}
+              </CollapsibleContent>
+            </Collapsible>
+            
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full flex justify-between p-4">
+                  Progress Tracker
+                  {showTracker ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                {thesis && <ThesisEditorStatus thesis={thesis} />}
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

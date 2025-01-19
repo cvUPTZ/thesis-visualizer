@@ -4,65 +4,72 @@ import { Chapter, Section } from '@/types/thesis';
 export const generateTableOfContents = () => {
   return new TableOfContents("Table of Contents", {
     hyperlink: true,
-    headingStyleRange: "1-3",
+    headingStyleRange: '1-3',
     stylesWithLevels: [
       {
         level: 0,
-        style: "heading 1"
+        styleRunProperties: {
+          bold: true,
+          size: 28,
+        }
       },
       {
         level: 1,
-        style: "heading 2"
+        styleRunProperties: {
+          bold: true,
+          size: 24,
+        }
       },
       {
         level: 2,
-        style: "heading 3"
+        styleRunProperties: {
+          size: 24,
+        }
       }
-    ],
+    ]
   });
 };
 
-export const generateContent = async (
-  sections: Section[],
-  chapters: Chapter[],
-  language: string = 'en'
-) => {
-  const content: Paragraph[] = [];
-
-  // Example content generation logic
-  sections.forEach(section => {
-    const paragraph = new Paragraph({
-      children: [
-        new TextRun({
-          text: section.title,
-          bold: true,
-          size: 24,
-        }),
-        new TextRun({
-          text: section.content,
-          break: 1,
-        }),
-      ],
-    });
-    content.push(paragraph);
-  });
-
-  chapters.forEach(chapter => {
-    const chapterParagraph = new Paragraph({
-      children: [
-        new TextRun({
-          text: chapter.title,
-          bold: true,
-          size: 22,
-        }),
-        new TextRun({
-          text: chapter.content,
-          break: 1,
-        }),
-      ],
-    });
-    content.push(chapterParagraph);
-  });
-
-  return content;
+export const generateContent = async (content: string, images: { [key: string]: Buffer }) => {
+  const paragraphs: Paragraph[] = [];
+  
+  // Process content and create paragraphs
+  const lines = content.split('\n');
+  
+  for (const line of lines) {
+    if (line.startsWith('![')) {
+      // Handle image
+      const match = line.match(/!\[(.*?)\]\((.*?)\)/);
+      if (match && match[2] && images[match[2]]) {
+        const imageData = images[match[2]];
+        const imageRun = new ImageRun({
+          data: imageData,
+          transformation: {
+            width: 400,
+            height: 300
+          },
+          altText: match[1] || 'Image'
+        });
+        paragraphs.push(new Paragraph({ children: [imageRun] }));
+      }
+    } else {
+      // Handle text
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: line,
+              name: 'Arial',
+              docProperties: {
+                title: 'Content',
+                description: 'Document content'
+              }
+            })
+          ]
+        })
+      );
+    }
+  }
+  
+  return paragraphs;
 };
