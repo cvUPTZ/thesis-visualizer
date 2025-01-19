@@ -1,5 +1,5 @@
 import React from 'react';
-import { Section, Chapter, ThesisSectionType } from '@/types/thesis';
+import { Section, Chapter } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,7 +11,7 @@ interface MainContentSectionsProps {
   chapters: Chapter[];
   activeSection: string;
   onSectionSelect: (id: string) => void;
-  onAddSection?: (type: ThesisSectionType) => void;
+  onAddSection?: (type: string) => void;
   onAddChapter?: (chapter: Chapter) => void;
   completedSections: string[];
   onSectionComplete: (id: string, completed: boolean) => void;

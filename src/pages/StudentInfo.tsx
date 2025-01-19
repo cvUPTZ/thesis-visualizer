@@ -5,24 +5,24 @@ import { supabase } from '@/integrations/supabase/client';
 
 const StudentInfo = () => {
   const { toast } = useToast();
-  const { userEmail, userId } = useAuth();
+  const { user } = useAuth();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const studentData = {
-      full_name: formData.get('full_name'),
-      student_id: formData.get('student_id'),
-      department: formData.get('department'),
-      program: formData.get('program'),
-      year_of_study: formData.get('year_of_study'),
+      full_name: formData.get('full_name')?.toString() || '',
+      student_id: formData.get('student_id')?.toString() || '',
+      department: formData.get('department')?.toString() || '',
+      program: formData.get('program')?.toString() || '',
+      year_of_study: formData.get('year_of_study')?.toString() || '',
     };
 
     try {
       const { error } = await supabase
         .from('profiles')
         .update(studentData)
-        .eq('id', userId);
+        .eq('id', user?.id);
 
       if (error) throw error;
 

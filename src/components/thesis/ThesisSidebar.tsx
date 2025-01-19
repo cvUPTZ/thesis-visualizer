@@ -3,30 +3,41 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
-  BookOpen, 
+  Home,
+  User,
+  UserCog,
   FileText,
-  ListTodo,
+  BookOpen,
   Quote,
-  Table2,
-  Image,
-  Library,
+  PenTool,
+  Heart,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  GraduationCap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export const ThesisSidebar = () => {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const navigate = useNavigate();
 
-  const navItems = [
+  const mainNavItems = [
+    { icon: Home, label: 'Dashboard', path: '/' },
+    { icon: User, label: 'Student Info', path: '/student-info' },
+    { icon: UserCog, label: 'Supervisor Info', path: '/supervisor-info' },
+    { icon: GraduationCap, label: 'Thesis Info', path: '/thesis-info' },
     { icon: FileText, label: 'Abstract', path: '/abstract' },
+  ];
+
+  const frontMatterItems = [
     { icon: Quote, label: 'Statement', path: '/statement' },
-    { icon: ListTodo, label: 'Preface', path: '/preface' },
-    { icon: BookOpen, label: 'Chapters', path: '/chapters' },
-    { icon: Image, label: 'Figures', path: '/figures' },
-    { icon: Table2, label: 'Tables', path: '/tables' },
-    { icon: Library, label: 'Bibliography', path: '/bibliography' }
+    { icon: PenTool, label: 'Preface', path: '/preface' },
+    { icon: Heart, label: 'Acknowledgments', path: '/acknowledgments' },
   ];
 
   return (
@@ -48,7 +59,30 @@ export const ThesisSidebar = () => {
 
         <ScrollArea className="flex-1">
           <nav className="flex flex-col gap-2 p-2">
-            {navItems.map((item) => (
+            {/* Main Navigation Items */}
+            {mainNavItems.map((item) => (
+              <Button
+                key={item.path}
+                variant="ghost"
+                className={cn(
+                  "justify-start gap-2",
+                  isCollapsed && "justify-center"
+                )}
+                onClick={() => navigate(item.path)}
+              >
+                <item.icon className="h-5 w-5" />
+                {!isCollapsed && <span>{item.label}</span>}
+              </Button>
+            ))}
+
+            {/* Front Matter Section */}
+            {!isCollapsed && (
+              <div className="mt-4 px-2">
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">Front Matter</h4>
+              </div>
+            )}
+            
+            {frontMatterItems.map((item) => (
               <Button
                 key={item.path}
                 variant="ghost"
