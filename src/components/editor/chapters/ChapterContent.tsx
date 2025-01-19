@@ -106,13 +106,13 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between py-4">
           <h3 className="text-lg font-medium text-gray-900">Sections</h3>
           <Button
             onClick={handleAddSection}
-            variant="outline"
+            variant="default"
             size="sm"
-            className="gap-2"
+            className="flex items-center gap-2 bg-primary hover:bg-primary/90"
           >
             <PlusCircle className="w-4 h-4" />
             Add Section
