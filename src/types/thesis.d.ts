@@ -28,13 +28,7 @@ export type ThesisSectionType =
 
 export interface Comment {
   id: string;
-  content: string | { text: string };
+  content: string;
   reviewer_id: string;
   created_at: string;
-  profiles?: {
-    email: string;
-    roles?: {
-      name: string;
-    };
-  };
 }

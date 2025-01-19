@@ -34,7 +34,7 @@ export const ReviewerInterface: React.FC<ReviewerInterfaceProps> = ({
 
     onAddComment({
       reviewer_id: 'current-user',
-      content: { text: newComment }
+      content: newComment.trim()
     });
 
     setNewComment('');
@@ -55,17 +55,13 @@ export const ReviewerInterface: React.FC<ReviewerInterfaceProps> = ({
           >
             <div className="flex justify-between items-start mb-2">
               <span className="text-sm font-medium">
-                {comment.profiles?.email || 'Anonymous'}
+                {comment.reviewer_id}
               </span>
               <span className="text-xs text-muted-foreground">
                 {new Date(comment.created_at).toLocaleDateString()}
               </span>
             </div>
-            <p className="text-sm">
-              {typeof comment.content === 'string' 
-                ? comment.content 
-                : comment.content.text}
-            </p>
+            <p className="text-sm">{comment.content}</p>
           </div>
         ))}
       </div>
