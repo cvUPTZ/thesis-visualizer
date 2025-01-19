@@ -1,5 +1,4 @@
 import { ThesisComment } from '@/types/thesis';
-import { Json } from '@/integrations/supabase/types';
 
 export const transformComment = (rawComment: any): ThesisComment => {
   return {
@@ -7,13 +6,7 @@ export const transformComment = (rawComment: any): ThesisComment => {
     thesis_id: rawComment.thesis_id,
     section_id: rawComment.section_id,
     reviewer_id: rawComment.reviewer_id,
-    content: { 
-      text: typeof rawComment.content === 'string' 
-        ? rawComment.content 
-        : typeof rawComment.content === 'object' && rawComment.content !== null
-          ? String(rawComment.content.text || '')
-          : ''
-    },
+    content: rawComment.content?.text || rawComment.content || '',
     parent_id: rawComment.parent_id,
     status: (rawComment.status === 'pending' || rawComment.status === 'resolved') 
       ? rawComment.status 

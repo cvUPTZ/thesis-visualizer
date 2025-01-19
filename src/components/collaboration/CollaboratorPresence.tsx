@@ -11,11 +11,13 @@ interface CollaboratorPresenceProps {
   }>;
 }
 
-export const CollaboratorPresence = ({ collaborators }: CollaboratorPresenceProps) => {
+export const CollaboratorPresence = ({ collaborators = [] }: CollaboratorPresenceProps) => {
+  console.log('CollaboratorPresence rendering with:', { collaboratorsCount: collaborators?.length });
+  
   return (
     <div className="flex -space-x-2">
       <AnimatePresence>
-        {collaborators.map((collaborator) => (
+        {collaborators?.map((collaborator) => (
           <motion.div
             key={collaborator.presence_ref}
             initial={{ opacity: 0, scale: 0.5 }}
