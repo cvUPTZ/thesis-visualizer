@@ -118,13 +118,6 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
     group: 'mainContent',
     type: 'conclusion'
   },
-  'general-conclusion': {
-    label: 'General Conclusion',
-    icon: BookCheck,
-    description: 'Final thesis conclusion',
-    group: 'mainContent',
-    type: 'general-conclusion'
-  },
   'bibliography': {
     label: 'Bibliography',
     icon: BookOpenCheck,
@@ -208,6 +201,13 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
     description: 'Custom section type',
     group: 'mainContent',
     type: 'custom'
+  },
+  'general-conclusion': {
+    label: 'General Conclusion',
+    icon: BookCheck,
+    description: 'Final thesis conclusion',
+    group: 'mainContent',
+    type: 'general-conclusion'
   }
 };
 

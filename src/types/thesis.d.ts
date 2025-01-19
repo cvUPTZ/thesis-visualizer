@@ -12,7 +12,6 @@ export type ThesisSectionType =
   | 'results'
   | 'discussion'
   | 'conclusion'
-  | 'general-conclusion'
   | 'bibliography'
   | 'appendix'
   | 'custom'
@@ -24,7 +23,8 @@ export type ThesisSectionType =
   | 'problem-statement'
   | 'thesis-structure'
   | 'statistical-tests'
-  | 'general-context';
+  | 'general-context'
+  | 'general-conclusion';
 
 export interface Comment {
   id: string;
@@ -33,7 +33,7 @@ export interface Comment {
   created_at: string;
   profiles?: {
     email: string;
-    roles: {
+    roles?: {
       name: string;
     };
   };
