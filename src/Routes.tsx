@@ -14,6 +14,9 @@ import StatementPage from '@/pages/StatementPage';
 import PrefacePage from '@/pages/PrefacePage';
 import AcknowledgmentsPage from '@/pages/AcknowledgmentsPage';
 import ChaptersPage from '@/pages/ChaptersPage';
+import FiguresPage from '@/pages/FiguresPage';
+import TablesPage from '@/pages/TablesPage';
+import BibliographyPage from '@/pages/BibliographyPage';
 import { ThesisSidebar } from '@/components/thesis/ThesisSidebar';
 
 const Routes = () => {
@@ -54,6 +57,9 @@ const Routes = () => {
           <Route path="/preface" element={<AuthenticatedLayout><PrefacePage /></AuthenticatedLayout>} />
           <Route path="/acknowledgments" element={<AuthenticatedLayout><AcknowledgmentsPage /></AuthenticatedLayout>} />
           <Route path="/chapters" element={<AuthenticatedLayout><ChaptersPage /></AuthenticatedLayout>} />
+          <Route path="/figures" element={<AuthenticatedLayout><FiguresPage /></AuthenticatedLayout>} />
+          <Route path="/tables" element={<AuthenticatedLayout><TablesPage /></AuthenticatedLayout>} />
+          <Route path="/bibliography" element={<AuthenticatedLayout><BibliographyPage /></AuthenticatedLayout>} />
           <Route path="*" element={<AuthenticatedLayout><Index /></AuthenticatedLayout>} />
         </>
       ) : (

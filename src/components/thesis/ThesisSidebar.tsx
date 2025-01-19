@@ -2,19 +2,14 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
-  Home, 
-  User, 
-  UserCog, 
-  FileText, 
-  BookOpen, 
-  ChevronRight, 
-  ChevronLeft,
-  ScrollText,
-  BookMarked,
-  HandshakeIcon,
-  BookOpenCheck
+  LayoutDashboard, 
+  Image, 
+  Table as TableIcon, 
+  BookOpen,
+  Library,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -23,15 +18,11 @@ export const ThesisSidebar = () => {
   const navigate = useNavigate();
 
   const navItems = [
-    { icon: Home, label: 'Dashboard', path: '/dashboard' },
-    { icon: User, label: 'Student Info', path: '/student-info' },
-    { icon: UserCog, label: 'Supervisor Info', path: '/supervisor-info' },
-    { icon: FileText, label: 'Thesis Info', path: '/thesis-info' },
-    { icon: ScrollText, label: 'Abstract', path: '/abstract' },
-    { icon: BookMarked, label: 'Statement', path: '/statement' },
-    { icon: BookOpen, label: 'Preface', path: '/preface' },
-    { icon: HandshakeIcon, label: 'Acknowledgments', path: '/acknowledgments' },
-    { icon: BookOpenCheck, label: 'Chapters', path: '/chapters' }
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: BookOpen, label: 'Chapters', path: '/chapters' },
+    { icon: Image, label: 'Figures', path: '/figures' },
+    { icon: TableIcon, label: 'Tables', path: '/tables' },
+    { icon: Library, label: 'Bibliography', path: '/bibliography' }
   ];
 
   return (
