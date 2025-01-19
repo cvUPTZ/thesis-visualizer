@@ -53,6 +53,7 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
   const handleCreateChapter = (chapter: Chapter) => {
     console.log('Handling chapter creation:', chapter);
     onAddChapter(chapter);
+    setShowCreateDialog(false); // Close the dialog after creation
     toast({
       title: "Chapter Added",
       description: "New chapter has been created successfully",
