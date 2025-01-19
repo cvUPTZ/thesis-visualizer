@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { TrialSettingsDialog } from './features/TrialSettingsDialog';
 
-export const FeatureManagement: React.FC = () => {
+const FeatureManagement: React.FC = () => {
   const [isTrialSettingsOpen, setIsTrialSettingsOpen] = useState(false);
   const [currentTrialDays, setCurrentTrialDays] = useState(30);
   const { toast } = useToast();
@@ -45,3 +45,5 @@ export const FeatureManagement: React.FC = () => {
     </div>
   );
 };
+
+export { FeatureManagement };
