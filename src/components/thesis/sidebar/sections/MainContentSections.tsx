@@ -1,5 +1,5 @@
 import React from 'react';
-import { Section, Chapter, ThesisSectionType } from '@/types/thesis';
+import { Section, Chapter, SectionTypes } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -63,8 +63,8 @@ export const MainContentSections: React.FC<MainContentProps> = ({
   );
 
   // Find introduction and conclusion sections
-  const introSection = sections.find(s => s.type === ThesisSectionType.Introduction);
-  const conclusionSection = sections.find(s => s.type === ThesisSectionType.Conclusion);
+  const introSection = sections.find(s => s.type === SectionTypes.Introduction);
+  const conclusionSection = sections.find(s => s.type === SectionTypes.Conclusion);
 
   return (
     <div className="space-y-4">
