@@ -35,17 +35,6 @@ export const MainContentSections: React.FC<MainContentProps> = ({
     sections: sections?.map(s => ({ id: s.id, title: s.title, type: s.type }))
   });
 
-  const handleSectionSelect = (sectionId: string) => {
-    console.log('MainContentSections - Section selected:', sectionId);
-    const section = sections.find(s => s.id === sectionId);
-    if (section) {
-      console.log('MainContentSections - Found section:', { id: section.id, title: section.title, type: section.type });
-      onSectionSelect(sectionId);
-    } else {
-      console.warn('MainContentSections - Section not found:', sectionId);
-    }
-  };
-
   const mainContentGroups = [
     {
       title: "Introduction",
@@ -108,46 +97,49 @@ export const MainContentSections: React.FC<MainContentProps> = ({
     }
   ];
 
-  const renderSectionButton = (section: Section, icon: React.ElementType) => (
-    <motion.button
-      key={section.id}
-      onClick={() => handleSectionSelect(section.id)}
-      className={cn(
-        "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-all",
-        "hover:bg-primary/5 hover:shadow-sm",
-        activeSection === section.id && "bg-primary/10 text-primary font-medium shadow-sm"
-      )}
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-    >
-      {React.createElement(icon, { className: "h-4 w-4 opacity-70" })}
-      <span className="truncate">{section.title}</span>
-    </motion.button>
-  );
+  const handleSectionSelect = (sectionId: string) => {
+    console.log('MainContentSections - Section selected:', sectionId);
+    const section = sections.find(s => s.id === sectionId);
+    if (section) {
+      console.log('MainContentSections - Found section:', { id: section.id, title: section.title, type: section.type });
+      onSectionSelect(sectionId);
+    } else {
+      console.warn('MainContentSections - Section not found:', sectionId);
+    }
+  };
 
-  const renderAddButton = (type: ThesisSectionType, label: string, Icon: React.ElementType) => {
-    if (sections.some(s => s.type === type)) return null;
+  const handleAddSection = (type: ThesisSectionType, label: string) => {
+    if (onAddSection) {
+      console.log('Adding section:', { type, label });
+      onAddSection(type);
+    }
+  };
+
+  const renderSectionButton = (section: Section) => {
+    const typeInfo = mainContentGroups
+      .flatMap(group => group.types)
+      .find(t => t.type === section.type);
+    
+    const Icon = typeInfo?.icon || FileText;
     
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+      <motion.button
+        key={section.id}
+        onClick={() => handleSectionSelect(section.id)}
+        className={cn(
+          "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-all",
+          "hover:bg-primary/5 hover:shadow-sm",
+          activeSection === section.id && "bg-primary/10 text-primary font-medium shadow-sm"
+        )}
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 20 }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
       >
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-primary/5 gap-2"
-          onClick={() => onAddSection?.(type)}
-        >
-          <Plus className="h-4 w-4" />
-          <Icon className="h-4 w-4" />
-          <span>Add {label}</span>
-        </Button>
-      </motion.div>
+        <Icon className="h-4 w-4 opacity-70" />
+        <span className="truncate">{section.title}</span>
+      </motion.button>
     );
   };
 
@@ -175,14 +167,33 @@ export const MainContentSections: React.FC<MainContentProps> = ({
                   .filter(section => 
                     group.types.some(type => type.type === section.type)
                   )
-                  .map(section => {
-                    const typeInfo = group.types.find(t => t.type === section.type);
-                    return renderSectionButton(section, typeInfo?.icon || FileText);
-                  })}
+                  .map(section => renderSectionButton(section))}
                 
-                {group.types.map(({ type, label, icon }) => 
-                  renderAddButton(type as ThesisSectionType, label, icon)
-                )}
+                {group.types.map(({ type, label, icon: Icon }) => {
+                  const sectionExists = sections.some(s => s.type === type);
+                  if (!sectionExists) {
+                    return (
+                      <motion.div
+                        key={type}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-primary/5 gap-2"
+                          onClick={() => handleAddSection(type as ThesisSectionType, label)}
+                        >
+                          <Plus className="h-4 w-4" />
+                          <Icon className="h-4 w-4" />
+                          <span>Add {label}</span>
+                        </Button>
+                      </motion.div>
+                    );
+                  }
+                  return null;
+                })}
               </AnimatePresence>
             </div>
           </motion.div>
