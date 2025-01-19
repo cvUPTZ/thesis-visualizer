@@ -3,21 +3,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Thesis } from '@/types/thesis';
 import { Json } from '@/integrations/supabase/types';
+import { v4 as uuidv4 } from 'uuid';
 
 export const useThesisInitialization = (thesis: Thesis | null) => {
   const { toast } = useToast();
 
   useEffect(() => {
     const initializeThesis = async () => {
-      // Only proceed if thesis is not null
-      if (!thesis) {
-        return;
-      }
+      if (!thesis) return;
 
       try {
         console.log('Initializing thesis in database:', thesis.id);
         
-        // Get current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
         if (userError) {
@@ -31,7 +28,6 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
 
         console.log('Current user:', user.id);
 
-        // First get user profile to ensure it exists
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -45,7 +41,6 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
 
         console.log('User profile:', profile);
 
-        // Check if thesis already exists
         const { data: existingThesis, error: checkError } = await supabase
           .from('theses')
           .select('*')
@@ -60,7 +55,16 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
         if (!existingThesis) {
           console.log('Creating new thesis with user_id:', user.id);
           
-          // Create the thesis with the content
+          // Create default sections
+          const defaultSections = [
+            { id: uuidv4(), title: 'Introduction', content: '', type: 'introduction', order: 1, figures: [], tables: [], citations: [], references: [] },
+            { id: uuidv4(), title: 'Literature Review', content: '', type: 'literature-review', order: 2, figures: [], tables: [], citations: [], references: [] },
+            { id: uuidv4(), title: 'Methodology', content: '', type: 'methodology', order: 3, figures: [], tables: [], citations: [], references: [] },
+            { id: uuidv4(), title: 'Results', content: '', type: 'results', order: 4, figures: [], tables: [], citations: [], references: [] },
+            { id: uuidv4(), title: 'Discussion', content: '', type: 'discussion', order: 5, figures: [], tables: [], citations: [], references: [] },
+            { id: uuidv4(), title: 'Conclusion', content: '', type: 'conclusion', order: 6, figures: [], tables: [], citations: [], references: [] }
+          ];
+
           const thesisContent = {
             frontMatter: thesis.frontMatter.map(section => ({
               ...section,
@@ -69,16 +73,16 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
               citations: section.citations || [],
               references: section.references || []
             })),
-            chapters: thesis.chapters.map(chapter => ({
-              ...chapter,
-              sections: chapter.sections.map(section => ({
-                ...section,
-                figures: section.figures || [],
-                tables: section.tables || [],
-                citations: section.citations || [],
-                references: section.references || []
-              }))
-            })),
+            chapters: [{
+              id: uuidv4(),
+              title: 'Main Content',
+              content: '',
+              order: 1,
+              sections: defaultSections,
+              figures: [],
+              tables: [],
+              footnotes: []
+            }],
             backMatter: thesis.backMatter.map(section => ({
               ...section,
               figures: section.figures || [],
@@ -88,12 +92,11 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
             }))
           } as unknown as Json;
 
-          // Insert thesis
           const { error: thesisError } = await supabase
             .from('theses')
             .insert({
               id: thesis.id,
-              title: 'Untitled Thesis',
+              title: thesis.title || 'Untitled Thesis',
               content: thesisContent,
               user_id: user.id
             });
@@ -103,7 +106,6 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
             throw thesisError;
           }
 
-          // Add current user as owner
           const { error: collaboratorError } = await supabase
             .from('thesis_collaborators')
             .insert({
@@ -114,7 +116,6 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
 
           if (collaboratorError) {
             console.error('Error adding thesis owner:', collaboratorError);
-            // If we fail to add collaborator, delete the thesis
             await supabase
               .from('theses')
               .delete()

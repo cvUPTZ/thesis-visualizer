@@ -12,11 +12,12 @@ export const frenchThesisSections = {
   ],
   mainMatter: [
     { type: 'introduction', title: 'Introduction', required: true },
-    { type: 'theoretical-framework', title: 'Cadre théorique', required: true },
-    { type: 'empirical-study', title: 'Partie empirique', required: true },
-    { type: 'results', title: 'Résultats de recherche', required: true },
+    { type: 'literature-review', title: 'Literature Review', required: true },
+    { type: 'methodology', title: 'Methodology', required: true },
+    { type: 'results', title: 'Results', required: true },
+    { type: 'discussion', title: 'Discussion', required: true },
     { type: 'conclusion', title: 'Conclusion', required: true },
-    { type: 'recommendations', title: 'Recommandations', required: false }
+    { type: 'recommendations', title: 'Recommendations', required: false }
   ],
   backMatter: [
     { type: 'postface', title: 'Postface', required: false },
@@ -62,6 +63,7 @@ export type ThesisSectionType =
   | 'abbreviations'
   | 'glossary'
   | 'introduction'
+  | 'literature-review'
   | 'theoretical-framework'
   | 'methodology'
   | 'empirical-study'
