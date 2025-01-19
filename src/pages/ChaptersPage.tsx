@@ -1,38 +1,66 @@
 import React from 'react';
-import { ChapterCreationForm } from '@/components/chapters/ChapterCreationForm';
 import { ChaptersList } from '@/components/chapters/ChaptersList';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Chapter } from '@/types/thesis';
-import { useNavigate } from 'react-router-dom';
-import { ChapterSidebar } from '@/components/chapters/ChapterSidebar';
+import { PlusCircle } from 'lucide-react';
 
 const ChaptersPage = () => {
+  const [chapters, setChapters] = React.useState<Chapter[]>([]);
+  const [newChapterTitle, setNewChapterTitle] = React.useState('');
   const { toast } = useToast();
-  const navigate = useNavigate();
 
-  const handleChapterCreate = (chapter: Chapter) => {
-    console.log('Creating new chapter:', chapter);
+  const handleCreateChapter = () => {
+    if (!newChapterTitle.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a chapter title",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newChapter: Chapter = {
+      id: Date.now().toString(),
+      title: newChapterTitle,
+      content: '',
+      sections: [],
+      part: chapters.length + 1,
+      figures: [],
+      tables: [],
+      footnotes: []
+    };
+
+    setChapters([...chapters, newChapter]);
+    setNewChapterTitle('');
+    
     toast({
-      title: "Chapter Created",
-      description: "Your new chapter has been created successfully.",
+      title: "Success",
+      description: "Chapter created successfully",
     });
-    navigate(`/chapter/${chapter.id}`);
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      <ChapterSidebar />
-      <div className="flex-1 container mx-auto p-6 space-y-8">
+    <div className="container mx-auto p-6 space-y-8">
+      <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Chapters</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <ChapterCreationForm onChapterCreate={handleChapterCreate} />
-          </div>
-          <div>
-            <ChaptersList />
-          </div>
-        </div>
       </div>
+
+      <div className="flex gap-4">
+        <Input
+          placeholder="Enter chapter title"
+          value={newChapterTitle}
+          onChange={(e) => setNewChapterTitle(e.target.value)}
+          className="max-w-md"
+        />
+        <Button onClick={handleCreateChapter}>
+          <PlusCircle className="w-4 h-4 mr-2" />
+          Add Chapter
+        </Button>
+      </div>
+
+      <ChaptersList chapters={chapters} />
     </div>
   );
 };

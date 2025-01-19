@@ -14,7 +14,8 @@ export type ThesisSectionType =
   | 'table-of-contents'
   | 'acknowledgments'
   | 'abstract'
-  | 'chapter';
+  | 'chapter'
+  | 'custom';
 
 export const SectionTypes = {
   'title': {
@@ -55,6 +56,14 @@ export const SectionTypes = {
     description: 'A chapter in the thesis',
     required: false,
     order: 4,
+    group: 'mainContent'
+  },
+  'custom': {
+    icon: FileText,
+    label: 'Custom Section',
+    description: 'A custom section',
+    required: false,
+    order: 5,
     group: 'mainContent'
   }
 } as const;
