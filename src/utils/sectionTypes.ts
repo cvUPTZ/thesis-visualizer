@@ -14,9 +14,7 @@ import {
   BookOpenCheck,
   ScrollText,
   ClipboardCheck,
-  BookCheck,
-  CheckCircle,
-  FileCheck
+  BookCheck
 } from 'lucide-react';
 import { ThesisSectionType } from '@/types/thesis';
 
@@ -120,6 +118,7 @@ export const sectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
     group: 'mainContent',
     type: 'conclusion'
   },
+
   'general-conclusion': {
     label: 'General Conclusion',
     icon: BookCheck,

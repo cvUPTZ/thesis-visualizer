@@ -58,7 +58,11 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
         // Create thread objects
         const threads: CommentThread[] = (threadMap.get(null) || []).map(comment => ({
           comment,
-          replies: threadMap.get(comment.id) || []
+          replies: threadMap.get(comment.id) || [],
+          id: comment.id,
+          content: comment.content.text,
+          author: comment.profiles.email,
+          created_at: comment.created_at
         }));
 
         setComments(threads);
@@ -128,7 +132,11 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
       // Add the new comment as a new thread
       const newThread: CommentThread = {
         comment: transformComment(data),
-        replies: []
+        replies: [],
+        id: data.id,
+        content: data.content.text,
+        author: profile?.email || 'Unknown',
+        created_at: data.created_at
       };
       
       setComments([...comments, newThread]);

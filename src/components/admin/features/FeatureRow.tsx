@@ -13,7 +13,7 @@ export interface FeatureRowProps {
   onOpenPricingDialog: (feature: any) => void;
   expanded: boolean;
   onToggleExpand: () => void;
-  onUpdate: (feature: any) => Promise<void>;
+  onUpdate?: (feature: any) => Promise<void>;
 }
 
 export const FeatureRow = ({

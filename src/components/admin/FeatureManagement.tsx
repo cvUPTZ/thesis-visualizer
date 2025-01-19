@@ -169,6 +169,19 @@ const FeatureManagement: React.FC = () => {
             <FeatureRow
               key={feature.id}
               feature={feature}
+              subFeatures={[]}
+              level={0}
+              onToggleFeature={async (id, status) => {
+                const newStatus = status === 'Active' ? 'Inactive' : 'Active';
+                await handleFeatureUpdate({ ...feature, status: newStatus });
+              }}
+              onOpenDialog={setSelectedFeature}
+              onOpenPricingDialog={(f) => {
+                setSelectedFeature(f);
+                setIsPricingDialogOpen(true);
+              }}
+              expanded={false}
+              onToggleExpand={() => {}}
               onUpdate={handleFeatureUpdate}
             />
           ))
