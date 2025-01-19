@@ -4,7 +4,6 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, ChevronRight, ChevronDown, Loader2 } from 'lucide-react';
 
-// Update the FeatureRowProps interface
 interface FeatureRowProps {
   feature: {
     id: string;
@@ -24,6 +23,7 @@ interface FeatureRowProps {
   onOpenPricingDialog: (feature: any) => void;
   expanded: boolean;
   onToggleExpand: () => void;
+  onUpdate: (feature: any) => Promise<void>;
 }
 
 export const FeatureRow = ({

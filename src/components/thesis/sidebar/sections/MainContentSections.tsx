@@ -3,7 +3,7 @@ import { Section, Chapter, ThesisSectionType } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { 
   BookOpen, FileText, Microscope, ChartBar, MessageSquare, 
-  CheckSquare, GraduationCap, Library, Flask, PieChart,
+  CheckSquare, GraduationCap, Library, Beaker, PieChart,
   ScrollText, Lightbulb, Target, List, GitBranch, Search,
   BookMarked, BookCopy, Compass, Database, LineChart, Brain,
   Presentation, ArrowRight, Plus
@@ -62,9 +62,9 @@ export const MainContentSections: React.FC<MainContentProps> = ({
     },
     {
       title: "Methodology",
-      icon: Flask,
+      icon: Microscope,
       types: [
-        { type: 'methodology', label: 'Methodology', icon: Flask },
+        { type: 'methodology', label: 'Methodology', icon: Microscope },
         { type: 'research-design', label: 'Research Design', icon: GitBranch },
         { type: 'methodological-approach', label: 'Methodological Approach', icon: Compass },
         { type: 'population-sample', label: 'Population & Sample', icon: Database },
