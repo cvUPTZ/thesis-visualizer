@@ -33,13 +33,7 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
   onAddGeneralIntroduction, // Make sure this is included
   onRemoveChapter,
   thesisId,
-<<<<<<< HEAD
   hasGeneralIntroduction = false
-=======
-  hasGeneralIntroduction = false,
-  onAddGeneralIntroduction,
-  onRemoveChapter
->>>>>>> 248b3a844ec0ae1adb4aeefb6e55b4beef4c7539
 }) => {
   const renderSectionContent = (section: Section) => {
     const isActive = activeSection === section.id;
