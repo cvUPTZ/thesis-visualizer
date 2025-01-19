@@ -1,44 +1,39 @@
 import React from 'react';
-import { Section, ThesisSectionType } from '@/types/thesis';
+import { Section, Chapter, ThesisSectionType } from '@/types/thesis';
+import { ScrollArea } from './ui/scroll-area';
 import { TableOfContents } from './thesis/sidebar/TableOfContents';
-import { cn } from '@/lib/utils';
 
-interface ThesisSidebarProps {
+export interface ThesisSidebarProps {
   sections: Section[];
   activeSection: string;
   onSectionSelect: (id: string) => void;
   onAddSection?: (type: ThesisSectionType) => void;
+  onAddChapter?: (chapter: Chapter) => void;
 }
 
-export const ThesisSidebar = ({ 
-  sections = [], 
-  activeSection, 
+export const ThesisSidebar: React.FC<ThesisSidebarProps> = ({
+  sections,
+  activeSection,
   onSectionSelect,
-  onAddSection 
-}: ThesisSidebarProps) => {
-  console.log('Rendering ThesisSidebar:', { 
-    activeSection, 
+  onAddSection,
+  onAddChapter
+}) => {
+  console.log('Rendering ThesisSidebar with:', { 
     sectionsCount: sections?.length,
-    sections: sections?.map(s => ({ id: s.id, title: s.title }))
+    activeSection 
   });
-  
-  const validSections = Array.isArray(sections) ? sections.filter(section => 
-    section && typeof section === 'object' && 'id' in section && 'title' in section
-  ) : [];
-  
+
   return (
-    <aside className="w-64 h-full bg-editor-bg border-r border-editor-border">
-      <div className="sticky top-0 z-10 bg-editor-bg border-b border-editor-border p-4">
-        <h2 className="text-lg font-serif font-medium text-editor-text">Contents</h2>
-      </div>
-      <div className="p-4">
+    <div className="w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <ScrollArea className="h-full py-6">
         <TableOfContents
-          sections={validSections}
+          sections={sections}
           activeSection={activeSection}
           onSectionSelect={onSectionSelect}
           onAddSection={onAddSection}
+          onAddChapter={onAddChapter}
         />
-      </div>
-    </aside>
+      </ScrollArea>
+    </div>
   );
 };

@@ -94,21 +94,41 @@ export interface ThesisComment {
 }
 
 // Section types as const enum
+
 export const SectionTypes = {
-  Title: 'title',
-  Abstract: 'abstract',
-  TableOfContents: 'table-of-contents',
-  Introduction: 'introduction',
-  LiteratureReview: 'literature-review',
-  Methodology: 'methodology',
-  Results: 'results',
-  Discussion: 'discussion',
-  Conclusion: 'conclusion',
-  References: 'references',
-  Custom: 'custom'
+  // Front Matter
+  'title': 'title',
+  'acknowledgments': 'acknowledgments',
+  'abstract': 'abstract',
+  'table-of-contents': 'table-of-contents',
+  'list-of-figures': 'list-of-figures',
+  'list-of-tables': 'list-of-tables',
+  'list-of-abbreviations': 'list-of-abbreviations',
+  // Main Content
+  'general-introduction': 'general-introduction',
+  'introduction': 'introduction',
+  'literature-review': 'literature-review',
+  'methodology': 'methodology',
+  'results': 'results',
+  'discussion': 'discussion',
+  'conclusion': 'conclusion',
+  // Back Matter
+  'bibliography': 'bibliography',
+  'primary-sources': 'primary-sources',
+  'secondary-sources': 'secondary-sources',
+  'electronic-sources': 'electronic-sources',
+  'appendix': 'appendix',
+  'collection-tools': 'collection-tools',
+  'raw-data': 'raw-data',
+  'detailed-analysis': 'detailed-analysis',
+  'supporting-documents': 'supporting-documents',
+  'reference-tables': 'reference-tables',
+  'index': 'index',
+  'glossary': 'glossary',
+  'detailed-toc': 'detailed-toc'
 } as const;
 
-export type ThesisSectionType = typeof SectionTypes[keyof typeof SectionTypes];
+export type ThesisSectionType = keyof typeof SectionTypes;
 
 // Main interfaces
 export interface Section {
