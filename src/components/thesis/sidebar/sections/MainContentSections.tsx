@@ -116,7 +116,7 @@ export const MainContentSections: React.FC<MainContentProps> = ({
 
   const handleAddSection = (type: ThesisSectionType, label: string) => {
     if (onAddSection) {
-      console.log('Adding section:', { type, label });
+      console.log('Adding new section:', { type, label });
       onAddSection(type);
     }
   };
