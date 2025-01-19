@@ -1,10 +1,11 @@
 import React from 'react';
 import { Section, Chapter } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
-import { Plus, BookOpen, FileText, FlaskConical, LineChart, BookmarkPlus } from 'lucide-react';
+import { Plus, BookOpen, FileText, FlaskConical, LineChart, BookmarkPlus, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChapterCreationDialog } from '@/components/editor/chapters/ChapterCreationDialog';
 import { SectionTypes } from '@/types/thesis';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface MainContentProps {
   sections: Section[];
@@ -31,9 +32,11 @@ export const MainContentSections: React.FC<MainContentProps> = ({
 
   const handleCreateChapter = (chapter: Chapter) => {
     if (onAddChapter) {
+      console.log('Creating new chapter for part:', selectedPart);
       const newChapter = {
         ...chapter,
-        part: selectedPart
+        part: selectedPart,
+        order: chapters.filter(c => c.part === selectedPart).length + 1
       };
       onAddChapter(newChapter);
       setShowChapterDialog(false);
@@ -41,36 +44,47 @@ export const MainContentSections: React.FC<MainContentProps> = ({
   };
 
   const handleAddChapter = (part: number) => {
+    console.log('Opening chapter dialog for part:', part);
     setSelectedPart(part);
     setShowChapterDialog(true);
   };
 
-  const renderChapterSection = (title: string, partNumber: number, description: string, icon: React.ReactNode) => (
-    <div className="space-y-2 border-l-2 border-primary/10 pl-4 py-3 hover:border-primary/30 transition-colors">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {icon}
-          <div>
-            <h4 className="text-sm font-medium text-foreground">{title}</h4>
-            <p className="text-xs text-muted-foreground">{description}</p>
+  const renderChapterSection = (title: string, partNumber: number, description: string, icon: React.ReactNode) => {
+    const partChapters = chapters.filter(chapter => chapter.part === partNumber);
+    
+    return (
+      <div className="space-y-2 border-l-2 border-primary/10 pl-4 py-3 hover:border-primary/30 transition-colors">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {icon}
+            <div>
+              <h4 className="text-sm font-medium text-foreground">{title}</h4>
+              <p className="text-xs text-muted-foreground">{description}</p>
+            </div>
           </div>
+          {onAddChapter && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 hover:bg-primary/5"
+                    onClick={() => handleAddChapter(partNumber)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span className="sr-only">Add Chapter to {title}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add new chapter to {title}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
-        {onAddChapter && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 hover:bg-primary/5"
-            onClick={() => handleAddChapter(partNumber)}
-          >
-            <Plus className="h-4 w-4" />
-            <span className="sr-only">Add Chapter</span>
-          </Button>
-        )}
-      </div>
-      <div className="space-y-1 mt-2">
-        {chapters
-          .filter(chapter => chapter.part === partNumber)
-          .map(chapter => (
+        <div className="space-y-1 mt-2">
+          {partChapters.map(chapter => (
             <button
               key={chapter.id}
               onClick={() => onSectionSelect(chapter.id)}
@@ -84,9 +98,15 @@ export const MainContentSections: React.FC<MainContentProps> = ({
               {chapter.title}
             </button>
           ))}
+          {partChapters.length === 0 && (
+            <p className="text-xs text-muted-foreground italic px-3 py-1">
+              No chapters yet
+            </p>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-6">
