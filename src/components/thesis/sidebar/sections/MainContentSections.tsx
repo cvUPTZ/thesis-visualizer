@@ -4,6 +4,12 @@ import { Section, Chapter, ThesisSectionType } from '@/types/thesis';
 import { getSectionsByGroup, getSectionConfig } from '@/utils/sectionTypes';
 import { cn } from '@/lib/utils';
 import { PlusCircle } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MainContentSectionsProps {
   sections: Section[];
@@ -32,25 +38,21 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
   const mainContentTypes = getSectionsByGroup('mainContent');
   const existingSectionTypes = new Set(sections.map(s => s.type));
 
-  const renderAddButton = (type: ThesisSectionType) => {
-    const config = getSectionConfig(type);
-    const Icon = config.icon;
-
-    return (
-      <Button
-        key={`add-${type}`}
-        variant="ghost"
-        size="sm"
-        className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-primary/5 gap-2"
-        onClick={() => {
-          console.log('Adding main content section:', type);
-          onAddSection?.(type);
-        }}
-      >
-        <Icon className="h-4 w-4" />
-        Add {config.label}
-      </Button>
-    );
+  const handleAddChapter = () => {
+    console.log('Adding new chapter');
+    if (onAddChapter) {
+      const newChapter: Chapter = {
+        id: crypto.randomUUID(),
+        title: 'New Chapter',
+        sections: [],
+        content: '',
+        part: (chapters?.length || 0) + 1,
+        figures: [],
+        tables: [],
+        footnotes: []
+      };
+      onAddChapter(newChapter);
+    }
   };
 
   return (
@@ -58,25 +60,23 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
       <div className="flex items-center justify-between px-2 py-1">
         <h2 className="font-semibold text-sm">Main Content</h2>
         {onAddChapter && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={() => {
-              console.log('Adding new chapter');
-              onAddChapter({
-                id: crypto.randomUUID(),
-                title: 'New Chapter',
-                sections: [],
-                part: chapters?.length || 0 + 1,
-                figures: [],
-                tables: [],
-                footnotes: []
-              });
-            }}
-          >
-            <PlusCircle className="h-4 w-4" />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 hover:bg-primary/5"
+                  onClick={handleAddChapter}
+                >
+                  <PlusCircle className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Add new chapter</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
       
@@ -86,27 +86,54 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
           const Icon = config.icon;
           
           return (
-            <Button
-              key={section.id}
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "w-full justify-start gap-2",
-                activeSection === section.id
-                  ? "bg-primary/10 text-primary hover:bg-primary/20"
-                  : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
-              )}
-              onClick={() => onSectionSelect(section.id)}
-            >
-              <Icon className="h-4 w-4" />
-              {section.title}
-            </Button>
+            <TooltipProvider key={section.id}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "w-full justify-start gap-2 group",
+                      activeSection === section.id
+                        ? "bg-primary/10 text-primary hover:bg-primary/20"
+                        : "text-muted-foreground hover:text-foreground hover:bg-primary/5"
+                    )}
+                    onClick={() => onSectionSelect(section.id)}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="truncate">{section.title}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{config.description}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           );
         })}
         
         {mainContentTypes
-          .filter(config => !existingSectionTypes.has(config.type))
-          .map(config => renderAddButton(config.type))}
+          .filter(config => !existingSectionTypes.has(config.type as ThesisSectionType))
+          .map(config => (
+            <TooltipProvider key={`add-${config.type}`}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-primary/5 gap-2 group"
+                    onClick={() => onAddSection?.(config.type as ThesisSectionType)}
+                  >
+                    <PlusCircle className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                    <span>Add {config.label}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{config.description}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
       </div>
     </div>
   );
