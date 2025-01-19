@@ -28,6 +28,14 @@ export const ContentSection = ({
   onPositionChange 
 }: ContentSectionProps) => {
   const isSpecialSection = section.type === 'references' || section.type === 'table-of-contents';
+  const sectionTypeClasses = {
+    'general-introduction': 'thesis-introduction',
+    'literature-review': 'thesis-literature',
+    'methodology': 'thesis-methodology',
+    'results': 'thesis-results',
+    'discussion': 'thesis-discussion',
+    'conclusion': 'thesis-conclusion'
+  };
 
   return (
     <div className="thesis-page">
@@ -38,6 +46,7 @@ export const ContentSection = ({
       <div className={cn(
         "thesis-content",
         section.type === 'references' && "thesis-references",
+        sectionTypeClasses[section.type as keyof typeof sectionTypeClasses],
         "prose prose-sm max-w-none"
       )}>
         {section.type !== 'table-of-contents' && (
