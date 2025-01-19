@@ -70,14 +70,12 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
         footnotes: ch.footnotes
       }));
 
-      // Then persist it to Supabase
+      // Then persist it to Supabase with proper type casting
       const { error } = await supabase
         .from('theses')
         .update({
-          content: {
-            chapters: chaptersJson
-          }
-        } as { content: Json })
+          content: { chapters: chaptersJson } as Json
+        })
         .eq('id', chapter.id);
 
       if (error) throw error;
@@ -123,10 +121,8 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
         const { error } = await supabase
           .from('theses')
           .update({
-            content: {
-              chapters: updatedChapters
-            }
-          } as { content: Json })
+            content: { chapters: updatedChapters } as Json
+          })
           .eq('id', chapters[0]?.id);
 
         if (error) throw error;
