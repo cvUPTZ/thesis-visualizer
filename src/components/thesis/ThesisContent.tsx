@@ -14,6 +14,8 @@ interface ThesisContentProps {
   onTitleChange: (id: string, title: string) => void;
   onUpdateChapter: (chapter: Chapter) => void;
   onAddChapter: (chapter: Chapter) => void;
+  onAddGeneralIntroduction: (intro: { title: string; content: string }) => Promise<void>;
+  onRemoveChapter: (chapterId: string) => Promise<void>; // Add this if you need chapter deletion
   thesisId: string;
   hasGeneralIntroduction?: boolean;
 }

@@ -11,6 +11,8 @@ interface ThesisContentManagerProps {
   onTitleChange: (id: string, title: string) => void;
   onUpdateChapter: (chapter: Chapter) => void;
   onAddChapter: (chapter: Chapter) => void;
+  onAddGeneralIntroduction: (intro: { title: string; content: string }) => Promise<void>;
+  onRemoveChapter: (chapterId: string) => Promise<void>;
   thesisId: string;
   hasGeneralIntroduction: boolean;
 }
@@ -24,6 +26,8 @@ export const ThesisContentManager: React.FC<ThesisContentManagerProps> = ({
   onTitleChange,
   onUpdateChapter,
   onAddChapter,
+  onAddGeneralIntroduction,
+  onRemoveChapter,
   thesisId,
   hasGeneralIntroduction
 }) => {
@@ -44,6 +48,8 @@ export const ThesisContentManager: React.FC<ThesisContentManagerProps> = ({
       onTitleChange={onTitleChange}
       onUpdateChapter={onUpdateChapter}
       onAddChapter={onAddChapter}
+      onAddGeneralIntroduction={onAddGeneralIntroduction}
+      onRemoveChapter={onRemoveChapter}
       thesisId={thesisId}
       hasGeneralIntroduction={hasGeneralIntroduction}
     />

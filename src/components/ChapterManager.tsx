@@ -1,24 +1,40 @@
 import React, { useCallback, useMemo, useReducer } from 'react';
 import { Chapter, Section, ThesisSectionType } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { BookOpen, PlusCircle, Trash2 } from 'lucide-react';
 import { ChapterItem } from './editor/chapters/ChapterItem';
 import { useToast } from '@/hooks/use-toast';
 import { ChapterCreationDialog } from './editor/chapters/ChapterCreationDialog';
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+interface GeneralIntroduction {
+  title: string;
+  content: string;
+}
+
+interface ChapterManagerProps {
+  chapters: Chapter[];
+  onUpdateChapter: (chapter: Chapter) => Promise<void>;
+  onAddChapter: (chapter: Chapter) => Promise<void>;
+  onRemoveChapter: (chapterId: string) => Promise<void>;
+  hasGeneralIntroduction: boolean;
+  onAddGeneralIntroduction: (intro: GeneralIntroduction) => Promise<void>;
+}
+
 interface ChapterManagerState {
   openChapters: string[];
   showCreateDialog: boolean;
+  showIntroDialog: boolean;
   chaptersToDelete: string[];
   isDeleting: boolean;
   isCreating: boolean;
@@ -27,6 +43,7 @@ interface ChapterManagerState {
 type ChapterManagerAction = 
   | { type: 'TOGGLE_CHAPTER'; payload: string }
   | { type: 'SET_CREATE_DIALOG'; payload: boolean }
+  | { type: 'SET_INTRO_DIALOG'; payload: boolean }
   | { type: 'TOGGLE_CHAPTER_SELECTION'; payload: string }
   | { type: 'CLEAR_SELECTION' }
   | { type: 'SET_DELETING'; payload: boolean }
@@ -35,6 +52,7 @@ type ChapterManagerAction =
 const initialState: ChapterManagerState = {
   openChapters: [],
   showCreateDialog: false,
+  showIntroDialog: false,
   chaptersToDelete: [],
   isDeleting: false,
   isCreating: false,
@@ -51,6 +69,8 @@ function chapterManagerReducer(state: ChapterManagerState, action: ChapterManage
       };
     case 'SET_CREATE_DIALOG':
       return { ...state, showCreateDialog: action.payload };
+    case 'SET_INTRO_DIALOG':
+      return { ...state, showIntroDialog: action.payload };
     case 'TOGGLE_CHAPTER_SELECTION':
       return {
         ...state,
@@ -68,6 +88,70 @@ function chapterManagerReducer(state: ChapterManagerState, action: ChapterManage
       return state;
   }
 }
+
+const GeneralIntroductionEditor: React.FC<{
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (intro: GeneralIntroduction) => void;
+  isLoading?: boolean;
+}> = ({ open, onOpenChange, onSave, isLoading = false }) => {
+  const [title, setTitle] = React.useState('');
+  const [content, setContent] = React.useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave({ title, content });
+    setTitle('');
+    setContent('');
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>General Introduction</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter introduction title..."
+              className="w-full"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="content">Content</Label>
+            <Textarea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write your introduction here..."
+              className="min-h-[200px] w-full"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading || !title || !content}
+            >
+              {isLoading ? 'Saving...' : 'Save Introduction'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const createIntroductionSection = (): Section => ({
   id: Date.now().toString(),
@@ -87,7 +171,8 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
   onUpdateChapter,
   onAddChapter,
   onRemoveChapter,
-  hasGeneralIntroduction = false
+  hasGeneralIntroduction = false,
+  onAddGeneralIntroduction
 }) => {
   const [state, dispatch] = useReducer(chapterManagerReducer, initialState);
   const { toast } = useToast();
@@ -139,6 +224,26 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
     }
   }, [hasGeneralIntroduction, onAddChapter, toast]);
 
+  const handleSaveIntroduction = useCallback(async (introData: GeneralIntroduction) => {
+    try {
+      dispatch({ type: 'SET_CREATING', payload: true });
+      await onAddGeneralIntroduction(introData);
+      toast({
+        title: "General Introduction Added",
+        description: "General introduction has been created successfully",
+      });
+      dispatch({ type: 'SET_INTRO_DIALOG', payload: false });
+    } catch (error) {
+      toast({
+        title: "Error Creating Introduction",
+        description: "Failed to create general introduction. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      dispatch({ type: 'SET_CREATING', payload: false });
+    }
+  }, [onAddGeneralIntroduction, toast]);
+
   const handleDeleteChapters = useCallback(async () => {
     if (!onRemoveChapter || state.chaptersToDelete.length === 0) return;
 
@@ -175,9 +280,14 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
         </div>
         <div className="flex items-center gap-2">
           {!hasGeneralIntroduction && (
-            <p className="text-sm text-destructive">
-              Please add a general introduction before creating chapters
-            </p>
+            <Button
+              onClick={() => dispatch({ type: 'SET_INTRO_DIALOG', payload: true })}
+              className="flex items-center gap-2"
+              variant="outline"
+            >
+              <PlusCircle className="w-5 h-5" />
+              Add General Introduction
+            </Button>
           )}
           {state.chaptersToDelete.length > 0 && (
             <Button 
@@ -234,6 +344,13 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
         open={state.showCreateDialog}
         onOpenChange={(open) => dispatch({ type: 'SET_CREATE_DIALOG', payload: open })}
         onChapterCreate={handleCreateChapter}
+      />
+
+      <GeneralIntroductionEditor
+        open={state.showIntroDialog}
+        onOpenChange={(open) => dispatch({ type: 'SET_INTRO_DIALOG', payload: open })}
+        onSave={handleSaveIntroduction}
+        isLoading={state.isCreating}
       />
 
       <AlertDialog 
