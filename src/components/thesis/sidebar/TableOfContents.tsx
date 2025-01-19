@@ -27,9 +27,17 @@ export const TableOfContents = ({
     ['title', 'abstract', 'acknowledgments'].includes(section.type || '')
   );
   
-  const mainContentSections = sections.filter(section =>
-    !['title', 'abstract', 'acknowledgments', 'references', 'appendix'].includes(section.type || '')
-  );
+  const mainContentSections = [
+    { id: 'introduction', title: 'Introduction', type: 'introduction' },
+    { id: 'literature-review', title: 'Literature Review', type: 'literature-review' },
+    { id: 'methodology', title: 'Methodology', type: 'methodology' },
+    { id: 'results', title: 'Results', type: 'results' },
+    { id: 'discussion', title: 'Discussion', type: 'discussion' },
+    { id: 'conclusion', title: 'Conclusion', type: 'conclusion' },
+    ...sections.filter(section =>
+      !['title', 'abstract', 'acknowledgments', 'references', 'appendix'].includes(section.type || '')
+    )
+  ];
   
   const backMatterSections = sections.filter(section =>
     ['references', 'appendix'].includes(section.type || '')
