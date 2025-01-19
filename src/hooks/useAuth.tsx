@@ -1,140 +1,72 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { Profile } from '@/types/profile';
+import { Session } from '@supabase/supabase-js';
 
 export interface AuthContextType {
-  user: any;
-  profile: Profile | null;
+  session: Session | null;
+  isAuthenticated: boolean;
   isLoading: boolean;
   handleLogout: () => Promise<void>;
 }
 
 export const useAuth = (): AuthContextType => {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    let mounted = true;
+    console.log('🔐 Setting up auth listener...');
     
-    const loadProfile = async () => {
-      try {
-        console.log('Loading user profile...');
-        setIsLoading(true);
-        
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          console.log('No active session found, redirecting to auth...');
-          if (mounted) {
-            setIsLoading(false);
-            navigate('/auth');
-          }
-          return;
-        }
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session:', session ? 'Found' : 'None');
+      setSession(session);
+      setIsLoading(false);
+    });
 
-        setUser(session.user);
-
-        const { data: profileData, error } = await supabase
-          .from('profiles')
-          .select(`
-            *,
-            roles (
-              name
-            )
-          `)
-          .eq('id', session.user.id)
-          .single();
-
-        if (error) {
-          console.error('Error loading profile:', error);
-          if (mounted) {
-            setIsLoading(false);
-            if (error.code === 'PGRST116') {
-              console.log('Profile not found, redirecting to auth...');
-              await handleLogout();
-            }
-          }
-          return;
-        }
-
-        if (profileData && mounted) {
-          console.log('Profile loaded:', profileData);
-          setProfile(profileData);
-        }
-      } catch (error) {
-        console.error('Error in loadProfile:', error);
-        if (mounted) {
-          navigate('/auth');
-        }
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadProfile();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-      
-      if (event === 'SIGNED_OUT') {
-        if (mounted) {
-          setProfile(null);
-          setUser(null);
-          setIsLoading(false);
-          navigate('/auth');
-        }
-      } else if (event === 'SIGNED_IN' && session) {
-        if (mounted) {
-          setUser(session.user);
-          await loadProfile();
-        }
-      }
+    // Listen for changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed:', _event);
+      setSession(session);
+      setIsLoading(false);
     });
 
     return () => {
-      mounted = false;
+      console.log('🧹 Cleaning up auth listener');
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   const handleLogout = async () => {
     try {
       setIsLoading(true);
-      setProfile(null);
-      setUser(null);
-      
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error during sign out:', error);
-        toast({
-          title: "Error signing out",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
+      if (error) throw error;
       
-      console.log('Navigating to auth page...');
-      navigate('/auth');
-      
+      setSession(null);
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
     } catch (error: any) {
       console.error('Error during logout:', error);
       toast({
         title: "Error signing out",
-        description: "An unexpected error occurred. Please try again.",
+        description: error.message,
         variant: "destructive",
       });
-      navigate('/auth');
     } finally {
       setIsLoading(false);
     }
   };
 
-  return { user, profile, isLoading, handleLogout };
+  return {
+    session,
+    isAuthenticated: !!session,
+    isLoading,
+    handleLogout,
+  };
 };
