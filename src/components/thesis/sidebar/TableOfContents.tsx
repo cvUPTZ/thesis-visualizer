@@ -4,7 +4,7 @@ import {
   FileText, BookOpen, List, Book, Database, 
   FileQuestion, ScrollText, Users, Lightbulb, 
   Target, HelpCircle, LayoutList, LineChart, 
-  MessageSquare, ChevronDown, ChevronUp
+  MessageSquare, ChevronDown, ChevronUp 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,10 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     activeSection 
   });
 
-  const frontMatterSections = sections.filter(s => [
+  // Ensure sections is always an array
+  const validSections = Array.isArray(sections) ? sections : [];
+
+  const frontMatterSections = validSections.filter(s => [
     'title',
     'acknowledgments',
     'abstract',
@@ -37,7 +40,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     'list-of-abbreviations'
   ].includes(s.type));
 
-  const introductionSections = sections.filter(s => [
+  const introductionSections = validSections.filter(s => [
     'general-introduction',
     'general-context',
     'problem-statement',
@@ -114,6 +117,49 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     'detailed-toc'
   ].includes(s.type));
 
+  const renderSectionItem = (section: Section) => {
+    if (!section || !section.id || !section.title) return null;
+
+    const Icon = getIconForSection(section.type);
+    const isActive = activeSection === section.id;
+
+    return (
+      <Button
+        key={section.id}
+        variant={isActive ? "secondary" : "ghost"}
+        className={cn(
+          "w-full justify-start gap-2 text-sm",
+          isActive && "bg-primary/10 text-primary"
+        )}
+        onClick={() => onSectionSelect(section.id)}
+      >
+        <Icon className="h-4 w-4" />
+        <span className="truncate">{section.title}</span>
+      </Button>
+    );
+  };
+
+  const renderCollapsibleSection = (title: string, icon: React.ReactNode, sections: Section[]) => {
+    if (!sections || sections.length === 0) return null;
+
+    return (
+      <Collapsible defaultOpen className="space-y-2">
+        <CollapsibleTrigger className="flex w-full items-center justify-between py-2">
+          <div className="flex items-center gap-2">
+            {icon}
+            <span className="font-medium">{title}</span>
+          </div>
+          {sections.length > 0 && (
+            <ChevronDown className="h-4 w-4 transition-transform ui-expanded:rotate-180" />
+          )}
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pl-4 space-y-1">
+          {sections.map(section => renderSectionItem(section))}
+        </CollapsibleContent>
+      </Collapsible>
+    );
+  };
+
   const getIconForSection = (type: string) => {
     switch (type) {
       case 'table-of-contents':
@@ -150,47 +196,6 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
       default:
         return FileText;
     }
-  };
-
-  const renderSectionItem = (section: Section) => {
-    const Icon = getIconForSection(section.type);
-    const isActive = activeSection === section.id;
-
-    return (
-      <Button
-        key={section.id}
-        variant={isActive ? "secondary" : "ghost"}
-        className={cn(
-          "w-full justify-start gap-2 text-sm",
-          isActive && "bg-primary/10 text-primary"
-        )}
-        onClick={() => onSectionSelect(section.id)}
-      >
-        <Icon className="h-4 w-4" />
-        <span className="truncate">{section.title}</span>
-      </Button>
-    );
-  };
-
-  const renderCollapsibleSection = (title: string, icon: React.ReactNode, sections: Section[]) => {
-    if (sections.length === 0) return null;
-
-    return (
-      <Collapsible defaultOpen className="space-y-2">
-        <CollapsibleTrigger className="flex w-full items-center justify-between py-2">
-          <div className="flex items-center gap-2">
-            {icon}
-            <span className="font-medium">{title}</span>
-          </div>
-          {sections.length > 0 && (
-            <ChevronDown className="h-4 w-4 transition-transform ui-expanded:rotate-180" />
-          )}
-        </CollapsibleTrigger>
-        <CollapsibleContent className="pl-4 space-y-1">
-          {sections.map(renderSectionItem)}
-        </CollapsibleContent>
-      </Collapsible>
-    );
   };
 
   return (
@@ -235,3 +240,5 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     </ScrollArea>
   );
 };
+
+export default TableOfContents;

@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { TrialSettingsDialog } from './features/TrialSettingsDialog';
+import { useToast } from '@/hooks/use-toast';
 
-const FeatureManagement: React.FC = () => {
-  const [isTrialSettingsOpen, setIsTrialSettingsOpen] = useState(false);
-  const [currentTrialDays, setCurrentTrialDays] = useState(30);
+export const FeatureManagement: React.FC = () => {
+  const [trialDays, setTrialDays] = useState<number>(14);
   const { toast } = useToast();
 
   const handleUpdateTrialSettings = async (days: number): Promise<void> => {
@@ -14,7 +13,7 @@ const FeatureManagement: React.FC = () => {
       const { error } = await supabase
         .from('trial_settings')
         .update({ trial_days: days })
-        .eq('id', 'trialSettingsId');
+        .eq('id', 1);
 
       if (error) throw error;
 
@@ -33,17 +32,22 @@ const FeatureManagement: React.FC = () => {
   };
 
   return (
-    <div>
-      <h2 className="text-lg font-semibold">Feature Management</h2>
-      <Button onClick={() => setIsTrialSettingsOpen(true)}>Update Trial Settings</Button>
-      <TrialSettingsDialog
-        open={isTrialSettingsOpen}
-        onOpenChange={setIsTrialSettingsOpen}
-        currentTrialDays={currentTrialDays}
-        onUpdate={handleUpdateTrialSettings}
-      />
+    <div className="space-y-4">
+      <div className="flex items-center gap-4">
+        <Input
+          type="number"
+          value={trialDays}
+          onChange={(e) => setTrialDays(parseInt(e.target.value))}
+          min={1}
+          max={90}
+          className="w-24"
+        />
+        <Button onClick={() => handleUpdateTrialSettings(trialDays)}>
+          Update Trial Days
+        </Button>
+      </div>
     </div>
   );
 };
 
-export { FeatureManagement };
+export default FeatureManagement;
