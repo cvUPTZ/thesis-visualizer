@@ -15,6 +15,12 @@ export type ThesisSectionType =
   | 'acknowledgments'
   | 'abstract'
   | 'chapter'
+  | 'introduction'
+  | 'methodology'
+  | 'results'
+  | 'discussion'
+  | 'conclusion'
+  | 'bibliography'
   | 'custom';
 
 export const SectionTypes = {
@@ -50,12 +56,60 @@ export const SectionTypes = {
     order: 4,
     group: 'frontMatter'
   },
+  'introduction': {
+    icon: BookOpen,
+    label: 'Introduction',
+    description: 'Introduction chapter',
+    required: true,
+    order: 5,
+    group: 'mainContent'
+  },
+  'methodology': {
+    icon: BookOpen,
+    label: 'Methodology',
+    description: 'Methodology chapter',
+    required: true,
+    order: 6,
+    group: 'mainContent'
+  },
+  'results': {
+    icon: BookOpen,
+    label: 'Results',
+    description: 'Results chapter',
+    required: true,
+    order: 7,
+    group: 'mainContent'
+  },
+  'discussion': {
+    icon: BookOpen,
+    label: 'Discussion',
+    description: 'Discussion chapter',
+    required: true,
+    order: 8,
+    group: 'mainContent'
+  },
+  'conclusion': {
+    icon: BookOpen,
+    label: 'Conclusion',
+    description: 'Conclusion chapter',
+    required: true,
+    order: 9,
+    group: 'mainContent'
+  },
+  'bibliography': {
+    icon: Library,
+    label: 'Bibliography',
+    description: 'Bibliography section',
+    required: true,
+    order: 10,
+    group: 'backMatter'
+  },
   'chapter': {
     icon: BookOpen,
     label: 'Chapter',
     description: 'A chapter in the thesis',
     required: false,
-    order: 4,
+    order: 11,
     group: 'mainContent'
   },
   'custom': {
@@ -63,7 +117,7 @@ export const SectionTypes = {
     label: 'Custom Section',
     description: 'A custom section',
     required: false,
-    order: 5,
+    order: 12,
     group: 'mainContent'
   }
 } as const;

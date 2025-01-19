@@ -17,7 +17,13 @@ const Routes = () => {
       <Route path="/auth" element={<Auth />} />
       
       {/* Protected Routes */}
-      <Route path="/thesis" element={<ThesisSidebar />}>
+      <Route path="/thesis" element={
+        <ThesisSidebar 
+          sections={[]}
+          activeSection=""
+          onSectionSelect={(id: string) => console.log('Section selected:', id)}
+        />
+      }>
         <Route path="create" element={<CreateThesis />} />
         <Route path="chapters" element={<ChaptersPage />} />
         <Route path="chapters/:chapterId" element={<ChapterEditor />} />
