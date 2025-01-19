@@ -7,11 +7,21 @@ import {
   BookMarked,
   Library,
   LayoutDashboard,
-  BookText
+  BookText,
+  Settings
 } from 'lucide-react';
 import { ThesisSectionType } from '@/types/thesis';
 
-export const SectionTypes = {
+interface SectionTypeConfig {
+  icon: any;
+  label: string;
+  description: string;
+  required: boolean;
+  order: number;
+  group: 'frontMatter' | 'mainContent' | 'backMatter';
+}
+
+export const SectionTypes: Record<ThesisSectionType, SectionTypeConfig> = {
   'title': {
     icon: FileText,
     label: 'Title',
@@ -110,8 +120,8 @@ export const SectionTypes = {
   }
 } as const;
 
-export const getSectionConfig = (type: ThesisSectionType) => {
-  return SectionTypes[type as keyof typeof SectionTypes];
+export const getSectionConfig = (type: ThesisSectionType): SectionTypeConfig => {
+  return SectionTypes[type];
 };
 
 export const getSectionsByGroup = (group: 'frontMatter' | 'mainContent' | 'backMatter') => {
