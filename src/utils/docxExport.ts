@@ -42,9 +42,21 @@ const createPageNumberParagraph = (): Paragraph => {
 export const generateThesisDocx = async (thesis: Thesis) => {
   console.log('Generating academic DOCX with thesis data:', thesis);
 
+  // Ensure thesis data is properly structured
+  if (!thesis || !Array.isArray(thesis.frontMatter)) {
+    console.error('Invalid thesis data structure:', thesis);
+    throw new Error('Invalid thesis data structure');
+  }
+
   const sections = [];
 
   // Title Page
+  const titlePageChildren = generateTitlePage({ thesis });
+  if (!Array.isArray(titlePageChildren)) {
+    console.error('Title page children is not an array:', titlePageChildren);
+    throw new Error('Failed to generate title page');
+  }
+
   sections.push({
     properties: {
       page: {
@@ -55,11 +67,11 @@ export const generateThesisDocx = async (thesis: Thesis) => {
         },
       },
     },
-    children: generateTitlePage({ thesis }),
+    children: titlePageChildren,
   });
 
   // Table of Contents and Content sections
-  [
+  const contentSections = [
     {
       title: "Table of Contents",
       content: [
@@ -73,9 +85,16 @@ export const generateThesisDocx = async (thesis: Thesis) => {
     },
     {
       title: thesis.frontMatter[0]?.title || "Untitled Thesis",
-      content: generateContent({ thesis, isPreview: false }),
+      content: await generateContent({ thesis, isPreview: false }),
     },
-  ].forEach(section => {
+  ];
+
+  for (const section of contentSections) {
+    if (!Array.isArray(section.content)) {
+      console.error('Section content is not an array:', section);
+      continue;
+    }
+
     sections.push({
       properties: {
         page: {
@@ -99,7 +118,7 @@ export const generateThesisDocx = async (thesis: Thesis) => {
       },
       children: section.content,
     });
-  });
+  }
 
   const doc = new Document({
     sections,
@@ -111,6 +130,11 @@ export const generateThesisDocx = async (thesis: Thesis) => {
 
 export const generatePreviewDocx = async (thesis: Thesis) => {
   console.log('Generating preview-style DOCX with thesis data:', thesis);
+
+  if (!thesis || !Array.isArray(thesis.frontMatter)) {
+    console.error('Invalid thesis data structure:', thesis);
+    throw new Error('Invalid thesis data structure');
+  }
 
   const sections = [];
 
@@ -140,14 +164,14 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
         spacing: { before: 480, after: 240 },
       }),
       // Add preview-styled metadata
-      ...Object.entries(thesis.metadata || {}).map(([key, value]) => 
+      ...(thesis.metadata ? Object.entries(thesis.metadata).map(([key, value]) => 
         new Paragraph({
           text: `${key}: ${value}`,
           spacing: { before: 120, after: 120 },
           alignment: AlignmentType.CENTER,
           style: 'Normal',
         })
-      ),
+      ) : []),
     ],
   });
 
@@ -175,9 +199,7 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
     },
     footers: {
       default: new Footer({
-        children: [
-          createPageNumberParagraph(),
-        ],
+        children: [createPageNumberParagraph()],
       }),
     },
     children: [
@@ -191,6 +213,12 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
   });
 
   // Content with preview styling
+  const contentChildren = await generateContent({ thesis, isPreview: true });
+  if (!Array.isArray(contentChildren)) {
+    console.error('Content children is not an array:', contentChildren);
+    throw new Error('Failed to generate content');
+  }
+
   sections.push({
     properties: {
       page: {
@@ -214,12 +242,10 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
     },
     footers: {
       default: new Footer({
-        children: [
-          createPageNumberParagraph(),
-        ],
+        children: [createPageNumberParagraph()],
       }),
     },
-    children: generateContent({ thesis, isPreview: true }),
+    children: contentChildren,
   });
 
   const doc = new Document({
