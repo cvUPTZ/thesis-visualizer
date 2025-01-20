@@ -6,7 +6,7 @@ import AdminPanel from '@/pages/AdminPanel';
 import LandingPage from '@/pages/LandingPage';
 import { useAuth } from '@/contexts/AuthContext';
 import { ThesisEditor } from '@/components/ThesisEditor';
-import SectionEditor from '@/pages/SectionEditor';
+import SectionEditor from '@/components/editor/section/EditorSection';
 
 const Routes = () => {
   const { isAuthenticated, loading } = useAuth();
