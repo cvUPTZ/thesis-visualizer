@@ -41,6 +41,7 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
       onAddChapter={onAddChapter}
       thesis={thesis}
       onUpdateThesis={onUpdateThesis}
+      thesisId={thesis.id}
     />
   );
 };

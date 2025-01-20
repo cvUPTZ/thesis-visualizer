@@ -15,6 +15,8 @@ export const GeneralSectionEditor: React.FC<GeneralSectionEditorProps> = ({
   title,
   onUpdate,
 }) => {
+  console.log('GeneralSectionEditor rendering:', { title, section });
+  
   return (
     <Card className="p-6 space-y-4">
       <div className="space-y-2">
