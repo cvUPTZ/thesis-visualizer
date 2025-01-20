@@ -43,12 +43,16 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     ['bibliography', 'appendix'].includes(s.type)
   ) || [];
 
+  const handleSectionSelect = (id: string) => {
+    onSectionSelect(id);
+  };
+
   return (
     <div className="space-y-6">
       <FrontMatterSections
         sections={frontMatterSections}
         activeSection={activeSection}
-        onSectionSelect={onSectionSelect}
+        onSectionSelect={handleSectionSelect}
         onAddSection={!isReadOnly ? onAddSection : undefined}
         completedSections={completedSections}
         onSectionComplete={onSectionComplete}
@@ -59,7 +63,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
         sections={mainContentSections}
         chapters={[]}
         activeSection={activeSection}
-        onSectionSelect={onSectionSelect}
+        onSectionSelect={handleSectionSelect}
         onAddSection={!isReadOnly ? onAddSection : undefined}
         onAddChapter={!isReadOnly ? onAddChapter : undefined}
         completedSections={completedSections}
@@ -70,7 +74,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
       <BackMatterSections
         sections={backMatterSections}
         activeSection={activeSection}
-        onSectionSelect={onSectionSelect}
+        onSectionSelect={handleSectionSelect}
         onAddSection={!isReadOnly ? onAddSection : undefined}
         completedSections={completedSections}
         onSectionComplete={onSectionComplete}
