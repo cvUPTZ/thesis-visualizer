@@ -28,8 +28,19 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
   onSectionComplete,
   isReadOnly = false
 }) => {
-  const handleSectionClick = (id: string) => {
-    onSectionSelect(id);
+  const handleAddChapter = () => {
+    if (onAddChapter) {
+      onAddChapter({
+        id: Date.now().toString(),
+        title: 'New Chapter',
+        content: '',
+        sections: [],
+        part: sections.length + 1,
+        figures: [],
+        tables: [],
+        footnotes: []
+      });
+    }
   };
 
   return (
@@ -49,6 +60,17 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
                 <span className="sr-only">Add Section</span>
               </Button>
             )}
+            {onAddChapter && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleAddChapter}
+                className="h-8 px-2"
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span className="sr-only">Add Chapter</span>
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -64,25 +86,26 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
               className={cn(
                 "flex items-center gap-2 px-2 py-1.5 rounded-md text-sm",
                 activeSection === section.id && "bg-accent text-accent-foreground",
-                "hover:bg-accent/50 transition-colors cursor-pointer"
+                "hover:bg-accent/50 transition-colors"
               )}
-              onClick={() => handleSectionClick(section.id)}
             >
               {!isReadOnly && (
                 <Checkbox
                   checked={isCompleted}
                   onCheckedChange={(checked) => onSectionComplete(section.id, checked as boolean)}
                   className="h-4 w-4"
-                  onClick={(e) => e.stopPropagation()}
                 />
               )}
-              <span className={cn(
-                "flex-1",
-                isCompleted && "line-through opacity-50"
-              )}>
+              <button
+                onClick={() => onSectionSelect(section.id)}
+                className={cn(
+                  "flex-1 text-left",
+                  isCompleted && "line-through opacity-50"
+                )}
+              >
                 {config?.icon && <config.icon className="h-4 w-4 inline-block mr-2" />}
                 {section.title}
-              </span>
+              </button>
             </div>
           );
         })}
