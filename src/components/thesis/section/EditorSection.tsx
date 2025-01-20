@@ -6,6 +6,7 @@ import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { useThesisData } from '@/hooks/useThesisData';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Thesis } from '@/types/thesis';
 
 export default function SectionEditor() {
   const { thesisId, sectionId } = useParams();
@@ -78,7 +79,30 @@ export default function SectionEditor() {
 
       if (thesisError) throw thesisError;
 
-      setThesis(updatedThesis);
+      const parsedContent = typeof updatedThesis.content === 'string'
+        ? JSON.parse(updatedThesis.content)
+        : updatedThesis.content;
+
+      const formattedThesis: Thesis = {
+        ...updatedThesis,
+        metadata: parsedContent.metadata || {
+          description: '',
+          keywords: [],
+          createdAt: new Date().toISOString(),
+          universityName: '',
+          departmentName: '',
+          authorName: '',
+          thesisDate: '',
+          committeeMembers: []
+        },
+        frontMatter: parsedContent.frontMatter || [],
+        chapters: parsedContent.chapters || [],
+        backMatter: parsedContent.backMatter || [],
+        generalIntroduction: parsedContent.generalIntroduction,
+        generalConclusion: parsedContent.generalConclusion
+      };
+
+      setThesis(formattedThesis);
       
       toast({
         title: "Section Created",
@@ -86,8 +110,8 @@ export default function SectionEditor() {
       });
 
       // Find the newly created section in the updated thesis
-      const newSection = updatedThesis.content.frontMatter.find(
-        (s: any) => s.id === newSectionId
+      const newSection = formattedThesis.frontMatter.find(
+        (s) => s.id === newSectionId
       );
 
       return newSection;
