@@ -74,7 +74,7 @@ supabase.from = function(table: string) {
     const query = originalSelect(...args);
     const originalExecute = query.execute.bind(query);
     
-    query.execute = async function(this: any) {
+    query.execute = function(this: any) {
       return retryRequest(() => originalExecute.call(this));
     };
     
