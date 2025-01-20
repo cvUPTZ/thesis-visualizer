@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Section } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
 import { SectionHeader } from './editor/SectionHeader';
@@ -6,7 +7,7 @@ import { SectionContent } from './editor/SectionContent';
 import { SectionManagers } from './editor/SectionManagers';
 import { SectionProps } from '@/types/components';
 import { Button } from './ui/button';
-import { Plus, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Edit } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +25,7 @@ export const EditorSection: React.FC<SectionProps> = ({
 }) => {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const navigate = useNavigate();
   
   console.log('EditorSection rendering with section:', { 
     id: section.id, 
@@ -78,6 +80,11 @@ export const EditorSection: React.FC<SectionProps> = ({
     references: section.references || []
   };
 
+  const navigateToEditor = () => {
+    const thesisId = window.location.pathname.split('/')[2];
+    navigate(`/thesis/${thesisId}/section/${section.id}`);
+  };
+
   return (
     <div className="editor-section space-y-4">
       <div className="flex justify-between items-center mb-4">
@@ -118,7 +125,6 @@ export const EditorSection: React.FC<SectionProps> = ({
           "hover:shadow-md",
           isEditing && "ring-2 ring-primary"
         )}
-        onClick={() => !isEditing && setIsEditing(true)}
       >
         <div className="flex items-center justify-between">
           <SectionHeader
@@ -126,20 +132,31 @@ export const EditorSection: React.FC<SectionProps> = ({
             required={fullSection.required}
             onTitleChange={(title) => onTitleChange(fullSection.id, title)}
           />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsEditing(!isEditing);
-            }}
-          >
-            {isEditing ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditing(!isEditing);
+              }}
+            >
+              {isEditing ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={navigateToEditor}
+              className="flex items-center gap-2"
+            >
+              <Edit className="h-4 w-4" />
+              Edit in Full Page
+            </Button>
+          </div>
         </div>
 
         {isEditing && (
