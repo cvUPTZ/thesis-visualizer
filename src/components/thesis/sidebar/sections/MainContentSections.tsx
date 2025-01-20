@@ -11,17 +11,20 @@ interface MainContentSectionsProps {
   chapters: Chapter[];
   activeSection: string;
   onSectionSelect: (id: string) => void;
+  onChapterSelect?: (id: string) => void;
   onAddSection?: (type: string) => void;
   onAddChapter?: (chapter: Chapter) => void;
   completedSections: string[];
-  onSectionComplete: (id: string, completed: boolean) => void;
+  onSectionComplete?: (id: string, completed: boolean) => void;
   isReadOnly?: boolean;
 }
 
 export const MainContentSections: React.FC<MainContentSectionsProps> = ({
   sections,
+  chapters,
   activeSection,
   onSectionSelect,
+  onChapterSelect,
   onAddSection,
   onAddChapter,
   completedSections,
@@ -35,7 +38,7 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
         title: 'New Chapter',
         content: '',
         sections: [],
-        part: sections.length + 1,
+        part: chapters.length + 1,
         figures: [],
         tables: [],
         footnotes: []
@@ -89,7 +92,7 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
                 "hover:bg-accent/50 transition-colors"
               )}
             >
-              {!isReadOnly && (
+              {!isReadOnly && onSectionComplete && (
                 <Checkbox
                   checked={isCompleted}
                   onCheckedChange={(checked) => onSectionComplete(section.id, checked as boolean)}
@@ -109,6 +112,24 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
             </div>
           );
         })}
+
+        {chapters.map((chapter) => (
+          <div
+            key={chapter.id}
+            className={cn(
+              "flex items-center gap-2 px-2 py-1.5 rounded-md text-sm",
+              activeSection === chapter.id && "bg-accent text-accent-foreground",
+              "hover:bg-accent/50 transition-colors"
+            )}
+          >
+            <button
+              onClick={() => onChapterSelect?.(chapter.id)}
+              className="flex-1 text-left"
+            >
+              Chapter {chapter.part}: {chapter.title}
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

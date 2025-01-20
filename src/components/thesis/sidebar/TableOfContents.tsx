@@ -6,8 +6,10 @@ import { BackMatterSections } from './sections/BackMatterSections';
 
 interface TableOfContentsProps {
   sections: Section[];
+  chapters?: Chapter[];
   activeSection: string;
   onSectionSelect: (id: string) => void;
+  onChapterSelect?: (id: string) => void;
   onAddSection?: (type: ThesisSectionType) => void;
   onAddChapter?: (chapter: Chapter) => void;
   completedSections?: string[];
@@ -17,8 +19,10 @@ interface TableOfContentsProps {
 
 export const TableOfContents: React.FC<TableOfContentsProps> = ({
   sections,
+  chapters = [],
   activeSection,
   onSectionSelect,
+  onChapterSelect,
   onAddSection,
   onAddChapter,
   completedSections = [],
@@ -27,6 +31,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
 }) => {
   console.log('TableOfContents rendering with:', { 
     sectionsCount: sections?.length,
+    chaptersCount: chapters?.length,
     activeSection,
     isReadOnly
   });
@@ -57,9 +62,10 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
       
       <MainContentSections
         sections={mainContentSections}
-        chapters={[]}
+        chapters={chapters}
         activeSection={activeSection}
         onSectionSelect={onSectionSelect}
+        onChapterSelect={onChapterSelect}
         onAddSection={!isReadOnly ? onAddSection : undefined}
         onAddChapter={!isReadOnly ? onAddChapter : undefined}
         completedSections={completedSections}
