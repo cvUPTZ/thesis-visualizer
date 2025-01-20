@@ -5,6 +5,7 @@ import { BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/integrations/supabase/types';
 
 export const ChaptersList = () => {
   const [expandedChapterId, setExpandedChapterId] = useState<string | null>(null);
@@ -31,24 +32,56 @@ export const ChaptersList = () => {
         id: ch.id,
         title: ch.title,
         content: ch.content,
-        sections: ch.sections || [],
+        sections: (ch.sections || []).map(section => ({
+          id: section.id,
+          title: section.title,
+          content: section.content,
+          type: section.type,
+          order: section.order,
+          figures: section.figures || [],
+          tables: section.tables || [],
+          citations: section.citations || [],
+          references: section.references || [],
+          footnotes: section.footnotes || []
+        })),
         part: ch.part || 1,
-        figures: ch.figures || [],
-        tables: ch.tables || [],
-        footnotes: ch.footnotes || []
+        figures: (ch.figures || []).map(figure => ({
+          id: figure.id,
+          imageUrl: figure.imageUrl,
+          title: figure.title,
+          caption: figure.caption,
+          altText: figure.altText,
+          number: figure.number,
+          dimensions: figure.dimensions
+        })),
+        tables: (ch.tables || []).map(table => ({
+          id: table.id,
+          title: table.title || '',
+          content: table.content,
+          caption: table.caption || ''
+        })),
+        footnotes: (ch.footnotes || []).map(footnote => ({
+          id: footnote.id,
+          content: footnote.content,
+          number: footnote.number,
+          created_at: footnote.created_at,
+          updated_at: footnote.updated_at
+        }))
       }));
+
+      // Prepare the content object that matches Supabase's JSON type
+      const contentForDb: Json = {
+        chapters: chaptersForDb,
+        metadata: {},
+        frontMatter: [],
+        backMatter: []
+      };
 
       // Update in database
       const { error } = await supabase
         .from('theses')
         .update({
-          content: {
-            chapters: chaptersForDb,
-            // Preserve other content fields
-            metadata: {},
-            frontMatter: [],
-            backMatter: []
-          }
+          content: contentForDb
         })
         .eq('id', chapters[0]?.id);
 
