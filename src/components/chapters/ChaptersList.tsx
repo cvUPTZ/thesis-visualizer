@@ -17,6 +17,8 @@ export const ChaptersList = () => {
 
   const handleContentChange = async (chapterId: string, content: string) => {
     try {
+      console.log('Updating chapter content:', { chapterId, contentLength: content.length });
+      
       const updatedChapters = chapters.map(ch =>
         ch.id === chapterId ? { ...ch, content } : ch
       );
@@ -24,16 +26,39 @@ export const ChaptersList = () => {
       // Update local state
       setChapters(updatedChapters);
 
+      // Convert chapters to a format that matches Supabase's JSON type
+      const chaptersForDb = updatedChapters.map(ch => ({
+        id: ch.id,
+        title: ch.title,
+        content: ch.content,
+        sections: ch.sections || [],
+        part: ch.part || 1,
+        figures: ch.figures || [],
+        tables: ch.tables || [],
+        footnotes: ch.footnotes || []
+      }));
+
       // Update in database
       const { error } = await supabase
         .from('theses')
         .update({
-          content: { chapters: updatedChapters }
+          content: {
+            chapters: chaptersForDb,
+            // Preserve other content fields
+            metadata: {},
+            frontMatter: [],
+            backMatter: []
+          }
         })
         .eq('id', chapters[0]?.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
 
+      console.log('Chapter content updated successfully');
+      
       toast({
         title: "Success",
         description: "Chapter content updated successfully",
