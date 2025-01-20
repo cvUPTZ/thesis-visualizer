@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Figure } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Image as ImageIcon } from 'lucide-react';
-import { FigureList } from './editor/managers/FigureList';
+import { FigureController } from './editor/figures/FigureController';
 import { FigureUpload } from './editor/managers/FigureUpload';
 import {
   Dialog,
@@ -29,11 +29,8 @@ export const FigureManager = ({
   onUpdateFigure
 }: FigureManagerProps) => {
   const [isAddingFigure, setIsAddingFigure] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [selectedFigure, setSelectedFigure] = useState<Figure | null>(null);
   const { toast } = useToast();
-
-  console.log('Rendering FigureManager:', { figuresCount: figures?.length });
 
   const handleFileUpload = async (file: File) => {
     try {
@@ -45,18 +42,18 @@ export const FigureManager = ({
         img.onload = () => {
           const newFigure: Figure = {
             id: Date.now().toString(),
-            imageUrl,
+            url: imageUrl,
             title: '',
             caption: '',
-            altText: '',
-            number: (figures?.length || 0) + 1,
+            alt_text: '',
+            label: `Figure ${(figures?.length || 0) + 1}`,
             dimensions: {
               width: img.width,
               height: img.height
-            }
+            },
+            position: 'inline'
           };
           
-          console.log('Adding new figure:', newFigure);
           onAddFigure(newFigure);
           setIsAddingFigure(false);
           
@@ -66,7 +63,6 @@ export const FigureManager = ({
           });
         };
         img.src = imageUrl;
-        setPreviewImage(imageUrl);
       };
       reader.readAsDataURL(file);
     } catch (error) {
@@ -77,10 +73,6 @@ export const FigureManager = ({
         variant: "destructive",
       });
     }
-  };
-
-  const handlePreview = (imageUrl: string) => {
-    setSelectedImage(imageUrl);
   };
 
   return (
@@ -120,31 +112,10 @@ export const FigureManager = ({
           >
             <FigureUpload
               onUpload={handleFileUpload}
-              imageUrl={previewImage || undefined}
+              imageUrl={selectedFigure?.url}
               altText="Preview"
             />
           </motion.div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Figure Preview</DialogTitle>
-          </DialogHeader>
-          <AnimatePresence mode="wait">
-            {selectedImage && (
-              <motion.img
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                src={selectedImage}
-                alt="Preview"
-                className="w-full h-auto rounded-lg shadow-lg"
-              />
-            )}
-          </AnimatePresence>
         </DialogContent>
       </Dialog>
 
@@ -154,13 +125,23 @@ export const FigureManager = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
+            className="space-y-6"
           >
-            <FigureList
-              figures={figures || []}
-              onRemove={onRemoveFigure}
-              onUpdate={onUpdateFigure}
-              onPreview={handlePreview}
-            />
+            {figures?.map((figure) => (
+              <motion.div
+                key={figure.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <FigureController
+                  figure={figure}
+                  onUpdate={onUpdateFigure}
+                  onDelete={onRemoveFigure}
+                />
+              </motion.div>
+            ))}
           </motion.div>
         </AnimatePresence>
       </ScrollArea>

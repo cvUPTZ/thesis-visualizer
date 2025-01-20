@@ -49,19 +49,16 @@ export interface Reference {
 
 export interface Figure {
   id: string;
-  imageUrl: string;
+  url: string;
   caption: string;
-  altText: string;
+  alt_text: string;
   title: string;
-  number: number;
+  label: string;
+  position?: 'inline' | 'float-left' | 'float-right' | 'center';
   dimensions: {
     width: number;
     height: number;
   };
-  alt_text?: string;
-  url?: string;
-  created_at?: string;
-  updated_at?: string;
 }
 
 export interface Table {
