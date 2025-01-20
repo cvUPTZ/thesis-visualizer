@@ -951,7 +951,14 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      create_section_if_not_exists: {
+        Args: {
+          p_thesis_id: string
+          p_section_title: string
+          p_section_type?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
