@@ -1,11 +1,11 @@
 import { 
-  StylesOptions, 
+  IStylesOptions, 
   convertInchesToTwip,
   HeadingLevel,
   AlignmentType
 } from 'docx';
 
-export const defaultStyles: StylesOptions = {
+export const defaultStyles: IStylesOptions = {
   default: {
     document: {
       run: {
@@ -74,7 +74,7 @@ export const defaultStyles: StylesOptions = {
       run: {
         font: 'Times New Roman',
         size: 28,
-        italic: true,
+        italics: true,
       },
       paragraph: {
         alignment: AlignmentType.CENTER,
@@ -99,7 +99,7 @@ export const defaultStyles: StylesOptions = {
   ],
 };
 
-export const previewStyles: StylesOptions = {
+export const previewStyles: IStylesOptions = {
   default: {
     document: {
       run: {
@@ -168,7 +168,7 @@ export const previewStyles: StylesOptions = {
       run: {
         font: 'Arial',
         size: 28,
-        italic: true,
+        italics: true,
       },
       paragraph: {
         alignment: AlignmentType.CENTER,

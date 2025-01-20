@@ -21,7 +21,6 @@ export const MarkdownEditor: React.FC<EditorProps> = ({
 }) => {
   console.log('MarkdownEditor rendering with:', { valueLength: value?.length, readOnly });
 
-  // Define common editor commands
   const extraCommands: ICommand[] = [
     commands.title1,
     commands.title2,
@@ -67,13 +66,13 @@ export const MarkdownEditor: React.FC<EditorProps> = ({
           commands={extraCommands}
           preview={preview}
           hideToolbar={readOnly}
-          readOnly={readOnly}
           textareaProps={{
             placeholder: placeholder || 'Start writing...',
-            'aria-label': 'Markdown editor'
+            'aria-label': 'Markdown editor',
+            readOnly: readOnly
           }}
           previewOptions={{
-            rehypePlugins: [[rehypeSanitize]]
+            rehypePlugins: [[rehypeSanitize as any]]
           }}
           className="w-full min-h-[200px]"
         />
