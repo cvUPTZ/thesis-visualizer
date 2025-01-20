@@ -1,6 +1,6 @@
 import React from 'react';
 import { Chapter } from '@/types/thesis';
-import { FigureManager } from '../FigureManager';
+import { FigureManager } from '@/components/FigureManager';
 
 interface ChapterFiguresProps {
   chapter: Chapter;
