@@ -6,7 +6,7 @@ import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { useThesisData } from '@/hooks/useThesisData';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Thesis } from '@/types/thesis';
+import { Section, Thesis } from '@/types/thesis';
 
 export default function SectionEditor() {
   const { thesisId, sectionId } = useParams();
@@ -24,7 +24,7 @@ export default function SectionEditor() {
     );
   }
 
-  if (!thesis) return null;
+  if (!thesis || !sectionId) return null;
 
   const findSection = async () => {
     // Check if it's the general introduction
@@ -39,20 +39,20 @@ export default function SectionEditor() {
 
     // Check front matter
     const frontMatterSection = thesis.frontMatter.find(s => 
-      s.id === sectionId || s.title.toLowerCase() === sectionId?.toLowerCase()
+      s.id === sectionId || s.title.toLowerCase() === sectionId.toLowerCase()
     );
     if (frontMatterSection) return frontMatterSection;
 
     // Check back matter
     const backMatterSection = thesis.backMatter.find(s => 
-      s.id === sectionId || s.title.toLowerCase() === sectionId?.toLowerCase()
+      s.id === sectionId || s.title.toLowerCase() === sectionId.toLowerCase()
     );
     if (backMatterSection) return backMatterSection;
 
     // Check chapters
     for (const chapter of thesis.chapters) {
       const section = chapter.sections.find(s => 
-        s.id === sectionId || s.title.toLowerCase() === sectionId?.toLowerCase()
+        s.id === sectionId || s.title.toLowerCase() === sectionId.toLowerCase()
       );
       if (section) return section;
     }
@@ -63,7 +63,7 @@ export default function SectionEditor() {
         'create_section_if_not_exists',
         { 
           p_thesis_id: thesisId,
-          p_section_title: sectionId || 'New Section',
+          p_section_title: sectionId,
           p_section_type: 'custom'
         }
       );
@@ -109,12 +109,8 @@ export default function SectionEditor() {
         description: `Created new section: ${sectionId}`,
       });
 
-      // Find the newly created section in the updated thesis
-      const newSection = formattedThesis.frontMatter.find(
-        (s) => s.id === newSectionId
-      );
-
-      return newSection;
+      // Find the newly created section
+      return formattedThesis.frontMatter.find(s => s.id === newSectionId);
     } catch (error: any) {
       console.error('Error creating section:', error);
       toast({
@@ -141,7 +137,7 @@ export default function SectionEditor() {
     );
   }
 
-  const handleContentChange = (newContent: string) => {
+  const handleContentChange = async (newContent: string) => {
     const updatedThesis = { ...thesis };
     
     // Update general introduction
