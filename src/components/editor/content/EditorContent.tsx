@@ -1,5 +1,5 @@
 import React from 'react';
-import EditorSection from '@/components/thesis/section/EditorSection';
+import { EditorSection } from '@/components/thesis/section/EditorSection';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
