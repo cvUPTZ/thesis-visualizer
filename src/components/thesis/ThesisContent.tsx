@@ -1,9 +1,10 @@
 import React from 'react';
-import { Chapter, Section } from '@/types/thesis';
+import { Chapter, Section, Thesis } from '@/types/thesis';
 import { ChapterManager } from '../ChapterManager';
 import { Input } from '@/components/ui/input';
 import { MarkdownEditor } from '../MarkdownEditor';
 import { ChatMessages } from '../collaboration/ChatMessages';
+import { GeneralSectionEditor } from '../editor/sections/GeneralSectionEditor';
 
 interface ThesisContentProps {
   frontMatter: Section[];
@@ -15,9 +16,11 @@ interface ThesisContentProps {
   onUpdateChapter: (chapter: Chapter) => void;
   onAddChapter: (chapter: Chapter) => void;
   thesisId: string;
+  thesis: Thesis;
+  onUpdateThesis: (thesis: Thesis) => void;
 }
 
-export const ThesisContent = ({
+export const ThesisContent: React.FC<ThesisContentProps> = ({
   frontMatter,
   chapters,
   backMatter,
@@ -26,8 +29,18 @@ export const ThesisContent = ({
   onTitleChange,
   onUpdateChapter,
   onAddChapter,
-  thesisId
-}: ThesisContentProps) => {
+  thesisId,
+  thesis,
+  onUpdateThesis
+}) => {
+  const handleGeneralSectionUpdate = (type: 'introduction' | 'conclusion') => (section: Section) => {
+    const updatedThesis = {
+      ...thesis,
+      [type === 'introduction' ? 'generalIntroduction' : 'generalConclusion']: section
+    };
+    onUpdateThesis(updatedThesis);
+  };
+
   const renderSectionContent = (section: Section) => {
     const isActive = activeSection === section.id;
     if (!isActive) return null;
@@ -59,11 +72,25 @@ export const ThesisContent = ({
         <div className="lg:col-span-2 space-y-6">
           {frontMatter.map(section => renderSectionContent(section))}
           
-          <ChapterManager
-            chapters={chapters}
-            onUpdateChapter={onUpdateChapter}
-            onAddChapter={onAddChapter}
-          />
+          <div className="space-y-8">
+            <GeneralSectionEditor
+              section={thesis.generalIntroduction}
+              title="General Introduction"
+              onUpdate={handleGeneralSectionUpdate('introduction')}
+            />
+            
+            <ChapterManager
+              chapters={chapters}
+              onUpdateChapter={onUpdateChapter}
+              onAddChapter={onAddChapter}
+            />
+            
+            <GeneralSectionEditor
+              section={thesis.generalConclusion}
+              title="General Conclusion"
+              onUpdate={handleGeneralSectionUpdate('conclusion')}
+            />
+          </div>
           
           {backMatter.map(section => renderSectionContent(section))}
         </div>

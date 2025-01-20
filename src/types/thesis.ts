@@ -126,7 +126,9 @@ export interface Thesis {
   updated_at: string;
   metadata: ThesisMetadata;
   frontMatter: Section[];
+  generalIntroduction?: Section;
   chapters: Chapter[];
+  generalConclusion?: Section;
   backMatter: Section[];
   language?: string;
   supervisor_email?: string;
