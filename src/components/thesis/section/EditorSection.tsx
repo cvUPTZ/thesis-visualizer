@@ -139,16 +139,19 @@ export default function SectionEditor() {
 
   const handleContentChange = async (newContent: string) => {
     const updatedThesis = { ...thesis };
+    const currentSection = await section;
+    
+    if (!currentSection) return;
     
     // Update general introduction
-    if (thesis.generalIntroduction?.id === sectionId || sectionId === 'general-introduction') {
+    if (thesis.generalIntroduction?.id === currentSection.id || sectionId === 'general-introduction') {
       updatedThesis.generalIntroduction = {
         ...thesis.generalIntroduction!,
         content: newContent
       };
     }
     // Update general conclusion
-    else if (thesis.generalConclusion?.id === sectionId || sectionId === 'general-conclusion') {
+    else if (thesis.generalConclusion?.id === currentSection.id || sectionId === 'general-conclusion') {
       updatedThesis.generalConclusion = {
         ...thesis.generalConclusion!,
         content: newContent
@@ -156,7 +159,7 @@ export default function SectionEditor() {
     }
     // Update front matter
     else {
-      const frontMatterIndex = thesis.frontMatter.findIndex(s => s.id === sectionId);
+      const frontMatterIndex = thesis.frontMatter.findIndex(s => s.id === currentSection.id);
       if (frontMatterIndex !== -1) {
         updatedThesis.frontMatter[frontMatterIndex] = {
           ...thesis.frontMatter[frontMatterIndex],
@@ -165,7 +168,7 @@ export default function SectionEditor() {
       }
 
       // Update back matter
-      const backMatterIndex = thesis.backMatter.findIndex(s => s.id === sectionId);
+      const backMatterIndex = thesis.backMatter.findIndex(s => s.id === currentSection.id);
       if (backMatterIndex !== -1) {
         updatedThesis.backMatter[backMatterIndex] = {
           ...thesis.backMatter[backMatterIndex],
@@ -177,7 +180,7 @@ export default function SectionEditor() {
       updatedThesis.chapters = thesis.chapters.map(chapter => ({
         ...chapter,
         sections: chapter.sections.map(s => 
-          s.id === sectionId ? { ...s, content: newContent } : s
+          s.id === currentSection.id ? { ...s, content: newContent } : s
         )
       }));
     }
