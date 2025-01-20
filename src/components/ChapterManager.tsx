@@ -1,7 +1,7 @@
 import React from 'react';
 import { Chapter } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
-import { BookOpen, PlusCircle, Trash2 } from 'lucide-react';
+import { BookOpen, PlusCircle, Trash2, Plus, ChevronDown } from 'lucide-react';
 import { ChapterItem } from './editor/chapters/ChapterItem';
 import { useToast } from '@/hooks/use-toast';
 import { ChapterCreationDialog } from './editor/chapters/ChapterCreationDialog';
@@ -15,6 +15,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 interface ChapterManagerProps {
   chapters: Chapter[];
@@ -59,6 +65,26 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
     });
   };
 
+  const handleAddSection = (sectionType: string) => {
+    const newSection = {
+      id: crypto.randomUUID(),
+      title: sectionType,
+      content: '',
+      type: 'custom',
+      order: 0,
+      figures: [],
+      tables: [],
+      citations: [],
+      required: false,
+      references: []
+    };
+
+    toast({
+      title: "Section Added",
+      description: `Added new ${sectionType} section`,
+    });
+  };
+
   const handleDeleteChapters = () => {
     if (onRemoveChapter && chaptersToDelete.length > 0) {
       console.log('Deleting chapters:', chaptersToDelete);
@@ -75,6 +101,36 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="w-full mb-4">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Section
+            <ChevronDown className="h-4 w-4 ml-2" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuItem onClick={() => handleAddSection('Thesis Structure Overview')}>
+            Thesis Structure Overview
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAddSection('General Introduction')}>
+            General Introduction
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAddSection('Abstract')}>
+            Abstract
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAddSection('Acknowledgements')}>
+            Acknowledgements
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAddSection('General Conclusion')}>
+            General Conclusion
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setShowCreateDialog(true)}>
+            New Chapter
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       <div className="flex justify-between items-center bg-editor-bg p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/10 rounded-full">
