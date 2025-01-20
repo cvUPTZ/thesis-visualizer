@@ -13,6 +13,7 @@ import {
 import { ContentGenerationOptions } from './types';
 import { defaultStyles, previewStyles } from './styleConfig';
 import { convertImageToBase64 } from './imageUtils';
+import { Figure, Reference } from '@/types/thesis';
 
 export const generateTableOfContents = (): TableOfContents => {
   return new TableOfContents("Table of Contents", {
@@ -120,7 +121,7 @@ const generateListOfTables = (thesis: any): Paragraph[] => {
   return paragraphs;
 };
 
-const generateFigure = async (figure: any, figureNumber: number): Promise<Paragraph[]> => {
+const generateFigure = async (figure: Figure, figureNumber: number): Promise<Paragraph[]> => {
   const paragraphs: Paragraph[] = [];
   try {
     if (figure.url) {
@@ -242,6 +243,7 @@ const generateReferences = (references: Reference[]): Paragraph[] => {
 export const generateContent = async ({ thesis, isPreview = false }: ContentGenerationOptions): Promise<Paragraph[]> => {
   const paragraphs: Paragraph[] = [];
   const styles = isPreview ? previewStyles : defaultStyles;
+  let currentFigureNumber = 1; // Initialize figure counter
 
   // Front Matter
   if (Array.isArray(thesis.frontMatter)) {
@@ -292,9 +294,9 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
       // Add figures
       if (Array.isArray(chapter.figures)) {
         for (const figure of chapter.figures) {
-          const figureParagraphs = await generateFigure(figure, figureNumber);
+          const figureParagraphs = await generateFigure(figure, currentFigureNumber);
           paragraphs.push(...figureParagraphs);
-          figureNumber++;
+          currentFigureNumber++; // Increment figure counter
         }
       }
     }
