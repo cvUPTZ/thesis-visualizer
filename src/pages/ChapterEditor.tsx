@@ -1,11 +1,13 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Chapter } from '@/types/thesis';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 interface ThesisData {
   id: string;
@@ -17,6 +19,7 @@ interface ThesisData {
 const ChapterEditor = () => {
   const { chapterId } = useParams();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [chapter, setChapter] = React.useState<Chapter | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [thesisId, setThesisId] = React.useState<string | null>(null);
@@ -55,12 +58,11 @@ const ChapterEditor = () => {
           }
 
           // Try both string and numeric ID matching
-          const numericChapterId = Number(chapterId);
-          const chapter = content.chapters.find((ch: Chapter) => 
-            ch.id === chapterId || 
-            ch.id === String(numericChapterId) || 
-            String(ch.id) === chapterId
-          );
+          const chapter = content.chapters.find((ch: Chapter) => {
+            const chapterIdStr = String(ch.id);
+            const searchIdStr = String(chapterId);
+            return chapterIdStr === searchIdStr;
+          });
 
           if (chapter) {
             foundChapter = chapter;
@@ -77,9 +79,15 @@ const ChapterEditor = () => {
           console.error('Chapter not found:', chapterId);
           toast({
             title: "Error",
-            description: "Chapter not found",
+            description: "Chapter not found. Redirecting back to thesis...",
             variant: "destructive"
           });
+          // Navigate back to thesis if we have the thesis ID
+          if (foundThesisId) {
+            navigate(`/thesis/${foundThesisId}`);
+          } else {
+            navigate('/');
+          }
         }
       } catch (error: any) {
         console.error('Error fetching chapter:', error);
@@ -96,7 +104,7 @@ const ChapterEditor = () => {
     if (chapterId) {
       fetchChapter();
     }
-  }, [chapterId, toast]);
+  }, [chapterId, toast, navigate]);
 
   const handleContentChange = async (content: string) => {
     if (!chapter || !thesisId) return;
@@ -119,7 +127,7 @@ const ChapterEditor = () => {
 
       // Update the specific chapter
       const updatedChapters = existingContent.chapters.map((ch: Chapter) =>
-        ch.id === chapter.id ? { ...ch, content } : ch
+        String(ch.id) === String(chapter.id) ? { ...ch, content } : ch
       );
 
       // Prepare the updated content
@@ -153,6 +161,14 @@ const ChapterEditor = () => {
     }
   };
 
+  const handleBack = () => {
+    if (thesisId) {
+      navigate(`/thesis/${thesisId}`);
+    } else {
+      navigate('/');
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
@@ -170,6 +186,10 @@ const ChapterEditor = () => {
         <div className="text-center space-y-4">
           <h2 className="text-2xl font-semibold text-destructive">Chapter Not Found</h2>
           <p className="text-muted-foreground">The requested chapter could not be found.</p>
+          <Button onClick={handleBack} variant="outline" className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Thesis
+          </Button>
         </div>
       </div>
     );
@@ -177,7 +197,13 @@ const ChapterEditor = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold">{chapter.title}</h1>
+      <div className="flex items-center gap-4">
+        <Button onClick={handleBack} variant="outline" size="sm" className="gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          Back to Thesis
+        </Button>
+        <h1 className="text-3xl font-bold">{chapter.title}</h1>
+      </div>
       <Card className="p-6">
         <MarkdownEditor
           value={chapter.content}
