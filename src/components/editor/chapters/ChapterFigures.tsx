@@ -15,19 +15,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-interface FigureManagerProps {
+interface ChapterFiguresProps {
   figures: Figure[];
   onAddFigure: (figure: Figure) => void;
   onRemoveFigure: (id: string) => void;
   onUpdateFigure: (figure: Figure) => void;
 }
 
-export const FigureManager = ({
+export const ChapterFigures: React.FC<ChapterFiguresProps> = ({
   figures,
   onAddFigure,
   onRemoveFigure,
   onUpdateFigure
-}: FigureManagerProps) => {
+}) => {
   const [isAddingFigure, setIsAddingFigure] = useState(false);
   const [selectedFigure, setSelectedFigure] = useState<Figure | null>(null);
   const { toast } = useToast();
@@ -148,4 +148,3 @@ export const FigureManager = ({
     </Card>
   );
 };
-
