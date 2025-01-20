@@ -48,12 +48,12 @@ export const EditorSection: React.FC<SectionProps> = ({
       id: crypto.randomUUID(),
       title: sectionType,
       content: '',
-      type: 'custom',
+      type: sectionType.toLowerCase().replace(/ /g, '_'),
       order: 0,
       figures: [],
       tables: [],
       citations: [],
-      required: false,
+      required: sectionType === 'General Introduction' || sectionType === 'General Conclusion',
       references: []
     };
 
@@ -69,13 +69,13 @@ export const EditorSection: React.FC<SectionProps> = ({
     id: section.id,
     title: section.title,
     content: section.content,
-    type: 'custom',
-    order: 0,
-    figures: [],
-    tables: [],
-    citations: [],
-    required: false,
-    references: []
+    type: section.type || 'custom',
+    order: section.order || 0,
+    figures: section.figures || [],
+    tables: section.tables || [],
+    citations: section.citations || [],
+    required: section.required || false,
+    references: section.references || []
   };
 
   return (
