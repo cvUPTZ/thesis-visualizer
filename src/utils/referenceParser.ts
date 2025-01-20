@@ -28,7 +28,7 @@ export const parseReference = (text: string): ParsedReference => {
   const authorMatch = cleanText.match(authorPattern);
   const authorString = authorMatch ? authorMatch[1] : '';
   
-  // Split authors by comma and '&'
+  // Split authors by comma and '&' or 'and'
   const authorNames = authorString
     .split(/,\s*(?:&|\band\b)?\s*/)
     .filter(name => name.trim().length > 0)
@@ -40,15 +40,27 @@ export const parseReference = (text: string): ParsedReference => {
   const author_middle_initials: string[] = [];
   
   authorNames.forEach(name => {
-    const nameParts = name.split(',')[0].trim().split(' ');
-    if (nameParts.length > 0) {
-      author_last_names.push(nameParts[nameParts.length - 1]);
-      if (nameParts.length > 1) {
-        author_first_initials.push(nameParts[0][0] || '');
-        if (nameParts.length > 2) {
-          author_middle_initials.push(nameParts[1][0] || '');
-        } else {
-          author_middle_initials.push('');
+    // Handle names in format "LastName, FirstName MiddleName"
+    const nameParts = name.split(',');
+    if (nameParts.length > 1) {
+      const lastName = nameParts[0].trim();
+      const otherNames = nameParts[1].trim().split(' ');
+      
+      author_last_names.push(lastName);
+      author_first_initials.push(otherNames[0]?.[0] || '');
+      author_middle_initials.push(otherNames[1]?.[0] || '');
+    } else {
+      // Handle names in format "FirstName MiddleName LastName"
+      const parts = name.split(' ').filter(p => p.length > 0);
+      if (parts.length > 0) {
+        author_last_names.push(parts[parts.length - 1]);
+        if (parts.length > 1) {
+          author_first_initials.push(parts[0][0] || '');
+          if (parts.length > 2) {
+            author_middle_initials.push(parts[1][0] || '');
+          } else {
+            author_middle_initials.push('');
+          }
         }
       }
     }

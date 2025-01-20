@@ -54,8 +54,18 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
     const newReference: Reference = {
       id: crypto.randomUUID(),
       text: rawText,
-      ...parsedReference,
+      title: parsedReference.title,
+      source: parsedReference.journal || 'Unknown',
+      authors: parsedReference.authors,
+      year: parsedReference.year,
       type: 'article',
+      doi: parsedReference.doi,
+      url: parsedReference.url,
+      journal: parsedReference.journal,
+      volume: parsedReference.volume,
+      issue: parsedReference.issue,
+      pages: parsedReference.pages,
+      publisher: parsedReference.publisher,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -75,60 +85,78 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
     if (!parsedReference) return null;
 
     return (
-      <Card className="p-4 mt-4 space-y-2 text-sm">
-        <div>
-          <strong>Authors:</strong>
-          <ul className="list-disc pl-5">
+      <Card className="p-4 mt-4 space-y-4 text-sm">
+        <div className="space-y-2">
+          <h4 className="font-semibold">Authors:</h4>
+          <ul className="list-disc pl-5 space-y-1">
             {parsedReference.authors.map((author: string, index: number) => (
-              <li key={index}>{author}</li>
+              <li key={index} className="text-gray-700">
+                {author}
+                <span className="text-gray-500 text-xs ml-2">
+                  ({parsedReference.author_last_names[index]}, 
+                  {parsedReference.author_first_initials[index]}.
+                  {parsedReference.author_middle_initials[index] && 
+                    ` ${parsedReference.author_middle_initials[index]}.`})
+                </span>
+              </li>
             ))}
           </ul>
         </div>
         
         <div>
-          <strong>Date:</strong> {parsedReference.year}
-          {parsedReference.specific_date && ` (${parsedReference.specific_date})`}
+          <h4 className="font-semibold">Date:</h4>
+          <p className="text-gray-700">{parsedReference.year}
+            {parsedReference.specific_date && ` (${parsedReference.specific_date})`}
+          </p>
         </div>
         
         <div>
-          <strong>Article Title:</strong> {parsedReference.title}
+          <h4 className="font-semibold">Article Title:</h4>
+          <p className="text-gray-700">{parsedReference.title}</p>
         </div>
         
         {parsedReference.journal && (
           <div>
-            <strong>Journal Name:</strong> <em>{parsedReference.journal}</em>
+            <h4 className="font-semibold">Journal Name:</h4>
+            <p className="italic text-gray-700">{parsedReference.journal}</p>
           </div>
         )}
         
         {(parsedReference.volume || parsedReference.issue) && (
           <div>
-            <strong>Volume/Issue:</strong>
-            {parsedReference.volume && ` Volume ${parsedReference.volume}`}
-            {parsedReference.issue && ` Issue ${parsedReference.issue}`}
+            <h4 className="font-semibold">Volume/Issue:</h4>
+            <p className="text-gray-700">
+              {parsedReference.volume && `Volume ${parsedReference.volume}`}
+              {parsedReference.issue && ` Issue ${parsedReference.issue}`}
+            </p>
           </div>
         )}
         
         {parsedReference.pages && (
           <div>
-            <strong>Page Range:</strong> {parsedReference.pages}
+            <h4 className="font-semibold">Page Range:</h4>
+            <p className="text-gray-700">{parsedReference.pages}</p>
           </div>
         )}
         
         {parsedReference.doi && (
           <div>
-            <strong>DOI:</strong> {parsedReference.doi}
+            <h4 className="font-semibold">DOI:</h4>
+            <p className="text-gray-700">{parsedReference.doi}</p>
           </div>
         )}
         
         {parsedReference.url && (
           <div>
-            <strong>URL:</strong> {parsedReference.url}
+            <h4 className="font-semibold">URL:</h4>
+            <p className="text-gray-700 break-all">{parsedReference.url}</p>
           </div>
         )}
         
         {parsedReference.publisher && (
           <div>
-            <strong>Publisher:</strong> {parsedReference.publisher}
+            <h4 className="font-semibold">Publisher:</h4>
+            <p className="text-gray-700">{parsedReference.publisher}</p>
           </div>
         )}
       </Card>
