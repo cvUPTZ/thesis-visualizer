@@ -27,15 +27,16 @@ export const ChapterCreationDialog: React.FC<ChapterCreationDialogProps> = ({
   const handleAddFigure = (file: File) => {
     const newFigure: Figure = {
       id: Date.now().toString(),
-      imageUrl: URL.createObjectURL(file),
+      url: URL.createObjectURL(file),
       caption: '',
-      altText: '',
+      alt_text: '',
       title: '',
-      number: figures.length + 1 || 1,
+      label: `Figure ${figures.length + 1}`,
       dimensions: {
         width: 0,
         height: 0
-      }
+      },
+      position: 'inline'
     };
     
     setFigures(prevFigures => [...prevFigures, newFigure]);

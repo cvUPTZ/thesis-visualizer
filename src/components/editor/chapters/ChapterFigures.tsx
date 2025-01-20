@@ -7,7 +7,7 @@ import { Figure } from '@/types/thesis';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ImagePlus, Move, ZoomIn, ZoomOut } from 'lucide-react';
+import { ImagePlus } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 
 interface ChapterFiguresProps {

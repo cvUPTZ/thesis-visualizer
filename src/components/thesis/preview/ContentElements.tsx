@@ -61,12 +61,12 @@ export const ContentElements = ({
           >
             <figure className="text-center page-break-inside-avoid">
               <img 
-                src={figure.imageUrl} 
-                alt={figure.altText}
+                src={figure.url} 
+                alt={figure.alt_text}
                 className="mx-auto max-w-full h-auto rounded-lg shadow-md"
               />
               <figcaption className="mt-4 text-sm text-gray-600 italic">
-                Figure {figure.number}: {figure.caption}
+                {figure.label}: {figure.caption}
               </figcaption>
             </figure>
           </ThesisPreviewElement>
