@@ -6,13 +6,19 @@ interface FootnoteManagerProps {
   sectionId: string;
   footnotes: Footnote[];
   onUpdate: (footnotes: Footnote[]) => void;
+  onAddFootnote?: (footnote: Footnote) => void;
+  onRemoveFootnote?: (id: string) => void;
+  onUpdateFootnote?: (footnote: Footnote) => void;
 }
 
 export const FootnoteManager: React.FC<FootnoteManagerProps> = ({
   thesisId,
   sectionId,
   footnotes,
-  onUpdate
+  onUpdate,
+  onAddFootnote,
+  onRemoveFootnote,
+  onUpdateFootnote
 }) => {
   const handleAddFootnote = () => {
     const newFootnote: Footnote = {
@@ -24,18 +30,32 @@ export const FootnoteManager: React.FC<FootnoteManagerProps> = ({
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
-    onUpdate([...footnotes, newFootnote]);
+    
+    if (onAddFootnote) {
+      onAddFootnote(newFootnote);
+    } else {
+      onUpdate([...footnotes, newFootnote]);
+    }
   };
 
   const handleRemoveFootnote = (id: string) => {
-    onUpdate(footnotes.filter(footnote => footnote.id !== id));
+    if (onRemoveFootnote) {
+      onRemoveFootnote(id);
+    } else {
+      onUpdate(footnotes.filter(footnote => footnote.id !== id));
+    }
   };
 
   const handleUpdateFootnote = (id: string, content: string) => {
-    const updatedFootnotes = footnotes.map(footnote =>
-      footnote.id === id ? { ...footnote, content } : footnote
-    );
-    onUpdate(updatedFootnotes);
+    const updatedFootnote = footnotes.find(f => f.id === id);
+    if (updatedFootnote) {
+      const newFootnote = { ...updatedFootnote, content, updated_at: new Date().toISOString() };
+      if (onUpdateFootnote) {
+        onUpdateFootnote(newFootnote);
+      } else {
+        onUpdate(footnotes.map(f => f.id === id ? newFootnote : f));
+      }
+    }
   };
 
   return (

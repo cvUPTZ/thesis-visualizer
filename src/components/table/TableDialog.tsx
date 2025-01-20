@@ -11,15 +11,17 @@ import {
 import { Table } from '@/types/thesis';
 
 interface TableDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onTableCreate: (table: Table) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onTableCreate?: (table: Table) => void;
+  onAddTable?: (table: Table) => void;
 }
 
 export const TableDialog: React.FC<TableDialogProps> = ({
   open,
   onOpenChange,
   onTableCreate,
+  onAddTable,
 }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -35,11 +37,14 @@ export const TableDialog: React.FC<TableDialogProps> = ({
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
-    onTableCreate(newTable);
+    
+    if (onTableCreate) onTableCreate(newTable);
+    if (onAddTable) onAddTable(newTable);
+    
     setTitle('');
     setContent('');
     setCaption('');
-    onOpenChange(false);
+    if (onOpenChange) onOpenChange(false);
   };
 
   return (

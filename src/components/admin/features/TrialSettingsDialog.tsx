@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -8,11 +8,25 @@ interface TrialSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   settings?: { id: string; trial_days: number };
+  currentTrialDays?: number;
+  onUpdate?: () => Promise<any>;
 }
 
-export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({ open, onOpenChange, settings }) => {
+export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({ 
+  open, 
+  onOpenChange, 
+  settings,
+  currentTrialDays,
+  onUpdate 
+}) => {
   const { toast } = useToast();
-  const [trialDays, setTrialDays] = useState<number>(settings?.trial_days || 0);
+  const [trialDays, setTrialDays] = useState<number>(currentTrialDays || settings?.trial_days || 0);
+
+  useEffect(() => {
+    if (currentTrialDays !== undefined) {
+      setTrialDays(currentTrialDays);
+    }
+  }, [currentTrialDays]);
 
   const handleSave = async () => {
     try {
@@ -28,6 +42,7 @@ export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({ open, 
         description: "Trial settings updated successfully",
       });
       
+      if (onUpdate) await onUpdate();
       onOpenChange(false);
     } catch (error) {
       console.error('Error updating trial settings:', error);
