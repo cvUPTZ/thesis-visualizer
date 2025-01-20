@@ -1,4 +1,4 @@
-import { Document, Paragraph, TextRun, ImageRun, HeadingLevel } from 'docx';
+import { Document, Paragraph, TextRun, ImageRun, HeadingLevel, TableOfContents } from 'docx';
 import { Thesis, Section, Chapter } from '@/types/thesis';
 
 export const generateImageParagraph = async (imageData: Buffer, caption: string) => {
@@ -8,12 +8,7 @@ export const generateImageParagraph = async (imageData: Buffer, caption: string)
       width: 400,
       height: 300,
     },
-    type: 'png', // Add the type property
-    fallback: {  // Add the fallback property
-      data: imageData,
-      width: 400,
-      height: 300,
-    }
+    type: 'png'
   });
 
   return new Paragraph({
@@ -27,8 +22,14 @@ export const generateImageParagraph = async (imageData: Buffer, caption: string)
   });
 };
 
-// Function to generate document content from thesis
-export const generateThesisContent = (thesis: Thesis) => {
+export const generateTableOfContents = () => {
+  return new TableOfContents("Table of Contents", {
+    hyperlink: true,
+    headingStyleRange: "1-5",
+  });
+};
+
+export const generateContent = async ({ thesis, isPreview = false }: { thesis: Thesis, isPreview?: boolean }) => {
   const content: Paragraph[] = [];
 
   // Add general introduction if exists
@@ -37,7 +38,9 @@ export const generateThesisContent = (thesis: Thesis) => {
       text: thesis.generalIntroduction.title,
       heading: HeadingLevel.HEADING_1,
     }));
-    content.push(new Paragraph(thesis.generalIntroduction.content));
+    content.push(new Paragraph({
+      text: thesis.generalIntroduction.content
+    }));
   }
 
   // Add front matter sections
@@ -46,7 +49,9 @@ export const generateThesisContent = (thesis: Thesis) => {
       text: section.title,
       heading: HeadingLevel.HEADING_2,
     }));
-    content.push(new Paragraph(section.content));
+    content.push(new Paragraph({
+      text: section.content
+    }));
   });
 
   // Add chapters
@@ -60,7 +65,9 @@ export const generateThesisContent = (thesis: Thesis) => {
         text: section.title,
         heading: HeadingLevel.HEADING_2,
       }));
-      content.push(new Paragraph(section.content));
+      content.push(new Paragraph({
+        text: section.content
+      }));
     });
   });
 
@@ -70,7 +77,9 @@ export const generateThesisContent = (thesis: Thesis) => {
       text: thesis.generalConclusion.title,
       heading: HeadingLevel.HEADING_1,
     }));
-    content.push(new Paragraph(thesis.generalConclusion.content));
+    content.push(new Paragraph({
+      text: thesis.generalConclusion.content
+    }));
   }
 
   // Add back matter sections
@@ -79,7 +88,9 @@ export const generateThesisContent = (thesis: Thesis) => {
       text: section.title,
       heading: HeadingLevel.HEADING_2,
     }));
-    content.push(new Paragraph(section.content));
+    content.push(new Paragraph({
+      text: section.content
+    }));
   });
 
   return content;
