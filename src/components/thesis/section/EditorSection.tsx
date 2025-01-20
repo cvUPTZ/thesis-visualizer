@@ -6,7 +6,7 @@ import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { useThesisData } from '@/hooks/useThesisData';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Section } from '@/types/thesis';
+import { Section, Thesis } from '@/types/thesis';
 
 export default function EditorSection() {
   const { thesisId, sectionId } = useParams();
@@ -39,15 +39,6 @@ export default function EditorSection() {
 
     loadSection();
   }, [thesis, sectionId]);
-
-  if (isLoading || !thesis) {
-    return (
-      <div className="container mx-auto p-8">
-        <Skeleton className="h-8 w-64 mb-6" />
-        <Skeleton className="h-[500px] w-full" />
-      </div>
-    );
-  }
 
   const findSection = async (): Promise<Section | null> => {
     if (!thesis || !sectionId) return null;
@@ -82,7 +73,7 @@ export default function EditorSection() {
         'create_section_if_not_exists',
         { 
           p_thesis_id: thesisId,
-          p_section_title: sectionId,
+          p_section_title: 'New Section',
           p_section_type: 'custom'
         }
       );
@@ -99,8 +90,18 @@ export default function EditorSection() {
       if (thesisError) throw thesisError;
 
       if (updatedThesis) {
-        setThesis(updatedThesis);
-        const newSection = thesis.frontMatter.find(s => s.id === newSectionId);
+        const thesisData: Thesis = {
+          ...updatedThesis,
+          metadata: updatedThesis.content.metadata,
+          frontMatter: updatedThesis.content.frontMatter,
+          chapters: updatedThesis.content.chapters,
+          backMatter: updatedThesis.content.backMatter,
+          generalIntroduction: updatedThesis.content.generalIntroduction,
+          generalConclusion: updatedThesis.content.generalConclusion
+        };
+        
+        setThesis(thesisData);
+        const newSection = thesisData.frontMatter.find(s => s.id === newSectionId);
         return newSection || null;
       }
     } catch (error: any) {
@@ -161,11 +162,22 @@ export default function EditorSection() {
     }
 
     setThesis(updatedThesis);
+    setSection({ ...section, content: newContent });
+    
     toast({
       title: "Success",
       description: "Section content updated",
     });
   };
+
+  if (isLoading || !thesis) {
+    return (
+      <div className="container mx-auto p-8">
+        <Skeleton className="h-8 w-64 mb-6" />
+        <Skeleton className="h-[500px] w-full" />
+      </div>
+    );
+  }
 
   if (isLoadingSection) {
     return (
