@@ -28,11 +28,11 @@ export const ChaptersList = () => {
       setChapters(updatedChapters);
 
       // Convert chapters to a format that matches Supabase's JSON type
-      const chaptersForDb = updatedChapters.map(ch => ({
+      const chaptersForDb: Json[] = updatedChapters.map(ch => ({
         id: ch.id,
         title: ch.title,
         content: ch.content,
-        sections: (ch.sections || []).map(section => ({
+        sections: ch.sections?.map(section => ({
           id: section.id,
           title: section.title,
           content: section.content,
@@ -43,9 +43,9 @@ export const ChaptersList = () => {
           citations: section.citations || [],
           references: section.references || [],
           footnotes: section.footnotes || []
-        })),
+        })) || [],
         part: ch.part || 1,
-        figures: (ch.figures || []).map(figure => ({
+        figures: ch.figures?.map(figure => ({
           id: figure.id,
           imageUrl: figure.imageUrl,
           title: figure.title,
@@ -53,20 +53,20 @@ export const ChaptersList = () => {
           altText: figure.altText,
           number: figure.number,
           dimensions: figure.dimensions
-        })),
-        tables: (ch.tables || []).map(table => ({
+        })) || [],
+        tables: ch.tables?.map(table => ({
           id: table.id,
           title: table.title || '',
           content: table.content,
           caption: table.caption || ''
-        })),
-        footnotes: (ch.footnotes || []).map(footnote => ({
+        })) || [],
+        footnotes: ch.footnotes?.map(footnote => ({
           id: footnote.id,
           content: footnote.content,
           number: footnote.number,
           created_at: footnote.created_at,
           updated_at: footnote.updated_at
-        }))
+        })) || []
       }));
 
       // Prepare the content object that matches Supabase's JSON type

@@ -8,12 +8,13 @@ import { Chapter } from '@/types/thesis';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { Json } from '@/integrations/supabase/types';
 
-interface ThesisData {
-  id: string;
-  content: {
-    chapters: Chapter[];
-  };
+interface ThesisContent {
+  chapters: Chapter[];
+  metadata?: Record<string, any>;
+  frontMatter?: any[];
+  backMatter?: any[];
 }
 
 const ChapterEditor = () => {
@@ -45,7 +46,7 @@ const ChapterEditor = () => {
 
         // Search through theses to find the chapter
         for (const thesis of theses) {
-          const content = thesis.content as ThesisData['content'];
+          const content = thesis.content as ThesisContent;
           if (!content?.chapters) {
             console.log('No chapters found in thesis:', thesis.id);
             continue;
@@ -116,7 +117,7 @@ const ChapterEditor = () => {
 
       if (fetchError) throw fetchError;
 
-      const existingContent = thesis.content;
+      const existingContent = thesis.content as ThesisContent;
 
       // Update the specific chapter
       const updatedChapters = existingContent.chapters.map((ch: Chapter) =>
@@ -124,7 +125,7 @@ const ChapterEditor = () => {
       );
 
       // Prepare the updated content
-      const updatedContent = {
+      const updatedContent: Json = {
         ...existingContent,
         chapters: updatedChapters
       };
