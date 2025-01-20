@@ -5,6 +5,32 @@ export interface Citation {
   type: string;
   created_at: string;
   updated_at: string;
+  thesis_id: string;
+  
+  // Author Information
+  author_last_names: string[];
+  author_first_initials: string[];
+  author_middle_initials: string[];
+  
+  // Date Information
+  year: string;
+  specific_date?: string;
+  
+  // Title Information
+  title: string;
+  container_title?: string;
+  edition?: string;
+  
+  // Publication Information
+  publisher?: string;
+  journal?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  doi?: string;
+  url?: string;
+  database?: string;
+  source: string;
 }
 
 export interface CitationManagerProps {
