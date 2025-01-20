@@ -1,15 +1,17 @@
-import { Document, Paragraph, TextRun, ImageRun, HeadingLevel, TableOfContents } from 'docx';
+import { Document, Paragraph, TextRun, ImageRun, HeadingLevel, TableOfContents, IImageOptions } from 'docx';
 import { Thesis, Section, Chapter } from '@/types/thesis';
 
 export const generateImageParagraph = async (imageData: Buffer, caption: string) => {
-  const image = new ImageRun({
+  const imageOptions: IImageOptions = {
     data: imageData,
     transformation: {
       width: 400,
       height: 300,
     },
     type: 'png'
-  });
+  };
+
+  const image = new ImageRun(imageOptions);
 
   return new Paragraph({
     children: [
@@ -29,7 +31,7 @@ export const generateTableOfContents = () => {
   });
 };
 
-export const generateContent = async ({ thesis, isPreview = false }: { thesis: Thesis, isPreview?: boolean }) => {
+export const generateContent = async ({ thesis, isPreview = false }: { thesis: Thesis, isPreview?: boolean }): Promise<Paragraph[]> => {
   const content: Paragraph[] = [];
 
   // Add general introduction if exists
