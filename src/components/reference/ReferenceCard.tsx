@@ -37,6 +37,14 @@ export const ReferenceCard = ({ reference, onRemove, onUpdate, onClick }: Refere
     }
   };
 
+  const handleSave = () => {
+    setIsEditing(false);
+    toast({
+      title: "Reference Updated",
+      description: "The reference has been successfully updated.",
+    });
+  };
+
   return (
     <Card 
       className={`group relative border-2 border-editor-border transition-all duration-200 hover:shadow-lg ${!isEditing ? 'cursor-pointer hover:border-primary/50' : ''}`}
@@ -190,7 +198,7 @@ export const ReferenceCard = ({ reference, onRemove, onUpdate, onClick }: Refere
               </Button>
               <Button
                 size="sm"
-                onClick={() => setIsEditing(false)}
+                onClick={handleSave}
               >
                 Save
               </Button>
