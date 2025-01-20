@@ -3,7 +3,7 @@ import { Reference } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Trash2, Edit2 } from 'lucide-react';
+import { BookOpen, Trash2, Edit2, ExternalLink } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -12,18 +12,39 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TagInput } from '@/components/ui/tag-input';
+import { useToast } from '@/hooks/use-toast';
 
 interface ReferenceCardProps {
   reference: Reference;
   onRemove: (id: string) => void;
   onUpdate: (reference: Reference) => void;
+  onClick?: (reference: Reference) => void;
 }
 
-export const ReferenceCard = ({ reference, onRemove, onUpdate }: ReferenceCardProps) => {
+export const ReferenceCard = ({ reference, onRemove, onUpdate, onClick }: ReferenceCardProps) => {
   const [isEditing, setIsEditing] = React.useState(false);
+  const { toast } = useToast();
+
+  const handleClick = () => {
+    if (!isEditing && onClick) {
+      onClick(reference);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      handleClick();
+    }
+  };
 
   return (
-    <Card className="group relative border-2 border-editor-border transition-all duration-200 hover:shadow-lg">
+    <Card 
+      className={`group relative border-2 border-editor-border transition-all duration-200 hover:shadow-lg ${!isEditing ? 'cursor-pointer hover:border-primary/50' : ''}`}
+      onClick={handleClick}
+      onKeyPress={handleKeyPress}
+      tabIndex={isEditing ? -1 : 0}
+      role={isEditing ? undefined : 'button'}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">
           <BookOpen className="w-4 h-4 inline mr-2" />
@@ -33,7 +54,10 @@ export const ReferenceCard = ({ reference, onRemove, onUpdate }: ReferenceCardPr
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setIsEditing(!isEditing)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(!isEditing);
+            }}
             className="h-8 w-8 p-0"
           >
             <Edit2 className="h-4 w-4" />
@@ -41,11 +65,27 @@ export const ReferenceCard = ({ reference, onRemove, onUpdate }: ReferenceCardPr
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onRemove(reference.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove(reference.id);
+            }}
             className="h-8 w-8 p-0"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
+          {reference.url && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(reference.url, '_blank');
+              }}
+              className="h-8 w-8 p-0"
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -170,7 +210,13 @@ export const ReferenceCard = ({ reference, onRemove, onUpdate }: ReferenceCardPr
             )}
             {reference.url && (
               <p className="text-sm">
-                <a href={reference.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                <a 
+                  href={reference.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-primary hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   {reference.url}
                 </a>
               </p>
