@@ -18,7 +18,7 @@ export const FigureList = ({ figures, onRemove, onUpdate, onPreview }: FigureLis
 
   const handleInputChange = (
     figureId: string,
-    field: 'title' | 'caption' | 'altText',
+    field: 'title' | 'caption' | 'alt_text',
     value: string
   ) => {
     const figure = figures.find(f => f.id === figureId);
@@ -37,14 +37,14 @@ export const FigureList = ({ figures, onRemove, onUpdate, onPreview }: FigureLis
         <Card key={figure.id} className="border-2 border-editor-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Figure {figure.number}
+              {figure.label}
             </CardTitle>
             <div className="flex gap-2">
-              {figure.imageUrl && (
+              {figure.url && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => onPreview(figure.imageUrl)}
+                  onClick={() => onPreview(figure.url)}
                   className="h-8 w-8 p-0"
                 >
                   <ZoomIn className="w-4 h-4" />
@@ -61,10 +61,10 @@ export const FigureList = ({ figures, onRemove, onUpdate, onPreview }: FigureLis
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {figure.imageUrl && (
+            {figure.url && (
               <img
-                src={figure.imageUrl}
-                alt={figure.altText || 'Figure preview'}
+                src={figure.url}
+                alt={figure.alt_text || 'Figure preview'}
                 className="w-full h-32 object-contain bg-accent/10 rounded-lg"
               />
             )}
@@ -89,8 +89,8 @@ export const FigureList = ({ figures, onRemove, onUpdate, onPreview }: FigureLis
                 <Label>Alt Text</Label>
                 <Input
                   placeholder="Enter alt text"
-                  value={figure.altText || ''}
-                  onChange={(e) => handleInputChange(figure.id, 'altText', e.target.value)}
+                  value={figure.alt_text || ''}
+                  onChange={(e) => handleInputChange(figure.id, 'alt_text', e.target.value)}
                 />
               </div>
             </div>

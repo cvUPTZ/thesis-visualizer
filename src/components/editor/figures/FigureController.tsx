@@ -23,7 +23,6 @@ export const FigureController = ({
   const { toast } = useToast();
   const [width, setWidth] = useState(figure.dimensions?.width || 500);
   const [height, setHeight] = useState(figure.dimensions?.height || 300);
-  const [position, setPosition] = useState<'inline' | 'float-left' | 'float-right' | 'center'>('inline');
 
   const handleResize = (newWidth: number, newHeight: number) => {
     onUpdate({
@@ -39,8 +38,7 @@ export const FigureController = ({
     });
   };
 
-  const handlePositionChange = (newPosition: string) => {
-    setPosition(newPosition as any);
+  const handlePositionChange = (newPosition: 'inline' | 'float-left' | 'float-right' | 'center') => {
     onUpdate({
       ...figure,
       position: newPosition
@@ -141,7 +139,10 @@ export const FigureController = ({
         {/* Position Controls */}
         <div className="space-y-2">
           <Label>Position in Document</Label>
-          <Select value={position} onValueChange={handlePositionChange}>
+          <Select 
+            value={figure.position} 
+            onValueChange={(value: 'inline' | 'float-left' | 'float-right' | 'center') => handlePositionChange(value)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select position" />
             </SelectTrigger>
