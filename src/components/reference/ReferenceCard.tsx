@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Reference } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,7 @@ interface ReferenceCardProps {
 export const ReferenceCard = ({ reference, onRemove, onUpdate, onClick }: ReferenceCardProps) => {
   const [isEditing, setIsEditing] = React.useState(false);
   const { toast } = useToast();
+  const [editedReference, setEditedReference] = React.useState<Reference>(reference);
 
   const handleClick = () => {
     if (!isEditing && onClick) {
@@ -38,11 +39,24 @@ export const ReferenceCard = ({ reference, onRemove, onUpdate, onClick }: Refere
   };
 
   const handleSave = () => {
+    onUpdate(editedReference);
     setIsEditing(false);
     toast({
       title: "Reference Updated",
       description: "The reference has been successfully updated.",
     });
+  };
+
+  const handleCancel = () => {
+    setEditedReference(reference);
+    setIsEditing(false);
+  };
+
+  const handleChange = (field: keyof Reference, value: any) => {
+    setEditedReference(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   return (
@@ -96,14 +110,12 @@ export const ReferenceCard = ({ reference, onRemove, onUpdate, onClick }: Refere
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent>
         {isEditing ? (
           <div className="space-y-4 animate-fade-in">
             <Select
-              value={reference.type}
-              onValueChange={(value: any) =>
-                onUpdate({ ...reference, type: value })
-              }
+              value={editedReference.type}
+              onValueChange={(value: any) => handleChange('type', value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Type" />
@@ -119,80 +131,62 @@ export const ReferenceCard = ({ reference, onRemove, onUpdate, onClick }: Refere
             </Select>
             <Input
               placeholder="Title"
-              value={reference.title}
-              onChange={(e) =>
-                onUpdate({ ...reference, title: e.target.value })
-              }
+              value={editedReference.title}
+              onChange={(e) => handleChange('title', e.target.value)}
             />
             <TagInput
               placeholder="Authors (comma-separated)"
-              tags={reference.authors}
-              onChange={(tags) =>
-                onUpdate({ ...reference, authors: tags })
-              }
+              tags={editedReference.authors}
+              onChange={(tags) => handleChange('authors', tags)}
             />
             <Input
               placeholder="Year"
-              value={reference.year}
-              onChange={(e) =>
-                onUpdate({ ...reference, year: e.target.value })
-              }
+              value={editedReference.year}
+              onChange={(e) => handleChange('year', e.target.value)}
             />
-            {reference.type === 'article' && (
-              <div className="space-y-2">
+            {editedReference.type === 'article' && (
+              <>
                 <Input
                   placeholder="DOI"
-                  value={reference.doi}
-                  onChange={(e) =>
-                    onUpdate({ ...reference, doi: e.target.value })
-                  }
+                  value={editedReference.doi || ''}
+                  onChange={(e) => handleChange('doi', e.target.value)}
                 />
                 <Input
                   placeholder="Journal"
-                  value={reference.journal}
-                  onChange={(e) =>
-                    onUpdate({ ...reference, journal: e.target.value })
-                  }
+                  value={editedReference.journal || ''}
+                  onChange={(e) => handleChange('journal', e.target.value)}
                 />
                 <div className="grid grid-cols-3 gap-2">
                   <Input
                     placeholder="Volume"
-                    value={reference.volume}
-                    onChange={(e) =>
-                      onUpdate({ ...reference, volume: e.target.value })
-                    }
+                    value={editedReference.volume || ''}
+                    onChange={(e) => handleChange('volume', e.target.value)}
                   />
                   <Input
                     placeholder="Issue"
-                    value={reference.issue}
-                    onChange={(e) =>
-                      onUpdate({ ...reference, issue: e.target.value })
-                    }
+                    value={editedReference.issue || ''}
+                    onChange={(e) => handleChange('issue', e.target.value)}
                   />
                   <Input
                     placeholder="Pages"
-                    value={reference.pages}
-                    onChange={(e) =>
-                      onUpdate({ ...reference, pages: e.target.value })
-                    }
+                    value={editedReference.pages || ''}
+                    onChange={(e) => handleChange('pages', e.target.value)}
                   />
                 </div>
-              </div>
+              </>
             )}
-            {(reference.type === 'website' || reference.type === 'other') && (
+            {(editedReference.type === 'website' || editedReference.type === 'other') && (
               <Input
                 placeholder="URL"
-                value={reference.url}
-                onChange={(e) =>
-                  onUpdate({ ...reference, url: e.target.value })
-                }
+                value={editedReference.url || ''}
+                onChange={(e) => handleChange('url', e.target.value)}
               />
             )}
             <div className="flex justify-end gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setIsEditing(false)}
+                onClick={handleCancel}
               >
                 Cancel
               </Button>
