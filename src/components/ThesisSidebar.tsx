@@ -3,12 +3,15 @@ import { Section, Chapter } from '@/types/thesis';
 import { ScrollArea } from './ui/scroll-area';
 import { TableOfContents } from './thesis/sidebar/TableOfContents';
 import { cn } from '@/lib/utils';
+import { ChapterManager } from './ChapterManager';
 
 export interface ThesisSidebarProps {
   sections: Section[];
   chapters?: Chapter[];
   activeSection: string;
   onSectionSelect: (id: string) => void;
+  onUpdateChapter?: (chapter: Chapter) => void;
+  onAddChapter?: (chapter: Chapter) => void;
   className?: string;
 }
 
@@ -17,6 +20,8 @@ export const ThesisSidebar: React.FC<ThesisSidebarProps> = ({
   chapters,
   activeSection,
   onSectionSelect,
+  onUpdateChapter,
+  onAddChapter,
   className
 }) => {
   console.log('Rendering ThesisSidebar with:', { 
@@ -36,6 +41,15 @@ export const ThesisSidebar: React.FC<ThesisSidebarProps> = ({
       className
     )}>
       <ScrollArea className="h-full py-6">
+        {chapters && onUpdateChapter && onAddChapter && (
+          <div className="px-4 mb-6">
+            <ChapterManager
+              chapters={chapters}
+              onUpdateChapter={onUpdateChapter}
+              onAddChapter={onAddChapter}
+            />
+          </div>
+        )}
         <TableOfContents
           sections={sections}
           chapters={chapters}

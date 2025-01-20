@@ -16,6 +16,7 @@ import { ChatMessages } from './collaboration/ChatMessages';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ThesisSidebar } from './ThesisSidebar';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -175,16 +176,31 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
         />
       </div>
 
-      <ThesisEditorMain
-        thesis={thesis}
-        activeSection={activeSection}
-        showPreview={showPreview}
-        previewRef={previewRef}
-        onContentChange={handleContentChange}
-        onTitleChange={handleTitleChange}
-        onUpdateChapter={handleUpdateChapter}
-        onAddChapter={handleAddChapter}
-      />
+      <div className="flex flex-1">
+        <ThesisSidebar
+          sections={[
+            ...(thesis?.frontMatter || []),
+            ...(thesis?.chapters?.flatMap(chapter => chapter.sections) || []),
+            ...(thesis?.backMatter || [])
+          ]}
+          chapters={thesis?.chapters}
+          activeSection={activeSection}
+          onSectionSelect={setActiveSection}
+          onUpdateChapter={handleUpdateChapter}
+          onAddChapter={handleAddChapter}
+        />
+
+        <ThesisEditorMain
+          thesis={thesis}
+          activeSection={activeSection}
+          showPreview={showPreview}
+          previewRef={previewRef}
+          onContentChange={handleContentChange}
+          onTitleChange={handleTitleChange}
+          onUpdateChapter={handleUpdateChapter}
+          onAddChapter={handleAddChapter}
+        />
+      </div>
 
       <Collapsible
         open={showChat}
