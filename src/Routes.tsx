@@ -18,6 +18,7 @@ import FiguresPage from '@/pages/FiguresPage';
 import TablesPage from '@/pages/TablesPage';
 import BibliographyPage from '@/pages/BibliographyPage';
 import { ThesisSidebar } from '@/components/thesis/ThesisSidebar';
+import ChapterEditor from '@/pages/ChapterEditor';
 
 const Routes = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -34,7 +35,7 @@ const Routes = () => {
 
   const AuthenticatedLayout = ({ children, showSidebar = true }: { children: React.ReactNode, showSidebar?: boolean }) => (
     <div className="flex min-h-screen bg-background">
-      {showSidebar && <ThesisSidebar sections={[]} activeSection="" onSectionSelect={() => {}} />}
+      {showSidebar && <ThesisSidebar />}
       <div className="flex-1">
         {children}
       </div>
@@ -49,6 +50,7 @@ const Routes = () => {
           <Route path="/create-thesis" element={<AuthenticatedLayout showSidebar={false}><CreateThesis /></AuthenticatedLayout>} />
           <Route path="/admin" element={<AuthenticatedLayout showSidebar={false}><AdminPanel /></AuthenticatedLayout>} />
           <Route path="/thesis/:thesisId" element={<AuthenticatedLayout><ThesisEditor /></AuthenticatedLayout>} />
+          <Route path="/chapter/:chapterId" element={<AuthenticatedLayout><ChapterEditor /></AuthenticatedLayout>} />
           <Route path="/student-info" element={<AuthenticatedLayout showSidebar={false}><StudentInfo /></AuthenticatedLayout>} />
           <Route path="/supervisor-info" element={<AuthenticatedLayout showSidebar={false}><SupervisorInfo /></AuthenticatedLayout>} />
           <Route path="/thesis-info" element={<AuthenticatedLayout showSidebar={false}><ThesisInfo /></AuthenticatedLayout>} />
