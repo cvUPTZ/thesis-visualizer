@@ -22,10 +22,6 @@ export const ThesisSidebar: React.FC<ThesisSidebarProps> = ({
     activeSection 
   });
 
-  const handleSectionClick = (sectionId: string) => {
-    onSectionSelect(sectionId);
-  };
-
   return (
     <div className={cn(
       "w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
@@ -35,7 +31,7 @@ export const ThesisSidebar: React.FC<ThesisSidebarProps> = ({
         <TableOfContents
           sections={sections}
           activeSection={activeSection}
-          onSectionSelect={handleSectionClick}
+          onSectionSelect={onSectionSelect}
           isReadOnly={false}
         />
       </ScrollArea>
