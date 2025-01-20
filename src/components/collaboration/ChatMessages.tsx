@@ -7,7 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '../ThemeProvider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Button } from '../ui/button';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 interface ChatMessagesProps {
   thesisId: string;
@@ -18,7 +19,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [showChat, setShowChat] = useState(true);
   const { toast } = useToast();
-  const { messages } = useChatMessages(thesisId);
+  const { messages, error } = useChatMessages(thesisId);
   const { theme } = useTheme();
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -51,7 +52,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
       console.error('Error in handleSendMessage:', error);
       toast({
         title: "Error",
-        description: "Failed to send message",
+        description: "Failed to send message. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -103,7 +104,17 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
             <h3 className="font-semibold">Chat</h3>
           </div>
           
-          <ChatMessageList messages={messages} />
+          {error ? (
+            <Alert variant="destructive" className="m-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>
+                Failed to load messages. Please check your connection.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <ChatMessageList messages={messages} />
+          )}
 
           <ChatMessageInput
             value={newMessage}
