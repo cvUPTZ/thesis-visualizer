@@ -36,7 +36,7 @@ export const CommentThread = ({
           section_id: sectionId,
           reviewer_id: currentUser.id,
           content: { text: replyContent },
-          parent_id: thread.comment.id,
+          parent_id: thread.id,
           status: 'pending'
         })
         .select()
@@ -61,18 +61,20 @@ export const CommentThread = ({
     }
   };
 
+  const mainComment = thread.comments[0];
+
   return (
     <div className="space-y-4">
       <Card className="p-4">
         <div className="flex items-start space-x-4">
           <Avatar>
             <AvatarFallback>
-              {thread.comment.reviewer_id.substring(0, 2).toUpperCase()}
+              {mainComment.user_id.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
             <div className="prose prose-sm">
-              <p>{thread.comment.content.text}</p>
+              <p>{mainComment.content}</p>
             </div>
             <Button
               variant="ghost"
@@ -85,16 +87,16 @@ export const CommentThread = ({
         </div>
       </Card>
 
-      {thread.replies.map((reply) => (
+      {thread.comments.slice(1).map((reply) => (
         <Card key={reply.id} className="p-4 ml-8">
           <div className="flex items-start space-x-4">
             <Avatar>
               <AvatarFallback>
-                {reply.reviewer_id.substring(0, 2).toUpperCase()}
+                {reply.user_id.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 prose prose-sm">
-              <p>{reply.content.text}</p>
+              <p>{reply.content}</p>
             </div>
           </div>
         </Card>

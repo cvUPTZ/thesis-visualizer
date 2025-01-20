@@ -34,6 +34,8 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
   onUpdateThesis
 }) => {
   const handleGeneralSectionUpdate = (type: 'introduction' | 'conclusion') => (section: Section) => {
+    if (!thesis) return;
+    
     const updatedThesis = {
       ...thesis,
       [type === 'introduction' ? 'generalIntroduction' : 'generalConclusion']: section
@@ -74,7 +76,7 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
           
           <div className="space-y-8">
             <GeneralSectionEditor
-              section={thesis.generalIntroduction}
+              section={thesis?.generalIntroduction}
               title="General Introduction"
               onUpdate={handleGeneralSectionUpdate('introduction')}
             />
@@ -86,7 +88,7 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
             />
             
             <GeneralSectionEditor
-              section={thesis.generalConclusion}
+              section={thesis?.generalConclusion}
               title="General Conclusion"
               onUpdate={handleGeneralSectionUpdate('conclusion')}
             />

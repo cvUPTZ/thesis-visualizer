@@ -1,6 +1,6 @@
 import React from 'react';
 import { ThesisContent } from '../ThesisContent';
-import { Chapter, Section } from '@/types/thesis';
+import { Chapter, Section, Thesis } from '@/types/thesis';
 import { useParams } from 'react-router-dom';
 
 interface ThesisEditorContentProps {
@@ -12,6 +12,8 @@ interface ThesisEditorContentProps {
   onTitleChange: (id: string, title: string) => void;
   onUpdateChapter: (chapter: Chapter) => void;
   onAddChapter: (chapter: Chapter) => void;
+  thesis: Thesis;
+  onUpdateThesis: (thesis: Thesis) => void;
 }
 
 export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
@@ -22,7 +24,9 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
   onContentChange,
   onTitleChange,
   onUpdateChapter,
-  onAddChapter
+  onAddChapter,
+  thesis,
+  onUpdateThesis
 }) => {
   const { thesisId } = useParams<{ thesisId: string }>();
 
@@ -44,6 +48,8 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
       onUpdateChapter={onUpdateChapter}
       onAddChapter={onAddChapter}
       thesisId={thesisId}
+      thesis={thesis}
+      onUpdateThesis={onUpdateThesis}
     />
   );
 };
