@@ -66,7 +66,7 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
         <div className="lg:col-span-2 space-y-6">
           {frontMatter.map(section => renderSectionContent(section))}
           
-          {thesis.generalIntroduction && activeSection === 'general-introduction' && (
+          {thesis.generalIntroduction && activeSection === thesis.generalIntroduction.id && (
             <GeneralSectionEditor
               section={thesis.generalIntroduction}
               title="General Introduction"
@@ -86,7 +86,7 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
               onAddChapter={onAddChapter}
             />
             
-            {thesis.generalConclusion && activeSection === 'general-conclusion' && (
+            {thesis.generalConclusion && activeSection === thesis.generalConclusion.id && (
               <GeneralSectionEditor
                 section={thesis.generalConclusion}
                 title="General Conclusion"
