@@ -15,22 +15,30 @@ export default function SectionEditor() {
   if (!thesis) return null;
 
   const findSection = () => {
-    if (thesis.generalIntroduction?.id === sectionId) {
+    // Check if it's the general introduction
+    if (thesis.generalIntroduction?.id === sectionId || sectionId === 'general-introduction') {
       return thesis.generalIntroduction;
     }
-    if (thesis.generalConclusion?.id === sectionId) {
+
+    // Check if it's the general conclusion
+    if (thesis.generalConclusion?.id === sectionId || sectionId === 'general-conclusion') {
       return thesis.generalConclusion;
     }
+
+    // Check front matter
     const frontMatterSection = thesis.frontMatter.find(s => s.id === sectionId);
     if (frontMatterSection) return frontMatterSection;
 
+    // Check back matter
     const backMatterSection = thesis.backMatter.find(s => s.id === sectionId);
     if (backMatterSection) return backMatterSection;
 
+    // Check chapters
     for (const chapter of thesis.chapters) {
       const section = chapter.sections.find(s => s.id === sectionId);
       if (section) return section;
     }
+
     return null;
   };
 
@@ -39,7 +47,8 @@ export default function SectionEditor() {
   if (!section) {
     return (
       <div className="p-8">
-        <h1 className="text-2xl font-bold">Section not found</h1>
+        <h1 className="text-2xl font-bold text-red-500">Section not found</h1>
+        <p className="mt-4 text-gray-600">The requested section could not be found. Please check the URL and try again.</p>
       </div>
     );
   }
@@ -47,18 +56,22 @@ export default function SectionEditor() {
   const handleContentChange = (newContent: string) => {
     const updatedThesis = { ...thesis };
     
-    if (thesis.generalIntroduction?.id === sectionId) {
+    // Update general introduction
+    if (thesis.generalIntroduction?.id === sectionId || sectionId === 'general-introduction') {
       updatedThesis.generalIntroduction = {
-        ...thesis.generalIntroduction,
+        ...thesis.generalIntroduction!,
         content: newContent
       };
-    } else if (thesis.generalConclusion?.id === sectionId) {
+    }
+    // Update general conclusion
+    else if (thesis.generalConclusion?.id === sectionId || sectionId === 'general-conclusion') {
       updatedThesis.generalConclusion = {
-        ...thesis.generalConclusion,
+        ...thesis.generalConclusion!,
         content: newContent
       };
-    } else {
-      // Update in frontMatter
+    }
+    // Update front matter
+    else {
       const frontMatterIndex = thesis.frontMatter.findIndex(s => s.id === sectionId);
       if (frontMatterIndex !== -1) {
         updatedThesis.frontMatter[frontMatterIndex] = {
@@ -67,7 +80,7 @@ export default function SectionEditor() {
         };
       }
 
-      // Update in backMatter
+      // Update back matter
       const backMatterIndex = thesis.backMatter.findIndex(s => s.id === sectionId);
       if (backMatterIndex !== -1) {
         updatedThesis.backMatter[backMatterIndex] = {
@@ -76,7 +89,7 @@ export default function SectionEditor() {
         };
       }
 
-      // Update in chapters
+      // Update chapters
       updatedThesis.chapters = thesis.chapters.map(chapter => ({
         ...chapter,
         sections: chapter.sections.map(s => 
