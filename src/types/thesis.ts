@@ -1,66 +1,55 @@
 export interface Citation {
   id: string;
   text: string;
+  source: string;
   authors: string[];
+  year: string;
   type: string;
+  doi?: string;
+  url?: string;
+  journal?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  publisher?: string;
+  thesis_id: string;
   created_at: string;
   updated_at: string;
-  
-  // Author Information
   author_last_names: string[];
   author_first_initials: string[];
   author_middle_initials: string[];
-  
-  // Date Information
-  year: string;
-  specific_date?: string;
-  
-  // Title Information
   title: string;
   container_title?: string;
   edition?: string;
-  
-  // Publication Information
-  publisher?: string;
-  journal?: string;
-  volume?: string;
-  issue?: string;
-  pages?: string;
-  doi?: string;
-  url?: string;
   database?: string;
-  source: string;
+  specific_date?: string;
 }
 
-export interface Reference {
+export interface Figure {
   id: string;
-  text: string;
+  imageUrl: string;
+  caption: string;
+  altText: string;
   title: string;
-  source: string;
-  authors: string[];
-  year: string;
-  type: 'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other';
-  doi?: string;
+  number: number;
+  dimensions: {
+    width: number;
+    height: number;
+  };
+  alt_text?: string;
   url?: string;
-  journal?: string;
-  volume?: string;
-  issue?: string;
-  pages?: string;
-  publisher?: string;
-  specific_date?: string;
-  container_title?: string;
-  edition?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Table {
+  id: string;
+  title: string;
+  caption: string;
+  content: string;
+  data: any[][];
   created_at: string;
   updated_at: string;
-}
-
-export type ReferenceStyle = 'APA' | 'MLA' | 'Chicago' | 'Harvard';
-
-export interface Chapter {
-  id: string;
-  title: string;
-  content: string;
-  sections: Section[];
 }
 
 export interface Section {
@@ -68,83 +57,36 @@ export interface Section {
   title: string;
   content: string;
   type?: string;
+  order?: number;
+  required?: boolean;
   figures?: Figure[];
   tables?: Table[];
   citations?: Citation[];
   references?: Reference[];
+  footnotes?: Footnote[];
 }
 
-export interface Figure {
-  id: string;
-  caption: string;
-  url: string;
-  alt_text?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Table {
-  id: string;
-  caption: string;
-  data: any[][];
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Footnote {
-  id: string;
-  content: string;
-  number: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ThesisMetadata {
-  description: string;
-  keywords: string[];
-  createdAt: string;
-  universityName: string;
-  departmentName: string;
-  authorName: string;
-  thesisDate: string;
-  committeeMembers: string[];
-}
-
-export interface Thesis {
+export interface Chapter {
   id: string;
   title: string;
-  content: any;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-  metadata: ThesisMetadata;
-  frontMatter: Section[];
-  chapters: Chapter[];
-  backMatter: Section[];
-}
-
-export interface ThesisVersion {
-  id: string;
-  thesis_id: string;
-  content: any;
-  version_number: number;
-  description?: string;
-  created_at: string;
-  created_by: string;
-}
-
-export interface ThesisComment {
-  id: string;
   content: string;
-  user_id: string;
-  created_at: string;
+  sections: Section[];
+  order?: number;
+  figures?: Figure[];
+  tables?: Table[];
+  footnotes?: Footnote[];
 }
 
 export interface CommentThread {
   id: string;
-  comments: ThesisComment[];
+  comments: Comment[];
   section_id: string;
   created_at: string;
 }
 
-export type ThesisSectionType = 'frontMatter' | 'chapter' | 'backMatter';
+export interface Comment {
+  id: string;
+  content: string;
+  user_id: string;
+  created_at: string;
+}
