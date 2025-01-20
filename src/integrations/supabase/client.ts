@@ -36,13 +36,13 @@ const RETRY_DELAY = 1000; // 1 second base delay
 const retryRequest = async (operation: () => Promise<any>, retries = 0): Promise<any> => {
   try {
     // Check authentication before making request
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
       console.error('❌ No authenticated session found');
       throw new Error('Authentication required');
     }
 
-    console.log('👤 Making authenticated request with session:', session.session.user.email);
+    console.log('👤 Making authenticated request with session:', session.user.email);
     return await operation();
   } catch (error: any) {
     console.error('❌ Request failed:', error);
@@ -64,9 +64,9 @@ const retryRequest = async (operation: () => Promise<any>, retries = 0): Promise
   }
 };
 
-// Wrap Supabase methods with retry mechanism
+// Create a new instance of the Supabase client with the retry mechanism
 const originalFrom = supabase.from.bind(supabase);
-supabase.from = (table: string) => {
+supabase.from = function(table: string) {
   const result = originalFrom(table);
   const originalSelect = result.select.bind(result);
   
@@ -75,7 +75,7 @@ supabase.from = (table: string) => {
     const originalExecute = query.execute.bind(query);
     
     query.execute = async function(this: any) {
-      return retryRequest(() => originalExecute());
+      return retryRequest(() => originalExecute.call(this));
     };
     
     return query;
