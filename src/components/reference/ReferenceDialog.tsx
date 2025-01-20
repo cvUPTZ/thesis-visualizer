@@ -12,6 +12,7 @@ import {
 import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { parseReference } from '@/utils/referenceParser';
+import { Card } from '@/components/ui/card';
 
 interface ReferenceDialogProps {
   onAddReference: (reference: Reference) => void;
@@ -19,6 +20,7 @@ interface ReferenceDialogProps {
 
 export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
   const [rawText, setRawText] = useState('');
+  const [parsedReference, setParsedReference] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
 
@@ -27,28 +29,15 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
     
     try {
       console.log('Attempting to parse reference:', rawText);
-      const parsedReference = parseReference(rawText);
+      const parsed = parseReference(rawText);
       
-      if (!parsedReference.title || !parsedReference.authors.length) {
+      if (!parsed.title || !parsed.authors.length) {
         throw new Error('Could not parse required fields from reference');
       }
 
-      const newReference: Reference = {
-        id: crypto.randomUUID(),
-        ...parsedReference,
-        type: 'article',
-        source: parsedReference.publisher || parsedReference.journal || 'Unknown',
-      };
+      setParsedReference(parsed);
+      console.log('Parsed reference:', parsed);
 
-      console.log('Parsed reference:', newReference);
-      onAddReference(newReference);
-      setRawText('');
-      setIsOpen(false);
-      
-      toast({
-        title: "Reference Added",
-        description: "Successfully parsed and added the reference",
-      });
     } catch (error) {
       console.error('Error parsing reference:', error);
       toast({
@@ -57,6 +46,93 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleAddReference = () => {
+    if (!parsedReference) return;
+
+    const newReference: Reference = {
+      id: crypto.randomUUID(),
+      text: rawText,
+      ...parsedReference,
+      type: 'article',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    onAddReference(newReference);
+    setRawText('');
+    setParsedReference(null);
+    setIsOpen(false);
+    
+    toast({
+      title: "Reference Added",
+      description: "Successfully added the reference",
+    });
+  };
+
+  const formatParsedReference = () => {
+    if (!parsedReference) return null;
+
+    return (
+      <Card className="p-4 mt-4 space-y-2 text-sm">
+        <div>
+          <strong>Authors:</strong>
+          <ul className="list-disc pl-5">
+            {parsedReference.authors.map((author: string, index: number) => (
+              <li key={index}>{author}</li>
+            ))}
+          </ul>
+        </div>
+        
+        <div>
+          <strong>Date:</strong> {parsedReference.year}
+          {parsedReference.specific_date && ` (${parsedReference.specific_date})`}
+        </div>
+        
+        <div>
+          <strong>Article Title:</strong> {parsedReference.title}
+        </div>
+        
+        {parsedReference.journal && (
+          <div>
+            <strong>Journal Name:</strong> <em>{parsedReference.journal}</em>
+          </div>
+        )}
+        
+        {(parsedReference.volume || parsedReference.issue) && (
+          <div>
+            <strong>Volume/Issue:</strong>
+            {parsedReference.volume && ` Volume ${parsedReference.volume}`}
+            {parsedReference.issue && ` Issue ${parsedReference.issue}`}
+          </div>
+        )}
+        
+        {parsedReference.pages && (
+          <div>
+            <strong>Page Range:</strong> {parsedReference.pages}
+          </div>
+        )}
+        
+        {parsedReference.doi && (
+          <div>
+            <strong>DOI:</strong> {parsedReference.doi}
+          </div>
+        )}
+        
+        {parsedReference.url && (
+          <div>
+            <strong>URL:</strong> {parsedReference.url}
+          </div>
+        )}
+        
+        {parsedReference.publisher && (
+          <div>
+            <strong>Publisher:</strong> {parsedReference.publisher}
+          </div>
+        )}
+      </Card>
+    );
   };
 
   return (
@@ -84,9 +160,17 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
               Paste any formatted reference (APA, MLA, Chicago, etc.) and we'll automatically parse it.
             </p>
           </div>
-          <div className="flex justify-end">
-            <Button type="submit">Add Reference</Button>
+          
+          <div className="flex gap-2">
+            <Button type="submit" variant="outline">Parse Reference</Button>
+            {parsedReference && (
+              <Button type="button" onClick={handleAddReference}>
+                Add Reference
+              </Button>
+            )}
           </div>
+
+          {formatParsedReference()}
         </form>
       </DialogContent>
     </Dialog>

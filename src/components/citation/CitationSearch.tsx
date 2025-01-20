@@ -49,7 +49,7 @@ export const CitationSearch: React.FC<CitationSearchProps> = ({ onCitationSelect
       source: result.publisher || '',
       authors: result.author?.map((a: any) => `${a.given} ${a.family}`) || [],
       year: result.published?.['date-parts']?.[0]?.[0]?.toString() || '',
-      type: 'article' as const,
+      type: 'article',
       doi: result.DOI,
       url: result.URL,
       journal: result['container-title']?.[0],
@@ -57,6 +57,16 @@ export const CitationSearch: React.FC<CitationSearchProps> = ({ onCitationSelect
       issue: result.issue,
       pages: result.page,
       publisher: result.publisher,
+      title: result.title?.[0] || '',
+      author_last_names: result.author?.map((a: any) => a.family) || [],
+      author_first_initials: result.author?.map((a: any) => a.given?.[0] || '') || [],
+      author_middle_initials: result.author?.map((a: any) => {
+        const names = a.given?.split(' ') || [];
+        return names.length > 1 ? names[1][0] : '';
+      }) || [],
+      specific_date: result.published?.['date-parts']?.[0]?.join('-'),
+      container_title: result['container-title']?.[0],
+      edition: result.edition,
       created_at: now,
       updated_at: now
     };
