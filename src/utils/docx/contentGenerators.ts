@@ -2,7 +2,7 @@ import { Document, Paragraph, TextRun, ImageRun, HeadingLevel, TableOfContents }
 import { Thesis, Section, Chapter } from '@/types/thesis';
 
 export const generateImageParagraph = async (imageData: Buffer, caption: string) => {
-  const imageRun = new ImageRun({
+  const image = new ImageRun({
     data: imageData,
     transformation: {
       width: 400,
@@ -13,7 +13,7 @@ export const generateImageParagraph = async (imageData: Buffer, caption: string)
 
   return new Paragraph({
     children: [
-      imageRun,
+      image,
       new TextRun({
         text: caption,
         break: 1
@@ -44,7 +44,7 @@ export const generateContent = async ({ thesis, isPreview = false }: { thesis: T
   }
 
   // Add front matter sections
-  thesis.frontMatter.forEach((section: Section) => {
+  thesis.frontMatter.forEach(section => {
     content.push(new Paragraph({
       text: section.title,
       heading: HeadingLevel.HEADING_2,
@@ -55,12 +55,13 @@ export const generateContent = async ({ thesis, isPreview = false }: { thesis: T
   });
 
   // Add chapters
-  thesis.chapters.forEach((chapter: Chapter) => {
+  thesis.chapters.forEach(chapter => {
     content.push(new Paragraph({
       text: chapter.title,
       heading: HeadingLevel.HEADING_1,
     }));
-    chapter.sections.forEach((section: Section) => {
+
+    chapter.sections.forEach(section => {
       content.push(new Paragraph({
         text: section.title,
         heading: HeadingLevel.HEADING_2,
@@ -83,7 +84,7 @@ export const generateContent = async ({ thesis, isPreview = false }: { thesis: T
   }
 
   // Add back matter sections
-  thesis.backMatter.forEach((section: Section) => {
+  thesis.backMatter.forEach(section => {
     content.push(new Paragraph({
       text: section.title,
       heading: HeadingLevel.HEADING_2,

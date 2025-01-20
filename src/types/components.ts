@@ -1,4 +1,4 @@
-import { Citation, Reference } from './thesis';
+import { Citation, Reference, Figure, Table } from './thesis';
 
 export interface CitationManagerProps {
   citations: Citation[];
@@ -27,11 +27,11 @@ export interface SectionProps {
     content: string;
     type?: string;
     order?: number;
-    figures?: any[];
-    tables?: any[];
-    citations?: any[];
+    figures?: Figure[];
+    tables?: Table[];
+    citations?: Citation[];
     required?: boolean;
-    references?: any[];
+    references?: Reference[];
   };
   isActive: boolean;
   onContentChange: (id: string, content: string) => void;
