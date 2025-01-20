@@ -16,6 +16,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
     headers: {
       'X-Client-Info': 'supabase-js-web',
       'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
     },
   },
   realtime: {
@@ -25,23 +26,42 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
   },
   db: {
     schema: 'public'
-  },
-  persistSession: typeof window !== 'undefined',
+  }
 });
 
-// Add error handling for failed requests
-supabase.handleFailedRequest = async (error: any) => {
-  console.error('Supabase request failed:', error);
-  if (error.message === 'Failed to fetch') {
-    // Check if user is authenticated
-    const { data: { session }, error: authError } = await supabase.auth.getSession();
-    if (authError || !session) {
-      console.error('Authentication error:', authError);
-      // Redirect to login or handle auth error
-      return;
+// Add retry mechanism for failed requests
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+const retryRequest = async (operation: () => Promise<any>, retries = 0): Promise<any> => {
+  try {
+    return await operation();
+  } catch (error: any) {
+    if (retries < MAX_RETRIES && error.message === 'Failed to fetch') {
+      console.log(`Retrying request (${retries + 1}/${MAX_RETRIES})...`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retries + 1)));
+      return retryRequest(operation, retries + 1);
     }
-    // Retry the request once
-    return true;
+    throw error;
   }
-  return false;
+};
+
+// Wrap Supabase methods with retry mechanism
+const originalFrom = supabase.from.bind(supabase);
+supabase.from = (table: string) => {
+  const result = originalFrom(table);
+  const originalSelect = result.select.bind(result);
+  
+  result.select = function(this: any, ...args: any[]) {
+    const query = originalSelect(...args);
+    const originalExecute = query.execute.bind(query);
+    
+    query.execute = async function(this: any) {
+      return retryRequest(() => originalExecute());
+    };
+    
+    return query;
+  };
+  
+  return result;
 };
