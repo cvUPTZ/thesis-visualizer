@@ -127,7 +127,6 @@ const generateFigure = async (figure: Figure, figureNumber: number): Promise<Par
     if (figure.url) {
       const base64Image = await convertImageToBase64(figure.url);
       
-      // Calculate image dimensions while maintaining aspect ratio
       const maxWidth = convertInchesToTwip(6); // 6 inches max width
       const aspectRatio = figure.dimensions.height / figure.dimensions.width;
       const width = Math.min(figure.dimensions.width, maxWidth);
@@ -184,7 +183,6 @@ const generateReferences = (references: Reference[]): Paragraph[] => {
     })
   ];
 
-  // Sort references by first author's last name
   const sortedRefs = [...references].sort((a, b) => {
     const aName = a.authors[0]?.split(' ').pop() || '';
     const bName = b.authors[0]?.split(' ').pop() || '';
@@ -194,7 +192,6 @@ const generateReferences = (references: Reference[]): Paragraph[] => {
   sortedRefs.forEach(ref => {
     let referenceText = '';
     
-    // Format based on reference type following APA style
     switch (ref.type) {
       case 'article':
         referenceText = `${ref.authors.join(', ')} (${ref.year}). ${ref.title}. ${ref.journal}`;
@@ -243,7 +240,7 @@ const generateReferences = (references: Reference[]): Paragraph[] => {
 export const generateContent = async ({ thesis, isPreview = false }: ContentGenerationOptions): Promise<Paragraph[]> => {
   const paragraphs: Paragraph[] = [];
   const styles = isPreview ? previewStyles : defaultStyles;
-  let currentFigureNumber = 1; // Initialize figure counter
+  let currentFigureNumber = 1;
 
   // Front Matter
   if (Array.isArray(thesis.frontMatter)) {
@@ -268,7 +265,28 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
     }
   }
 
-  // Chapters with figures
+  // General Introduction
+  if (thesis.generalIntroduction) {
+    paragraphs.push(
+      new Paragraph({
+        text: thesis.generalIntroduction.title || "General Introduction",
+        heading: HeadingLevel.HEADING_1,
+        pageBreakBefore: true,
+      })
+    );
+
+    if (thesis.generalIntroduction.content) {
+      paragraphs.push(
+        new Paragraph({
+          text: thesis.generalIntroduction.content,
+          style: 'Normal',
+          spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
+        })
+      );
+    }
+  }
+
+  // Chapters
   if (Array.isArray(thesis.chapters)) {
     for (const chapter of thesis.chapters) {
       if (chapter.title) {
@@ -296,17 +314,37 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
         for (const figure of chapter.figures) {
           const figureParagraphs = await generateFigure(figure, currentFigureNumber);
           paragraphs.push(...figureParagraphs);
-          currentFigureNumber++; // Increment figure counter
+          currentFigureNumber++;
         }
       }
     }
   }
 
-  // Back Matter (including references)
+  // General Conclusion
+  if (thesis.generalConclusion) {
+    paragraphs.push(
+      new Paragraph({
+        text: thesis.generalConclusion.title || "General Conclusion",
+        heading: HeadingLevel.HEADING_1,
+        pageBreakBefore: true,
+      })
+    );
+
+    if (thesis.generalConclusion.content) {
+      paragraphs.push(
+        new Paragraph({
+          text: thesis.generalConclusion.content,
+          style: 'Normal',
+          spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
+        })
+      );
+    }
+  }
+
+  // Back Matter
   if (Array.isArray(thesis.backMatter)) {
     for (const section of thesis.backMatter) {
       if (section.type === 'references' && section.references) {
-        // Add references section
         paragraphs.push(...generateReferences(section.references));
       } else {
         paragraphs.push(
