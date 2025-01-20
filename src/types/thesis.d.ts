@@ -1,36 +1,44 @@
-export type ThesisSectionType = 
-  | 'title'
-  | 'table-of-contents'
-  | 'list-of-figures'
-  | 'list-of-tables'
-  | 'acknowledgments'
-  | 'abstract'
-  | 'list-of-abbreviations'
-  | 'general-introduction'
-  | 'introduction'
-  | 'methodology'
-  | 'results'
-  | 'discussion'
-  | 'conclusion'
-  | 'bibliography'
-  | 'appendix'
-  | 'custom'
-  | 'references'
-  | 'chapter'
-  | 'research-questions'
-  | 'hypotheses'
-  | 'objectives'
-  | 'problem-statement'
-  | 'thesis-structure'
-  | 'statistical-tests'
-  | 'general-context'
-  | 'general-conclusion'
-  | 'statement'
-  | 'preface';
+export interface Citation {
+  id: string;
+  text: string;
+  authors: string[];
+  type: string;
+  created_at: string;
+  updated_at: string;
+}
 
-export interface Comment {
+export interface Footnote {
   id: string;
   content: string;
-  reviewer_id: string;
+  number: number;
   created_at: string;
+  updated_at: string;
+}
+
+export interface CitationManagerProps {
+  citations: Citation[];
+  onCitationSelect?: (citation: Citation) => void;
+  selectedCitation?: Citation | null;
+  onCitationCreate?: (citation: Citation) => void;
+  onCitationUpdate?: (citation: Citation) => void;
+  onCitationDelete?: (citation: Citation) => void;
+  thesisId: string;
+}
+
+export interface CitationListProps {
+  citations: Citation[];
+  onRemove: (id: string) => void;
+  onUpdate: (citation: Citation) => void;
+  onPreview: (citation: Citation) => void;
+}
+
+export interface CitationSearchProps {
+  onCitationSelect: (citation: Citation) => void;
+}
+
+export interface CitationPreviewProps {
+  citation: Citation;
+  onClose: () => void;
+  onEdit: (citation: Citation) => void;
+  onDelete: (citation: Citation) => void;
 }

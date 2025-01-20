@@ -350,36 +350,21 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
-          department: string | null
           email: string
-          full_name: string | null
           id: string
-          program: string | null
           role_id: string | null
-          student_id: string | null
-          year_of_study: string | null
         }
         Insert: {
           created_at?: string
-          department?: string | null
           email: string
-          full_name?: string | null
           id: string
-          program?: string | null
           role_id?: string | null
-          student_id?: string | null
-          year_of_study?: string | null
         }
         Update: {
           created_at?: string
-          department?: string | null
           email?: string
-          full_name?: string | null
           id?: string
-          program?: string | null
           role_id?: string | null
-          student_id?: string | null
-          year_of_study?: string | null
         }
         Relationships: [
           {

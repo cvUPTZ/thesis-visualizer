@@ -11,21 +11,6 @@ export const HeroSection = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
 
-  const handleStartWriting = (e: React.MouseEvent) => {
-    e.preventDefault();
-    console.log("🖋️ Start writing button clicked");
-    
-    toast({
-      title: "Welcome!",
-      description: "Let's get started with your thesis journey.",
-    });
-    
-    // Use setTimeout to ensure the toast is shown before navigation
-    setTimeout(() => {
-      navigate('/auth');
-    }, 100);
-  };
-
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-[#1A1F2C] to-[#0A0D14] opacity-90" />
@@ -48,7 +33,13 @@ export const HeroSection = () => {
             <Button
               size="lg"
               className="bg-[#6B46C1] hover:bg-[#553C9A] text-white px-8"
-              onClick={handleStartWriting}
+              onClick={() => {
+                toast({
+                  title: "Welcome!",
+                  description: "Let's get started with your thesis journey.",
+                });
+                navigate('/auth');
+              }}
             >
               {t('landing.hero.cta')}
             </Button>

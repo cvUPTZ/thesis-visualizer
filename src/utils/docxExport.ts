@@ -45,7 +45,7 @@ export const generateThesisDocx = async (thesis: Thesis) => {
   const sections = [];
 
   // Title Page
-  const titlePageSection = {
+  sections.push({
     properties: {
       page: {
         margin: PAGE_MARGINS,
@@ -55,12 +55,11 @@ export const generateThesisDocx = async (thesis: Thesis) => {
         },
       },
     },
-    children: generateTitlePage({ thesis }) || [],
-  };
-  sections.push(titlePageSection);
+    children: generateTitlePage({ thesis }),
+  });
 
   // Table of Contents and Content sections
-  const contentSections = [
+  [
     {
       title: "Table of Contents",
       content: [
@@ -73,45 +72,37 @@ export const generateThesisDocx = async (thesis: Thesis) => {
       ],
     },
     {
-      title: thesis.frontMatter?.[0]?.title || "Untitled Thesis",
-      content: await generateContent({ thesis, isPreview: false }) || [],
+      title: thesis.frontMatter[0]?.title || "Untitled Thesis",
+      content: generateContent({ thesis, isPreview: false }),
     },
-  ];
-
-  contentSections.forEach(section => {
-    if (Array.isArray(section.content)) {
-      sections.push({
-        properties: {
-          page: {
-            margin: PAGE_MARGINS,
-          },
+  ].forEach(section => {
+    sections.push({
+      properties: {
+        page: {
+          margin: PAGE_MARGINS,
         },
-        headers: {
-          default: new Header({
-            children: [
-              new Paragraph({
-                text: section.title,
-                alignment: AlignmentType.CENTER,
-              }),
-            ],
-          }),
-        },
-        footers: {
-          default: new Footer({
-            children: [createPageNumberParagraph()],
-          }),
-        },
-        children: section.content,
-      });
-    }
+      },
+      headers: {
+        default: new Header({
+          children: [
+            new Paragraph({
+              text: section.title,
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+        }),
+      },
+      footers: {
+        default: new Footer({
+          children: [createPageNumberParagraph()],
+        }),
+      },
+      children: section.content,
+    });
   });
 
-  console.log('Creating document with sections:', sections);
-
   const doc = new Document({
-    sections: sections.filter(section => 
-      section && section.children && Array.isArray(section.children)
-    ),
+    sections,
     styles: defaultStyles,
   });
 
@@ -228,7 +219,7 @@ export const generatePreviewDocx = async (thesis: Thesis) => {
         ],
       }),
     },
-    children: await generateContent({ thesis, isPreview: true }),
+    children: generateContent({ thesis, isPreview: true }),
   });
 
   const doc = new Document({

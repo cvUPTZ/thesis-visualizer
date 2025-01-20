@@ -1,21 +1,18 @@
+import React from 'react';
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface BasicThesisFieldsProps {
   values: {
     title: string;
     description: string;
     keywords: string;
-    referenceStyle?: string;
   };
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setFieldValue: (field: string, value: any) => void;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const BasicThesisFields = ({ values, handleChange, setFieldValue }: BasicThesisFieldsProps) => {
+export const BasicThesisFields = ({ values, handleChange }: BasicThesisFieldsProps) => {
   return (
-    <div className="space-y-4">
+    <>
       <div>
         <label htmlFor="title" className="block text-sm font-medium mb-1">
           Title
@@ -26,6 +23,7 @@ export const BasicThesisFields = ({ values, handleChange, setFieldValue }: Basic
           value={values.title}
           onChange={handleChange}
           placeholder="Enter thesis title"
+          required
         />
       </div>
 
@@ -33,13 +31,13 @@ export const BasicThesisFields = ({ values, handleChange, setFieldValue }: Basic
         <label htmlFor="description" className="block text-sm font-medium mb-1">
           Description
         </label>
-        <Textarea
+        <Input
           id="description"
           name="description"
           value={values.description}
           onChange={handleChange}
-          placeholder="Enter thesis description"
-          rows={4}
+          placeholder="Enter a brief description of your thesis"
+          required
         />
       </div>
 
@@ -52,30 +50,10 @@ export const BasicThesisFields = ({ values, handleChange, setFieldValue }: Basic
           name="keywords"
           value={values.keywords}
           onChange={handleChange}
-          placeholder="Enter keywords (comma separated)"
+          placeholder="Enter keywords separated by commas"
+          required
         />
       </div>
-
-      <div>
-        <label htmlFor="referenceStyle" className="block text-sm font-medium mb-1">
-          Reference Style
-        </label>
-        <Select
-          value={values.referenceStyle}
-          onValueChange={(value) => setFieldValue('referenceStyle', value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select reference style" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="APA">APA</SelectItem>
-            <SelectItem value="MLA">MLA</SelectItem>
-            <SelectItem value="Chicago">Chicago</SelectItem>
-            <SelectItem value="Vancouver">Vancouver</SelectItem>
-            <SelectItem value="Harvard">Harvard</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
+    </>
   );
 };

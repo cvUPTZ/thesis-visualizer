@@ -5,7 +5,6 @@ import { BookOpen, PlusCircle, Trash2 } from 'lucide-react';
 import { ChapterItem } from './editor/chapters/ChapterItem';
 import { useToast } from '@/hooks/use-toast';
 import { ChapterCreationDialog } from './editor/chapters/ChapterCreationDialog';
-import { supabase } from '@/integrations/supabase/client';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,94 +50,26 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
     );
   };
 
-  const handleCreateChapter = async (chapter: Chapter) => {
-    console.log('Creating new chapter:', chapter);
-    try {
-      // First, add the chapter to the local state
-      onAddChapter(chapter);
-      
-      // Convert chapters array to a JSON-compatible format
-      const chaptersJson = [...chapters, chapter].map(ch => ({
-        id: ch.id,
-        title: ch.title,
-        content: ch.content,
-        sections: ch.sections,
-        part: ch.part,
-        figures: ch.figures,
-        tables: ch.tables,
-        footnotes: ch.footnotes
-      }));
-
-      // Then persist it to Supabase with proper type casting
-      const { error } = await supabase
-        .from('theses')
-        .update({
-          content: JSON.parse(JSON.stringify({ chapters: chaptersJson }))
-        })
-        .eq('id', chapters[0]?.id); // Use the thesis ID from the first chapter
-
-      if (error) throw error;
-
-      setShowCreateDialog(false);
-      toast({
-        title: "Chapter Added",
-        description: "New chapter has been created successfully",
-      });
-
-    } catch (error) {
-      console.error('Error creating chapter:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create chapter. Please try again.",
-        variant: "destructive"
-      });
-    }
+  const handleCreateChapter = (chapter: Chapter) => {
+    console.log('Handling chapter creation:', chapter);
+    onAddChapter(chapter);
+    toast({
+      title: "Chapter Added",
+      description: "New chapter has been created successfully",
+    });
   };
 
-  const handleDeleteChapters = async () => {
+  const handleDeleteChapters = () => {
     if (onRemoveChapter && chaptersToDelete.length > 0) {
-      try {
-        // First remove from local state
-        chaptersToDelete.forEach(chapterId => {
-          onRemoveChapter(chapterId);
-        });
-
-        // Convert remaining chapters to JSON-compatible format
-        const updatedChapters = chapters
-          .filter(chapter => !chaptersToDelete.includes(chapter.id))
-          .map(ch => ({
-            id: ch.id,
-            title: ch.title,
-            content: ch.content,
-            sections: ch.sections,
-            part: ch.part,
-            figures: ch.figures,
-            tables: ch.tables,
-            footnotes: ch.footnotes
-          }));
-
-        const { error } = await supabase
-          .from('theses')
-          .update({
-            content: JSON.parse(JSON.stringify({ chapters: updatedChapters }))
-          })
-          .eq('id', chapters[0]?.id);
-
-        if (error) throw error;
-
-        setChaptersToDelete([]);
-        toast({
-          title: "Chapters Deleted",
-          description: `${chaptersToDelete.length} chapter(s) have been removed successfully`,
-        });
-      } catch (error) {
-        console.error('Error deleting chapters:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete chapters. Please try again.",
-          variant: "destructive"
-        });
-      }
+      console.log('Deleting chapters:', chaptersToDelete);
+      chaptersToDelete.forEach(chapterId => {
+        onRemoveChapter(chapterId);
+      });
+      setChaptersToDelete([]);
+      toast({
+        title: "Chapters Deleted",
+        description: `${chaptersToDelete.length} chapter(s) have been removed successfully`,
+      });
     }
   };
 

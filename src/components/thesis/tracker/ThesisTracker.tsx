@@ -10,7 +10,7 @@ interface ThesisTrackerProps {
 }
 
 export const ThesisTracker = ({ thesis }: ThesisTrackerProps) => {
-  // Calculate overall progress based on completed sections
+  // Calculate overall progress
   const calculateProgress = () => {
     const allSections = [
       ...thesis.frontMatter,
@@ -19,29 +19,13 @@ export const ThesisTracker = ({ thesis }: ThesisTrackerProps) => {
     ];
     
     const completedSections = allSections.filter(section => 
-      section.content && section.content.trim().length > 100
+      section.content && section.content.trim().length > 0
     ).length;
     
     return Math.round((completedSections / allSections.length) * 100);
   };
 
-  // Calculate chapter completion status
-  const getChapterStatus = (chapterIndex: number) => {
-    const chapter = thesis.chapters[chapterIndex];
-    if (!chapter) return { complete: false, progress: 0 };
-
-    const completedSections = chapter.sections.filter(
-      section => section.content && section.content.trim().length > 100
-    ).length;
-
-    const progress = Math.round((completedSections / chapter.sections.length) * 100);
-    return {
-      complete: progress === 100,
-      progress
-    };
-  };
-
-  // Get last update date
+  // Get recent activity
   const getLastUpdateDate = () => {
     return new Date(thesis.updated_at).toLocaleDateString();
   };
@@ -82,35 +66,31 @@ export const ThesisTracker = ({ thesis }: ThesisTrackerProps) => {
           >
             <div className="flex items-center gap-2 text-sm font-medium">
               <CheckCircle className="w-4 h-4 text-green-500" />
-              Completed Chapters
+              Completed Sections
             </div>
             <p className="text-sm text-muted-foreground">
               {thesis.chapters.filter(chapter => 
-                chapter.sections.every(section => section.content?.length > 100)
+                chapter.sections.every(section => section.content?.length > 0)
               ).length} / {thesis.chapters.length}
             </p>
           </motion.div>
         </div>
 
         <div className="mt-4">
-          <h4 className="text-sm font-medium mb-2">Chapter Status</h4>
+          <h4 className="text-sm font-medium mb-2">Section Status</h4>
           <div className="space-y-2">
-            {thesis.chapters.map((chapter, index) => {
-              const status = getChapterStatus(index);
-              return (
-                <div key={chapter.id} className="flex items-center justify-between text-sm">
-                  <span className="truncate flex-1 mr-2">{chapter.title}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">{status.progress}%</span>
-                    {status.complete ? (
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <AlertCircle className="w-4 h-4 text-yellow-500" />
-                    )}
-                  </div>
+            {thesis.chapters.map((chapter, index) => (
+              <div key={chapter.id} className="flex items-center justify-between text-sm">
+                <span>{chapter.title}</span>
+                <div className="flex items-center gap-2">
+                  {chapter.sections.every(section => section.content?.length > 0) ? (
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-yellow-500" />
+                  )}
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </div>
       </div>

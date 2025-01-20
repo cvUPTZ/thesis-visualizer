@@ -1,8 +1,9 @@
 import React from 'react';
 import { ThesisContent } from '../ThesisContent';
 import { Chapter, Section } from '@/types/thesis';
+import { useParams } from 'react-router-dom';
 
-export interface ThesisEditorContentProps {
+interface ThesisEditorContentProps {
   frontMatter: Section[];
   chapters: Chapter[];
   backMatter: Section[];
@@ -11,7 +12,6 @@ export interface ThesisEditorContentProps {
   onTitleChange: (id: string, title: string) => void;
   onUpdateChapter: (chapter: Chapter) => void;
   onAddChapter: (chapter: Chapter) => void;
-  thesisId: string;
 }
 
 export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
@@ -22,10 +22,16 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
   onContentChange,
   onTitleChange,
   onUpdateChapter,
-  onAddChapter,
-  thesisId
+  onAddChapter
 }) => {
-  console.log('ThesisEditorContent rendering');
+  const { thesisId } = useParams<{ thesisId: string }>();
+
+  console.log('ThesisEditorContent rendering with thesisId:', thesisId);
+
+  if (!thesisId) {
+    console.error('No thesis ID found in URL params');
+    return null;
+  }
 
   return (
     <ThesisContent

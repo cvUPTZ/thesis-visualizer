@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { EmailAuthForm } from '@/components/auth/EmailAuthForm';
 import { SocialAuth } from '@/components/auth/SocialAuth';
@@ -9,43 +9,13 @@ import LandingPage from './LandingPage';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AuthError, AuthApiError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const navigate = useNavigate();
-  const { session, isAuthenticated } = useAuth();
-
-  console.log('🔐 Auth component rendered, authenticated:', isAuthenticated);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('🔑 Checking session:', session ? 'exists' : 'none');
-      
-      if (session?.user) {
-        console.log('👤 User is authenticated, redirecting to index');
-        navigate('/');
-      }
-    };
-
-    checkAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔄 Auth state changed:', event, session?.user?.email);
-      
-      if (event === 'SIGNED_IN' && session) {
-        console.log('✅ User signed in, redirecting to index');
-        navigate('/');
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
 
   const handleClose = () => {
     navigate('/');
@@ -56,12 +26,54 @@ const Auth = () => {
     setErrorMessage(''); // Clear any existing errors when switching modes
   };
 
-  // If already authenticated, redirect to index
-  if (isAuthenticated) {
-    console.log('👤 User is already authenticated, redirecting to index');
-    navigate('/');
-    return null;
-  }
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/');
+      }
+    };
+    checkSession();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_IN' && session) {
+        navigate('/');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  // Error message handler
+  const getErrorMessage = (error: AuthError) => {
+    console.error('Authentication error:', error);
+    
+    if (error instanceof AuthApiError) {
+      switch (error.status) {
+        case 400:
+          if (error.message.includes('invalid_credentials')) {
+            return 'Invalid email or password. Please check your credentials and try again.';
+          }
+          if (error.message.includes('email not confirmed')) {
+            return 'Please verify your email address before signing in.';
+          }
+          return 'Invalid login attempt. Please check your credentials and try again.';
+        case 422:
+          return 'Invalid email format. Please enter a valid email address.';
+        case 429:
+          return 'Too many login attempts. Please try again later.';
+        default:
+          return error.message;
+      }
+    }
+    return 'An unexpected error occurred. Please try again.';
+  };
 
   return (
     <div className="relative min-h-screen">
@@ -133,30 +145,6 @@ const Auth = () => {
       </div>
     </div>
   );
-};
-
-const getErrorMessage = (error: AuthError) => {
-  console.error('Authentication error:', error);
-  
-  if (error instanceof AuthApiError) {
-    switch (error.status) {
-      case 400:
-        if (error.message.includes('invalid_credentials')) {
-          return 'Invalid email or password. Please check your credentials and try again.';
-        }
-        if (error.message.includes('email not confirmed')) {
-          return 'Please verify your email address before signing in.';
-        }
-        return 'Invalid login attempt. Please check your credentials and try again.';
-      case 422:
-        return 'Invalid email format. Please enter a valid email address.';
-      case 429:
-        return 'Too many login attempts. Please try again later.';
-      default:
-        return error.message;
-    }
-  }
-  return 'An unexpected error occurred. Please try again.';
 };
 
 export default Auth;

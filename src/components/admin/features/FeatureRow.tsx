@@ -4,16 +4,26 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, ChevronRight, ChevronDown, Loader2 } from 'lucide-react';
 
-export interface FeatureRowProps {
-  feature: any;
+// Update the FeatureRowProps interface
+interface FeatureRowProps {
+  feature: {
+    id: string;
+    name: string;
+    description: string | null;
+    status: string;
+    health: string;
+    usage_data: any;
+    last_updated: string;
+    is_sub_feature: boolean;
+    pricing_tier: string;
+  };
   subFeatures: any[];
-  level: number;
+  level?: number;
   onToggleFeature: (featureId: string, currentStatus: string) => Promise<void>;
   onOpenDialog: (feature: any) => void;
   onOpenPricingDialog: (feature: any) => void;
   expanded: boolean;
   onToggleExpand: () => void;
-  onUpdate?: (feature: any) => Promise<void>;
 }
 
 export const FeatureRow = ({

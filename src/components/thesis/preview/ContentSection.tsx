@@ -3,7 +3,6 @@ import { Section } from '@/types/thesis';
 import MDEditor from '@uiw/react-md-editor';
 import { cn } from '@/lib/utils';
 import { ContentElements } from './ContentElements';
-import { motion } from 'framer-motion';
 
 interface ContentSectionProps {
   section: Section;
@@ -29,63 +28,28 @@ export const ContentSection = ({
   onPositionChange 
 }: ContentSectionProps) => {
   const isSpecialSection = section.type === 'references' || section.type === 'table-of-contents';
-  const sectionTypeClasses = {
-    'general-introduction': 'thesis-introduction',
-    'literature-review': 'thesis-literature',
-    'methodology': 'thesis-methodology',
-    'results': 'thesis-results',
-    'discussion': 'thesis-discussion',
-    'conclusion': 'thesis-conclusion'
-  };
 
   return (
-    <motion.div 
-      className="thesis-page"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
-    >
-      <motion.div 
-        className="thesis-header"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
+    <div className="thesis-page">
+      <div className="thesis-header">
         {chapterTitle ? `Chapter ${chapterTitle} - ${section.title}` : section.title}
-      </motion.div>
+      </div>
       
-      <motion.div 
-        className={cn(
-          "thesis-content",
-          section.type === 'references' && "thesis-references",
-          sectionTypeClasses[section.type as keyof typeof sectionTypeClasses],
-          "prose prose-sm max-w-none"
-        )}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-      >
+      <div className={cn(
+        "thesis-content",
+        section.type === 'references' && "thesis-references",
+        "prose prose-sm max-w-none"
+      )}>
         {section.type !== 'table-of-contents' && (
           <>
             {chapterTitle && (
-              <motion.h2 
-                className="text-2xl font-serif mb-4 break-after-avoid"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-              >
+              <h2 className="text-2xl font-serif mb-4 break-after-avoid">
                 {section.title}
-              </motion.h2>
+              </h2>
             )}
-            <motion.div 
-              className="break-inside-avoid"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
+            <div className="break-inside-avoid">
               <MDEditor.Markdown source={section.content} />
-            </motion.div>
+            </div>
             
             <ContentElements
               figures={section.figures}
@@ -99,46 +63,25 @@ export const ContentSection = ({
         )}
 
         {section.type === 'table-of-contents' && (
-          <motion.div 
-            className="toc-content break-inside-avoid"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
+          <div className="toc-content break-inside-avoid">
             <h2 className="text-2xl font-serif mb-4">Table of Contents</h2>
-          </motion.div>
+          </div>
         )}
-      </motion.div>
+      </div>
 
       {section.footnotes && section.footnotes.length > 0 && (
-        <motion.div 
-          className="thesis-footnotes"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
+        <div className="thesis-footnotes">
           {section.footnotes.map((footnote) => (
-            <motion.div 
-              key={footnote.id} 
-              className="thesis-footnote"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7 }}
-            >
+            <div key={footnote.id} className="thesis-footnote">
               {footnote.content}
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       )}
 
-      <motion.div 
-        className="thesis-footer"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-      >
+      <div className="thesis-footer">
         {!isSpecialSection && <span>Page <span className="page-number"></span></span>}
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 };

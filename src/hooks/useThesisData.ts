@@ -72,23 +72,14 @@ export const useThesisData = (thesisId: string | undefined) => {
           ? JSON.parse(fetchedThesis.content)
           : fetchedThesis.content;
 
-        // Ensure all required arrays exist and content structure is correct
+        // Ensure all required arrays exist
         const formattedThesis: Thesis = {
           id: fetchedThesis.id,
           title: fetchedThesis.title,
-          content: {
-            generalIntroduction: parsedContent?.generalIntroduction || '',
-            metadata: {
-              description: parsedContent?.metadata?.description || '',
-              keywords: parsedContent?.metadata?.keywords || [],
-              createdAt: parsedContent?.metadata?.createdAt || new Date().toISOString(),
-              universityName: parsedContent?.metadata?.universityName || '',
-              departmentName: parsedContent?.metadata?.departmentName || '',
-              authorName: parsedContent?.metadata?.authorName || '',
-              thesisDate: parsedContent?.metadata?.thesisDate || '',
-              committeeMembers: parsedContent?.metadata?.committeeMembers || []
-            }
-          },
+          content: fetchedThesis.content,
+          user_id: fetchedThesis.user_id,
+          created_at: fetchedThesis.created_at,
+          updated_at: fetchedThesis.updated_at,
           metadata: {
             description: parsedContent?.metadata?.description || '',
             keywords: parsedContent?.metadata?.keywords || [],
@@ -101,10 +92,7 @@ export const useThesisData = (thesisId: string | undefined) => {
           },
           frontMatter: Array.isArray(parsedContent?.frontMatter) ? parsedContent.frontMatter : [],
           chapters: Array.isArray(parsedContent?.chapters) ? parsedContent.chapters : [],
-          backMatter: Array.isArray(parsedContent?.backMatter) ? parsedContent.backMatter : [],
-          user_id: fetchedThesis.user_id,
-          created_at: fetchedThesis.created_at,
-          updated_at: fetchedThesis.updated_at
+          backMatter: Array.isArray(parsedContent?.backMatter) ? parsedContent.backMatter : []
         };
 
         return formattedThesis;

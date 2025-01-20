@@ -7,7 +7,6 @@ import { ThesisTracker } from '../tracker/ThesisTracker';
 import { ThesisPlanning } from '../planning/ThesisPlanning';
 import { CollaboratorPresence } from '@/components/collaboration/CollaboratorPresence';
 import { Thesis } from '@/types/thesis';
-import { useCollaboratorPresence } from '@/hooks/useCollaboratorPresence';
 
 interface ThesisEditorStatusProps {
   thesis: Thesis;
@@ -24,8 +23,6 @@ export const ThesisEditorStatus: React.FC<ThesisEditorStatusProps> = ({
   showTracker,
   setShowTracker
 }) => {
-  const { collaborators } = useCollaboratorPresence(thesisId);
-
   return (
     <div className="space-y-6">
       <Collapsible open={showTracker} onOpenChange={setShowTracker}>
@@ -56,7 +53,7 @@ export const ThesisEditorStatus: React.FC<ThesisEditorStatusProps> = ({
           <Users className="w-4 h-4" />
           <span className="font-medium">Active Collaborators</span>
         </div>
-        <CollaboratorPresence collaborators={collaborators || []} />
+        <CollaboratorPresence thesisId={thesisId} />
       </Card>
     </div>
   );

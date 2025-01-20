@@ -1,19 +1,24 @@
-import { Comment } from '@/types/thesis';
+import { ThesisComment } from '@/types/thesis';
+import { Json } from '@/integrations/supabase/types';
 
-interface ThesisComment {
-  id: string;
-  content: { text: string } | string;
-  reviewer_id: string;
-  created_at: string;
-}
-
-export const transformComment = (comment: ThesisComment): Comment => {
+export const transformComment = (rawComment: any): ThesisComment => {
   return {
-    id: comment.id,
-    content: typeof comment.content === 'string' 
-      ? comment.content 
-      : comment.content.text,
-    reviewer_id: comment.reviewer_id,
-    created_at: comment.created_at
+    id: rawComment.id,
+    thesis_id: rawComment.thesis_id,
+    section_id: rawComment.section_id,
+    reviewer_id: rawComment.reviewer_id,
+    content: { 
+      text: typeof rawComment.content === 'string' 
+        ? rawComment.content 
+        : typeof rawComment.content === 'object' && rawComment.content !== null
+          ? String(rawComment.content.text || '')
+          : ''
+    },
+    parent_id: rawComment.parent_id,
+    status: (rawComment.status === 'pending' || rawComment.status === 'resolved') 
+      ? rawComment.status 
+      : 'pending',
+    created_at: rawComment.created_at,
+    updated_at: rawComment.updated_at
   };
 };

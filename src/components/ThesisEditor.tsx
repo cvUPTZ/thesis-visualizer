@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { ThesisSidebar } from './ThesisSidebar';
 import { Chapter, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
 import { useThesisInitialization } from '@/hooks/useThesisInitialization';
@@ -16,7 +17,6 @@ import { ChatMessages } from './collaboration/ChatMessages';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { ThesisSidebar } from './ThesisSidebar';
 
 interface ThesisEditorProps {
   thesisId?: string;
@@ -37,26 +37,6 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   useThesisAutosave(thesis);
   useThesisInitialization(thesis);
   useThesisRealtime(currentThesisId, thesis, setThesis);
-
-  const handleUpdateChapter = (updatedChapter: Chapter) => {
-    if (!thesis) return;
-    
-    setThesis(prevThesis => ({
-      ...prevThesis!,
-      chapters: prevThesis!.chapters.map(chapter =>
-        chapter.id === updatedChapter.id ? updatedChapter : chapter
-      )
-    }));
-  };
-
-  const handleAddChapter = (newChapter: Chapter) => {
-    if (!thesis) return;
-    
-    setThesis(prevThesis => ({
-      ...prevThesis!,
-      chapters: [...prevThesis!.chapters, newChapter]
-    }));
-  };
 
   const calculateProgress = () => {
     if (!thesis) return 0;
@@ -159,36 +139,33 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <ThesisEditorHeader
-        thesis={thesis}
-        showPreview={showPreview}
-        onTogglePreview={() => setShowPreview(!showPreview)}
+    <div className="min-h-screen bg-background flex">
+      <ThesisSidebar
+        sections={[
+          ...(thesis?.frontMatter || []),
+          ...(thesis?.chapters || []).flatMap(chapter => chapter.sections),
+          ...(thesis?.backMatter || [])
+        ]}
+        activeSection={activeSection}
+        onSectionSelect={setActiveSection}
       />
       
-      <div className="px-8 py-4">
-        <ThesisEditorStatus
+      <div className="flex-1 flex flex-col">
+        <ThesisEditorHeader
           thesis={thesis}
-          thesisId={currentThesisId!}
-          progress={progress}
-          showTracker={showTracker}
-          setShowTracker={setShowTracker}
+          showPreview={showPreview}
+          onTogglePreview={() => setShowPreview(!showPreview)}
         />
-      </div>
-
-      <div className="flex flex-1">
-        <ThesisSidebar
-          sections={[
-            ...(thesis?.frontMatter || []),
-            ...(thesis?.chapters?.flatMap(chapter => chapter.sections) || []),
-            ...(thesis?.backMatter || [])
-          ]}
-          chapters={thesis?.chapters}
-          activeSection={activeSection}
-          onSectionSelect={setActiveSection}
-          onUpdateChapter={handleUpdateChapter}
-          onAddChapter={handleAddChapter}
-        />
+        
+        <div className="px-8 py-4">
+          <ThesisEditorStatus
+            thesis={thesis}
+            thesisId={currentThesisId!}
+            progress={progress}
+            showTracker={showTracker}
+            setShowTracker={setShowTracker}
+          />
+        </div>
 
         <ThesisEditorMain
           thesis={thesis}
@@ -197,8 +174,20 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
           previewRef={previewRef}
           onContentChange={handleContentChange}
           onTitleChange={handleTitleChange}
-          onUpdateChapter={handleUpdateChapter}
-          onAddChapter={handleAddChapter}
+          onUpdateChapter={(chapter: Chapter) => {
+            setThesis(prev => ({
+              ...prev!,
+              chapters: prev!.chapters.map(c =>
+                c.id === chapter.id ? chapter : c
+              )
+            }));
+          }}
+          onAddChapter={(chapter) => {
+            setThesis(prev => ({
+              ...prev!,
+              chapters: [...(prev?.chapters || []), chapter]
+            }));
+          }}
         />
       </div>
 

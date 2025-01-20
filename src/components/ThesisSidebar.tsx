@@ -1,64 +1,42 @@
 import React from 'react';
-import { Section, Chapter } from '@/types/thesis';
-import { ScrollArea } from './ui/scroll-area';
+import { Section } from '@/types/thesis';
 import { TableOfContents } from './thesis/sidebar/TableOfContents';
 import { cn } from '@/lib/utils';
-import { ChapterManager } from './ChapterManager';
 
-export interface ThesisSidebarProps {
+interface ThesisSidebarProps {
   sections: Section[];
-  chapters?: Chapter[];
   activeSection: string;
   onSectionSelect: (id: string) => void;
-  onUpdateChapter?: (chapter: Chapter) => void;
-  onAddChapter?: (chapter: Chapter) => void;
-  className?: string;
 }
 
-export const ThesisSidebar: React.FC<ThesisSidebarProps> = ({
-  sections,
-  chapters,
-  activeSection,
-  onSectionSelect,
-  onUpdateChapter,
-  onAddChapter,
-  className
-}) => {
-  console.log('Rendering ThesisSidebar with:', { 
+export const ThesisSidebar = ({ 
+  sections = [], 
+  activeSection, 
+  onSectionSelect 
+}: ThesisSidebarProps) => {
+  console.log('Rendering ThesisSidebar:', { 
+    activeSection, 
     sectionsCount: sections?.length,
-    chaptersCount: chapters?.length,
-    activeSection 
+    sections: sections?.map(s => ({ id: s.id, title: s.title }))
   });
-
-  const handleChapterSelect = (chapterId: string) => {
-    console.log('Chapter selected:', chapterId);
-    onSectionSelect(chapterId);
-  };
-
+  
+  // Ensure sections is always an array and filter out any invalid sections
+  const validSections = Array.isArray(sections) ? sections.filter(section => 
+    section && typeof section === 'object' && 'id' in section && 'title' in section
+  ) : [];
+  
   return (
-    <div className={cn(
-      "w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
-      className
-    )}>
-      <ScrollArea className="h-full py-6">
-        {chapters && onUpdateChapter && onAddChapter && (
-          <div className="px-4 mb-6">
-            <ChapterManager
-              chapters={chapters}
-              onUpdateChapter={onUpdateChapter}
-              onAddChapter={onAddChapter}
-            />
-          </div>
-        )}
+    <aside className="w-64 h-full bg-editor-bg border-r border-editor-border">
+      <div className="sticky top-0 z-10 bg-editor-bg border-b border-editor-border p-4">
+        <h2 className="text-lg font-serif font-medium text-editor-text">Contents</h2>
+      </div>
+      <div className="p-4">
         <TableOfContents
-          sections={sections}
-          chapters={chapters}
+          sections={validSections}
           activeSection={activeSection}
           onSectionSelect={onSectionSelect}
-          onChapterSelect={handleChapterSelect}
-          isReadOnly={true}
         />
-      </ScrollArea>
-    </div>
+      </div>
+    </aside>
   );
 };

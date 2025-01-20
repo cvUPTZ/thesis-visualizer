@@ -1,41 +1,84 @@
 import React from 'react';
 import { SystemStats } from './SystemStats';
+import { SystemTest } from '../testing/SystemTest';
+import { FeatureManagement } from './FeatureManagement';
 import { UserManagement } from './UserManagement';
-import FeatureManagement from './FeatureManagement';
+import { ThesisManagement } from './ThesisManagement';
 import { IssueManagement } from './IssueManagement';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Activity, AlertTriangle, Users, FileText, Bug, Settings } from 'lucide-react';
 
-export const AdminDashboard: React.FC = () => {
+export const AdminDashboard = () => {
+  console.log('Rendering AdminDashboard');
+  
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+    <div className="container mx-auto p-6 space-y-6">
+      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="space-y-8">
-          <section className="bg-card rounded-lg p-6 shadow-sm">
-            <h2 className="text-2xl font-semibold mb-4">System Statistics</h2>
-            <SystemStats />
-          </section>
-
-          <section className="bg-card rounded-lg p-6 shadow-sm">
-            <h2 className="text-2xl font-semibold mb-4">Feature Management</h2>
-            <FeatureManagement />
-          </section>
-        </div>
-
-        <div className="space-y-8">
-          <section className="bg-card rounded-lg p-6 shadow-sm">
-            <h2 className="text-2xl font-semibold mb-4">User Management</h2>
-            <UserManagement />
-          </section>
-
-          <section className="bg-card rounded-lg p-6 shadow-sm">
-            <h2 className="text-2xl font-semibold mb-4">Issue Management</h2>
-            <IssueManagement />
-          </section>
-        </div>
-      </div>
+      <SystemStats />
+      
+      <Tabs defaultValue="features" className="space-y-4">
+        <TabsList className="grid grid-cols-6 w-full">
+          <TabsTrigger value="features" className="flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Features
+          </TabsTrigger>
+          <TabsTrigger value="users" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Users
+          </TabsTrigger>
+          <TabsTrigger value="theses" className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Theses
+          </TabsTrigger>
+          <TabsTrigger value="issues" className="flex items-center gap-2">
+            <Bug className="w-4 h-4" />
+            Issues
+          </TabsTrigger>
+          <TabsTrigger value="tests" className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            System Tests
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="flex items-center gap-2">
+            <Activity className="w-4 h-4" />
+            Activity
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="features">
+          <FeatureManagement />
+        </TabsContent>
+        
+        <TabsContent value="users">
+          <UserManagement />
+        </TabsContent>
+        
+        <TabsContent value="theses">
+          <ThesisManagement />
+        </TabsContent>
+        
+        <TabsContent value="issues">
+          <IssueManagement />
+        </TabsContent>
+        
+        <TabsContent value="tests">
+          <SystemTest />
+        </TabsContent>
+        
+        <TabsContent value="activity">
+          <ActivityLog />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
 
-export default AdminDashboard;
+// New ActivityLog component for system activity monitoring
+const ActivityLog = () => {
+  return (
+    <div className="rounded-lg border p-6">
+      <h2 className="text-2xl font-bold mb-4">System Activity</h2>
+      <p className="text-muted-foreground">Activity monitoring coming soon...</p>
+    </div>
+  );
+};
