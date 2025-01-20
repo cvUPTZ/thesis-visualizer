@@ -6,7 +6,8 @@ import AdminPanel from '@/pages/AdminPanel';
 import LandingPage from '@/pages/LandingPage';
 import { useAuth } from '@/contexts/AuthContext';
 import { ThesisEditor } from '@/components/ThesisEditor';
-import SectionEditor from '@/components/editor/section/EditorSection';
+// import SectionEditor from '@/components/editor/section/EditorSection';
+import SectionEditor from '@/components/thesis/section/EditorSection';
 
 const Routes = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -29,7 +30,7 @@ const Routes = () => {
           <Route path="/create-thesis" element={<CreateThesis />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/thesis/:thesisId" element={<ThesisEditor />} />
-          <Route path="/thesis/:thesisId/sections/:sectionId" element={<SectionEditor />} />
+          <Route path="/thesis/:thesisId/section/:sectionId" element={<SectionEditor />} />
           <Route path="/thesis/:thesisId/section/general-introduction" element={<SectionEditor />} />
           <Route path="/thesis/:thesisId/section/general-conclusion" element={<SectionEditor />} />
           <Route path="*" element={<Index />} />
