@@ -19,7 +19,7 @@ interface ThesisPreviewProps {
 export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language = 'en' }) => {
   const { toast } = useToast();
   const { toPDF, targetRef } = usePDF({
-    filename: `${thesis.frontMatter[0]?.title || 'thesis'}.pdf`,
+    filename: `${thesis?.frontMatter?.[0]?.title || 'thesis'}.pdf`,
     page: { 
       margin: 20,
       format: 'a4',
@@ -30,16 +30,20 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
 
   const handleExport = async () => {
     try {
+      console.log('Starting PDF export with thesis data:', thesis);
+      if (!thesis || !thesis.frontMatter || !Array.isArray(thesis.frontMatter)) {
+        throw new Error('Invalid thesis data structure');
+      }
       await toPDF();
       toast({
         title: "Success",
         description: "PDF exported successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('PDF export error:', error);
       toast({
         title: "Error",
-        description: "Failed to export PDF",
+        description: error.message || "Failed to export PDF",
         variant: "destructive",
       });
     }
@@ -76,6 +80,17 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
       return Math.min(Math.max(newWidth, 150), 300); // Min 150mm, Max 300mm
     });
   };
+
+  // Ensure thesis data is properly structured
+  const frontMatter = Array.isArray(thesis?.frontMatter) ? thesis.frontMatter : [];
+  const chapters = Array.isArray(thesis?.chapters) ? thesis.chapters : [];
+  const backMatter = Array.isArray(thesis?.backMatter) ? thesis.backMatter : [];
+
+  console.log('Rendering ThesisPreview with data:', {
+    frontMatterLength: frontMatter.length,
+    chaptersLength: chapters.length,
+    backMatterLength: backMatter.length
+  });
 
   return (
     <div className="relative bg-background min-h-screen">
@@ -126,16 +141,16 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
           {/* Title Page */}
           <div className="mb-8 bg-white rounded-lg overflow-hidden thesis-page">
             {language === 'en' ? (
-              <TitlePage metadata={thesis.metadata} titleSection={thesis.frontMatter[0]} />
+              <TitlePage metadata={thesis?.metadata} titleSection={frontMatter[0]} />
             ) : (
-              <FrenchTitlePage thesis={thesis} titleSection={thesis.frontMatter[0]} />
+              <FrenchTitlePage thesis={thesis} titleSection={frontMatter[0]} />
             )}
           </div>
           
           {/* Front Matter */}
-          {thesis.frontMatter.map((section: any, index: number) => (
+          {frontMatter.map((section: any, index: number) => (
             <div 
-              key={section.id} 
+              key={section.id || index} 
               className="thesis-page"
             >
               {section.type === 'abstract' ? (
@@ -152,9 +167,9 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
           ))}
           
           {/* Chapters */}
-          {thesis.chapters.map((chapter: any) => (
+          {chapters.map((chapter: any) => (
             <React.Fragment key={chapter.id}>
-              {chapter.sections.map((section: any) => (
+              {Array.isArray(chapter.sections) && chapter.sections.map((section: any) => (
                 <div 
                   key={section.id} 
                   className="thesis-page"
@@ -172,7 +187,7 @@ export const ThesisPreview: React.FC<ThesisPreviewProps> = ({ thesis, language =
           ))}
           
           {/* Back Matter */}
-          {thesis.backMatter.map((section: any) => (
+          {backMatter.map((section: any) => (
             <div 
               key={section.id} 
               className="thesis-page"
