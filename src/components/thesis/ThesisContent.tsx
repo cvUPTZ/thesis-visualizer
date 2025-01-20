@@ -16,7 +16,7 @@ interface ThesisContentProps {
   onUpdateChapter: (chapter: Chapter) => void;
   onAddChapter: (chapter: Chapter) => void;
   thesisId: string;
-  thesis: Thesis;
+  thesis: Thesis | null;
   onUpdateThesis: (thesis: Thesis) => void;
 }
 

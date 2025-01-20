@@ -196,16 +196,15 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
                     Section: {section.title}
                   </h3>
 
-<FootnoteManager
-  footnotes={section.footnotes || []}
-  onAddFootnote={(footnote) => handleFootnoteAdd(section.id, footnote)}
-  onRemoveFootnote={(id) => handleFootnoteRemove(section.id, id)}
-  onUpdateFootnote={(footnote) => handleFootnoteUpdate(section.id, footnote)}
-  thesisId={chapter.id}
-  sectionId={section.id}
-  onUpdate={() => {}}
-/>
-
+                  <FootnoteManager
+                    footnotes={section.footnotes || []}
+                    onAddFootnote={(footnote) => handleFootnoteAdd(section.id, footnote)}
+                    onRemoveFootnote={(id) => handleFootnoteRemove(section.id, id)}
+                    onUpdateFootnote={(footnote) => handleFootnoteUpdate(section.id, footnote)}
+                    thesisId={chapter.id}
+                    sectionId={section.id}
+                    onUpdate={() => {}}
+                  />
                 </div>
               ))}
             </TabsContent>
@@ -215,4 +214,3 @@ export const ChapterItem: React.FC<ChapterItemProps> = ({
     </div>
   );
 };
-

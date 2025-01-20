@@ -1,5 +1,6 @@
 import React from 'react';
 import { useDropzone } from 'react-dropzone';
+import { Card } from '@/components/ui/card';
 import { Upload } from 'lucide-react';
 
 interface FigureUploadProps {
@@ -8,7 +9,7 @@ interface FigureUploadProps {
   altText?: string;
 }
 
-export const FigureUpload = ({ onUpload, imageUrl, altText }: FigureUploadProps) => {
+export const FigureUpload: React.FC<FigureUploadProps> = ({ onUpload, imageUrl, altText }) => {
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif']
@@ -22,9 +23,9 @@ export const FigureUpload = ({ onUpload, imageUrl, altText }: FigureUploadProps)
   });
 
   return (
-    <div
-      {...getRootProps()}
-      className="relative aspect-video mb-4 bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 border-dashed border-gray-300 hover:border-primary transition-colors"
+    <Card 
+      {...getRootProps()} 
+      className="relative aspect-video cursor-pointer hover:border-primary transition-colors p-4"
     >
       <input {...getInputProps()} />
       {imageUrl ? (
@@ -39,6 +40,6 @@ export const FigureUpload = ({ onUpload, imageUrl, altText }: FigureUploadProps)
           <p className="text-sm text-gray-500 mt-2">Drop image here or click to upload</p>
         </div>
       )}
-    </div>
+    </Card>
   );
 };

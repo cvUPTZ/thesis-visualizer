@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Figure } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Image as ImageIcon } from 'lucide-react';
-import { FigureController } from './editor/figures/FigureController';
-import { FigureUpload } from './editor/managers/FigureUpload';
+import { FigureController } from '@/components/editor/figures/FigureController';
+import { FigureUpload } from '@/components/editor/managers/FigureUpload';
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card } from './ui/card';
-import { ScrollArea } from './ui/scroll-area';
+import { Card } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface FigureManagerProps {
   figures: Figure[];
@@ -148,3 +148,4 @@ export const FigureManager = ({
     </Card>
   );
 };
+
