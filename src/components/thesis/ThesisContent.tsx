@@ -15,8 +15,8 @@ interface ThesisContentProps {
   onTitleChange: (id: string, title: string) => void;
   onUpdateChapter: (chapter: Chapter) => void;
   onAddChapter: (chapter: Chapter) => void;
+  thesis: Thesis;
   thesisId: string;
-  thesis: Thesis | null;
   onUpdateThesis: (thesis: Thesis) => void;
 }
 
@@ -29,19 +29,11 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
   onTitleChange,
   onUpdateChapter,
   onAddChapter,
-  thesisId,
   thesis,
+  thesisId,
   onUpdateThesis
 }) => {
-  const handleGeneralSectionUpdate = (type: 'introduction' | 'conclusion') => (section: Section) => {
-    if (!thesis) return;
-    
-    const updatedThesis = {
-      ...thesis,
-      [type === 'introduction' ? 'generalIntroduction' : 'generalConclusion']: section
-    };
-    onUpdateThesis(updatedThesis);
-  };
+  console.log('ThesisContent rendering with thesis:', thesis);
 
   const renderSectionContent = (section: Section) => {
     const isActive = activeSection === section.id;
@@ -74,24 +66,38 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
         <div className="lg:col-span-2 space-y-6">
           {frontMatter.map(section => renderSectionContent(section))}
           
-          <div className="space-y-8">
+          {thesis.generalIntroduction && activeSection === 'general-introduction' && (
             <GeneralSectionEditor
-              section={thesis?.generalIntroduction}
+              section={thesis.generalIntroduction}
               title="General Introduction"
-              onUpdate={handleGeneralSectionUpdate('introduction')}
+              onUpdate={(updatedSection) => {
+                onUpdateThesis({
+                  ...thesis,
+                  generalIntroduction: updatedSection
+                });
+              }}
             />
-            
+          )}
+
+          <div className="space-y-8">
             <ChapterManager
               chapters={chapters}
               onUpdateChapter={onUpdateChapter}
               onAddChapter={onAddChapter}
             />
             
-            <GeneralSectionEditor
-              section={thesis?.generalConclusion}
-              title="General Conclusion"
-              onUpdate={handleGeneralSectionUpdate('conclusion')}
-            />
+            {thesis.generalConclusion && activeSection === 'general-conclusion' && (
+              <GeneralSectionEditor
+                section={thesis.generalConclusion}
+                title="General Conclusion"
+                onUpdate={(updatedSection) => {
+                  onUpdateThesis({
+                    ...thesis,
+                    generalConclusion: updatedSection
+                  });
+                }}
+              />
+            )}
           </div>
           
           {backMatter.map(section => renderSectionContent(section))}
