@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Section } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
 import { SectionHeader } from './editor/SectionHeader';
@@ -6,13 +6,15 @@ import { SectionContent } from './editor/SectionContent';
 import { SectionManagers } from './editor/SectionManagers';
 import { SectionProps } from '@/types/components';
 import { Button } from './ui/button';
-import { Plus, ChevronDown } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import { Card } from './ui/card';
+import { cn } from '@/lib/utils';
 
 export const EditorSection: React.FC<SectionProps> = ({
   section,
@@ -21,6 +23,8 @@ export const EditorSection: React.FC<SectionProps> = ({
   onTitleChange
 }) => {
   const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  
   console.log('EditorSection rendering with section:', { 
     id: section.id, 
     title: section.title,
@@ -75,56 +79,82 @@ export const EditorSection: React.FC<SectionProps> = ({
   };
 
   return (
-    <div className="editor-section">
-      <div className="space-y-6">
-        <div className="flex justify-between items-center mb-4">
+    <div className="editor-section space-y-4">
+      <div className="flex justify-between items-center mb-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="ml-2">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Section
+              <ChevronDown className="h-4 w-4 ml-2" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={() => handleAddSection('Thesis Structure Overview')}>
+              Thesis Structure Overview
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleAddSection('General Introduction')}>
+              General Introduction
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleAddSection('Abstract')}>
+              Abstract
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleAddSection('Acknowledgements')}>
+              Acknowledgements
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleAddSection('General Conclusion')}>
+              General Conclusion
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleAddSection('Chapter')}>
+              New Chapter
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <Card 
+        className={cn(
+          "p-6 cursor-pointer transition-all duration-200",
+          "hover:shadow-md",
+          isEditing && "ring-2 ring-primary"
+        )}
+        onClick={() => !isEditing && setIsEditing(true)}
+      >
+        <div className="flex items-center justify-between">
           <SectionHeader
             title={fullSection.title}
             required={fullSection.required}
             onTitleChange={(title) => onTitleChange(fullSection.id, title)}
           />
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-2">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Section
-                <ChevronDown className="h-4 w-4 ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => handleAddSection('Thesis Structure Overview')}>
-                Thesis Structure Overview
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddSection('General Introduction')}>
-                General Introduction
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddSection('Abstract')}>
-                Abstract
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddSection('Acknowledgements')}>
-                Acknowledgements
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddSection('General Conclusion')}>
-                General Conclusion
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddSection('Chapter')}>
-                New Chapter
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(!isEditing);
+            }}
+          >
+            {isEditing ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </Button>
         </div>
-        
-        <SectionContent
-          content={fullSection.content}
-          onContentChange={(content) => onContentChange(fullSection.id, content)}
-        />
 
-        <SectionManagers
-          section={fullSection}
-          onSectionUpdate={handleSectionUpdate}
-        />
-      </div>
+        {isEditing && (
+          <div className="mt-4 space-y-6">
+            <SectionContent
+              content={fullSection.content}
+              onContentChange={(content) => onContentChange(fullSection.id, content)}
+            />
+            <SectionManagers
+              section={fullSection}
+              onSectionUpdate={handleSectionUpdate}
+            />
+          </div>
+        )}
+      </Card>
     </div>
   );
 };
