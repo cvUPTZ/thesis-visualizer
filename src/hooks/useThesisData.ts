@@ -108,8 +108,8 @@ export const useThesisData = (thesisId: string | undefined) => {
     },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retry: 3, // Increase retries to 3
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
 
   const setThesis = (newThesis: Thesis | ((prev: Thesis | null) => Thesis | null)) => {
