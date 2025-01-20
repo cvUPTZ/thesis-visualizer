@@ -9,16 +9,39 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    storage: typeof window !== 'undefined' ? window.localStorage : undefined
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    flowType: 'pkce',
   },
   global: {
     headers: {
       'X-Client-Info': 'supabase-js-web',
+      'Access-Control-Allow-Origin': '*',
     },
   },
   realtime: {
     params: {
-      eventsPerSecond: 10
-    }
-  }
+      eventsPerSecond: 10,
+    },
+  },
+  db: {
+    schema: 'public'
+  },
+  persistSession: typeof window !== 'undefined',
 });
+
+// Add error handling for failed requests
+supabase.handleFailedRequest = async (error: any) => {
+  console.error('Supabase request failed:', error);
+  if (error.message === 'Failed to fetch') {
+    // Check if user is authenticated
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    if (authError || !session) {
+      console.error('Authentication error:', authError);
+      // Redirect to login or handle auth error
+      return;
+    }
+    // Retry the request once
+    return true;
+  }
+  return false;
+};
