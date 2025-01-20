@@ -173,7 +173,7 @@ const generateFigure = async (figure: any, figureNumber: number): Promise<Paragr
   return paragraphs;
 };
 
-const generateReferences = (references: any[]): Paragraph[] => {
+const generateReferences = (references: Reference[]): Paragraph[] => {
   const paragraphs: Paragraph[] = [
     new Paragraph({
       text: "References",
@@ -183,24 +183,24 @@ const generateReferences = (references: any[]): Paragraph[] => {
     })
   ];
 
-  references.sort((a, b) => {
-    // Sort by first author's last name
+  // Sort references by first author's last name
+  const sortedRefs = [...references].sort((a, b) => {
     const aName = a.authors[0]?.split(' ').pop() || '';
     const bName = b.authors[0]?.split(' ').pop() || '';
     return aName.localeCompare(bName);
   });
 
-  references.forEach(ref => {
+  sortedRefs.forEach(ref => {
     let referenceText = '';
     
-    // Format based on reference type
+    // Format based on reference type following APA style
     switch (ref.type) {
       case 'article':
         referenceText = `${ref.authors.join(', ')} (${ref.year}). ${ref.title}. ${ref.journal}`;
         if (ref.volume) referenceText += `, ${ref.volume}`;
         if (ref.issue) referenceText += `(${ref.issue})`;
         if (ref.pages) referenceText += `, ${ref.pages}`;
-        if (ref.doi) referenceText += `. DOI: ${ref.doi}`;
+        if (ref.doi) referenceText += `. https://doi.org/${ref.doi}`;
         break;
         
       case 'book':
@@ -210,12 +210,17 @@ const generateReferences = (references: any[]): Paragraph[] => {
         
       case 'conference':
         referenceText = `${ref.authors.join(', ')} (${ref.year}). ${ref.title}. In ${ref.source}`;
-        if (ref.pages) referenceText += `, ${ref.pages}`;
+        if (ref.pages) referenceText += ` (pp. ${ref.pages})`;
+        break;
+        
+      case 'website':
+        referenceText = `${ref.authors.join(', ')} (${ref.year}). ${ref.title}`;
+        if (ref.url) referenceText += `. Retrieved from ${ref.url}`;
         break;
         
       default:
         referenceText = `${ref.authors.join(', ')} (${ref.year}). ${ref.title}`;
-        if (ref.url) referenceText += `. Retrieved from ${ref.url}`;
+        if (ref.url) referenceText += `. ${ref.url}`;
     }
 
     paragraphs.push(
@@ -223,7 +228,10 @@ const generateReferences = (references: any[]): Paragraph[] => {
         text: referenceText,
         style: 'reference',
         spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
-        indent: { leftChars: 36 }
+        indent: {
+          left: convertInchesToTwip(0.5),
+          hanging: convertInchesToTwip(0.5)
+        }
       })
     );
   });
@@ -234,11 +242,6 @@ const generateReferences = (references: any[]): Paragraph[] => {
 export const generateContent = async ({ thesis, isPreview = false }: ContentGenerationOptions): Promise<Paragraph[]> => {
   const paragraphs: Paragraph[] = [];
   const styles = isPreview ? previewStyles : defaultStyles;
-
-  // Add List of Figures if there are any
-  if (thesis.chapters.some(chapter => chapter.figures?.length > 0)) {
-    paragraphs.push(...generateListOfFigures(thesis));
-  }
 
   // Front Matter
   if (Array.isArray(thesis.frontMatter)) {
@@ -263,7 +266,6 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
     }
   }
 
-  let figureNumber = 1;
   // Chapters with figures
   if (Array.isArray(thesis.chapters)) {
     for (const chapter of thesis.chapters) {
@@ -302,6 +304,7 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
   if (Array.isArray(thesis.backMatter)) {
     for (const section of thesis.backMatter) {
       if (section.type === 'references' && section.references) {
+        // Add references section
         paragraphs.push(...generateReferences(section.references));
       } else {
         paragraphs.push(
