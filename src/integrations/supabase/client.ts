@@ -35,11 +35,24 @@ const RETRY_DELAY = 1000; // 1 second
 
 const retryRequest = async (operation: () => Promise<any>, retries = 0): Promise<any> => {
   try {
+    // Check authentication before making request
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session) {
+      console.error('No authenticated session found');
+      throw new Error('Authentication required');
+    }
+
     return await operation();
   } catch (error: any) {
-    if (retries < MAX_RETRIES && error.message === 'Failed to fetch') {
+    console.error('Request failed:', error);
+
+    if (retries < MAX_RETRIES && (
+      error.message === 'Failed to fetch' || 
+      error.status === 503 || 
+      error.status === 504
+    )) {
       console.log(`Retrying request (${retries + 1}/${MAX_RETRIES})...`);
-      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retries + 1)));
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * Math.pow(2, retries)));
       return retryRequest(operation, retries + 1);
     }
     throw error;
