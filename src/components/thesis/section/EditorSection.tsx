@@ -1,24 +1,3 @@
-// import React from 'react';
-// import { cn } from '@/lib/utils';
-
-// interface EditorSectionProps {
-//   children: React.ReactNode;
-//   className?: string;
-// }
-
-// export const EditorSection = ({ children, className }: EditorSectionProps) => {
-//   return (
-//     <div className={cn(
-//       "bg-editor-bg border border-editor-border rounded-lg p-6 mb-6",
-//       "shadow-lg transition-all duration-200 hover:shadow-xl",
-//       "backdrop-blur-sm backdrop-filter",
-//       className
-//     )}>
-//       {children}
-//     </div>
-//   );
-// };
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -36,27 +15,26 @@ export default function SectionEditor() {
   if (!thesis) return null;
 
   const findSection = () => {
-    // Check if it's the general introduction
-    if (thesis.generalIntroduction?.id === sectionId || sectionId === 'general-introduction') {
+    // Handle special section types
+    if (sectionId === 'general-introduction' && thesis.generalIntroduction) {
       return thesis.generalIntroduction;
     }
-
-    // Check if it's the general conclusion
-    if (thesis.generalConclusion?.id === sectionId || sectionId === 'general-conclusion') {
+    
+    if (sectionId === 'general-conclusion' && thesis.generalConclusion) {
       return thesis.generalConclusion;
     }
 
     // Check front matter
-    const frontMatterSection = thesis.frontMatter.find(s => s.id === sectionId);
+    const frontMatterSection = thesis.frontMatter.find(s => s.id === sectionId || s.title.toLowerCase() === sectionId?.toLowerCase());
     if (frontMatterSection) return frontMatterSection;
 
     // Check back matter
-    const backMatterSection = thesis.backMatter.find(s => s.id === sectionId);
+    const backMatterSection = thesis.backMatter.find(s => s.id === sectionId || s.title.toLowerCase() === sectionId?.toLowerCase());
     if (backMatterSection) return backMatterSection;
 
     // Check chapters
     for (const chapter of thesis.chapters) {
-      const section = chapter.sections.find(s => s.id === sectionId);
+      const section = chapter.sections.find(s => s.id === sectionId || s.title.toLowerCase() === sectionId?.toLowerCase());
       if (section) return section;
     }
 
@@ -93,7 +71,7 @@ export default function SectionEditor() {
     }
     // Update front matter
     else {
-      const frontMatterIndex = thesis.frontMatter.findIndex(s => s.id === sectionId);
+      const frontMatterIndex = thesis.frontMatter.findIndex(s => s.id === sectionId || s.title.toLowerCase() === sectionId?.toLowerCase());
       if (frontMatterIndex !== -1) {
         updatedThesis.frontMatter[frontMatterIndex] = {
           ...thesis.frontMatter[frontMatterIndex],
@@ -102,7 +80,7 @@ export default function SectionEditor() {
       }
 
       // Update back matter
-      const backMatterIndex = thesis.backMatter.findIndex(s => s.id === sectionId);
+      const backMatterIndex = thesis.backMatter.findIndex(s => s.id === sectionId || s.title.toLowerCase() === sectionId?.toLowerCase());
       if (backMatterIndex !== -1) {
         updatedThesis.backMatter[backMatterIndex] = {
           ...thesis.backMatter[backMatterIndex],
@@ -114,7 +92,7 @@ export default function SectionEditor() {
       updatedThesis.chapters = thesis.chapters.map(chapter => ({
         ...chapter,
         sections: chapter.sections.map(s => 
-          s.id === sectionId ? { ...s, content: newContent } : s
+          (s.id === sectionId || s.title.toLowerCase() === sectionId?.toLowerCase()) ? { ...s, content: newContent } : s
         )
       }));
     }
