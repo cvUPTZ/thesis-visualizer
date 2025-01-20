@@ -1,10 +1,9 @@
 import React from 'react';
-import { Section, Chapter } from '@/types/thesis';
+import { Section, Chapter, ThesisSectionType } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
-import { getSectionConfig } from '@/utils/sectionTypes';
 
 interface MainContentSectionsProps {
   sections: Section[];
@@ -29,12 +28,12 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
   onAddChapter,
   completedSections,
   onSectionComplete,
-  isReadOnly = false
+  isReadOnly
 }) => {
   const handleAddChapter = () => {
     if (onAddChapter) {
-      onAddChapter({
-        id: Date.now().toString(),
+      const newChapter: Chapter = {
+        id: crypto.randomUUID(),
         title: 'New Chapter',
         content: '',
         sections: [],
@@ -42,47 +41,30 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
         figures: [],
         tables: [],
         footnotes: []
-      });
+      };
+      onAddChapter(newChapter);
     }
   };
 
   return (
-    <div className="px-3">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-semibold">Main Content</h2>
-        {!isReadOnly && (
-          <div className="space-x-2">
-            {onAddSection && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onAddSection('introduction')}
-                className="h-8 px-2"
-              >
-                <PlusCircle className="h-4 w-4" />
-                <span className="sr-only">Add Section</span>
-              </Button>
-            )}
-            {onAddChapter && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleAddChapter}
-                className="h-8 px-2"
-              >
-                <PlusCircle className="h-4 w-4" />
-                <span className="sr-only">Add Chapter</span>
-              </Button>
-            )}
-          </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium">Main Content</h3>
+        {!isReadOnly && onAddSection && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2"
+            onClick={() => onAddSection('chapter')}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
         )}
       </div>
 
       <div className="space-y-1">
         {sections.map((section) => {
-          const config = getSectionConfig(section.type);
           const isCompleted = completedSections.includes(section.id);
-          
           return (
             <div
               key={section.id}
@@ -101,12 +83,8 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
               )}
               <button
                 onClick={() => onSectionSelect(section.id)}
-                className={cn(
-                  "flex-1 text-left",
-                  isCompleted && "line-through opacity-50"
-                )}
+                className="flex-1 text-left"
               >
-                {config?.icon && <config.icon className="h-4 w-4 inline-block mr-2" />}
                 {section.title}
               </button>
             </div>
@@ -119,15 +97,13 @@ export const MainContentSections: React.FC<MainContentSectionsProps> = ({
             className={cn(
               "flex items-center gap-2 px-2 py-1.5 rounded-md text-sm",
               activeSection === chapter.id && "bg-accent text-accent-foreground",
-              "hover:bg-accent/50 transition-colors"
+              "hover:bg-accent/50 transition-colors cursor-pointer"
             )}
+            onClick={() => onChapterSelect?.(chapter.id)}
           >
-            <button
-              onClick={() => onChapterSelect?.(chapter.id)}
-              className="flex-1 text-left"
-            >
+            <span className="flex-1">
               Chapter {chapter.part}: {chapter.title}
-            </button>
+            </span>
           </div>
         ))}
       </div>
