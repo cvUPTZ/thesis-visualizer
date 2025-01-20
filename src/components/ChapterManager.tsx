@@ -1,7 +1,7 @@
 import React from 'react';
 import { Chapter } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
-import { BookOpen, PlusCircle, Trash2, ChevronDown } from 'lucide-react';
+import { BookOpen, PlusCircle, Trash2 } from 'lucide-react';
 import { ChapterItem } from './editor/chapters/ChapterItem';
 import { useToast } from '@/hooks/use-toast';
 import { ChapterCreationDialog } from './editor/chapters/ChapterCreationDialog';
@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Card } from './ui/card';
+import { cn } from '@/lib/utils';
 
 interface ChapterManagerProps {
   chapters: Chapter[];
@@ -36,22 +37,6 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
   const [chaptersToDelete, setChaptersToDelete] = React.useState<string[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  const toggleChapter = (chapterId: string) => {
-    setOpenChapters(prev => 
-      prev.includes(chapterId) 
-        ? prev.filter(id => id !== chapterId)
-        : [...prev, chapterId]
-    );
-  };
-
-  const toggleChapterSelection = (chapterId: string) => {
-    setChaptersToDelete(prev =>
-      prev.includes(chapterId)
-        ? prev.filter(id => id !== chapterId)
-        : [...prev, chapterId]
-    );
-  };
 
   const handleCreateChapter = (chapter: Chapter) => {
     console.log('Handling chapter creation:', chapter);
@@ -110,7 +95,7 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
         {sectionTypes.map((section) => (
           <Card
             key={section.title}
-            className="p-6 cursor-pointer hover:shadow-lg transition-all duration-200"
+            className="p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
             onClick={() => handleNavigateToSection(section.title)}
           >
             <h3 className="text-lg font-semibold mb-2">{section.title}</h3>
@@ -118,7 +103,7 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
           </Card>
         ))}
         <Card
-          className="p-6 cursor-pointer hover:shadow-lg transition-all duration-200 border-dashed border-2"
+          className="p-6 cursor-pointer hover:shadow-lg transition-all duration-200 border-dashed border-2 hover:scale-105"
           onClick={() => setShowCreateDialog(true)}
         >
           <div className="flex flex-col items-center justify-center h-full text-center">
@@ -129,33 +114,6 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
         </Card>
       </div>
 
-      <div className="flex justify-between items-center bg-editor-bg p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-full">
-            <BookOpen className="w-6 h-6 text-primary" />
-          </div>
-          <h2 className="text-2xl font-serif font-semibold text-editor-text">Chapters</h2>
-        </div>
-        <div className="flex items-center gap-2">
-          {chaptersToDelete.length > 0 && (
-            <Button 
-              onClick={() => setChaptersToDelete([])}
-              variant="ghost"
-              className="text-muted-foreground"
-            >
-              Clear Selection ({chaptersToDelete.length})
-            </Button>
-          )}
-          <Button 
-            onClick={() => setShowCreateDialog(true)} 
-            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white transition-colors duration-200 px-6 py-2 rounded-lg shadow-sm hover:shadow-md"
-          >
-            <PlusCircle className="w-5 h-5" />
-            Add Chapter
-          </Button>
-        </div>
-      </div>
-
       <div className="space-y-4">
         {chapters.map((chapter) => (
           <ChapterItem
@@ -163,10 +121,18 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
             chapter={chapter}
             chapterNumber={chapters.findIndex(c => c.id === chapter.id) + 1}
             isOpen={openChapters.includes(chapter.id)}
-            onToggle={() => toggleChapter(chapter.id)}
+            onToggle={() => setOpenChapters(prev => 
+              prev.includes(chapter.id) 
+                ? prev.filter(id => id !== chapter.id)
+                : [...prev, chapter.id]
+            )}
             onUpdateChapter={onUpdateChapter}
             isSelected={chaptersToDelete.includes(chapter.id)}
-            onSelect={() => toggleChapterSelection(chapter.id)}
+            onSelect={() => setChaptersToDelete(prev =>
+              prev.includes(chapter.id)
+                ? prev.filter(id => id !== chapter.id)
+                : [...prev, chapter.id]
+            )}
           />
         ))}
       </div>
