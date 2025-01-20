@@ -44,21 +44,12 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
 
         console.log('Fetched comments:', commentsData);
         
-        // Transform the flat comments into a thread structure
-        const threadMap = new Map<string | null, CommentThread['comment'][]>();
-        commentsData.forEach((comment: any) => {
-          const transformedComment = transformComment(comment);
-          const parentId = comment.parent_id || null;
-          if (!threadMap.has(parentId)) {
-            threadMap.set(parentId, []);
-          }
-          threadMap.get(parentId)?.push(transformedComment);
-        });
-
-        // Create thread objects
-        const threads: CommentThread[] = (threadMap.get(null) || []).map(comment => ({
-          comment,
-          replies: threadMap.get(comment.id) || []
+        // Transform the flat comments into threads
+        const threads: CommentThread[] = commentsData.map((comment: any) => ({
+          id: comment.id,
+          comments: [transformComment(comment)],
+          section_id: comment.section_id,
+          created_at: comment.created_at
         }));
 
         setComments(threads);
@@ -125,10 +116,12 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
 
       console.log('New comment submitted:', data);
       
-      // Add the new comment as a new thread
+      // Add the new comment as a thread
       const newThread: CommentThread = {
-        comment: transformComment(data),
-        replies: []
+        id: data.id,
+        comments: [transformComment(data)],
+        section_id: data.section_id,
+        created_at: data.created_at
       };
       
       setComments([...comments, newThread]);

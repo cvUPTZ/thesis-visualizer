@@ -25,6 +25,13 @@ export interface SectionProps {
     id: string;
     title: string;
     content: string;
+    type?: string;
+    order?: number;
+    figures?: any[];
+    tables?: any[];
+    citations?: any[];
+    required?: boolean;
+    references?: any[];
   };
   isActive: boolean;
   onContentChange: (id: string, content: string) => void;
