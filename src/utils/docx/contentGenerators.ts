@@ -4,7 +4,7 @@ import {
   TextRun, 
   HeadingLevel, 
   AlignmentType, 
-  TableOfContents, 
+  TableOfContents,
   StyleLevel,
   convertInchesToTwip,
   ImageRun,
@@ -123,23 +123,29 @@ const generateListOfTables = (thesis: any): Paragraph[] => {
 const generateFigure = async (figure: any, figureNumber: number): Promise<Paragraph[]> => {
   const paragraphs: Paragraph[] = [];
   try {
-    if (figure.imageUrl) {
-      const base64Image = await convertImageToBase64(figure.imageUrl);
+    if (figure.url) {
+      const base64Image = await convertImageToBase64(figure.url);
       
+      // Calculate image dimensions while maintaining aspect ratio
+      const maxWidth = convertInchesToTwip(6); // 6 inches max width
+      const aspectRatio = figure.dimensions.height / figure.dimensions.width;
+      const width = Math.min(figure.dimensions.width, maxWidth);
+      const height = width * aspectRatio;
+
       paragraphs.push(
         new Paragraph({
           children: [
             new ImageRun({
               data: base64Image,
               transformation: {
-                width: 400,
-                height: 300
+                width,
+                height
               },
               type: 'png',
               fallback: {
                 type: 'png',
-                width: 400,
-                height: 300
+                width,
+                height
               }
             } as IImageOptions)
           ],
@@ -167,6 +173,64 @@ const generateFigure = async (figure: any, figureNumber: number): Promise<Paragr
   return paragraphs;
 };
 
+const generateReferences = (references: any[]): Paragraph[] => {
+  const paragraphs: Paragraph[] = [
+    new Paragraph({
+      text: "References",
+      heading: HeadingLevel.HEADING_1,
+      pageBreakBefore: true,
+      spacing: { before: convertInchesToTwip(2), after: convertInchesToTwip(1) },
+    })
+  ];
+
+  references.sort((a, b) => {
+    // Sort by first author's last name
+    const aName = a.authors[0]?.split(' ').pop() || '';
+    const bName = b.authors[0]?.split(' ').pop() || '';
+    return aName.localeCompare(bName);
+  });
+
+  references.forEach(ref => {
+    let referenceText = '';
+    
+    // Format based on reference type
+    switch (ref.type) {
+      case 'article':
+        referenceText = `${ref.authors.join(', ')} (${ref.year}). ${ref.title}. ${ref.journal}`;
+        if (ref.volume) referenceText += `, ${ref.volume}`;
+        if (ref.issue) referenceText += `(${ref.issue})`;
+        if (ref.pages) referenceText += `, ${ref.pages}`;
+        if (ref.doi) referenceText += `. DOI: ${ref.doi}`;
+        break;
+        
+      case 'book':
+        referenceText = `${ref.authors.join(', ')} (${ref.year}). ${ref.title}`;
+        if (ref.publisher) referenceText += `. ${ref.publisher}`;
+        break;
+        
+      case 'conference':
+        referenceText = `${ref.authors.join(', ')} (${ref.year}). ${ref.title}. In ${ref.source}`;
+        if (ref.pages) referenceText += `, ${ref.pages}`;
+        break;
+        
+      default:
+        referenceText = `${ref.authors.join(', ')} (${ref.year}). ${ref.title}`;
+        if (ref.url) referenceText += `. Retrieved from ${ref.url}`;
+    }
+
+    paragraphs.push(
+      new Paragraph({
+        text: referenceText,
+        style: 'reference',
+        spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
+        indent: { leftChars: 36 }
+      })
+    );
+  });
+
+  return paragraphs;
+};
+
 export const generateContent = async ({ thesis, isPreview = false }: ContentGenerationOptions): Promise<Paragraph[]> => {
   const paragraphs: Paragraph[] = [];
   const styles = isPreview ? previewStyles : defaultStyles;
@@ -174,11 +238,6 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
   // Add List of Figures if there are any
   if (thesis.chapters.some(chapter => chapter.figures?.length > 0)) {
     paragraphs.push(...generateListOfFigures(thesis));
-  }
-
-  // Add List of Tables if there are any
-  if (thesis.chapters.some(chapter => chapter.tables?.length > 0)) {
-    paragraphs.push(...generateListOfTables(thesis));
   }
 
   // Front Matter
@@ -205,7 +264,7 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
   }
 
   let figureNumber = 1;
-  // Chapters with figures and tables
+  // Chapters with figures
   if (Array.isArray(thesis.chapters)) {
     for (const chapter of thesis.chapters) {
       if (chapter.title) {
@@ -236,64 +295,29 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
           figureNumber++;
         }
       }
-
-      // Add tables
-      if (Array.isArray(chapter.tables)) {
-        chapter.tables.forEach(table => {
-          paragraphs.push(
-            new Paragraph({
-              text: table.content,
-              spacing: { before: 240, after: 120 },
-            }),
-            new Paragraph({
-              text: table.caption || table.title,
-              style: isPreview ? 'preview-caption' : 'caption',
-              spacing: { before: 120, after: 240 },
-            })
-          );
-        });
-      }
-
-      // Add footnotes
-      if (Array.isArray(chapter.footnotes) && chapter.footnotes.length > 0) {
-        paragraphs.push(
-          new Paragraph({
-            text: 'Footnotes',
-            style: 'heading3',
-            spacing: { before: convertInchesToTwip(1), after: convertInchesToTwip(0.5) },
-          })
-        );
-        chapter.footnotes.forEach(footnote => {
-          paragraphs.push(
-            new Paragraph({
-              text: `${footnote.number}. ${footnote.content}`,
-              style: 'footnote',
-              spacing: { before: convertInchesToTwip(0.25), after: convertInchesToTwip(0.25) },
-            })
-          );
-        });
-      }
     }
   }
 
-  // Back Matter
+  // Back Matter (including references)
   if (Array.isArray(thesis.backMatter)) {
-    thesis.backMatter.forEach(section => {
-      paragraphs.push(
-        new Paragraph({
-          text: section.title,
-          heading: HeadingLevel.HEADING_1,
-          pageBreakBefore: true,
-          spacing: styles.default.heading1.paragraph.spacing,
-          style: 'heading 1',
-        }),
-        new Paragraph({
-          text: section.content,
-          spacing: styles.default.document.paragraph.spacing,
-          style: 'Normal',
-        })
-      );
-    });
+    for (const section of thesis.backMatter) {
+      if (section.type === 'references' && section.references) {
+        paragraphs.push(...generateReferences(section.references));
+      } else {
+        paragraphs.push(
+          new Paragraph({
+            text: section.title,
+            heading: HeadingLevel.HEADING_1,
+            pageBreakBefore: true,
+          }),
+          new Paragraph({
+            text: section.content,
+            style: 'Normal',
+            spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
+          })
+        );
+      }
+    }
   }
 
   return paragraphs;
