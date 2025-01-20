@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Reference } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,7 @@ import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { parseReference } from '@/utils/referenceParser';
 import { Card } from '@/components/ui/card';
+import { TagInput } from '@/components/ui/tag-input';
 
 interface ReferenceDialogProps {
   onAddReference: (reference: Reference) => void;
@@ -22,6 +24,7 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
   const [rawText, setRawText] = useState('');
   const [parsedReference, setParsedReference] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -36,6 +39,7 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
       }
 
       setParsedReference(parsed);
+      setIsEditing(true);
       console.log('Parsed reference:', parsed);
 
     } catch (error) {
@@ -73,6 +77,7 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
     onAddReference(newReference);
     setRawText('');
     setParsedReference(null);
+    setIsEditing(false);
     setIsOpen(false);
     
     toast({
@@ -81,82 +86,11 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
     });
   };
 
-  const formatParsedReference = () => {
-    if (!parsedReference) return null;
-
-    return (
-      <Card className="p-4 mt-4 space-y-4 text-sm">
-        <div className="space-y-2">
-          <h4 className="font-semibold">Authors:</h4>
-          <ul className="list-disc pl-5 space-y-1">
-            {parsedReference.authors.map((author: string, index: number) => (
-              <li key={index} className="text-gray-700">
-                {parsedReference.author_last_names[index]}, {parsedReference.author_first_initials[index]}.
-                {parsedReference.author_middle_initials[index] && 
-                  ` ${parsedReference.author_middle_initials[index]}.`}
-              </li>
-            ))}
-          </ul>
-        </div>
-        
-        <div>
-          <h4 className="font-semibold">Date:</h4>
-          <p className="text-gray-700">{parsedReference.year}
-            {parsedReference.specific_date && ` (${parsedReference.specific_date})`}
-          </p>
-        </div>
-        
-        <div>
-          <h4 className="font-semibold">Article Title:</h4>
-          <p className="text-gray-700">{parsedReference.title}</p>
-        </div>
-        
-        {parsedReference.journal && (
-          <div>
-            <h4 className="font-semibold">Journal Name:</h4>
-            <p className="italic text-gray-700">{parsedReference.journal}</p>
-          </div>
-        )}
-        
-        {(parsedReference.volume || parsedReference.issue) && (
-          <div>
-            <h4 className="font-semibold">Volume/Issue:</h4>
-            <p className="text-gray-700">
-              {parsedReference.volume && `Volume ${parsedReference.volume}`}
-              {parsedReference.issue && ` Issue ${parsedReference.issue}`}
-            </p>
-          </div>
-        )}
-        
-        {parsedReference.pages && (
-          <div>
-            <h4 className="font-semibold">Page Range:</h4>
-            <p className="text-gray-700">{parsedReference.pages}</p>
-          </div>
-        )}
-        
-        {parsedReference.doi && (
-          <div>
-            <h4 className="font-semibold">DOI:</h4>
-            <p className="text-gray-700">{parsedReference.doi}</p>
-          </div>
-        )}
-        
-        {parsedReference.url && (
-          <div>
-            <h4 className="font-semibold">URL:</h4>
-            <p className="text-gray-700 break-all">{parsedReference.url}</p>
-          </div>
-        )}
-        
-        {parsedReference.publisher && (
-          <div>
-            <h4 className="font-semibold">Publisher:</h4>
-            <p className="text-gray-700">{parsedReference.publisher}</p>
-          </div>
-        )}
-      </Card>
-    );
+  const handleUpdateParsedField = (field: string, value: any) => {
+    setParsedReference(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   return (
@@ -194,7 +128,99 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
             )}
           </div>
 
-          {formatParsedReference()}
+          {parsedReference && isEditing && (
+            <Card className="p-4 mt-4 space-y-4 text-sm">
+              <div className="space-y-2">
+                <h4 className="font-semibold">Authors:</h4>
+                <TagInput
+                  placeholder="Add authors"
+                  tags={parsedReference.authors}
+                  onChange={(tags) => handleUpdateParsedField('authors', tags)}
+                />
+              </div>
+              
+              <div>
+                <h4 className="font-semibold">Year:</h4>
+                <Input
+                  value={parsedReference.year}
+                  onChange={(e) => handleUpdateParsedField('year', e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <h4 className="font-semibold">Title:</h4>
+                <Input
+                  value={parsedReference.title}
+                  onChange={(e) => handleUpdateParsedField('title', e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <h4 className="font-semibold">Journal:</h4>
+                <Input
+                  value={parsedReference.journal || ''}
+                  onChange={(e) => handleUpdateParsedField('journal', e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <h4 className="font-semibold">Volume:</h4>
+                  <Input
+                    value={parsedReference.volume || ''}
+                    onChange={(e) => handleUpdateParsedField('volume', e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <h4 className="font-semibold">Issue:</h4>
+                  <Input
+                    value={parsedReference.issue || ''}
+                    onChange={(e) => handleUpdateParsedField('issue', e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <h4 className="font-semibold">Pages:</h4>
+                  <Input
+                    value={parsedReference.pages || ''}
+                    onChange={(e) => handleUpdateParsedField('pages', e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold">DOI:</h4>
+                <Input
+                  value={parsedReference.doi || ''}
+                  onChange={(e) => handleUpdateParsedField('doi', e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <h4 className="font-semibold">URL:</h4>
+                <Input
+                  value={parsedReference.url || ''}
+                  onChange={(e) => handleUpdateParsedField('url', e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <h4 className="font-semibold">Publisher:</h4>
+                <Input
+                  value={parsedReference.publisher || ''}
+                  onChange={(e) => handleUpdateParsedField('publisher', e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </Card>
+          )}
         </form>
       </DialogContent>
     </Dialog>
