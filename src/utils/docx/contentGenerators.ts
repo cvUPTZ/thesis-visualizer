@@ -1,6 +1,7 @@
 import { Paragraph, HeadingLevel } from 'docx';
 import { Thesis, Section } from '@/types/thesis';
 import { convertInchesToTwip } from '@/utils/conversion';
+import { defaultStyles, previewStyles } from './styleConfig';
 
 interface ContentGenerationOptions {
   thesis: Thesis;
@@ -144,4 +145,12 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
   }
 
   return paragraphs;
+};
+
+export const generateTableOfContents = () => {
+  return new Paragraph({
+    text: "Table of Contents will be generated automatically",
+    style: 'Normal',
+    spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
+  });
 };
