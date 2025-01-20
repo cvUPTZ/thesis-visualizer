@@ -91,13 +91,9 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
           <ul className="list-disc pl-5 space-y-1">
             {parsedReference.authors.map((author: string, index: number) => (
               <li key={index} className="text-gray-700">
-                {author}
-                <span className="text-gray-500 text-xs ml-2">
-                  ({parsedReference.author_last_names[index]}, 
-                  {parsedReference.author_first_initials[index]}.
-                  {parsedReference.author_middle_initials[index] && 
-                    ` ${parsedReference.author_middle_initials[index]}.`})
-                </span>
+                {parsedReference.author_last_names[index]}, {parsedReference.author_first_initials[index]}.
+                {parsedReference.author_middle_initials[index] && 
+                  ` ${parsedReference.author_middle_initials[index]}.`}
               </li>
             ))}
           </ul>
