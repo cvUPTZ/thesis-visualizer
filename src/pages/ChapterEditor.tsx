@@ -31,7 +31,6 @@ const ChapterEditor = () => {
         console.log('Fetching chapter with ID:', chapterId);
         setLoading(true);
 
-        // First, find the thesis that contains this chapter
         const { data: theses, error: thesesError } = await supabase
           .from('theses')
           .select('id, content')
@@ -44,9 +43,8 @@ const ChapterEditor = () => {
         let foundChapter = null;
         let foundThesisId = null;
 
-        // Search through theses to find the chapter
         for (const thesis of theses) {
-          const content = thesis.content as ThesisContent;
+          const content = thesis.content as unknown as ThesisContent;
           if (!content?.chapters) {
             console.log('No chapters found in thesis:', thesis.id);
             continue;
@@ -78,7 +76,6 @@ const ChapterEditor = () => {
             description: "Chapter not found. Redirecting back to thesis...",
             variant: "destructive"
           });
-          // Navigate back to thesis if we have the thesis ID
           if (foundThesisId) {
             navigate(`/thesis/${foundThesisId}`);
           } else {
@@ -108,7 +105,6 @@ const ChapterEditor = () => {
     try {
       console.log('Updating chapter content:', { thesisId, chapterId: chapter.id });
 
-      // First, get the current thesis content
       const { data: thesis, error: fetchError } = await supabase
         .from('theses')
         .select('content')
@@ -117,20 +113,57 @@ const ChapterEditor = () => {
 
       if (fetchError) throw fetchError;
 
-      const existingContent = thesis.content as ThesisContent;
+      const existingContent = thesis.content as unknown as ThesisContent;
 
-      // Update the specific chapter
       const updatedChapters = existingContent.chapters.map((ch: Chapter) =>
         String(ch.id) === String(chapter.id) ? { ...ch, content } : ch
       );
 
-      // Prepare the updated content
+      // Convert the updated content to a format that matches Supabase's JSON type
       const updatedContent: Json = {
         ...existingContent,
-        chapters: updatedChapters
+        chapters: updatedChapters.map(ch => ({
+          id: ch.id,
+          title: ch.title,
+          content: ch.content,
+          sections: ch.sections?.map(section => ({
+            id: section.id,
+            title: section.title,
+            content: section.content,
+            type: section.type,
+            order: section.order,
+            figures: section.figures || [],
+            tables: section.tables || [],
+            citations: section.citations || [],
+            references: section.references || [],
+            footnotes: section.footnotes || []
+          })) || [],
+          part: ch.part || 1,
+          figures: ch.figures?.map(figure => ({
+            id: figure.id,
+            imageUrl: figure.imageUrl,
+            title: figure.title,
+            caption: figure.caption,
+            altText: figure.altText,
+            number: figure.number,
+            dimensions: figure.dimensions
+          })) || [],
+          tables: ch.tables?.map(table => ({
+            id: table.id,
+            title: table.title || '',
+            content: table.content,
+            caption: table.caption || ''
+          })) || [],
+          footnotes: ch.footnotes?.map(footnote => ({
+            id: footnote.id,
+            content: footnote.content,
+            number: footnote.number,
+            created_at: footnote.created_at,
+            updated_at: footnote.updated_at
+          })) || []
+        }))
       };
 
-      // Update the thesis with the new content
       const { error: updateError } = await supabase
         .from('theses')
         .update({ content: updatedContent })
@@ -138,7 +171,6 @@ const ChapterEditor = () => {
 
       if (updateError) throw updateError;
 
-      // Update local state
       setChapter({ ...chapter, content });
 
       toast({

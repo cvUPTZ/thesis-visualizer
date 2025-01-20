@@ -28,7 +28,7 @@ export const ChaptersList = () => {
       setChapters(updatedChapters);
 
       // Convert chapters to a format that matches Supabase's JSON type
-      const chaptersForDb: Json[] = updatedChapters.map(ch => ({
+      const chaptersForDb = updatedChapters.map(ch => ({
         id: ch.id,
         title: ch.title,
         content: ch.content,
@@ -67,7 +67,7 @@ export const ChaptersList = () => {
           created_at: footnote.created_at,
           updated_at: footnote.updated_at
         })) || []
-      }));
+      })) as Json[];
 
       // Prepare the content object that matches Supabase's JSON type
       const contentForDb: Json = {
