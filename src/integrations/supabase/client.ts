@@ -31,30 +31,35 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
 
 // Add retry mechanism for failed requests
 const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
+const RETRY_DELAY = 1000; // 1 second base delay
 
 const retryRequest = async (operation: () => Promise<any>, retries = 0): Promise<any> => {
   try {
     // Check authentication before making request
     const { data: session } = await supabase.auth.getSession();
     if (!session?.session) {
-      console.error('No authenticated session found');
+      console.error('❌ No authenticated session found');
       throw new Error('Authentication required');
     }
 
+    console.log('👤 Making authenticated request with session:', session.session.user.email);
     return await operation();
   } catch (error: any) {
-    console.error('Request failed:', error);
+    console.error('❌ Request failed:', error);
 
     if (retries < MAX_RETRIES && (
       error.message === 'Failed to fetch' || 
       error.status === 503 || 
-      error.status === 504
+      error.status === 504 ||
+      error.message === 'Authentication required'
     )) {
-      console.log(`Retrying request (${retries + 1}/${MAX_RETRIES})...`);
-      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * Math.pow(2, retries)));
+      const delay = RETRY_DELAY * Math.pow(2, retries);
+      console.log(`🔄 Retrying request (${retries + 1}/${MAX_RETRIES}) after ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
       return retryRequest(operation, retries + 1);
     }
+
+    console.error('❌ Max retries reached or unrecoverable error:', error);
     throw error;
   }
 };
