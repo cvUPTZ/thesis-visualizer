@@ -1,6 +1,3 @@
-
-
-
 import { Routes as RouterRoutes, Route } from 'react-router-dom';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
@@ -33,6 +30,8 @@ const Routes = () => {
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/thesis/:thesisId" element={<ThesisEditor />} />
           <Route path="/thesis/:thesisId/sections/:sectionId" element={<SectionEditor />} />
+          <Route path="/thesis/:thesisId/section/general-introduction" element={<SectionEditor />} />
+          <Route path="/thesis/:thesisId/section/general-conclusion" element={<SectionEditor />} />
           <Route path="*" element={<Index />} />
         </>
       ) : (
