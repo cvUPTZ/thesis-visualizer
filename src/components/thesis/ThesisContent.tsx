@@ -64,8 +64,6 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          {frontMatter.map(section => renderSectionContent(section))}
-          
           {thesis.generalIntroduction && activeSection === thesis.generalIntroduction.id && (
             <GeneralSectionEditor
               section={thesis.generalIntroduction}
@@ -79,26 +77,28 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
             />
           )}
 
+          {frontMatter.map(section => renderSectionContent(section))}
+          
           <div className="space-y-8">
             <ChapterManager
               chapters={chapters}
               onUpdateChapter={onUpdateChapter}
               onAddChapter={onAddChapter}
             />
-            
-            {thesis.generalConclusion && activeSection === thesis.generalConclusion.id && (
-              <GeneralSectionEditor
-                section={thesis.generalConclusion}
-                title="General Conclusion"
-                onUpdate={(updatedSection) => {
-                  onUpdateThesis({
-                    ...thesis,
-                    generalConclusion: updatedSection
-                  });
-                }}
-              />
-            )}
           </div>
+
+          {thesis.generalConclusion && activeSection === thesis.generalConclusion.id && (
+            <GeneralSectionEditor
+              section={thesis.generalConclusion}
+              title="General Conclusion"
+              onUpdate={(updatedSection) => {
+                onUpdateThesis({
+                  ...thesis,
+                  generalConclusion: updatedSection
+                });
+              }}
+            />
+          )}
           
           {backMatter.map(section => renderSectionContent(section))}
         </div>
