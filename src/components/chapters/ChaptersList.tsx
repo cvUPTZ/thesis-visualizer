@@ -1,12 +1,52 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Chapter } from '@/types/thesis';
-import { BookOpen, ChevronRight } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const ChaptersList = () => {
-  const navigate = useNavigate();
-  const [chapters] = React.useState<Chapter[]>([]); // This will be replaced with actual data fetching
+  const [expandedChapterId, setExpandedChapterId] = useState<string | null>(null);
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const { toast } = useToast();
+
+  const handleChapterClick = (chapterId: string) => {
+    setExpandedChapterId(expandedChapterId === chapterId ? null : chapterId);
+  };
+
+  const handleContentChange = async (chapterId: string, content: string) => {
+    try {
+      const updatedChapters = chapters.map(ch =>
+        ch.id === chapterId ? { ...ch, content } : ch
+      );
+
+      // Update local state
+      setChapters(updatedChapters);
+
+      // Update in database
+      const { error } = await supabase
+        .from('theses')
+        .update({
+          content: { chapters: updatedChapters }
+        })
+        .eq('id', chapters[0]?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Chapter content updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating chapter:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update chapter content",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -14,7 +54,7 @@ export const ChaptersList = () => {
         <Card
           key={chapter.id}
           className="p-4 hover:shadow-md transition-shadow cursor-pointer"
-          onClick={() => navigate(`/chapter/${chapter.id}`)}
+          onClick={() => handleChapterClick(chapter.id)}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -28,8 +68,22 @@ export const ChaptersList = () => {
                 </p>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            {expandedChapterId === chapter.id ? (
+              <ChevronUp className="w-5 h-5 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-muted-foreground" />
+            )}
           </div>
+
+          {expandedChapterId === chapter.id && (
+            <div className="mt-4">
+              <MarkdownEditor
+                value={chapter.content}
+                onChange={(value) => handleContentChange(chapter.id, value || '')}
+                placeholder="Start writing your chapter content..."
+              />
+            </div>
+          )}
         </Card>
       ))}
     </div>
