@@ -1,5 +1,5 @@
-import { Paragraph, HeadingLevel } from 'docx';
-import { Thesis, Section } from '@/types/thesis';
+import { Paragraph, HeadingLevel, ImageRun } from 'docx';
+import { Thesis, Section, Figure } from '@/types/thesis';
 import { convertInchesToTwip } from '@/utils/conversion';
 import { defaultStyles, previewStyles } from './styleConfig';
 
@@ -8,11 +8,74 @@ interface ContentGenerationOptions {
   isPreview?: boolean;
 }
 
+const insertFigure = async (figure: Figure): Promise<ImageRun> => {
+  try {
+    // Convert base64 to binary
+    const base64Data = figure.url.split(',')[1];
+    const imageBuffer = Buffer.from(base64Data, 'base64');
+    
+    return new ImageRun({
+      data: imageBuffer,
+      transformation: {
+        width: figure.dimensions.width,
+        height: figure.dimensions.height
+      }
+    });
+  } catch (error) {
+    console.error('Error processing figure:', error);
+    throw error;
+  }
+};
+
+const processSectionContent = async (section: Section): Promise<Paragraph[]> => {
+  const paragraphs: Paragraph[] = [];
+
+  // Add content
+  if (section.content) {
+    paragraphs.push(
+      new Paragraph({
+        text: section.content,
+        style: 'Normal',
+        spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) }
+      })
+    );
+  }
+
+  // Add figures
+  if (section.figures && section.figures.length > 0) {
+    for (const figure of section.figures) {
+      try {
+        const imageRun = await insertFigure(figure);
+        paragraphs.push(
+          new Paragraph({
+            children: [imageRun],
+            spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(0.5) }
+          })
+        );
+        
+        // Add figure caption
+        if (figure.caption) {
+          paragraphs.push(
+            new Paragraph({
+              text: `${figure.label}: ${figure.caption}`,
+              style: 'Caption',
+              spacing: { before: convertInchesToTwip(0.2), after: convertInchesToTwip(1) }
+            })
+          );
+        }
+      } catch (error) {
+        console.error(`Failed to process figure ${figure.id}:`, error);
+      }
+    }
+  }
+
+  return paragraphs;
+};
+
 export const generateContent = async ({ thesis, isPreview = false }: ContentGenerationOptions): Promise<Paragraph[]> => {
   const paragraphs: Paragraph[] = [];
   const styles = isPreview ? previewStyles : defaultStyles;
-  let currentFigureNumber = 1;
-
+  
   // Front Matter
   if (Array.isArray(thesis.frontMatter)) {
     for (const section of thesis.frontMatter) {
@@ -26,15 +89,8 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
         );
       }
       
-      if (section.content) {
-        paragraphs.push(
-          new Paragraph({
-            text: section.content,
-            style: 'Normal',
-            spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
-          })
-        );
-      }
+      const sectionParagraphs = await processSectionContent(section);
+      paragraphs.push(...sectionParagraphs);
     }
   }
 
@@ -48,15 +104,8 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
       })
     );
 
-    if (thesis.generalIntroduction.content) {
-      paragraphs.push(
-        new Paragraph({
-          text: thesis.generalIntroduction.content,
-          style: 'Normal',
-          spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
-        })
-      );
-    }
+    const introParagraphs = await processSectionContent(thesis.generalIntroduction);
+    paragraphs.push(...introParagraphs);
   }
 
   // Chapters
@@ -84,15 +133,8 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
             );
           }
 
-          if (section.content) {
-            paragraphs.push(
-              new Paragraph({
-                text: section.content,
-                style: 'Normal',
-                spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
-              })
-            );
-          }
+          const sectionParagraphs = await processSectionContent(section);
+          paragraphs.push(...sectionParagraphs);
         }
       }
     }
@@ -108,15 +150,8 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
       })
     );
 
-    if (thesis.generalConclusion.content) {
-      paragraphs.push(
-        new Paragraph({
-          text: thesis.generalConclusion.content,
-          style: 'Normal',
-          spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
-        })
-      );
-    }
+    const conclusionParagraphs = await processSectionContent(thesis.generalConclusion);
+    paragraphs.push(...conclusionParagraphs);
   }
 
   // Back Matter
@@ -132,15 +167,8 @@ export const generateContent = async ({ thesis, isPreview = false }: ContentGene
         );
       }
 
-      if (section.content) {
-        paragraphs.push(
-          new Paragraph({
-            text: section.content,
-            style: 'Normal',
-            spacing: { before: convertInchesToTwip(0.5), after: convertInchesToTwip(1) },
-          })
-        );
-      }
+      const sectionParagraphs = await processSectionContent(section);
+      paragraphs.push(...sectionParagraphs);
     }
   }
 
