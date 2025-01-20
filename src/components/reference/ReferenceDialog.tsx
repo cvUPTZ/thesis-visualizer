@@ -1,7 +1,8 @@
 import React from 'react';
-import { Reference } from '@/types/thesis';
+import { Reference, ReferenceStyle } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -10,45 +11,118 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { PlusCircle } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { TagInput } from '@/components/ui/tag-input';
+import { useToast } from '@/hooks/use-toast';
 
 interface ReferenceDialogProps {
   onAddReference: (reference: Reference) => void;
+  referenceStyle?: ReferenceStyle;
 }
 
-export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
-  const [title, setTitle] = React.useState('');
-  const [authors, setAuthors] = React.useState<string[]>(['']);
-  const [year, setYear] = React.useState('');
-  const [type, setType] = React.useState<'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other'>('article');
-  const [text, setText] = React.useState('');
-  const [source, setSource] = React.useState('');
+export const ReferenceDialog = ({ onAddReference, referenceStyle = 'APA' }: ReferenceDialogProps) => {
+  const [rawText, setRawText] = React.useState('');
+  const { toast } = useToast();
+
+  const parseReference = (text: string, style: ReferenceStyle): Partial<Reference> => {
+    console.log('Parsing reference with style:', style);
+    
+    // Basic parsing logic - can be expanded for more accurate parsing
+    const parts = text.split('.');
+    let authors: string[] = [];
+    let year = '';
+    let title = '';
+    let source = '';
+
+    try {
+      switch (style) {
+        case 'APA':
+          // Format: Author, A. A., & Author, B. B. (Year). Title. Source.
+          const apaMatch = text.match(/(.+?)\((\d{4})\)\.\s(.+?)\.\s(.+)/);
+          if (apaMatch) {
+            authors = apaMatch[1].split(',').map(a => a.trim()).filter(a => a);
+            year = apaMatch[2];
+            title = apaMatch[3];
+            source = apaMatch[4];
+          }
+          break;
+
+        case 'MLA':
+          // Format: Author. "Title." Source, Year.
+          if (parts.length >= 3) {
+            authors = [parts[0].trim()];
+            title = parts[1].replace(/["'"]/g, '').trim();
+            const sourceYear = parts[2].split(',');
+            source = sourceYear[0].trim();
+            year = sourceYear[1]?.trim() || '';
+          }
+          break;
+
+        case 'Chicago':
+          // Format: Author. Year. "Title." Source.
+          if (parts.length >= 3) {
+            authors = [parts[0].trim()];
+            year = parts[1].trim();
+            title = parts[2].replace(/["'"]/g, '').trim();
+            source = parts.slice(3).join('.').trim();
+          }
+          break;
+
+        case 'Harvard':
+          // Format: Author (Year) Title, Source.
+          const harvardMatch = text.match(/(.+?)\((\d{4})\)\s(.+?),\s(.+)/);
+          if (harvardMatch) {
+            authors = [harvardMatch[1].trim()];
+            year = harvardMatch[2];
+            title = harvardMatch[3];
+            source = harvardMatch[4];
+          }
+          break;
+      }
+    } catch (error) {
+      console.error('Error parsing reference:', error);
+      toast({
+        title: "Parsing Error",
+        description: "Could not parse the reference text. Please check the format.",
+        variant: "destructive"
+      });
+      return {};
+    }
+
+    return {
+      authors,
+      year,
+      title,
+      source,
+      text: rawText,
+      type: 'article'
+    };
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const parsedReference = parseReference(rawText, referenceStyle);
+    
+    if (!parsedReference.title || !parsedReference.authors?.length) {
+      toast({
+        title: "Invalid Reference",
+        description: "Please check the reference format and try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const newReference: Reference = {
       id: Date.now().toString(),
-      title,
-      authors,
-      year,
-      type,
-      text,
-      source
+      text: rawText,
+      title: parsedReference.title || '',
+      authors: parsedReference.authors || [],
+      year: parsedReference.year || '',
+      type: 'article',
+      source: parsedReference.source || ''
     };
+
     onAddReference(newReference);
-    setTitle('');
-    setAuthors(['']);
-    setYear('');
-    setType('article');
-    setText('');
-    setSource('');
+    setRawText('');
   };
 
   return (
@@ -65,59 +139,12 @@ export const ReferenceDialog = ({ onAddReference }: ReferenceDialogProps) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Type</label>
-            <Select value={type} onValueChange={(value: any) => setType(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="article">Article</SelectItem>
-                <SelectItem value="book">Book</SelectItem>
-                <SelectItem value="conference">Conference</SelectItem>
-                <SelectItem value="thesis">Thesis</SelectItem>
-                <SelectItem value="website">Website</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Title</label>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter reference title..."
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Text</label>
-            <Input
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Enter reference text..."
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Source</label>
-            <Input
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-              placeholder="Enter reference source..."
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Authors</label>
-            <TagInput
-              placeholder="Add authors (press Enter or comma to add)"
-              tags={authors}
-              onChange={setAuthors}
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Year</label>
-            <Input
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              placeholder="Publication year..."
+            <label className="text-sm font-medium">Reference Text</label>
+            <Textarea
+              value={rawText}
+              onChange={(e) => setRawText(e.target.value)}
+              placeholder={`Enter reference text in ${referenceStyle} format...`}
+              className="min-h-[100px]"
             />
           </div>
           <div className="flex justify-end">

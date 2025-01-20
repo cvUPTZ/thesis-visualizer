@@ -1,21 +1,44 @@
-export interface ThesisComment {
+export interface Citation {
   id: string;
-  thesis_id: string;
-  section_id: string;
-  reviewer_id: string;
-  content: {
-    text: string;
-  };
-  parent_id?: string;
-  status: 'pending' | 'resolved';
+  text: string;
+  authors: string[];
+  type: string;
   created_at: string;
   updated_at: string;
 }
 
-export interface CommentThread {
-  comment: ThesisComment;
-  replies: ThesisComment[];
+export interface CitationManagerProps {
+  citations: Citation[];
+  onCitationSelect?: (citation: Citation) => void;
+  selectedCitation?: Citation | null;
+  onCitationCreate?: (citation: Citation) => void;
+  onCitationUpdate?: (citation: Citation) => void;
+  onCitationDelete?: (citation: Citation) => void;
+  thesisId: string;
+  onAddCitation?: (citation: any) => void;
+  onRemoveCitation?: (id: any) => void;
+  onUpdateCitation?: (citation: any) => void;
 }
+
+export interface CitationListProps {
+  citations: Citation[];
+  onRemove: (id: string) => void;
+  onUpdate: (citation: Citation) => void;
+  onPreview: (citation: Citation) => void;
+}
+
+export interface CitationSearchProps {
+  onCitationSelect: (citation: Citation) => void;
+}
+
+export interface CitationPreviewProps {
+  citation: Citation;
+  onClose: () => void;
+  onEdit: (citation: Citation) => void;
+  onDelete: (citation: Citation) => void;
+}
+
+export type ReferenceStyle = 'APA' | 'MLA' | 'Chicago' | 'Harvard';
 
 export interface ThesisMetadata {
   description: string;
@@ -26,6 +49,7 @@ export interface ThesisMetadata {
   authorName?: string;
   thesisDate?: string;
   committeeMembers?: string[];
+  referenceStyle?: ReferenceStyle;
 }
 
 export interface Thesis {
@@ -92,25 +116,6 @@ export interface Table {
   title: string;
   caption?: string;
   content: string;
-}
-
-export interface Citation {
-  id: string;
-  text: string;
-  source: string;
-  authors: string[];
-  year: string;
-  type: 'article' | 'book' | 'conference' | 'website' | 'other';
-  doi?: string;
-  url?: string;
-  journal?: string;
-  volume?: string;
-  issue?: string;
-  pages?: string;
-  publisher?: string;
-  thesis_id: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Reference {
