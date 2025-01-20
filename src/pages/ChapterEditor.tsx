@@ -27,37 +27,32 @@ const ChapterEditor = () => {
   React.useEffect(() => {
     const fetchChapter = async () => {
       try {
-        if (!chapterId) {
-          throw new Error('No chapter ID provided');
-        }
-
         console.log('Fetching chapter with ID:', chapterId);
-        
-        // Get all theses that contain this chapter
-        const { data: thesesData, error: thesesError } = await supabase
+        setLoading(true);
+
+        // First, find the thesis that contains this chapter
+        const { data: theses, error: thesesError } = await supabase
           .from('theses')
           .select('id, content')
-          .returns<ThesisData[]>();
+          .eq('content->chapters', chapterId);
 
         if (thesesError) {
-          console.error('Error fetching theses:', thesesError);
           throw thesesError;
         }
 
-        // Find the thesis containing our chapter
-        let foundChapter: Chapter | null = null;
-        let foundThesisId: string | null = null;
+        let foundChapter = null;
+        let foundThesisId = null;
 
-        for (const thesis of thesesData) {
-          const content = typeof thesis.content === 'string' 
-            ? JSON.parse(thesis.content) 
-            : thesis.content;
-
-          if (!content?.chapters || !Array.isArray(content.chapters)) {
+        // Search through theses to find the chapter
+        for (const thesis of theses) {
+          const content = thesis.content as ThesisData['content'];
+          if (!content?.chapters) {
+            console.log('No chapters found in thesis:', thesis.id);
             continue;
           }
 
-          // Try both string and numeric ID matching
+          console.log('Searching for chapter in thesis:', thesis.id);
+          
           const chapter = content.chapters.find((ch: Chapter) => {
             const chapterIdStr = String(ch.id);
             const searchIdStr = String(chapterId);
@@ -72,7 +67,7 @@ const ChapterEditor = () => {
         }
 
         if (foundChapter && foundThesisId) {
-          console.log('Found chapter in thesis:', foundThesisId);
+          console.log('Found chapter:', foundChapter);
           setChapter(foundChapter);
           setThesisId(foundThesisId);
         } else {
@@ -110,20 +105,18 @@ const ChapterEditor = () => {
     if (!chapter || !thesisId) return;
 
     try {
-      // Get the thesis data directly using the stored thesis ID
-      const { data: thesisData, error: thesisError } = await supabase
+      console.log('Updating chapter content:', { thesisId, chapterId: chapter.id });
+
+      // First, get the current thesis content
+      const { data: thesis, error: fetchError } = await supabase
         .from('theses')
         .select('content')
         .eq('id', thesisId)
-        .maybeSingle();
+        .single();
 
-      if (thesisError) throw thesisError;
-      if (!thesisData) throw new Error('Thesis not found');
+      if (fetchError) throw fetchError;
 
-      // Parse the existing content
-      const existingContent = typeof thesisData.content === 'string' 
-        ? JSON.parse(thesisData.content) 
-        : thesisData.content;
+      const existingContent = thesis.content;
 
       // Update the specific chapter
       const updatedChapters = existingContent.chapters.map((ch: Chapter) =>
@@ -136,26 +129,26 @@ const ChapterEditor = () => {
         chapters: updatedChapters
       };
 
+      // Update the thesis with the new content
       const { error: updateError } = await supabase
         .from('theses')
-        .update({
-          content: updatedContent
-        })
+        .update({ content: updatedContent })
         .eq('id', thesisId);
 
       if (updateError) throw updateError;
 
+      // Update local state
       setChapter({ ...chapter, content });
 
       toast({
         title: "Success",
-        description: "Chapter content updated",
+        description: "Chapter content updated successfully",
       });
     } catch (error: any) {
       console.error('Error updating chapter:', error);
       toast({
         title: "Error",
-        description: "Failed to update chapter",
+        description: error.message || "Failed to update chapter",
         variant: "destructive"
       });
     }
@@ -174,7 +167,7 @@ const ChapterEditor = () => {
       <div className="container mx-auto p-6 space-y-6">
         <Skeleton className="h-8 w-64" />
         <Card className="p-6">
-          <Skeleton className="h-[400px] w-full" />
+          <Skeleton className="h-[400px]" />
         </Card>
       </div>
     );
@@ -182,7 +175,7 @@ const ChapterEditor = () => {
 
   if (!chapter) {
     return (
-      <div className="container mx-auto p-6 flex items-center justify-center">
+      <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
           <h2 className="text-2xl font-semibold text-destructive">Chapter Not Found</h2>
           <p className="text-muted-foreground">The requested chapter could not be found.</p>
@@ -207,7 +200,7 @@ const ChapterEditor = () => {
       <Card className="p-6">
         <MarkdownEditor
           value={chapter.content}
-          onChange={(value) => handleContentChange(value || '')}
+          onChange={handleContentChange}
           placeholder="Start writing your chapter content..."
         />
       </Card>
