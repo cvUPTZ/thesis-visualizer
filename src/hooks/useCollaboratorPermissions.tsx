@@ -18,6 +18,8 @@ export const useCollaboratorPermissions = (thesisId: string) => {
   const checkPermissions = async () => {
     try {
       setLoading(true);
+      console.log('Checking permissions for thesis:', thesisId);
+      
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
@@ -26,6 +28,9 @@ export const useCollaboratorPermissions = (thesisId: string) => {
         return;
       }
 
+      console.log('Current user ID:', session.user.id);
+
+      // First get user profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select(`
@@ -35,7 +40,7 @@ export const useCollaboratorPermissions = (thesisId: string) => {
           )
         `)
         .eq('id', session.user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         console.error('Error fetching profile:', profileError);
@@ -48,12 +53,13 @@ export const useCollaboratorPermissions = (thesisId: string) => {
         console.log('User profile:', profileData);
       }
 
+      // Then check collaborator role
       const { data: collaboratorData, error: collaboratorError } = await supabase
         .from('thesis_collaborators')
         .select('role')
         .eq('thesis_id', thesisId)
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle();
 
       if (collaboratorError && collaboratorError.code !== 'PGRST116') {
         console.error('Error checking permissions:', collaboratorError);
@@ -62,6 +68,8 @@ export const useCollaboratorPermissions = (thesisId: string) => {
       }
 
       const role = collaboratorData?.role;
+      console.log('Current user role:', role);
+      
       setCurrentUserRole(role);
       setCanManageCollaborators(
         role === 'owner' ||
@@ -69,8 +77,13 @@ export const useCollaboratorPermissions = (thesisId: string) => {
         profileData?.roles?.name === 'admin'
       );
     } catch (error: any) {
-      console.error('Error checking permissions:', error);
+      console.error('Error in checkPermissions:', error);
       setError(error);
+      toast({
+        title: "Error checking permissions",
+        description: error.message,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -78,8 +91,11 @@ export const useCollaboratorPermissions = (thesisId: string) => {
 
   const fetchCollaborators = async () => {
     try {
+      console.log('Fetching collaborators for thesis:', thesisId);
+      
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
+        console.log('No session for fetchCollaborators, redirecting...');
         navigate('/auth');
         return;
       }
@@ -87,6 +103,7 @@ export const useCollaboratorPermissions = (thesisId: string) => {
       const { data, error } = await supabase
         .from('thesis_collaborators')
         .select(`
+          id,
           user_id,
           role,
           created_at,
@@ -104,15 +121,26 @@ export const useCollaboratorPermissions = (thesisId: string) => {
       if (error) {
         console.error('Error fetching collaborators:', error);
         setError(error);
+        toast({
+          title: "Error fetching collaborators",
+          description: error.message,
+          variant: "destructive",
+        });
         return;
       }
 
       if (data) {
+        console.log('Fetched collaborators:', data);
         setCollaborators(data as CollaboratorWithProfile[]);
       }
     } catch (error: any) {
-      console.error('Error fetching collaborators:', error);
+      console.error('Error in fetchCollaborators:', error);
       setError(error);
+      toast({
+        title: "Error fetching collaborators",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
