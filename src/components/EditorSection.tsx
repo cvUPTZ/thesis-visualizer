@@ -82,7 +82,14 @@ export const EditorSection: React.FC<SectionProps> = ({
 
   const navigateToEditor = () => {
     const thesisId = window.location.pathname.split('/')[2];
-    navigate(`/thesis/${thesisId}/section/${section.id}`);
+    const isSpecialSection = section.type === 'introduction' || section.type === 'conclusion';
+    
+    if (isSpecialSection) {
+      const sectionType = section.type === 'introduction' ? 'general-introduction' : 'general-conclusion';
+      navigate(`/thesis/${thesisId}/section/${sectionType}`);
+    } else {
+      navigate(`/thesis/${thesisId}/sections/${section.id}`);
+    }
   };
 
   return (
