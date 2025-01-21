@@ -20,15 +20,34 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
     try {
       console.log('Auto-saving thesis:', thesisData.id);
       
-      // Create a safe copy of the thesis data
+      // Create a safe copy of the thesis data with all required fields
       const safeThesisData = {
+        id: thesisData.id,
+        title: thesisData.title || '',
+        description: thesisData.description || '',
         metadata: thesisData.metadata || {},
-        frontMatter: thesisData.frontMatter || [],
-        generalIntroduction: thesisData.generalIntroduction || null,
-        chapters: thesisData.chapters || [],
-        generalConclusion: thesisData.generalConclusion || null,
-        backMatter: thesisData.backMatter || []
+        frontMatter: Array.isArray(thesisData.frontMatter) ? thesisData.frontMatter : [],
+        generalIntroduction: thesisData.generalIntroduction || {
+          id: 'general-introduction',
+          title: 'General Introduction',
+          type: 'general-introduction',
+          content: ''
+        },
+        chapters: Array.isArray(thesisData.chapters) ? thesisData.chapters : [],
+        generalConclusion: thesisData.generalConclusion || {
+          id: 'general-conclusion',
+          title: 'General Conclusion',
+          type: 'general-conclusion',
+          content: ''
+        },
+        backMatter: Array.isArray(thesisData.backMatter) ? thesisData.backMatter : []
       };
+
+      // Validate the structure before saving
+      if (!safeThesisData.metadata || !safeThesisData.frontMatter || !safeThesisData.generalIntroduction ||
+          !safeThesisData.chapters || !safeThesisData.generalConclusion || !safeThesisData.backMatter) {
+        throw new Error('Invalid thesis structure');
+      }
 
       const serializedContent = JSON.stringify(safeThesisData) as unknown as Json;
 

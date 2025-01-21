@@ -118,7 +118,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
       <AnimatePresence>
         {activeCollaborators.map((collaborator) => (
           <motion.div
-            key={collaborator.user_id}
+            key={`${collaborator.user_id}-${collaborator.last_seen}`}
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
@@ -130,7 +130,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
                 alt={collaborator.email} 
               />
               <AvatarFallback>
-                {collaborator.email?.charAt(0).toUpperCase()}
+                {collaborator.email?.charAt(0).toUpperCase() || '?'}
               </AvatarFallback>
             </Avatar>
             <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-green-500 border border-background" />
