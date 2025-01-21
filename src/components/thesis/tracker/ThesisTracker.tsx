@@ -31,14 +31,15 @@ export const ThesisTracker = ({ thesis }: ThesisTrackerProps) => {
 
   // Calculate chapter completion status
   const getChapterStatus = (chapterIndex: number) => {
-    const chapter = thesis.chapters[chapterIndex];
+    const chapter = thesis.chapters?.[chapterIndex];
     if (!chapter) return { complete: false, progress: 0 };
 
-    const completedSections = chapter.sections.filter(
-      section => section.content && section.content.trim().length > 100
+    const sections = chapter.sections || [];
+    const completedSections = sections.filter(
+      section => section?.content && section.content.trim().length > 100
     ).length;
 
-    const progress = Math.round((completedSections / chapter.sections.length) * 100);
+    const progress = sections.length > 0 ? Math.round((completedSections / sections.length) * 100) : 0;
     return {
       complete: progress === 100,
       progress
@@ -51,6 +52,10 @@ export const ThesisTracker = ({ thesis }: ThesisTrackerProps) => {
   };
 
   const progress = calculateProgress();
+  const chapters = thesis.chapters || [];
+  const completedChapters = chapters.filter(chapter => 
+    chapter.sections?.every(section => section?.content?.length > 100)
+  ).length;
 
   return (
     <Card className="p-6 space-y-6 bg-white/50 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-xl">
@@ -68,16 +73,18 @@ export const ThesisTracker = ({ thesis }: ThesisTrackerProps) => {
           <Progress value={progress} className="h-2" />
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mt-4">
+        <div className="grid grid-cols-2 gap-4">
           <motion.div 
             whileHover={{ scale: 1.02 }}
             className="p-4 rounded-lg bg-white/30 space-y-2"
           >
             <div className="flex items-center gap-2 text-sm font-medium">
-              <Clock className="w-4 h-4 text-primary" />
+              <Clock className="w-4 h-4 text-blue-500" />
               Last Updated
             </div>
-            <p className="text-sm text-muted-foreground">{getLastUpdateDate()}</p>
+            <p className="text-sm text-muted-foreground">
+              {getLastUpdateDate()}
+            </p>
           </motion.div>
 
           <motion.div 
@@ -89,9 +96,7 @@ export const ThesisTracker = ({ thesis }: ThesisTrackerProps) => {
               Completed Chapters
             </div>
             <p className="text-sm text-muted-foreground">
-              {thesis.chapters.filter(chapter => 
-                chapter.sections.every(section => section.content?.length > 100)
-              ).length} / {thesis.chapters.length}
+              {completedChapters} / {chapters.length}
             </p>
           </motion.div>
         </div>
@@ -99,19 +104,15 @@ export const ThesisTracker = ({ thesis }: ThesisTrackerProps) => {
         <div className="mt-4">
           <h4 className="text-sm font-medium mb-2">Chapter Status</h4>
           <div className="space-y-2">
-            {thesis.chapters.map((chapter, index) => {
+            {chapters.map((chapter, index) => {
               const status = getChapterStatus(index);
               return (
-                <div key={chapter.id} className="flex items-center justify-between text-sm">
-                  <span className="truncate flex-1 mr-2">{chapter.title}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">{status.progress}%</span>
-                    {status.complete ? (
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <AlertCircle className="w-4 h-4 text-yellow-500" />
-                    )}
+                <div key={chapter.id} className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>{chapter.title || `Chapter ${index + 1}`}</span>
+                    <span>{status.progress}%</span>
                   </div>
+                  <Progress value={status.progress} className="h-1.5" />
                 </div>
               );
             })}

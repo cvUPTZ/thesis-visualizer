@@ -11,25 +11,33 @@ interface ThesisPlanningProps {
 }
 
 export const ThesisPlanning: React.FC<ThesisPlanningProps> = ({ thesis }) => {
-  const startDate = new Date(thesis.created_at);
+  if (!thesis) {
+    return <div>Thesis data not available</div>;
+  }
+
+  const startDate = thesis.created_at ? new Date(thesis.created_at) : null;
   const today = new Date();
   
   // Estimate end date as 6 months from start if not completed
-  const estimatedEndDate = addMonths(startDate, 6);
+  const estimatedEndDate = startDate ? addMonths(startDate, 6) : null;
   
-  const totalDays = differenceInDays(estimatedEndDate, startDate);
-  const daysElapsed = differenceInDays(today, startDate);
+  const totalDays = estimatedEndDate ? differenceInDays(estimatedEndDate, startDate) : 0;
+  const daysElapsed = startDate ? differenceInDays(today, startDate) : 0;
   const daysRemaining = Math.max(0, totalDays - daysElapsed);
-  
+
   // Calculate progress based on content
   const calculateProgress = () => {
     const frontMatterSections = thesis.frontMatter || [];
     const chapterSections = thesis.chapters?.flatMap(chapter => chapter.sections) || [];
     const backMatterSections = thesis.backMatter || [];
+    const generalIntro = thesis.generalIntroduction ? [thesis.generalIntroduction] : [];
+    const generalConc = thesis.generalConclusion ? [thesis.generalConclusion] : [];
 
     const allSections = [
       ...frontMatterSections,
+      ...generalIntro,
       ...chapterSections,
+      ...generalConc,
       ...backMatterSections
     ];
     
@@ -41,6 +49,7 @@ export const ThesisPlanning: React.FC<ThesisPlanningProps> = ({ thesis }) => {
   };
 
   const progress = calculateProgress();
+  const timeProgress = Math.min(100, Math.round((daysElapsed / totalDays) * 100));
 
   return (
     <Card className="p-6 space-y-6 bg-white/50 backdrop-blur-sm border-2 border-primary/10 shadow-xl rounded-xl">
@@ -53,9 +62,9 @@ export const ThesisPlanning: React.FC<ThesisPlanningProps> = ({ thesis }) => {
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span>Timeline Progress</span>
-            <span>{progress}%</span>
+            <span>{timeProgress}%</span>
           </div>
-          <Progress value={progress} className="h-2" />
+          <Progress value={timeProgress} className="h-2" />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -64,11 +73,11 @@ export const ThesisPlanning: React.FC<ThesisPlanningProps> = ({ thesis }) => {
             className="p-4 rounded-lg bg-white/30 space-y-2"
           >
             <div className="flex items-center gap-2 text-sm font-medium">
-              <Calendar className="w-4 h-4 text-primary" />
-              Start Date
+              <Calendar className="w-4 h-4 text-blue-500" />
+              Days Remaining
             </div>
             <p className="text-sm text-muted-foreground">
-              {format(startDate, 'PPP')}
+              {daysRemaining} days
             </p>
           </motion.div>
 
@@ -77,32 +86,27 @@ export const ThesisPlanning: React.FC<ThesisPlanningProps> = ({ thesis }) => {
             className="p-4 rounded-lg bg-white/30 space-y-2"
           >
             <div className="flex items-center gap-2 text-sm font-medium">
-              <Target className="w-4 h-4 text-primary" />
-              Target Completion
+              <Target className="w-4 h-4 text-green-500" />
+              Content Progress
             </div>
             <p className="text-sm text-muted-foreground">
-              {format(estimatedEndDate, 'PPP')}
+              {progress}% Complete
             </p>
           </motion.div>
         </div>
 
-        <div className="mt-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">Time Remaining</span>
+        <div className="mt-4">
+          <h4 className="text-sm font-medium mb-2">Important Dates</h4>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Start Date</span>
+              <span>{startDate ? format(startDate, 'MMM d, yyyy') : 'Not available'}</span>
             </div>
-            <span className="text-sm text-muted-foreground">
-              {daysRemaining} days
-            </span>
+            <div className="flex justify-between text-sm">
+              <span>Estimated Completion</span>
+              <span>{estimatedEndDate ? format(estimatedEndDate, 'MMM d, yyyy') : 'Not available'}</span>
+            </div>
           </div>
-
-          {daysRemaining < 30 && progress < 90 && (
-            <div className="flex items-center gap-2 text-yellow-600 bg-yellow-50 p-3 rounded-lg">
-              <AlertCircle className="w-4 h-4" />
-              <span className="text-sm">Less than a month remaining with {progress}% completion!</span>
-            </div>
-          )}
         </div>
       </div>
     </Card>
