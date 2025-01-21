@@ -16,10 +16,10 @@ export default function SectionEditor() {
   const { thesisId, sectionId } = useParams();
   const { thesis, setThesis } = useThesisData(thesisId);
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [section, setSection] = useState<Section | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!thesis || !sectionId) return;
@@ -51,13 +51,35 @@ export default function SectionEditor() {
     if (!thesis || !sectionId) return null;
 
     // Check if it's the general introduction
-    if (thesis.generalIntroduction?.id === sectionId) {
-      return thesis.generalIntroduction;
+    if (thesis.generalIntroduction?.id === sectionId || sectionId === 'general-introduction') {
+      return thesis.generalIntroduction || {
+        id: crypto.randomUUID(),
+        title: 'General Introduction',
+        content: '',
+        type: 'general_introduction',
+        order: 1,
+        required: true,
+        figures: [],
+        tables: [],
+        citations: [],
+        references: []
+      };
     }
 
     // Check if it's the general conclusion
-    if (thesis.generalConclusion?.id === sectionId) {
-      return thesis.generalConclusion;
+    if (thesis.generalConclusion?.id === sectionId || sectionId === 'general-conclusion') {
+      return thesis.generalConclusion || {
+        id: crypto.randomUUID(),
+        title: 'General Conclusion',
+        content: '',
+        type: 'general_conclusion',
+        order: 1,
+        required: true,
+        figures: [],
+        tables: [],
+        citations: [],
+        references: []
+      };
     }
 
     // Check front matter
@@ -76,18 +98,18 @@ export default function SectionEditor() {
 
     // If section not found, try to create it
     try {
-      const sectionTitle = sectionId.split('-').map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1)
-      ).join(' ');
-      
-      console.log('Creating new section:', { thesisId, sectionId, sectionTitle });
+      console.log('Creating new section for:', { thesisId, sectionId });
+      const sectionType = sectionId === 'general-introduction' ? 'general_introduction' : 
+                         sectionId === 'general-conclusion' ? 'general_conclusion' : 'custom';
       
       const { data: newSectionId, error } = await supabase.rpc(
         'create_section_if_not_exists',
         { 
           p_thesis_id: thesisId,
-          p_section_title: sectionTitle,
-          p_section_type: 'custom'
+          p_section_title: sectionId === 'general-introduction' ? 'General Introduction' :
+                          sectionId === 'general-conclusion' ? 'General Conclusion' :
+                          'New Section',
+          p_section_type: sectionType
         }
       );
 
@@ -98,7 +120,7 @@ export default function SectionEditor() {
         .from('theses')
         .select('*')
         .eq('id', thesisId)
-        .single();
+        .maybeSingle();
 
       if (refreshError) throw refreshError;
 
@@ -107,10 +129,13 @@ export default function SectionEditor() {
           ? JSON.parse(refreshedThesis.content) 
           : refreshedThesis.content;
 
-        // Find the newly created section
-        const newSection = content.frontMatter?.find((s: Section) => s.id === newSectionId);
-        if (newSection) {
-          return newSection;
+        if (sectionType === 'general_introduction') {
+          return content.generalIntroduction;
+        } else if (sectionType === 'general_conclusion') {
+          return content.generalConclusion;
+        } else {
+          // Find the newly created section
+          return content.frontMatter?.find((s: Section) => s.id === newSectionId);
         }
       }
     } catch (err) {
@@ -126,14 +151,15 @@ export default function SectionEditor() {
 
     try {
       const updatedThesis = { ...thesis };
+      const isGeneralIntro = section.type === 'general_introduction' || section.id === 'general-introduction';
+      const isGeneralConc = section.type === 'general_conclusion' || section.id === 'general-conclusion';
       
-      // Update the appropriate section based on its location
-      if (section.id === thesis.generalIntroduction?.id) {
+      if (isGeneralIntro) {
         updatedThesis.generalIntroduction = {
           ...thesis.generalIntroduction,
           content: newContent
         };
-      } else if (section.id === thesis.generalConclusion?.id) {
+      } else if (isGeneralConc) {
         updatedThesis.generalConclusion = {
           ...thesis.generalConclusion,
           content: newContent
@@ -240,9 +266,13 @@ export default function SectionEditor() {
       content={
         <div className="container mx-auto p-8">
           <Card className="p-6">
-            <SectionHeader title={section.title} onTitleChange={(newTitle) => {
-              setSection({ ...section, title: newTitle });
-            }} />
+            <SectionHeader 
+              title={section.title} 
+              onTitleChange={(newTitle) => {
+                setSection({ ...section, title: newTitle });
+              }}
+              required={section.required}
+            />
             <div className="mt-6">
               <MarkdownEditor
                 value={section.content}
