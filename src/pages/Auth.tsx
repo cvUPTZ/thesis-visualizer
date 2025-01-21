@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { EmailAuthForm } from '@/components/auth/EmailAuthForm';
 import { SocialAuth } from '@/components/auth/SocialAuth';
@@ -9,6 +9,7 @@ import LandingPage from './LandingPage';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AuthError, AuthApiError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useEffect } from 'react';
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -26,41 +27,32 @@ const Auth = () => {
   };
 
   useEffect(() => {
-    let mounted = true;
-
     // Check if user is already logged in
     const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session && mounted) {
-          console.log('✅ User already logged in, redirecting...');
-          navigate('/');
-        }
-      } catch (error) {
-        console.error('❌ Error checking session:', error);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/');
       }
     };
-
     checkSession();
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔄 Auth state changed:', event, session?.user?.email);
+      console.log('Auth state changed:', event, session?.user?.email);
       
-      if (event === 'SIGNED_IN' && session && mounted) {
+      if (event === 'SIGNED_IN' && session) {
         navigate('/');
       }
     });
 
     return () => {
-      mounted = false;
-      subscription?.unsubscribe();
+      subscription.unsubscribe();
     };
   }, [navigate]);
 
   // Error message handler
   const getErrorMessage = (error: AuthError) => {
-    console.error('❌ Authentication error:', error);
+    console.error('Authentication error:', error);
     
     if (error instanceof AuthApiError) {
       switch (error.status) {
