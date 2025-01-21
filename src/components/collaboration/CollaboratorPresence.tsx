@@ -49,7 +49,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
             console.log('Presence state:', state);
             
             const currentPresence = Object.values(state).flat().map((presence: any) => ({
-              id: presence.user_id,
+              id: `${presence.user_id}-${Date.now()}`,
               user_id: presence.user_id,
               email: presence.email,
               last_seen: presence.online_at
@@ -57,8 +57,17 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
 
             setActiveCollaborators(currentPresence);
           })
-          .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-            console.log('User joined:', key, newPresences);
+          .on('presence', { event: 'join' }, ({ key, newPresences }: any) => {
+            console.log('Join event:', { key, newPresences });
+            setActiveCollaborators(prev => {
+              const newCollaborators = newPresences.map((presence: any) => ({
+                id: `${presence.user_id}-${Date.now()}`,
+                user_id: presence.user_id,
+                email: presence.email,
+                last_seen: new Date().toISOString()
+              }));
+              return [...prev, ...newCollaborators];
+            });
           })
           .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
             console.log('User left:', key, leftPresences);
@@ -97,7 +106,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
 
     return () => {
       if (presenceChannel.current) {
-        supabase.removeChannel(presenceChannel.current);
+        supabase.removeChannel(presanceChannel.current);
       }
     };
   }, [thesisId, toast]);

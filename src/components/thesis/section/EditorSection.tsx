@@ -56,17 +56,21 @@ export default function SectionEditor() {
     }
 
     // Check front matter
-    const frontMatterSection = thesis.frontMatter.find(s => s.id === sectionId);
+    const frontMatterSection = thesis.frontMatter?.find(s => s.id === sectionId);
     if (frontMatterSection) return frontMatterSection;
 
     // Check back matter
-    const backMatterSection = thesis.backMatter.find(s => s.id === sectionId);
+    const backMatterSection = thesis.backMatter?.find(s => s.id === sectionId);
     if (backMatterSection) return backMatterSection;
 
     // Check chapters
-    for (const chapter of thesis.chapters) {
-      const section = chapter.sections.find(s => s.id === sectionId);
-      if (section) return section;
+    if (thesis.chapters) {
+      for (const chapter of thesis.chapters) {
+        if (chapter.sections) {
+          const section = chapter.sections.find(s => s.id === sectionId);
+          if (section) return section;
+        }
+      }
     }
 
     // If section not found, try to create it
@@ -133,7 +137,7 @@ export default function SectionEditor() {
         };
       } else {
         // Update in front matter or chapters
-        const frontMatterIndex = thesis.frontMatter.findIndex(s => s.id === section.id);
+        const frontMatterIndex = thesis.frontMatter?.findIndex(s => s.id === section.id);
         if (frontMatterIndex !== -1) {
           updatedThesis.frontMatter[frontMatterIndex] = {
             ...thesis.frontMatter[frontMatterIndex],
