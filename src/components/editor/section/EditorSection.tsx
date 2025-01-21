@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
@@ -7,11 +7,16 @@ import { useThesisData } from '@/hooks/useThesisData';
 import { supabase } from '@/integrations/supabase/client';
 import { Section } from '@/types/thesis';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import { EditorLayout } from '@/components/editor/layout/EditorLayout';
+import { SectionHeader } from '@/components/editor/SectionHeader';
 
 export default function SectionEditor() {
   const { thesisId, sectionId } = useParams();
   const { thesis, setThesis } = useThesisData(thesisId);
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [section, setSection] = useState<Section | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -46,13 +51,13 @@ export default function SectionEditor() {
     if (!thesis || !sectionId) return null;
 
     // Check if it's the general introduction
-    if (thesis.generalIntroduction?.id === sectionId || sectionId === 'general-introduction') {
-      return thesis.generalIntroduction || null;
+    if (thesis.generalIntroduction?.id === sectionId) {
+      return thesis.generalIntroduction;
     }
 
     // Check if it's the general conclusion
-    if (thesis.generalConclusion?.id === sectionId || sectionId === 'general-conclusion') {
-      return thesis.generalConclusion || null;
+    if (thesis.generalConclusion?.id === sectionId) {
+      return thesis.generalConclusion;
     }
 
     // Check front matter
@@ -71,48 +76,31 @@ export default function SectionEditor() {
 
     // If section not found, try to create it
     try {
-      console.log('Creating new section for:', { thesisId, sectionId });
+      const sectionTitle = sectionId.split('-').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ');
       
-      // First ensure the thesis content is properly structured
-      const { data: updatedThesis, error: updateError } = await supabase
-        .from('theses')
-        .update({
-          content: {
-            ...thesis.content,
-            frontMatter: thesis.content.frontMatter || []
-          }
-        })
-        .eq('id', thesisId)
-        .select()
-        .single();
-
-      if (updateError) throw updateError;
-
-      // Now create the new section
+      console.log('Creating new section:', { thesisId, sectionId, sectionTitle });
+      
       const { data: newSectionId, error } = await supabase.rpc(
         'create_section_if_not_exists',
         { 
           p_thesis_id: thesisId,
-          p_section_title: sectionId.split('-').map(word => 
-            word.charAt(0).toUpperCase() + word.slice(1)
-          ).join(' '),
+          p_section_title: sectionTitle,
           p_section_type: 'custom'
         }
       );
 
-      if (error) {
-        console.error('Error creating section:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       // Refresh thesis data to get the new section
-      const { data: refreshedThesis, error: thesisError } = await supabase
+      const { data: refreshedThesis, error: refreshError } = await supabase
         .from('theses')
         .select('*')
         .eq('id', thesisId)
         .single();
 
-      if (thesisError) throw thesisError;
+      if (refreshError) throw refreshError;
 
       if (refreshedThesis) {
         const content = typeof refreshedThesis.content === 'string' 
@@ -185,49 +173,86 @@ export default function SectionEditor() {
     }
   };
 
+  const sidebar = (
+    <div className="p-4 space-y-4">
+      <Button
+        variant="ghost"
+        className="w-full justify-start"
+        onClick={() => navigate(`/thesis/${thesisId}`)}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Thesis
+      </Button>
+    </div>
+  );
+
   if (isLoading) {
     return (
-      <div className="container mx-auto p-8">
-        <Skeleton className="h-8 w-64 mb-6" />
-        <Skeleton className="h-[500px] w-full" />
-      </div>
+      <EditorLayout
+        sidebar={sidebar}
+        content={
+          <div className="container mx-auto p-8">
+            <Skeleton className="h-8 w-64 mb-6" />
+            <Skeleton className="h-[500px] w-full" />
+          </div>
+        }
+      />
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto p-8">
-        <Card className="p-6">
-          <h1 className="text-2xl font-bold text-destructive">Error</h1>
-          <p className="mt-4 text-muted-foreground">{error}</p>
-        </Card>
-      </div>
+      <EditorLayout
+        sidebar={sidebar}
+        content={
+          <div className="container mx-auto p-8">
+            <Card className="p-6">
+              <h1 className="text-2xl font-bold text-destructive">Error</h1>
+              <p className="mt-4 text-muted-foreground">{error}</p>
+            </Card>
+          </div>
+        }
+      />
     );
   }
 
   if (!section) {
     return (
-      <div className="container mx-auto p-8">
-        <Card className="p-6">
-          <h1 className="text-2xl font-bold text-destructive">Section not found</h1>
-          <p className="mt-4 text-muted-foreground">
-            The requested section could not be found. Please check the URL and try again.
-          </p>
-        </Card>
-      </div>
+      <EditorLayout
+        sidebar={sidebar}
+        content={
+          <div className="container mx-auto p-8">
+            <Card className="p-6">
+              <h1 className="text-2xl font-bold text-destructive">Section not found</h1>
+              <p className="mt-4 text-muted-foreground">
+                The requested section could not be found. Please check the URL and try again.
+              </p>
+            </Card>
+          </div>
+        }
+      />
     );
   }
 
   return (
-    <div className="container mx-auto p-8">
-      <Card className="p-6">
-        <h1 className="text-2xl font-bold mb-6">{section.title}</h1>
-        <MarkdownEditor
-          value={section.content}
-          onChange={handleContentChange}
-          placeholder="Start writing your section content..."
-        />
-      </Card>
-    </div>
+    <EditorLayout
+      sidebar={sidebar}
+      content={
+        <div className="container mx-auto p-8">
+          <Card className="p-6">
+            <SectionHeader title={section.title} onTitleChange={(newTitle) => {
+              setSection({ ...section, title: newTitle });
+            }} />
+            <div className="mt-6">
+              <MarkdownEditor
+                value={section.content}
+                onChange={handleContentChange}
+                placeholder="Start writing your section content..."
+              />
+            </div>
+          </Card>
+        </div>
+      }
+    />
   );
 }
