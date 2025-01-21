@@ -5,173 +5,184 @@ import { Json } from '@/integrations/supabase/types';
 import { ThesisSectionType } from '@/types/thesis';
 
 interface ThesisMetadata {
-   title: string;
-   description: string;
-   keywords: string;
-   universityName?: string;
-   departmentName?: string;
-    authorName?: string;
-   thesisDate?: string;
-   committeeMembers?: string[];
- }
- export const useThesisCreation = () => {
-   const [isSubmitting, setIsSubmitting] = useState(false);
-   const { toast } = useToast();
+  title: string;
+  description: string;
+  keywords: string;
+  universityName?: string;
+  departmentName?: string;
+  authorName?: string;
+  thesisDate?: string;
+  committeeMembers?: string[];
+}
+
+export const useThesisCreation = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const createThesis = async (
-     metadata: ThesisMetadata,
-     userId: string
-   ) => {
-     setIsSubmitting(true);
-     try {
-         console.log('Starting thesis creation with metadata:', metadata);
+    metadata: ThesisMetadata,
+    userId: string
+  ) => {
+    setIsSubmitting(true);
+    try {
+      console.log('Starting thesis creation with metadata:', metadata);
 
-         const thesisId = crypto.randomUUID();
+      const thesisId = crypto.randomUUID();
+      const now = new Date().toISOString();
 
-         const keywordsArray = metadata.keywords
-             ? metadata.keywords.split(',').map(k => k.trim()).filter(k => k)
-             : [];
+      const keywordsArray = metadata.keywords
+        ? metadata.keywords.split(',').map(k => k.trim()).filter(k => k)
+        : [];
 
-         // Prepare thesis content with proper typing
-         const thesisContent = {
-           metadata: {
-             description: metadata.description,
-            keywords: keywordsArray,
-                 createdAt: new Date().toISOString(),
-              universityName: metadata.universityName,
-               departmentName: metadata.departmentName,
-                 authorName: metadata.authorName,
-                 thesisDate: metadata.thesisDate,
-               committeeMembers: metadata.committeeMembers
-           },
-           frontMatter: [
-             {
-               id: crypto.randomUUID(),
-               title: metadata.title,
-              content: '',
-               type: 'title' as ThesisSectionType,
-                required: true,
-               order: 1,
-               figures: [],
-               tables: [],
-               citations: []
-            },
-            {
-             id: crypto.randomUUID(),
-               title: 'Abstract',
-               content: metadata.description,
-               type: 'abstract' as ThesisSectionType,
-                 required: true,
-               order: 2,
-             figures: [],
-               tables: [],
-               citations: []
-            }
-          ],
-          generalIntroduction: {
+      // Prepare thesis content with proper typing and all required fields
+      const thesisContent = {
+        id: thesisId,
+        title: metadata.title || 'Untitled Thesis',
+        description: metadata.description || '',
+        status: 'draft',
+        created_at: now,
+        updated_at: now,
+        metadata: {
+          description: metadata.description || '',
+          keywords: keywordsArray,
+          createdAt: now,
+          updatedAt: now,
+          universityName: metadata.universityName || '',
+          departmentName: metadata.departmentName || '',
+          authorName: metadata.authorName || '',
+          thesisDate: metadata.thesisDate || now.split('T')[0],
+          committeeMembers: metadata.committeeMembers || []
+        },
+        frontMatter: [
+          {
             id: crypto.randomUUID(),
-            title: 'General Introduction',
+            title: metadata.title || 'Untitled Thesis',
             content: '',
-            type: 'general-introduction' as ThesisSectionType,
+            type: 'title' as ThesisSectionType,
             required: true,
             order: 1,
+            status: 'draft',
+            created_at: now,
+            updated_at: now,
             figures: [],
             tables: [],
-            citations: [],
-            references: []
+            citations: []
           },
-         chapters: [],
-          generalConclusion: {
+          {
             id: crypto.randomUUID(),
-            title: 'General Conclusion',
+            title: 'Abstract',
+            content: metadata.description || '',
+            type: 'abstract' as ThesisSectionType,
+            required: true,
+            order: 2,
+            status: 'draft',
+            created_at: now,
+            updated_at: now,
+            figures: [],
+            tables: [],
+            citations: []
+          }
+        ],
+        generalIntroduction: {
+          id: 'general-introduction',
+          title: 'General Introduction',
+          content: '',
+          type: 'general-introduction' as ThesisSectionType,
+          required: true,
+          order: 1,
+          status: 'draft',
+          created_at: now,
+          updated_at: now,
+          figures: [],
+          tables: [],
+          citations: [],
+          references: []
+        },
+        chapters: [],
+        generalConclusion: {
+          id: 'general-conclusion',
+          title: 'General Conclusion',
+          content: '',
+          type: 'general-conclusion' as ThesisSectionType,
+          required: true,
+          order: 1,
+          status: 'draft',
+          created_at: now,
+          updated_at: now,
+          figures: [],
+          tables: [],
+          citations: [],
+          references: []
+        },
+        backMatter: [
+          {
+            id: crypto.randomUUID(),
+            title: 'References',
             content: '',
-            type: 'general-conclusion' as ThesisSectionType,
+            type: 'references' as ThesisSectionType,
             required: true,
             order: 1,
+            status: 'draft',
+            created_at: now,
+            updated_at: now,
             figures: [],
             tables: [],
-            citations: [],
-            references: []
-          },
-           backMatter: [
-                 {
-                     id: crypto.randomUUID(),
-                   title: 'References',
-                     content: '',
-                    type: 'references' as ThesisSectionType,
-                     required: true,
-                     order: 1,
-                     figures: [],
-                     tables: [],
-                     citations: [],
-                    references: []
-               }
-            ]
-         } as Json;
+            citations: []
+          }
+        ]
+      };
 
-         console.log('Creating thesis with content:', { thesisId, title: metadata.title, content: thesisContent, userId });
+      // Insert the new thesis
+      const { error: insertError } = await supabase
+        .from('theses')
+        .insert({
+          id: thesisId,
+          title: metadata.title,
+          content: thesisContent as unknown as Json,
+          user_id: userId,
+          created_at: now,
+          updated_at: now,
+          status: 'draft',
+          version: '1.0'
+        });
 
-         // Create thesis with metadata and ensure user_id is set
-         const { error: thesisError } = await supabase
-             .from('theses')
-             .insert({
-               id: thesisId,
-               title: metadata.title,
-                 content: thesisContent,
-                 user_id: userId
-           });
+      if (insertError) throw insertError;
 
-         if (thesisError) {
-             console.error('Error creating thesis:', thesisError);
-             throw thesisError;
-         }
+      // Add user as owner in thesis_collaborators
+      const { error: collaboratorError } = await supabase
+        .from('thesis_collaborators')
+        .insert({
+          thesis_id: thesisId,
+          user_id: userId,
+          role: 'owner',
+          created_at: now
+        });
 
-         // Add user as owner
-         const { error: collaboratorError } = await supabase
-             .from('thesis_collaborators')
-             .insert({
-                 thesis_id: thesisId,
-                 user_id: userId,
-                 role: 'owner'
-            });
+      if (collaboratorError) throw collaboratorError;
 
-         if (collaboratorError) {
-           console.error('Error adding thesis owner:', collaboratorError);
-           // Rollback thesis creation
-            await supabase
-                 .from('theses')
-                 .delete()
-                 .eq('id', thesisId);
-           throw collaboratorError;
-         }
+      toast({
+        title: "Success",
+        description: "Your thesis has been created successfully.",
+        variant: "success"
+      });
 
-         toast({
-          title: "Success",
-           description: "Your thesis has been created successfully.",
-         });
+      return thesisId;
 
-         // Return thesisId and title
-         return {
-          thesisId,
-           title: metadata.title
-       };
+    } catch (error) {
+      console.error('Error creating thesis:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create thesis",
+        variant: "destructive"
+      });
+      return null;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-
-     } catch (error: any) {
-         console.error('Error in thesis creation:', error);
-         toast({
-             title: "Error",
-           description: error.message || "Failed to create thesis. Please try again.",
-             variant: "destructive",
-         });
-         return null;
-     } finally {
-       setIsSubmitting(false);
-     }
-   };
-
-   return {
-     createThesis,
-     isSubmitting
-   };
- };
+  return {
+    createThesis,
+    isSubmitting
+  };
+};
