@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { EditorLayout } from '@/components/editor/layout/EditorLayout';
 import { SectionHeader } from '@/components/editor/SectionHeader';
+import { ensureThesisStructure, SectionType } from '@/utils/thesisUtils';
 
 export default function SectionEditor() {
   const { thesisId, sectionId } = useParams();
@@ -54,54 +55,26 @@ export default function SectionEditor() {
 
     console.log('Finding section:', { sectionId, thesisContent: thesis.content });
 
-    // Check if it's the general introduction
-    if (sectionId === 'general-introduction' || thesis.generalIntroduction?.id === sectionId) {
-      if (thesis.generalIntroduction) {
-        return thesis.generalIntroduction;
+    const sectionType = sectionId === 'general-introduction' || thesis.generalIntroduction?.id === sectionId
+      ? 'general-introduction'
+      : sectionId === 'general-conclusion' || thesis.generalConclusion?.id === sectionId
+        ? 'general-conclusion'
+        : null;
+
+    if (sectionType) {
+      const existingSection = sectionType === 'general-introduction' 
+        ? thesis.generalIntroduction 
+        : thesis.generalConclusion;
+
+      if (existingSection) {
+        return existingSection;
       }
 
-      // Create general introduction if it doesn't exist
       try {
-        console.log('Creating general introduction section');
+        console.log(`Creating ${sectionType} section`);
         
-        // Prepare the new thesis content with all required fields
-        const updatedContent = {
-          ...thesis,
-          metadata: thesis.metadata || {},
-          frontMatter: thesis.frontMatter || [],
-          generalIntroduction: {
-            id: 'general-introduction',
-            title: 'General Introduction',
-            content: '',
-            type: 'general-introduction',
-            required: true,
-            order: 1,
-            status: 'draft',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            figures: [],
-            tables: [],
-            citations: [],
-            references: []
-          },
-          chapters: thesis.chapters || [],
-          generalConclusion: thesis.generalConclusion || {
-            id: 'general-conclusion',
-            title: 'General Conclusion',
-            content: '',
-            type: 'general-conclusion',
-            required: true,
-            order: 1,
-            status: 'draft',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            figures: [],
-            tables: [],
-            citations: [],
-            references: []
-          },
-          backMatter: thesis.backMatter || []
-        };
+        // Update thesis with complete structure including the new section
+        const updatedContent = ensureThesisStructure(thesis);
 
         // Update the thesis with the new content
         const { error: updateError } = await supabase
@@ -115,78 +88,12 @@ export default function SectionEditor() {
         if (updateError) throw updateError;
 
         // Return the newly created section
-        return updatedContent.generalIntroduction;
+        return sectionType === 'general-introduction' 
+          ? updatedContent.generalIntroduction 
+          : updatedContent.generalConclusion;
       } catch (err) {
-        console.error('Error creating general introduction:', err);
-        throw new Error('Failed to create general introduction');
-      }
-    }
-
-    // Check if it's the general conclusion
-    if (sectionId === 'general-conclusion' || thesis.generalConclusion?.id === sectionId) {
-      if (thesis.generalConclusion) {
-        return thesis.generalConclusion;
-      }
-
-      // Create general conclusion if it doesn't exist
-      try {
-        console.log('Creating general conclusion section');
-        
-        // Prepare the new thesis content with all required fields
-        const updatedContent = {
-          ...thesis,
-          metadata: thesis.metadata || {},
-          frontMatter: thesis.frontMatter || [],
-          generalIntroduction: thesis.generalIntroduction || {
-            id: 'general-introduction',
-            title: 'General Introduction',
-            content: '',
-            type: 'general-introduction',
-            required: true,
-            order: 1,
-            status: 'draft',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            figures: [],
-            tables: [],
-            citations: [],
-            references: []
-          },
-          chapters: thesis.chapters || [],
-          generalConclusion: {
-            id: 'general-conclusion',
-            title: 'General Conclusion',
-            content: '',
-            type: 'general-conclusion',
-            required: true,
-            order: 1,
-            status: 'draft',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            figures: [],
-            tables: [],
-            citations: [],
-            references: []
-          },
-          backMatter: thesis.backMatter || []
-        };
-
-        // Update the thesis with the new content
-        const { error: updateError } = await supabase
-          .from('theses')
-          .update({ 
-            content: updatedContent,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', thesisId);
-
-        if (updateError) throw updateError;
-
-        // Return the newly created section
-        return updatedContent.generalConclusion;
-      } catch (err) {
-        console.error('Error creating general conclusion:', err);
-        throw new Error('Failed to create general conclusion');
+        console.error(`Error creating ${sectionType}:`, err);
+        throw new Error(`Failed to create ${sectionType}`);
       }
     }
 
