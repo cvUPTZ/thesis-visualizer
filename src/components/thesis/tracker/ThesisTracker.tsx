@@ -12,17 +12,21 @@ interface ThesisTrackerProps {
 export const ThesisTracker = ({ thesis }: ThesisTrackerProps) => {
   // Calculate overall progress based on completed sections
   const calculateProgress = () => {
+    const frontMatterSections = thesis.frontMatter || [];
+    const chapterSections = thesis.chapters?.flatMap(chapter => chapter.sections) || [];
+    const backMatterSections = thesis.backMatter || [];
+
     const allSections = [
-      ...thesis.frontMatter,
-      ...thesis.chapters.flatMap(chapter => chapter.sections),
-      ...thesis.backMatter
+      ...frontMatterSections,
+      ...chapterSections,
+      ...backMatterSections
     ];
     
     const completedSections = allSections.filter(section => 
-      section.content && section.content.trim().length > 100
+      section?.content && section.content.trim().length > 100
     ).length;
     
-    return Math.round((completedSections / allSections.length) * 100);
+    return allSections.length > 0 ? Math.round((completedSections / allSections.length) * 100) : 0;
   };
 
   // Calculate chapter completion status

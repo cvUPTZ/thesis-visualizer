@@ -71,7 +71,7 @@ interface ThesisMetadata {
           generalIntroduction: {
             id: crypto.randomUUID(),
             title: 'General Introduction',
-            content: [],
+            content: '',
             type: 'general-introduction' as ThesisSectionType,
             required: true,
             order: 1,
@@ -84,7 +84,7 @@ interface ThesisMetadata {
           generalConclusion: {
             id: crypto.randomUUID(),
             title: 'General Conclusion',
-            content: [],
+            content: '',
             type: 'general-conclusion' as ThesisSectionType,
             required: true,
             order: 1,

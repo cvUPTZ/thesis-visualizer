@@ -23,17 +23,21 @@ export const ThesisPlanning: React.FC<ThesisPlanningProps> = ({ thesis }) => {
   
   // Calculate progress based on content
   const calculateProgress = () => {
+    const frontMatterSections = thesis.frontMatter || [];
+    const chapterSections = thesis.chapters?.flatMap(chapter => chapter.sections) || [];
+    const backMatterSections = thesis.backMatter || [];
+
     const allSections = [
-      ...thesis.frontMatter,
-      ...thesis.chapters.flatMap(chapter => chapter.sections),
-      ...thesis.backMatter
+      ...frontMatterSections,
+      ...chapterSections,
+      ...backMatterSections
     ];
     
     const completedSections = allSections.filter(section => 
-      section.content && section.content.trim().length > 100
+      section?.content && section.content.trim().length > 100
     ).length;
     
-    return Math.min(100, Math.round((completedSections / allSections.length) * 100));
+    return allSections.length > 0 ? Math.min(100, Math.round((completedSections / allSections.length) * 100)) : 0;
   };
 
   const progress = calculateProgress();
