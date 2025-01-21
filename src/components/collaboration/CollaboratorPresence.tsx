@@ -106,7 +106,9 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
 
     return () => {
       if (presenceChannel.current) {
-        supabase.removeChannel(presanceChannel.current);
+        console.log('Cleaning up presence channel');
+        supabase.removeChannel(presenceChannel.current);
+        presenceChannel.current = null;
       }
     };
   }, [thesisId, toast]);

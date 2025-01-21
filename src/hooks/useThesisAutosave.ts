@@ -11,18 +11,26 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
   const lastToastTime = useRef<number>(0);
   const TOAST_COOLDOWN = 5000; // 5 seconds between toasts
 
-  const saveThesis = useCallback(async (thesisData: Thesis) => {
-    if (!thesisData) return;
+  const saveThesis = useCallback(async (thesisData: Thesis | null) => {
+    if (!thesisData || !thesisData.id) {
+      console.log('No thesis data to save');
+      return;
+    }
     
     try {
       console.log('Auto-saving thesis:', thesisData.id);
       
-      const serializedContent = JSON.stringify({
-        metadata: thesisData.metadata,
-        frontMatter: thesisData.frontMatter,
-        chapters: thesisData.chapters,
-        backMatter: thesisData.backMatter
-      }) as unknown as Json;
+      // Create a safe copy of the thesis data
+      const safeThesisData = {
+        metadata: thesisData.metadata || {},
+        frontMatter: thesisData.frontMatter || [],
+        generalIntroduction: thesisData.generalIntroduction || null,
+        chapters: thesisData.chapters || [],
+        generalConclusion: thesisData.generalConclusion || null,
+        backMatter: thesisData.backMatter || []
+      };
+
+      const serializedContent = JSON.stringify(safeThesisData) as unknown as Json;
 
       const { error } = await supabase
         .from('theses')
@@ -32,7 +40,10 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
         })
         .eq('id', thesisData.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error while saving:', error);
+        throw new Error(error.message);
+      }
       
       lastSavedContent.current = JSON.stringify(thesisData);
       console.log('Auto-save successful');
@@ -44,34 +55,39 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
         toast({
           title: "Auto-saved",
           description: "Your thesis has been automatically saved.",
+          variant: "success"
         });
       }
     } catch (error) {
       console.error('Error auto-saving thesis:', error);
       toast({
         title: "Auto-save failed",
-        description: "Failed to auto-save your thesis. Your changes will be saved on next successful attempt.",
-        variant: "destructive",
+        description: error instanceof Error ? error.message : "Failed to save your thesis. Please try again.",
+        variant: "destructive"
       });
     }
   }, [toast]);
 
+  // Debounced version of saveThesis
   const debouncedSave = useCallback(
-    debounce((thesisData: Thesis) => {
-      const currentContent = JSON.stringify(thesisData);
-      if (currentContent !== lastSavedContent.current) {
-        saveThesis(thesisData);
-      }
+    debounce((thesis: Thesis) => {
+      saveThesis(thesis);
     }, 2000),
     [saveThesis]
   );
 
   useEffect(() => {
-    if (thesis) {
+    if (!thesis) return;
+
+    const currentContent = JSON.stringify(thesis);
+    if (currentContent !== lastSavedContent.current) {
       debouncedSave(thesis);
     }
+
     return () => {
       debouncedSave.cancel();
     };
   }, [thesis, debouncedSave]);
+
+  return { saveThesis };
 };
