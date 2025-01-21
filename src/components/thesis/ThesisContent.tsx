@@ -10,6 +10,8 @@ interface ThesisContentProps {
   frontMatter: Section[];
   chapters: Chapter[];
   backMatter: Section[];
+  generalIntroduction?: Section;
+  generalConclusion?: Section;
   activeSection: string;
   onContentChange: (id: string, content: string) => void;
   onTitleChange: (id: string, title: string) => void;
@@ -24,6 +26,8 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
   frontMatter,
   chapters,
   backMatter,
+  generalIntroduction,
+  generalConclusion,
   activeSection,
   onContentChange,
   onTitleChange,
@@ -51,7 +55,9 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
         </div>
         <div className="mb-6">
           <MarkdownEditor
-            value={section.content}
+            value={Array.isArray(section.content) 
+              ? section.content.map(item => item.content).join('\n\n')
+              : section.content}
             onChange={(value) => onContentChange(section.id, value || '')}
             placeholder="Start writing..."
           />
@@ -64,14 +70,17 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          {thesis.generalIntroduction && activeSection === thesis.generalIntroduction.id && (
+          {generalIntroduction && activeSection === generalIntroduction.id && (
             <GeneralSectionEditor
-              section={thesis.generalIntroduction}
+              section={generalIntroduction}
               title="General Introduction"
               onUpdate={(updatedSection) => {
                 onUpdateThesis({
                   ...thesis,
-                  generalIntroduction: updatedSection
+                  content: {
+                    ...thesis.content,
+                    generalIntroduction: updatedSection
+                  }
                 });
               }}
             />
@@ -87,22 +96,25 @@ export const ThesisContent: React.FC<ThesisContentProps> = ({
             />
           </div>
 
-          {thesis.generalConclusion && activeSection === thesis.generalConclusion.id && (
+          {generalConclusion && activeSection === generalConclusion.id && (
             <GeneralSectionEditor
-              section={thesis.generalConclusion}
+              section={generalConclusion}
               title="General Conclusion"
               onUpdate={(updatedSection) => {
                 onUpdateThesis({
                   ...thesis,
-                  generalConclusion: updatedSection
+                  content: {
+                    ...thesis.content,
+                    generalConclusion: updatedSection
+                  }
                 });
               }}
             />
           )}
-          
+
           {backMatter.map(section => renderSectionContent(section))}
         </div>
-        
+
         <div className="lg:col-span-1">
           <ChatMessages thesisId={thesisId} />
         </div>

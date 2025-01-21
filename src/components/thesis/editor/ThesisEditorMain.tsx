@@ -24,16 +24,18 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
   onUpdateChapter,
   onAddChapter
 }) => {
-  if (!thesis) return null;
+  if (!thesis?.content) return null;
 
   return (
     <main className="flex-1 p-8 flex">
       <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
         <div className="max-w-4xl mx-auto space-y-6">
           <ThesisEditorContent
-            frontMatter={thesis.frontMatter}
-            chapters={thesis.chapters}
-            backMatter={thesis.backMatter}
+            frontMatter={thesis.content.frontMatter}
+            chapters={thesis.content.chapters}
+            backMatter={thesis.content.backMatter}
+            generalIntroduction={thesis.content.generalIntroduction}
+            generalConclusion={thesis.content.generalConclusion}
             activeSection={activeSection}
             onContentChange={onContentChange}
             onTitleChange={onTitleChange}

@@ -39,30 +39,38 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   useThesisRealtime(currentThesisId, thesis, setThesis);
 
   const getAllSections = () => {
-    if (!thesis) return [];
+    if (!thesis?.content) return [];
     
     const sections: Section[] = [];
     
-    // Add general introduction if it exists
-    if (thesis.generalIntroduction) {
-      sections.push(thesis.generalIntroduction);
+    // Add front matter
+    if (Array.isArray(thesis.content.frontMatter)) {
+      sections.push(...thesis.content.frontMatter);
     }
     
-    // Add front matter
-    sections.push(...thesis.frontMatter);
+    // Add general introduction if it exists
+    if (thesis.content.generalIntroduction) {
+      sections.push(thesis.content.generalIntroduction);
+    }
     
     // Add chapter sections
-    thesis.chapters.forEach(chapter => {
-      sections.push(...chapter.sections);
-    });
+    if (Array.isArray(thesis.content.chapters)) {
+      thesis.content.chapters.forEach(chapter => {
+        if (Array.isArray(chapter.sections)) {
+          sections.push(...chapter.sections);
+        }
+      });
+    }
     
     // Add general conclusion if it exists
-    if (thesis.generalConclusion) {
-      sections.push(thesis.generalConclusion);
+    if (thesis.content.generalConclusion) {
+      sections.push(thesis.content.generalConclusion);
     }
     
     // Add back matter
-    sections.push(...thesis.backMatter);
+    if (Array.isArray(thesis.content.backMatter)) {
+      sections.push(...thesis.content.backMatter);
+    }
     
     return sections;
   };
@@ -71,9 +79,13 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     const sections = getAllSections();
     if (sections.length === 0) return 0;
     
-    const completedSections = sections.filter(section => 
-      section.content && section.content.trim().length > 0
-    ).length;
+    const completedSections = sections.filter(section => {
+      if (!section?.content) return false;
+      if (Array.isArray(section.content)) {
+        return section.content.some(item => item.content && item.content.trim().length > 0);
+      }
+      return typeof section.content === 'string' && section.content.trim().length > 0;
+    }).length;
     
     return Math.round((completedSections / sections.length) * 100);
   };
@@ -87,38 +99,44 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
       const updatedThesis = { ...prevThesis! };
 
       // Check general introduction
-      if (updatedThesis.generalIntroduction?.id === id) {
-        updatedThesis.generalIntroduction = {
-          ...updatedThesis.generalIntroduction,
+      if (updatedThesis.content?.generalIntroduction?.id === id) {
+        updatedThesis.content.generalIntroduction = {
+          ...updatedThesis.content.generalIntroduction,
           content
         };
         return updatedThesis;
       }
 
       // Check general conclusion
-      if (updatedThesis.generalConclusion?.id === id) {
-        updatedThesis.generalConclusion = {
-          ...updatedThesis.generalConclusion,
+      if (updatedThesis.content?.generalConclusion?.id === id) {
+        updatedThesis.content.generalConclusion = {
+          ...updatedThesis.content.generalConclusion,
           content
         };
         return updatedThesis;
       }
 
       // Check other sections
-      updatedThesis.frontMatter = updatedThesis.frontMatter.map(section =>
-        section.id === id ? { ...section, content } : section
-      );
-
-      updatedThesis.chapters = updatedThesis.chapters.map(chapter => ({
-        ...chapter,
-        sections: chapter.sections.map(section =>
+      if (Array.isArray(updatedThesis.content?.frontMatter)) {
+        updatedThesis.content.frontMatter = updatedThesis.content.frontMatter.map(section =>
           section.id === id ? { ...section, content } : section
-        )
-      }));
+        );
+      }
 
-      updatedThesis.backMatter = updatedThesis.backMatter.map(section =>
-        section.id === id ? { ...section, content } : section
-      );
+      if (Array.isArray(updatedThesis.content?.chapters)) {
+        updatedThesis.content.chapters = updatedThesis.content.chapters.map(chapter => ({
+          ...chapter,
+          sections: chapter.sections.map(section =>
+            section.id === id ? { ...section, content } : section
+          )
+        }));
+      }
+
+      if (Array.isArray(updatedThesis.content?.backMatter)) {
+        updatedThesis.content.backMatter = updatedThesis.content.backMatter.map(section =>
+          section.id === id ? { ...section, content } : section
+        );
+      }
 
       return updatedThesis;
     });
@@ -129,18 +147,21 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
 
     setThesis(prevThesis => ({
       ...prevThesis!,
-      frontMatter: prevThesis!.frontMatter.map(section =>
-        section.id === id ? { ...section, title } : section
-      ),
-      chapters: prevThesis!.chapters.map(chapter => ({
-        ...chapter,
-        sections: chapter.sections.map(section =>
+      content: {
+        ...prevThesis!.content,
+        frontMatter: prevThesis!.content.frontMatter.map(section =>
+          section.id === id ? { ...section, title } : section
+        ),
+        chapters: prevThesis!.content.chapters.map(chapter => ({
+          ...chapter,
+          sections: chapter.sections.map(section =>
+            section.id === id ? { ...section, title } : section
+          )
+        })),
+        backMatter: prevThesis!.content.backMatter.map(section =>
           section.id === id ? { ...section, title } : section
         )
-      })),
-      backMatter: prevThesis!.backMatter.map(section =>
-        section.id === id ? { ...section, title } : section
-      )
+      }
     }));
   };
 
@@ -191,9 +212,9 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     <div className="min-h-screen bg-background flex">
       <ThesisSidebar
         sections={[
-          ...(thesis?.frontMatter || []),
-          ...(thesis?.chapters || []).flatMap(chapter => chapter.sections),
-          ...(thesis?.backMatter || [])
+          ...(thesis?.content?.frontMatter || []),
+          ...(thesis?.content?.chapters || []).flatMap(chapter => chapter.sections),
+          ...(thesis?.content?.backMatter || [])
         ]}
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
@@ -226,15 +247,21 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
           onUpdateChapter={(chapter: Chapter) => {
             setThesis(prev => ({
               ...prev!,
-              chapters: prev!.chapters.map(c =>
-                c.id === chapter.id ? chapter : c
-              )
+              content: {
+                ...prev!.content,
+                chapters: prev!.content.chapters.map(c =>
+                  c.id === chapter.id ? chapter : c
+                )
+              }
             }));
           }}
           onAddChapter={(chapter) => {
             setThesis(prev => ({
               ...prev!,
-              chapters: [...(prev?.chapters || []), chapter]
+              content: {
+                ...prev!.content,
+                chapters: [...(prev?.content?.chapters || []), chapter]
+              }
             }));
           }}
         />

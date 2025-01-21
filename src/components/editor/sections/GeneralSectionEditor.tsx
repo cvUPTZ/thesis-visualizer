@@ -1,5 +1,5 @@
 import React from 'react';
-import { Section } from '@/types/thesis';
+import { Section, StructuredContent } from '@/types/thesis';
 import { Card } from '@/components/ui/card';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,27 @@ export const GeneralSectionEditor: React.FC<GeneralSectionEditorProps> = ({
   onUpdate,
 }) => {
   console.log('GeneralSectionEditor rendering:', { title, section });
+
+  const handleContentChange = (value: string) => {
+    const newContent: StructuredContent[] = [{
+      type: 'paragraph',
+      content: value || '',
+      metadata: {}
+    }];
+
+    onUpdate({
+      ...section,
+      content: newContent
+    });
+  };
+
+  const getContentValue = () => {
+    if (!section.content) return '';
+    if (Array.isArray(section.content)) {
+      return section.content.map(item => item.content).join('\n\n');
+    }
+    return section.content;
+  };
   
   return (
     <Card className="p-6 space-y-4">
@@ -29,8 +50,8 @@ export const GeneralSectionEditor: React.FC<GeneralSectionEditorProps> = ({
       </div>
       
       <MarkdownEditor
-        value={section.content || ''}
-        onChange={(value) => onUpdate({ ...section, content: value || '' })}
+        value={getContentValue()}
+        onChange={handleContentChange}
         placeholder={`Write your ${title.toLowerCase()} here...`}
       />
     </Card>

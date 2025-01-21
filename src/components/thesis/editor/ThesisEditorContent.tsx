@@ -6,6 +6,8 @@ interface ThesisEditorContentProps {
   frontMatter: Section[];
   chapters: Chapter[];
   backMatter: Section[];
+  generalIntroduction?: Section;
+  generalConclusion?: Section;
   activeSection: string;
   onContentChange: (id: string, content: string) => void;
   onTitleChange: (id: string, title: string) => void;
@@ -19,6 +21,8 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
   frontMatter,
   chapters,
   backMatter,
+  generalIntroduction,
+  generalConclusion,
   activeSection,
   onContentChange,
   onTitleChange,
@@ -34,6 +38,8 @@ export const ThesisEditorContent: React.FC<ThesisEditorContentProps> = ({
       frontMatter={frontMatter}
       chapters={chapters}
       backMatter={backMatter}
+      generalIntroduction={generalIntroduction}
+      generalConclusion={generalConclusion}
       activeSection={activeSection}
       onContentChange={onContentChange}
       onTitleChange={onTitleChange}
