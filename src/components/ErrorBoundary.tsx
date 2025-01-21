@@ -1,6 +1,9 @@
 import React from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from './ui/button';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 interface Props {
   children: React.ReactNode;
@@ -9,12 +12,17 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  errorInfo: React.ErrorInfo | null;
 }
 
 class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { 
+      hasError: false, 
+      error: null,
+      errorInfo: null
+    };
   }
 
   static getDerivedStateFromError(error: Error) {
@@ -23,6 +31,7 @@ class ErrorBoundary extends React.Component<Props, State> {
 
   async componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Error caught by boundary:', error);
+    this.setState({ errorInfo });
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -33,6 +42,8 @@ class ErrorBoundary extends React.Component<Props, State> {
           userAgent: navigator.userAgent,
           platform: navigator.platform,
           language: navigator.language,
+          url: window.location.href,
+          timestamp: new Date().toISOString()
         };
 
         const { error: dbError } = await supabase
@@ -57,28 +68,51 @@ class ErrorBoundary extends React.Component<Props, State> {
     }
   }
 
+  handleRetry = () => {
+    window.location.reload();
+  };
+
+  handleGoBack = () => {
+    window.history.back();
+  };
+
   render() {
     if (this.state.hasError) {
       const isNetworkError = this.state.error instanceof TypeError && 
                             this.state.error.message === 'Failed to fetch';
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="text-center p-8 rounded-lg border border-border">
-            <h2 className="text-2xl font-bold mb-4">
-              {isNetworkError ? 'Connection Error' : 'Something went wrong'}
-            </h2>
-            <p className="text-muted-foreground mb-4">
-              {isNetworkError 
-                ? 'Please check your internet connection and try again.'
-                : "We've logged this error and our team will look into it."}
-            </p>
-            <button
-              className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90"
-              onClick={() => window.location.reload()}
-            >
-              Refresh Page
-            </button>
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+          <div className="w-full max-w-md space-y-4">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>
+                {isNetworkError ? 'Connection Error' : 'Something went wrong'}
+              </AlertTitle>
+              <AlertDescription className="mt-2">
+                {isNetworkError 
+                  ? 'Unable to connect to the server. Please check your internet connection and try again.'
+                  : "We've encountered an unexpected error and our team has been notified."}
+              </AlertDescription>
+            </Alert>
+            
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={this.handleGoBack}
+                className="gap-2"
+              >
+                Go Back
+              </Button>
+              <Button
+                variant="default"
+                onClick={this.handleRetry}
+                className="gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Try Again
+              </Button>
+            </div>
           </div>
         </div>
       );
