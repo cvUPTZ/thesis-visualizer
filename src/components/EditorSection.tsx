@@ -7,15 +7,17 @@ import { SectionContent } from './editor/SectionContent';
 import { SectionManagers } from './editor/SectionManagers';
 import { SectionProps } from '@/types/components';
 import { Button } from './ui/button';
-import { Plus, ChevronDown, ChevronRight, Edit } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Edit, Settings } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from './ui/dropdown-menu';
 import { Card } from './ui/card';
 import { cn } from '@/lib/utils';
+import { Input } from './ui/input';
 
 export const EditorSection: React.FC<SectionProps> = ({
   section,
@@ -25,6 +27,8 @@ export const EditorSection: React.FC<SectionProps> = ({
 }) => {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [customTitle, setCustomTitle] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
   const navigate = useNavigate();
   
   console.log('EditorSection rendering with section:', { 
@@ -66,6 +70,38 @@ export const EditorSection: React.FC<SectionProps> = ({
     });
   };
 
+  const handleAddCustomSection = () => {
+    if (!customTitle.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a title for the custom section",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newSection: Section = {
+      id: crypto.randomUUID(),
+      title: customTitle,
+      content: '',
+      type: 'custom',
+      order: 0,
+      figures: [],
+      tables: [],
+      citations: [],
+      required: false,
+      references: []
+    };
+
+    handleSectionUpdate(newSection);
+    setCustomTitle('');
+    setShowCustomInput(false);
+    toast({
+      title: "Success",
+      description: `Added new custom section: ${customTitle}`,
+    });
+  };
+
   // Create a complete Section object from the minimal section data
   const fullSection: Section = {
     id: section.id,
@@ -82,14 +118,7 @@ export const EditorSection: React.FC<SectionProps> = ({
 
   const navigateToEditor = () => {
     const thesisId = window.location.pathname.split('/')[2];
-    const isSpecialSection = section.type === 'introduction' || section.type === 'conclusion';
-    
-    if (isSpecialSection) {
-      const sectionType = section.type === 'introduction' ? 'general-introduction' : 'general-conclusion';
-      navigate(`/thesis/${thesisId}/section/${sectionType}`);
-    } else {
-      navigate(`/thesis/${thesisId}/sections/${section.id}`);
-    }
+    navigate(`/thesis/${thesisId}/sections/${section.id}`);
   };
 
   return (
@@ -107,24 +136,50 @@ export const EditorSection: React.FC<SectionProps> = ({
             <DropdownMenuItem onClick={() => handleAddSection('Thesis Structure Overview')}>
               Thesis Structure Overview
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAddSection('General Introduction')}>
-              General Introduction
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleAddSection('Abstract')}>
               Abstract
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleAddSection('Acknowledgements')}>
               Acknowledgements
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAddSection('General Conclusion')}>
-              General Conclusion
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleAddSection('Chapter')}>
               New Chapter
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setShowCustomInput(true)}>
+              <Settings className="h-4 w-4 mr-2" />
+              Custom Section
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {showCustomInput && (
+        <Card className="p-4 mb-4">
+          <div className="space-y-4">
+            <Input
+              placeholder="Enter section title..."
+              value={customTitle}
+              onChange={(e) => setCustomTitle(e.target.value)}
+              className="mb-2"
+            />
+            <div className="flex gap-2">
+              <Button onClick={handleAddCustomSection}>
+                Create Section
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowCustomInput(false);
+                  setCustomTitle('');
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <Card 
         className={cn(
