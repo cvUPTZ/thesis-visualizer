@@ -68,7 +68,31 @@ interface ThesisMetadata {
                citations: []
             }
           ],
+          generalIntroduction: {
+            id: crypto.randomUUID(),
+            title: 'General Introduction',
+            content: [],
+            type: 'general-introduction' as ThesisSectionType,
+            required: true,
+            order: 1,
+            figures: [],
+            tables: [],
+            citations: [],
+            references: []
+          },
          chapters: [],
+          generalConclusion: {
+            id: crypto.randomUUID(),
+            title: 'General Conclusion',
+            content: [],
+            type: 'general-conclusion' as ThesisSectionType,
+            required: true,
+            order: 1,
+            figures: [],
+            tables: [],
+            citations: [],
+            references: []
+          },
            backMatter: [
                  {
                      id: crypto.randomUUID(),

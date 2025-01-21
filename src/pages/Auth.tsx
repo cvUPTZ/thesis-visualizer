@@ -38,8 +38,6 @@ const Auth = () => {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-      
       if (event === 'SIGNED_IN' && session) {
         navigate('/');
       }
@@ -52,24 +50,17 @@ const Auth = () => {
 
   // Error message handler
   const getErrorMessage = (error: AuthError) => {
-    console.error('Authentication error:', error);
-    
+    // Do not log the full error object as it may contain sensitive information
     if (error instanceof AuthApiError) {
       switch (error.status) {
         case 400:
-          if (error.message.includes('invalid_credentials')) {
-            return 'Invalid email or password. Please check your credentials and try again.';
-          }
-          if (error.message.includes('email not confirmed')) {
-            return 'Please verify your email address before signing in.';
-          }
-          return 'Invalid login attempt. Please check your credentials and try again.';
+          return 'Invalid credentials. Please try again.';
         case 422:
-          return 'Invalid email format. Please enter a valid email address.';
+          return 'Invalid email format.';
         case 429:
-          return 'Too many login attempts. Please try again later.';
+          return 'Too many attempts. Please try again later.';
         default:
-          return error.message;
+          return 'An error occurred during authentication.';
       }
     }
     return 'An unexpected error occurred. Please try again.';

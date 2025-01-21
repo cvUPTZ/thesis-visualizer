@@ -1,10 +1,63 @@
-export interface Citation {
+// Enums for type safety
+export enum CitationType {
+  BOOK = 'book',
+  ARTICLE = 'article',
+  CONFERENCE = 'conference',
+  THESIS = 'thesis',
+  WEBSITE = 'website',
+  OTHER = 'other'
+}
+
+export enum SectionType {
+  ABSTRACT = 'abstract',
+  GENERAL_INTRODUCTION = 'general-introduction',
+  INTRODUCTION = 'introduction',
+  CHAPTER = 'chapter',
+  CONCLUSION = 'conclusion',
+  GENERAL_CONCLUSION = 'general-conclusion',
+  REFERENCES = 'references',
+  APPENDIX = 'appendix',
+  TABLE_OF_CONTENTS = 'table-of-contents',
+  ACKNOWLEDGMENTS = 'acknowledgments'
+}
+
+export enum ElementPosition {
+  INLINE = 'inline',
+  FLOAT_LEFT = 'float-left',
+  FLOAT_RIGHT = 'float-right',
+  CENTER = 'center'
+}
+
+// Base interface for common fields
+interface BaseEntity {
   id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Author information
+export interface Author {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  email?: string;
+  affiliation?: string;
+  orcid?: string;
+}
+
+// Structured content type
+export interface StructuredContent {
+  type: 'paragraph' | 'heading' | 'list' | 'quote' | 'code';
+  content: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface Citation extends BaseEntity {
   text: string;
   source: string;
-  authors: string[];
+  authors: Author[];
   year: string;
-  type: string;
+  type: CitationType;
   doi?: string;
   url?: string;
   journal?: string;
@@ -13,11 +66,6 @@ export interface Citation {
   pages?: string;
   publisher?: string;
   thesis_id: string;
-  created_at: string;
-  updated_at: string;
-  author_last_names: string[];
-  author_first_initials: string[];
-  author_middle_initials: string[];
   title: string;
   container_title?: string;
   edition?: string;
@@ -25,14 +73,13 @@ export interface Citation {
   specific_date?: string;
 }
 
-export interface Reference {
-  id: string;
+export interface Reference extends BaseEntity {
   text: string;
   title: string;
   source: string;
-  authors: string[];
+  authors: Author[];
   year: string;
-  type: 'article' | 'book' | 'conference' | 'thesis' | 'website' | 'other';
+  type: CitationType;
   doi?: string;
   url?: string;
   journal?: string;
@@ -43,67 +90,77 @@ export interface Reference {
   specific_date?: string;
   container_title?: string;
   edition?: string;
-  created_at: string;
-  updated_at: string;
 }
 
-export interface Figure {
-  id: string;
+export interface Figure extends BaseEntity {
   url: string;
   caption: string;
   alt_text: string;
   title: string;
   label: string;
-  position?: 'inline' | 'float-left' | 'float-right' | 'center';
+  position: ElementPosition;
   dimensions: {
     width: number;
     height: number;
   };
+  metadata?: {
+    source?: string;
+    copyright?: string;
+    notes?: string;
+  };
 }
 
-export interface Table {
-  id: string;
+export interface TableCell {
+  content: string;
+  rowSpan?: number;
+  colSpan?: number;
+  header?: boolean;
+}
+
+export interface Table extends BaseEntity {
   title: string;
   caption: string;
-  content: string;
-  data: any[][];
-  created_at: string;
-  updated_at: string;
+  data: TableCell[][];
+  metadata?: {
+    source?: string;
+    notes?: string;
+  };
 }
 
-export interface Footnote {
-  id: string;
+export interface Footnote extends BaseEntity {
   content: string;
   number: number;
-  created_at: string;
-  updated_at: string;
   thesis_id: string;
   section_id: string;
 }
 
-export interface Section {
-  id: string;
+export interface Section extends BaseEntity {
   title: string;
-  content: string;
-  type?: string;
-  order?: number;
-  required?: boolean;
-  figures?: Figure[];
-  tables?: Table[];
-  citations?: Citation[];
-  references?: Reference[];
-  footnotes?: Footnote[];
+  content: StructuredContent[];
+  type: SectionType;
+  order: number;
+  required: boolean;
+  figures: Figure[];
+  tables: Table[];
+  citations: Citation[];
+  references: Reference[];
+  footnotes: Footnote[];
+  metadata?: {
+    keywords?: string[];
+    abstract?: string;
+    language?: string;
+  };
 }
 
-export interface Chapter {
-  id: string;
+export interface Chapter extends BaseEntity {
   title: string;
-  content: string;
+  content: StructuredContent[];
   sections: Section[];
-  order?: number;
-  figures?: Figure[];
-  tables?: Table[];
-  footnotes?: Footnote[];
+  order: number;
+  metadata?: {
+    keywords?: string[];
+    abstract?: string;
+  };
 }
 
 export interface ThesisMetadata {
@@ -112,53 +169,67 @@ export interface ThesisMetadata {
   createdAt: string;
   universityName: string;
   departmentName: string;
-  authorName: string;
+  authors: Author[];
+  supervisors: Author[];
+  committeeMembers: Author[];
   thesisDate: string;
-  committeeMembers: string[];
+  language: string;
+  version: string;
+  license?: string;
+  fundingInformation?: string[];
 }
 
-export interface Thesis {
-  id: string;
-  title: string;
-  content: any;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
+export interface ThesisContent {
   metadata: ThesisMetadata;
   frontMatter: Section[];
   generalIntroduction?: Section;
   chapters: Chapter[];
   generalConclusion?: Section;
   backMatter: Section[];
-  language?: string;
-  supervisor_email?: string;
-  supervisor_id?: string;
 }
 
-export interface ThesisVersion {
-  id: string;
+export interface Thesis extends BaseEntity {
+  title: string;
+  content: ThesisContent;
+  user_id: string;
+  language: string;
+  status: 'draft' | 'in_review' | 'published';
+  version: string;
+  permissions: {
+    isPublic: boolean;
+    allowComments: boolean;
+    allowSharing: boolean;
+  };
+}
+
+export interface ThesisVersion extends BaseEntity {
   thesis_id: string;
-  content: any;
+  content: ThesisContent;
   version_number: number;
   description?: string;
-  created_at: string;
   created_by: string;
-  language?: string;
+  changes: {
+    type: 'addition' | 'deletion' | 'modification';
+    path: string;
+    description: string;
+  }[];
 }
 
-export interface CommentThread {
-  id: string;
+export interface CommentThread extends BaseEntity {
   comments: Comment[];
   section_id: string;
-  created_at: string;
+  status: 'open' | 'resolved' | 'archived';
+  metadata?: {
+    context?: string;
+    tags?: string[];
+  };
 }
 
-export interface Comment {
-  id: string;
+export interface Comment extends BaseEntity {
   content: string;
   user_id: string;
-  created_at: string;
+  thread_id: string;
+  parent_id?: string;
+  edited?: boolean;
+  reactions?: Record<string, string[]>;
 }
-
-export type ReferenceStyle = 'APA' | 'MLA' | 'Chicago' | 'Harvard';
-export type ThesisSectionType = 'frontMatter' | 'chapter' | 'backMatter';

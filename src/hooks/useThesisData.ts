@@ -1,9 +1,99 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Thesis } from '@/types/thesis';
+import { Thesis, ThesisContent, SectionType } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
 import { validate as validateUUID } from 'uuid';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
+const validateThesisContent = (content: any): ValidationError[] => {
+  const errors: ValidationError[] = [];
+
+  if (!content) {
+    errors.push({ field: 'content', message: 'Thesis content is required' });
+    return errors;
+  }
+
+  // Validate metadata
+  if (!content.metadata) {
+    errors.push({ field: 'metadata', message: 'Thesis metadata is required' });
+  } else {
+    if (!content.metadata.authors?.length) {
+      errors.push({ field: 'metadata.authors', message: 'At least one author is required' });
+    }
+    if (!content.metadata.universityName) {
+      errors.push({ field: 'metadata.universityName', message: 'University name is required' });
+    }
+    if (!content.metadata.departmentName) {
+      errors.push({ field: 'metadata.departmentName', message: 'Department name is required' });
+    }
+  }
+
+  // Validate structure
+  if (!Array.isArray(content.frontMatter)) {
+    errors.push({ field: 'frontMatter', message: 'Front matter must be an array' });
+  }
+  if (!Array.isArray(content.chapters)) {
+    errors.push({ field: 'chapters', message: 'Chapters must be an array' });
+  }
+  if (!Array.isArray(content.backMatter)) {
+    errors.push({ field: 'backMatter', message: 'Back matter must be an array' });
+  }
+
+  return errors;
+};
+
+const parseThesisContent = (rawContent: any): ThesisContent => {
+  const content = typeof rawContent === 'string' ? JSON.parse(rawContent) : rawContent;
+
+  return {
+    metadata: {
+      description: content?.metadata?.description || '',
+      keywords: Array.isArray(content?.metadata?.keywords) ? content.metadata.keywords : [],
+      createdAt: content?.metadata?.createdAt || new Date().toISOString(),
+      universityName: content?.metadata?.universityName || '',
+      departmentName: content?.metadata?.departmentName || '',
+      authors: Array.isArray(content?.metadata?.authors) ? content.metadata.authors : [],
+      supervisors: Array.isArray(content?.metadata?.supervisors) ? content.metadata.supervisors : [],
+      committeeMembers: Array.isArray(content?.metadata?.committeeMembers) ? content.metadata.committeeMembers : [],
+      thesisDate: content?.metadata?.thesisDate || '',
+      language: content?.metadata?.language || 'en',
+      version: content?.metadata?.version || '1.0.0',
+    },
+    frontMatter: Array.isArray(content?.frontMatter) ? content.frontMatter.map((section: any) => ({
+      ...section,
+      type: section.type || SectionType.ABSTRACT,
+      required: typeof section.required === 'boolean' ? section.required : true,
+      content: Array.isArray(section.content) ? section.content : [],
+      figures: Array.isArray(section.figures) ? section.figures : [],
+      tables: Array.isArray(section.tables) ? section.tables : [],
+      citations: Array.isArray(section.citations) ? section.citations : [],
+      references: Array.isArray(section.references) ? section.references : [],
+      footnotes: Array.isArray(section.footnotes) ? section.footnotes : [],
+    })) : [],
+    chapters: Array.isArray(content?.chapters) ? content.chapters.map((chapter: any, index: number) => ({
+      ...chapter,
+      order: chapter.order || index + 1,
+      content: Array.isArray(chapter.content) ? chapter.content : [],
+      sections: Array.isArray(chapter.sections) ? chapter.sections : [],
+    })) : [],
+    backMatter: Array.isArray(content?.backMatter) ? content.backMatter.map((section: any) => ({
+      ...section,
+      type: section.type || SectionType.APPENDIX,
+      required: typeof section.required === 'boolean' ? section.required : false,
+      content: Array.isArray(section.content) ? section.content : [],
+      figures: Array.isArray(section.figures) ? section.figures : [],
+      tables: Array.isArray(section.tables) ? section.tables : [],
+      citations: Array.isArray(section.citations) ? section.citations : [],
+      references: Array.isArray(section.references) ? section.references : [],
+      footnotes: Array.isArray(section.footnotes) ? section.footnotes : [],
+    })) : [],
+  };
+};
 
 export const useThesisData = (thesisId: string | undefined) => {
   const { toast } = useToast();
@@ -17,25 +107,34 @@ export const useThesisData = (thesisId: string | undefined) => {
     queryKey: ['thesis', thesisId],
     queryFn: async () => {
       if (!thesisId) {
-        console.log('No thesis ID provided');
         return null;
       }
 
       if (!validateUUID(thesisId)) {
-        console.error('Invalid thesis ID format:', thesisId);
         throw new Error('Invalid thesis ID format');
       }
 
       try {
-        console.log('🔍 Fetching thesis with ID:', thesisId);
-
         const { data: session } = await supabase.auth.getSession();
         if (!session?.session?.user) {
-          console.error('❌ No authenticated user found');
           throw new Error('Authentication required');
         }
 
-        console.log('👤 User authenticated:', session.session.user.email);
+        // First check if user has permission to access this thesis
+        const { data: permission, error: permissionError } = await supabase
+          .from('thesis_collaborators')
+          .select('role')
+          .eq('thesis_id', thesisId)
+          .eq('user_id', session.session.user.id)
+          .maybeSingle();
+
+        if (permissionError) {
+          throw new Error('Error checking thesis permissions');
+        }
+
+        if (!permission) {
+          throw new Error('Access denied');
+        }
 
         const { data: fetchedThesis, error: fetchError } = await supabase
           .from('theses')
@@ -53,55 +152,49 @@ export const useThesisData = (thesisId: string | undefined) => {
           .maybeSingle();
 
         if (fetchError) {
-          console.error("❌ Error fetching thesis:", fetchError);
-          throw new Error(fetchError.message);
+          throw new Error('Error fetching thesis data');
         }
 
         if (!fetchedThesis) {
-          console.log('⚠️ No thesis found with ID:', thesisId);
           return null;
         }
 
-        console.log('✅ Thesis data loaded:', {
-          id: fetchedThesis.id,
-          title: fetchedThesis.title,
-          collaboratorsCount: fetchedThesis.thesis_collaborators?.length
-        });
+        // Validate thesis content
+        const validationErrors = validateThesisContent(fetchedThesis.content);
+        if (validationErrors.length > 0) {
+          toast({
+            title: 'Warning',
+            description: 'Some thesis data is invalid or missing. Default values will be used.',
+            variant: 'warning',
+          });
+        }
 
-        const parsedContent = typeof fetchedThesis.content === 'string'
-          ? JSON.parse(fetchedThesis.content)
-          : fetchedThesis.content;
+        // Parse and structure the thesis content
+        const parsedContent = parseThesisContent(fetchedThesis.content);
 
-        // Ensure all required arrays exist
         const formattedThesis: Thesis = {
           id: fetchedThesis.id,
           title: fetchedThesis.title,
-          content: fetchedThesis.content,
+          content: parsedContent,
           user_id: fetchedThesis.user_id,
           created_at: fetchedThesis.created_at,
           updated_at: fetchedThesis.updated_at,
-          metadata: {
-            description: parsedContent?.metadata?.description || '',
-            keywords: parsedContent?.metadata?.keywords || [],
-            createdAt: parsedContent?.metadata?.createdAt || new Date().toISOString(),
-            universityName: parsedContent?.metadata?.universityName || '',
-            departmentName: parsedContent?.metadata?.departmentName || '',
-            authorName: parsedContent?.metadata?.authorName || '',
-            thesisDate: parsedContent?.metadata?.thesisDate || '',
-            committeeMembers: parsedContent?.metadata?.committeeMembers || []
+          language: fetchedThesis.language || 'en',
+          status: fetchedThesis.status || 'draft',
+          version: fetchedThesis.version || '1.0.0',
+          permissions: {
+            isPublic: fetchedThesis.is_public || false,
+            allowComments: fetchedThesis.allow_comments || true,
+            allowSharing: fetchedThesis.allow_sharing || false,
           },
-          frontMatter: Array.isArray(parsedContent?.frontMatter) ? parsedContent.frontMatter : [],
-          chapters: Array.isArray(parsedContent?.chapters) ? parsedContent.chapters : [],
-          backMatter: Array.isArray(parsedContent?.backMatter) ? parsedContent.backMatter : []
         };
 
         return formattedThesis;
       } catch (err: any) {
-        console.error("❌ Error in thesis data hook:", err);
         toast({
-          title: "Error",
-          description: err.message || "Failed to load thesis data. Please try again.",
-          variant: "destructive",
+          title: 'Error',
+          description: err.message || 'Failed to load thesis',
+          variant: 'destructive',
         });
         throw err;
       }
