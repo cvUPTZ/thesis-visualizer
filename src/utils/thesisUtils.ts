@@ -1,25 +1,28 @@
 import { Section, Thesis } from '@/types/thesis';
 
-export type SectionType = 'general-introduction' | 'general-conclusion';
+export type SectionType = 'general-introduction' | 'general-conclusion' | 'abstract' | 'acknowledgments' | 'chapter' | 'references' | 'appendix';
 
-export const createEmptySection = (type: SectionType): Section => ({
-  id: type,
-  title: type === 'general-introduction' ? 'General Introduction' : 'General Conclusion',
+export const createEmptySection = (type: SectionType, order: number = 1): Section => ({
+  id: type === 'general-introduction' || type === 'general-conclusion' ? type : crypto.randomUUID(),
+  title: type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
   content: '',
   type,
-  required: true,
-  order: 1,
+  required: type === 'general-introduction' || type === 'general-conclusion',
+  order,
   status: 'draft',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   figures: [],
   tables: [],
   citations: [],
-  references: []
+  references: [],
+  footnotes: []
 });
 
 export const ensureThesisStructure = (thesis: Partial<Thesis>): Thesis => ({
   ...thesis,
+  id: thesis.id || crypto.randomUUID(),
+  title: thesis.title || 'Untitled Thesis',
   metadata: thesis.metadata || {},
   frontMatter: thesis.frontMatter || [],
   generalIntroduction: thesis.generalIntroduction || createEmptySection('general-introduction'),

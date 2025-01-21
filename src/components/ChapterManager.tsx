@@ -1,5 +1,5 @@
 import React from 'react';
-import { Chapter, Section } from '@/types/thesis';
+import { Chapter, Section, SectionType } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { BookOpen, PlusCircle, Trash2 } from 'lucide-react';
 import { ChapterItem } from './editor/chapters/ChapterItem';
@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Card } from './ui/card';
+import { createEmptySection } from '@/utils/sections';
 
 interface ChapterManagerProps {
   chapters: Chapter[];
@@ -48,21 +49,10 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
 
   const handleNavigateToSection = (sectionType: string) => {
     const thesisId = window.location.pathname.split('/')[2];
-    const sectionPath = sectionType.toLowerCase().replace(/ /g, '-');
+    const sectionPath = sectionType.toLowerCase().replace(/ /g, '-') as SectionType;
     
-    // Create a new section object
-    const newSection: Section = {
-      id: crypto.randomUUID(),
-      title: sectionType,
-      content: '',
-      type: sectionPath,
-      order: 0,
-      figures: [],
-      tables: [],
-      citations: [],
-      required: sectionType === 'General Introduction' || sectionType === 'General Conclusion',
-      references: []
-    };
+    // Create a new section using the utility function
+    const newSection = createEmptySection(sectionPath);
 
     // Navigate to the section
     navigate(`/thesis/${thesisId}/section/${sectionPath}`);

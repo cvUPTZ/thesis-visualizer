@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Thesis } from '@/types/thesis';
 import { Json } from '@/integrations/supabase/types';
+import { ensureThesisStructure } from '@/utils/thesis';
 
 export const useThesisAutosave = (thesis: Thesis | null) => {
   const { toast } = useToast();
@@ -20,34 +21,8 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
     try {
       console.log('Auto-saving thesis:', thesisData.id);
       
-      // Create a safe copy of the thesis data with all required fields
-      const safeThesisData = {
-        id: thesisData.id,
-        title: thesisData.title || '',
-        description: thesisData.description || '',
-        metadata: thesisData.metadata || {},
-        frontMatter: Array.isArray(thesisData.frontMatter) ? thesisData.frontMatter : [],
-        generalIntroduction: thesisData.generalIntroduction || {
-          id: 'general-introduction',
-          title: 'General Introduction',
-          type: 'general-introduction',
-          content: ''
-        },
-        chapters: Array.isArray(thesisData.chapters) ? thesisData.chapters : [],
-        generalConclusion: thesisData.generalConclusion || {
-          id: 'general-conclusion',
-          title: 'General Conclusion',
-          type: 'general-conclusion',
-          content: ''
-        },
-        backMatter: Array.isArray(thesisData.backMatter) ? thesisData.backMatter : []
-      };
-
-      // Validate the structure before saving
-      if (!safeThesisData.metadata || !safeThesisData.frontMatter || !safeThesisData.generalIntroduction ||
-          !safeThesisData.chapters || !safeThesisData.generalConclusion || !safeThesisData.backMatter) {
-        throw new Error('Invalid thesis structure');
-      }
+      // Use the utility function to ensure all required fields are present
+      const safeThesisData = ensureThesisStructure(thesisData);
 
       const serializedContent = JSON.stringify(safeThesisData) as unknown as Json;
 
