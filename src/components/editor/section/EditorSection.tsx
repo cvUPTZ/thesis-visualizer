@@ -27,8 +27,10 @@ export default function SectionEditor() {
     const loadSection = async () => {
       try {
         setIsLoading(true);
+        console.log('Loading section:', { sectionId, thesis });
         const section = await findSection();
         if (section) {
+          console.log('Section found:', section);
           setSection(section);
         }
       } catch (err) {
@@ -50,66 +52,115 @@ export default function SectionEditor() {
   const findSection = async (): Promise<Section | null> => {
     if (!thesis || !sectionId) return null;
 
+    console.log('Finding section:', { sectionId, thesisContent: thesis.content });
+
     // Check if it's the general introduction
-    if (thesis.generalIntroduction?.id === sectionId || sectionId === 'general-introduction') {
-      return thesis.generalIntroduction || {
-        id: crypto.randomUUID(),
-        title: 'General Introduction',
-        content: '',
-        type: 'general_introduction',
-        order: 1,
-        required: true,
-        figures: [],
-        tables: [],
-        citations: [],
-        references: []
-      };
+    if (sectionId === 'general-introduction' || thesis.generalIntroduction?.id === sectionId) {
+      if (thesis.generalIntroduction) {
+        return thesis.generalIntroduction;
+      }
+
+      // Create general introduction if it doesn't exist
+      try {
+        console.log('Creating general introduction section');
+        const { data: newSectionId, error } = await supabase.rpc(
+          'create_section_if_not_exists',
+          { 
+            p_thesis_id: thesisId,
+            p_section_title: 'General Introduction',
+            p_section_type: 'general_introduction'
+          }
+        );
+
+        if (error) throw error;
+
+        // Refresh thesis data to get the new section
+        const { data: refreshedThesis, error: refreshError } = await supabase
+          .from('theses')
+          .select('*')
+          .eq('id', thesisId)
+          .maybeSingle();
+
+        if (refreshError) throw refreshError;
+
+        if (refreshedThesis) {
+          const content = typeof refreshedThesis.content === 'string' 
+            ? JSON.parse(refreshedThesis.content) 
+            : refreshedThesis.content;
+
+          return content.generalIntroduction;
+        }
+      } catch (err) {
+        console.error('Error creating general introduction:', err);
+        throw new Error('Failed to create general introduction');
+      }
     }
 
     // Check if it's the general conclusion
-    if (thesis.generalConclusion?.id === sectionId || sectionId === 'general-conclusion') {
-      return thesis.generalConclusion || {
-        id: crypto.randomUUID(),
-        title: 'General Conclusion',
-        content: '',
-        type: 'general_conclusion',
-        order: 1,
-        required: true,
-        figures: [],
-        tables: [],
-        citations: [],
-        references: []
-      };
+    if (sectionId === 'general-conclusion' || thesis.generalConclusion?.id === sectionId) {
+      if (thesis.generalConclusion) {
+        return thesis.generalConclusion;
+      }
+
+      // Create general conclusion if it doesn't exist
+      try {
+        console.log('Creating general conclusion section');
+        const { data: newSectionId, error } = await supabase.rpc(
+          'create_section_if_not_exists',
+          { 
+            p_thesis_id: thesisId,
+            p_section_title: 'General Conclusion',
+            p_section_type: 'general_conclusion'
+          }
+        );
+
+        if (error) throw error;
+
+        // Refresh thesis data to get the new section
+        const { data: refreshedThesis, error: refreshError } = await supabase
+          .from('theses')
+          .select('*')
+          .eq('id', thesisId)
+          .maybeSingle();
+
+        if (refreshError) throw refreshError;
+
+        if (refreshedThesis) {
+          const content = typeof refreshedThesis.content === 'string' 
+            ? JSON.parse(refreshedThesis.content) 
+            : refreshedThesis.content;
+
+          return content.generalConclusion;
+        }
+      } catch (err) {
+        console.error('Error creating general conclusion:', err);
+        throw new Error('Failed to create general conclusion');
+      }
     }
 
     // Check front matter
-    const frontMatterSection = thesis.frontMatter.find(s => s.id === sectionId);
+    const frontMatterSection = thesis.frontMatter?.find(s => s.id === sectionId);
     if (frontMatterSection) return frontMatterSection;
 
     // Check back matter
-    const backMatterSection = thesis.backMatter.find(s => s.id === sectionId);
+    const backMatterSection = thesis.backMatter?.find(s => s.id === sectionId);
     if (backMatterSection) return backMatterSection;
 
     // Check chapters
-    for (const chapter of thesis.chapters) {
+    for (const chapter of thesis.chapters || []) {
       const section = chapter.sections.find(s => s.id === sectionId);
       if (section) return section;
     }
 
     // If section not found, try to create it
     try {
-      console.log('Creating new section for:', { thesisId, sectionId });
-      const sectionType = sectionId === 'general-introduction' ? 'general_introduction' : 
-                         sectionId === 'general-conclusion' ? 'general_conclusion' : 'custom';
-      
+      console.log('Creating new regular section');
       const { data: newSectionId, error } = await supabase.rpc(
         'create_section_if_not_exists',
         { 
           p_thesis_id: thesisId,
-          p_section_title: sectionId === 'general-introduction' ? 'General Introduction' :
-                          sectionId === 'general-conclusion' ? 'General Conclusion' :
-                          'New Section',
-          p_section_type: sectionType
+          p_section_title: 'New Section',
+          p_section_type: 'custom'
         }
       );
 
@@ -129,17 +180,10 @@ export default function SectionEditor() {
           ? JSON.parse(refreshedThesis.content) 
           : refreshedThesis.content;
 
-        if (sectionType === 'general_introduction') {
-          return content.generalIntroduction;
-        } else if (sectionType === 'general_conclusion') {
-          return content.generalConclusion;
-        } else {
-          // Find the newly created section
-          return content.frontMatter?.find((s: Section) => s.id === newSectionId);
-        }
+        return content.frontMatter?.find((s: Section) => s.id === newSectionId) || null;
       }
     } catch (err) {
-      console.error('Error creating section:', err);
+      console.error('Error creating new section:', err);
       throw new Error('Failed to create new section');
     }
 
@@ -151,8 +195,8 @@ export default function SectionEditor() {
 
     try {
       const updatedThesis = { ...thesis };
-      const isGeneralIntro = section.type === 'general_introduction' || section.id === 'general-introduction';
-      const isGeneralConc = section.type === 'general_conclusion' || section.id === 'general-conclusion';
+      const isGeneralIntro = section.type === 'general_introduction' || sectionId === 'general-introduction';
+      const isGeneralConc = section.type === 'general_conclusion' || sectionId === 'general-conclusion';
       
       if (isGeneralIntro) {
         updatedThesis.generalIntroduction = {
@@ -166,14 +210,14 @@ export default function SectionEditor() {
         };
       } else {
         // Update in front matter or chapters
-        const frontMatterIndex = thesis.frontMatter.findIndex(s => s.id === section.id);
+        const frontMatterIndex = thesis.frontMatter?.findIndex(s => s.id === section.id) ?? -1;
         if (frontMatterIndex !== -1) {
           updatedThesis.frontMatter[frontMatterIndex] = {
             ...thesis.frontMatter[frontMatterIndex],
             content: newContent
           };
         } else {
-          updatedThesis.chapters = thesis.chapters.map(chapter => ({
+          updatedThesis.chapters = (thesis.chapters || []).map(chapter => ({
             ...chapter,
             sections: chapter.sections.map(s => 
               s.id === section.id ? { ...s, content: newContent } : s
@@ -199,88 +243,57 @@ export default function SectionEditor() {
     }
   };
 
-  const sidebar = (
-    <div className="p-4 space-y-4">
-      <Button
-        variant="ghost"
-        className="w-full justify-start"
-        onClick={() => navigate(`/thesis/${thesisId}`)}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Thesis
-      </Button>
-    </div>
-  );
-
-  if (isLoading) {
-    return (
-      <EditorLayout
-        sidebar={sidebar}
-        content={
-          <div className="container mx-auto p-8">
-            <Skeleton className="h-8 w-64 mb-6" />
-            <Skeleton className="h-[500px] w-full" />
-          </div>
-        }
-      />
-    );
-  }
-
-  if (error) {
-    return (
-      <EditorLayout
-        sidebar={sidebar}
-        content={
-          <div className="container mx-auto p-8">
+  return (
+    <EditorLayout
+      sidebar={
+        <div className="p-4 space-y-4">
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => navigate(`/thesis/${thesisId}`)}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Thesis
+          </Button>
+        </div>
+      }
+      content={
+        <div className="container mx-auto p-8">
+          {isLoading ? (
+            <>
+              <Skeleton className="h-8 w-64 mb-6" />
+              <Skeleton className="h-[500px] w-full" />
+            </>
+          ) : error ? (
             <Card className="p-6">
               <h1 className="text-2xl font-bold text-destructive">Error</h1>
               <p className="mt-4 text-muted-foreground">{error}</p>
             </Card>
-          </div>
-        }
-      />
-    );
-  }
-
-  if (!section) {
-    return (
-      <EditorLayout
-        sidebar={sidebar}
-        content={
-          <div className="container mx-auto p-8">
+          ) : !section ? (
             <Card className="p-6">
               <h1 className="text-2xl font-bold text-destructive">Section not found</h1>
               <p className="mt-4 text-muted-foreground">
                 The requested section could not be found. Please check the URL and try again.
               </p>
             </Card>
-          </div>
-        }
-      />
-    );
-  }
-
-  return (
-    <EditorLayout
-      sidebar={sidebar}
-      content={
-        <div className="container mx-auto p-8">
-          <Card className="p-6">
-            <SectionHeader 
-              title={section.title} 
-              onTitleChange={(newTitle) => {
-                setSection({ ...section, title: newTitle });
-              }}
-              required={section.required}
-            />
-            <div className="mt-6">
-              <MarkdownEditor
-                value={section.content}
-                onChange={handleContentChange}
-                placeholder="Start writing your section content..."
+          ) : (
+            <Card className="p-6">
+              <SectionHeader 
+                title={section.title} 
+                onTitleChange={(newTitle) => {
+                  setSection({ ...section, title: newTitle });
+                }}
+                required={section.required}
               />
-            </div>
-          </Card>
+              <div className="mt-6">
+                <MarkdownEditor
+                  value={section.content}
+                  onChange={handleContentChange}
+                  placeholder="Start writing your section content..."
+                />
+              </div>
+            </Card>
+          )}
         </div>
       }
     />
