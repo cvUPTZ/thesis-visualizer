@@ -63,33 +63,59 @@ export default function SectionEditor() {
       // Create general introduction if it doesn't exist
       try {
         console.log('Creating general introduction section');
-        const { data: newSectionId, error } = await supabase.rpc(
-          'create_section_if_not_exists',
-          { 
-            p_thesis_id: thesisId,
-            p_section_title: 'General Introduction',
-            p_section_type: 'general_introduction'
-          }
-        );
+        
+        // Prepare the new thesis content with all required fields
+        const updatedContent = {
+          ...thesis,
+          metadata: thesis.metadata || {},
+          frontMatter: thesis.frontMatter || [],
+          generalIntroduction: {
+            id: 'general-introduction',
+            title: 'General Introduction',
+            content: '',
+            type: 'general-introduction',
+            required: true,
+            order: 1,
+            status: 'draft',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            figures: [],
+            tables: [],
+            citations: [],
+            references: []
+          },
+          chapters: thesis.chapters || [],
+          generalConclusion: thesis.generalConclusion || {
+            id: 'general-conclusion',
+            title: 'General Conclusion',
+            content: '',
+            type: 'general-conclusion',
+            required: true,
+            order: 1,
+            status: 'draft',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            figures: [],
+            tables: [],
+            citations: [],
+            references: []
+          },
+          backMatter: thesis.backMatter || []
+        };
 
-        if (error) throw error;
-
-        // Refresh thesis data to get the new section
-        const { data: refreshedThesis, error: refreshError } = await supabase
+        // Update the thesis with the new content
+        const { error: updateError } = await supabase
           .from('theses')
-          .select('*')
-          .eq('id', thesisId)
-          .maybeSingle();
+          .update({ 
+            content: updatedContent,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', thesisId);
 
-        if (refreshError) throw refreshError;
+        if (updateError) throw updateError;
 
-        if (refreshedThesis) {
-          const content = typeof refreshedThesis.content === 'string' 
-            ? JSON.parse(refreshedThesis.content) 
-            : refreshedThesis.content;
-
-          return content.generalIntroduction;
-        }
+        // Return the newly created section
+        return updatedContent.generalIntroduction;
       } catch (err) {
         console.error('Error creating general introduction:', err);
         throw new Error('Failed to create general introduction');
@@ -105,33 +131,59 @@ export default function SectionEditor() {
       // Create general conclusion if it doesn't exist
       try {
         console.log('Creating general conclusion section');
-        const { data: newSectionId, error } = await supabase.rpc(
-          'create_section_if_not_exists',
-          { 
-            p_thesis_id: thesisId,
-            p_section_title: 'General Conclusion',
-            p_section_type: 'general_conclusion'
-          }
-        );
+        
+        // Prepare the new thesis content with all required fields
+        const updatedContent = {
+          ...thesis,
+          metadata: thesis.metadata || {},
+          frontMatter: thesis.frontMatter || [],
+          generalIntroduction: thesis.generalIntroduction || {
+            id: 'general-introduction',
+            title: 'General Introduction',
+            content: '',
+            type: 'general-introduction',
+            required: true,
+            order: 1,
+            status: 'draft',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            figures: [],
+            tables: [],
+            citations: [],
+            references: []
+          },
+          chapters: thesis.chapters || [],
+          generalConclusion: {
+            id: 'general-conclusion',
+            title: 'General Conclusion',
+            content: '',
+            type: 'general-conclusion',
+            required: true,
+            order: 1,
+            status: 'draft',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            figures: [],
+            tables: [],
+            citations: [],
+            references: []
+          },
+          backMatter: thesis.backMatter || []
+        };
 
-        if (error) throw error;
-
-        // Refresh thesis data to get the new section
-        const { data: refreshedThesis, error: refreshError } = await supabase
+        // Update the thesis with the new content
+        const { error: updateError } = await supabase
           .from('theses')
-          .select('*')
-          .eq('id', thesisId)
-          .maybeSingle();
+          .update({ 
+            content: updatedContent,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', thesisId);
 
-        if (refreshError) throw refreshError;
+        if (updateError) throw updateError;
 
-        if (refreshedThesis) {
-          const content = typeof refreshedThesis.content === 'string' 
-            ? JSON.parse(refreshedThesis.content) 
-            : refreshedThesis.content;
-
-          return content.generalConclusion;
-        }
+        // Return the newly created section
+        return updatedContent.generalConclusion;
       } catch (err) {
         console.error('Error creating general conclusion:', err);
         throw new Error('Failed to create general conclusion');
