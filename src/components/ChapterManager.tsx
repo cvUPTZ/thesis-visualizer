@@ -1,5 +1,5 @@
 import React from 'react';
-import { Chapter } from '@/types/thesis';
+import { Chapter, Section } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { BookOpen, PlusCircle, Trash2 } from 'lucide-react';
 import { ChapterItem } from './editor/chapters/ChapterItem';
@@ -17,7 +17,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Card } from './ui/card';
-import { cn } from '@/lib/utils';
 
 interface ChapterManagerProps {
   chapters: Chapter[];
@@ -49,7 +48,24 @@ export const ChapterManager: React.FC<ChapterManagerProps> = ({
 
   const handleNavigateToSection = (sectionType: string) => {
     const thesisId = window.location.pathname.split('/')[2];
-    navigate(`/thesis/${thesisId}/section/${sectionType.toLowerCase().replace(/ /g, '-')}`);
+    const sectionPath = sectionType.toLowerCase().replace(/ /g, '-');
+    
+    // Create a new section object
+    const newSection: Section = {
+      id: crypto.randomUUID(),
+      title: sectionType,
+      content: '',
+      type: sectionPath,
+      order: 0,
+      figures: [],
+      tables: [],
+      citations: [],
+      required: sectionType === 'General Introduction' || sectionType === 'General Conclusion',
+      references: []
+    };
+
+    // Navigate to the section
+    navigate(`/thesis/${thesisId}/section/${sectionPath}`);
   };
 
   const handleDeleteChapters = () => {
