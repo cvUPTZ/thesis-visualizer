@@ -410,35 +410,47 @@ export type Database = {
         Row: {
           content: Json
           created_at: string
+          description: string | null
           id: string
           language: string
+          permissions: Json | null
+          status: string | null
           supervisor_email: string | null
           supervisor_id: string | null
           title: string
           updated_at: string
           user_id: string
+          version: string | null
         }
         Insert: {
           content?: Json
           created_at?: string
+          description?: string | null
           id?: string
           language?: string
+          permissions?: Json | null
+          status?: string | null
           supervisor_email?: string | null
           supervisor_id?: string | null
           title: string
           updated_at?: string
           user_id: string
+          version?: string | null
         }
         Update: {
           content?: Json
           created_at?: string
+          description?: string | null
           id?: string
           language?: string
+          permissions?: Json | null
+          status?: string | null
           supervisor_email?: string | null
           supervisor_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string
+          version?: string | null
         }
         Relationships: [
           {
@@ -959,9 +971,34 @@ export type Database = {
         }
         Returns: string
       }
+      get_latest_thesis_version: {
+        Args: {
+          p_thesis_id: string
+        }
+        Returns: {
+          content: Json
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          language: string
+          thesis_id: string
+          version_number: number
+        }
+      }
     }
     Enums: {
-      [_ in never]: never
+      section_type:
+        | "abstract"
+        | "general-introduction"
+        | "introduction"
+        | "chapter"
+        | "conclusion"
+        | "general-conclusion"
+        | "references"
+        | "appendix"
+        | "table-of-contents"
+        | "acknowledgments"
     }
     CompositeTypes: {
       [_ in never]: never
