@@ -114,13 +114,15 @@ export default function SectionEditor() {
     // If section not found, try to create it
     try {
       console.log('Creating new regular section');
+      const params = { 
+        p_thesis_id: thesisId,
+        p_section_title: 'New Section',
+        p_section_type: 'custom'
+      };
+      console.log('Data being sent to create_section_if_not_exists:', params);
       const { data: newSectionId, error } = await supabase.rpc(
         'create_section_if_not_exists',
-        { 
-          p_thesis_id: thesisId,
-          p_section_title: 'New Section',
-          p_section_type: 'custom'
-        }
+        params
       );
 
       if (error) throw error;
