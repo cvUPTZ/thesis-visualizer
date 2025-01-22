@@ -17,6 +17,19 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
       return;
     }
     
+    console.log('Thesis object before saving:', thesisData);
+    console.log('Thesis object structure:', {
+      hasId: !!thesisData.id,
+      hasTitle: !!thesisData.title,
+      hasDescription: !!thesisData.description,
+      hasMetadata: !!thesisData.metadata,
+      hasFrontMatter: Array.isArray(thesisData.frontMatter),
+      hasGeneralIntroduction: !!thesisData.generalIntroduction,
+      hasChapters: Array.isArray(thesisData.chapters),
+      hasGeneralConclusion: !!thesisData.generalConclusion,
+      hasBackMatter: Array.isArray(thesisData.backMatter)
+    });
+    
     try {
       console.log('Auto-saving thesis:', thesisData.id);
       
