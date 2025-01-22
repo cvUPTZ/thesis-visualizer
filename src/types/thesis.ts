@@ -3,7 +3,6 @@ export enum CitationType {
   BOOK = 'book',
   ARTICLE = 'article',
   CONFERENCE = 'conference',
-  THESIS = 'thesis',
   WEBSITE = 'website',
   OTHER = 'other'
 }
@@ -18,7 +17,9 @@ export enum SectionType {
   REFERENCES = 'references',
   APPENDIX = 'appendix',
   TABLE_OF_CONTENTS = 'table-of-contents',
-  ACKNOWLEDGMENTS = 'acknowledgments'
+  ACKNOWLEDGMENTS = 'acknowledgments',
+  CUSTOM = 'custom',
+  TITLE = 'title'
 }
 
 export enum ElementPosition {
@@ -38,11 +39,10 @@ interface BaseEntity {
 // Author information
 export interface Author {
   firstName: string;
-  middleName?: string;
   lastName: string;
   email?: string;
   affiliation?: string;
-  orcid?: string;
+  toString(): string;
 }
 
 // Structured content type
@@ -55,7 +55,7 @@ export interface StructuredContent {
 export interface Citation extends BaseEntity {
   text: string;
   source: string;
-  authors: Author[];
+  authors: string[];
   year: string;
   type: CitationType;
   doi?: string;
@@ -67,17 +67,19 @@ export interface Citation extends BaseEntity {
   publisher?: string;
   thesis_id: string;
   title: string;
+  author_last_names?: string[];
+  author_first_initials?: string[];
+  author_middle_initials?: string[];
+  specific_date?: string;
   container_title?: string;
   edition?: string;
-  database?: string;
-  specific_date?: string;
 }
 
 export interface Reference extends BaseEntity {
   text: string;
   title: string;
   source: string;
-  authors: Author[];
+  authors: string[];
   year: string;
   type: CitationType;
   doi?: string;
@@ -120,6 +122,7 @@ export interface TableCell {
 export interface Table extends BaseEntity {
   title: string;
   caption: string;
+  content: string;
   data: TableCell[][];
   metadata?: {
     source?: string;
@@ -136,7 +139,7 @@ export interface Footnote extends BaseEntity {
 
 export interface Section extends BaseEntity {
   title: string;
-  content: StructuredContent[];
+  content: string;
   type: SectionType;
   order: number;
   required: boolean;
@@ -144,7 +147,7 @@ export interface Section extends BaseEntity {
   tables: Table[];
   citations: Citation[];
   references: Reference[];
-  footnotes: Footnote[];
+  footnotes?: Footnote[];
   metadata?: {
     keywords?: string[];
     abstract?: string;
@@ -154,9 +157,13 @@ export interface Section extends BaseEntity {
 
 export interface Chapter extends BaseEntity {
   title: string;
-  content: StructuredContent[];
+  content: string;
   sections: Section[];
   order: number;
+  figures: Figure[];
+  tables: Table[];
+  citations: Citation[];
+  references: Reference[];
   metadata?: {
     keywords?: string[];
     abstract?: string;
@@ -191,6 +198,12 @@ export interface ThesisContent {
 export interface Thesis extends BaseEntity {
   title: string;
   content: ThesisContent;
+  metadata: ThesisMetadata;
+  frontMatter: Section[];
+  generalIntroduction?: Section;
+  chapters: Chapter[];
+  generalConclusion?: Section;
+  backMatter: Section[];
   user_id: string;
   language: string;
   status: 'draft' | 'in_review' | 'published';
@@ -200,6 +213,7 @@ export interface Thesis extends BaseEntity {
     allowComments: boolean;
     allowSharing: boolean;
   };
+  description?: string;
 }
 
 export interface ThesisVersion extends BaseEntity {
@@ -213,6 +227,7 @@ export interface ThesisVersion extends BaseEntity {
     path: string;
     description: string;
   }[];
+  version?: string;
 }
 
 export interface CommentThread extends BaseEntity {

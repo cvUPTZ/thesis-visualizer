@@ -51,6 +51,7 @@ export default function SectionEditor() {
   }, [thesis, sectionId]);
 
   const findSection = async (): Promise<Section | null> => {
+    console.log('findSection called with thesisId:', thesisId);
     if (!thesis || !sectionId) return null;
 
     console.log('Finding section:', { sectionId, thesisContent: thesis.content });
@@ -113,14 +114,19 @@ export default function SectionEditor() {
 
     // If section not found, try to create it
     try {
+      console.log('findSection called with thesisId:', thesisId);
+      console.log('Thesis object being sent to create_section_if_not_exists:', thesis);
       console.log('Creating new regular section');
+      const params = { 
+        p_thesis_id: thesisId,
+        p_section_title: 'New Section',
+        p_section_type: 'custom'
+      };
+      console.log('Data being sent to create_section_if_not_exists:', params);
+      console.log('Entire thesis object:', thesis);
       const { data: newSectionId, error } = await supabase.rpc(
         'create_section_if_not_exists',
-        { 
-          p_thesis_id: thesisId,
-          p_section_title: 'New Section',
-          p_section_type: 'custom'
-        }
+        params
       );
 
       if (error) throw error;

@@ -19,36 +19,78 @@ export const SectionManagers = ({ section, onSectionUpdate }: SectionManagersPro
     citationsCount: section.citations?.length
   });
 
+  // Validate section structure
+  if (!section || typeof section !== 'object') {
+    console.error('Invalid section object:', section);
+    return null;
+  }
+  if (!Array.isArray(section.figures)) {
+    console.error('Invalid figures structure in section:', section);
+    return null;
+  }
+  if (!Array.isArray(section.tables)) {
+    console.error('Invalid tables structure in section:', section);
+    return null;
+  }
+  if (!Array.isArray(section.citations)) {
+    console.error('Invalid citations structure in section:', section);
+    return null;
+  }
+  if (!Array.isArray(section.references)) {
+    console.error('Invalid references structure in section:', section);
+    return null;
+  }
+
   const handleFigureUpdate = (figures: Section['figures']) => {
     console.log('Updating figures:', figures);
-    onSectionUpdate({
-      ...section,
-      figures
-    });
+    try {
+      onSectionUpdate({
+        ...section,
+        figures
+      });
+    } catch (error) {
+      console.error('Error updating figures:', error);
+      alert('Failed to update figures: ' + error.message);
+    }
   };
 
   const handleTableUpdate = (tables: Section['tables']) => {
     console.log('Updating tables:', tables);
-    onSectionUpdate({
-      ...section,
-      tables
-    });
+    try {
+      onSectionUpdate({
+        ...section,
+        tables
+      });
+    } catch (error) {
+      console.error('Error updating tables:', error);
+      alert('Failed to update tables: ' + error.message);
+    }
   };
 
   const handleCitationUpdate = (citations: Section['citations']) => {
     console.log('Updating citations:', citations);
-    onSectionUpdate({
-      ...section,
-      citations
-    });
+    try {
+      onSectionUpdate({
+        ...section,
+        citations
+      });
+    } catch (error) {
+      console.error('Error updating citations:', error);
+      alert('Failed to update citations: ' + error.message);
+    }
   };
 
   const handleReferenceUpdate = (references: Section['references']) => {
     console.log('Updating references:', references);
-    onSectionUpdate({
-      ...section,
-      references
-    });
+    try {
+      onSectionUpdate({
+        ...section,
+        references
+      });
+    } catch (error) {
+      console.error('Error updating references:', error);
+      alert('Failed to update references: ' + error.message);
+    }
   };
 
   return (

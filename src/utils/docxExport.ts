@@ -44,7 +44,7 @@ export const generateThesisDocx = async (thesis: Thesis) => {
 
   // Ensure thesis data is properly structured
   if (!thesis || !Array.isArray(thesis.frontMatter)) {
-    console.error('Invalid thesis data structure:', thesis);
+    console.error('Invalid thesis data structure in generateThesisDocx:', thesis);
     throw new Error('Invalid thesis data structure');
   }
 
@@ -53,7 +53,7 @@ export const generateThesisDocx = async (thesis: Thesis) => {
   // Title Page
   const titlePageChildren = generateTitlePage({ thesis });
   if (!Array.isArray(titlePageChildren)) {
-    console.error('Title page children is not an array:', titlePageChildren);
+    console.error('Title page children is not an array in generateThesisDocx:', titlePageChildren);
     throw new Error('Failed to generate title page');
   }
 
