@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Card } from './ui/card';
-import { createEmptySection } from '@/utils/sections';
+import { createEmptySection } from '@/utils/thesisUtils';
 
 interface ChapterManagerProps {
   chapters: Chapter[];

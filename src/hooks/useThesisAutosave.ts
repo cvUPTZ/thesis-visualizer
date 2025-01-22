@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Thesis } from '@/types/thesis';
 import { Json } from '@/integrations/supabase/types';
-import { ensureThesisStructure } from '@/utils/thesis';
+import { ensureThesisStructure } from '@/utils/thesisUtils';
 
 export const useThesisAutosave = (thesis: Thesis | null) => {
   const { toast } = useToast();
