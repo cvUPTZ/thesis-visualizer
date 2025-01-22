@@ -120,6 +120,8 @@ export default function SectionEditor() {
         p_section_type: 'custom'
       };
       console.log('Data being sent to create_section_if_not_exists:', params);
+      console.log('Thesis object being sent to create_section_if_not_exists:', thesis);
+      console.log('Entire thesis object:', thesis);
       const { data: newSectionId, error } = await supabase.rpc(
         'create_section_if_not_exists',
         params
