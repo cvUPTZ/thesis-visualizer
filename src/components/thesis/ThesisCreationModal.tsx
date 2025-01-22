@@ -29,7 +29,41 @@ export const ThesisCreationModal: React.FC<ThesisCreationModalProps> = ({ onThes
         .from('theses')
         .insert({
           title: 'Untitled Thesis',
-          content: template.structure,
+          content: {
+            frontMatter: template.structure.frontMatter || [],
+            chapters: template.structure.chapters || [],
+            backMatter: template.structure.backMatter || [],
+            generalIntroduction: template.structure.generalIntroduction || {
+              id: 'general-introduction',
+              title: 'General Introduction',
+              type: 'general-introduction',
+              content: ''
+            },
+            generalConclusion: template.structure.generalConclusion || {
+              id: 'general-conclusion',
+              title: 'General Conclusion',
+              type: 'general-conclusion',
+              content: ''
+            },
+            metadata: template.structure.metadata || {},
+            description: template.structure.description || '',
+          },
+          description: template.structure.description || '',
+          metadata: template.structure.metadata || {},
+          frontMatter: template.structure.frontMatter || [],
+          generalIntroduction: template.structure.generalIntroduction || {
+            id: 'general-introduction',
+            title: 'General Introduction',
+            type: 'general-introduction',
+            content: ''
+          },
+          generalConclusion: template.structure.generalConclusion || {
+            id: 'general-conclusion',
+            title: 'General Conclusion',
+            type: 'general-conclusion',
+            content: ''
+          },
+          backMatter: template.structure.backMatter || [],
           user_id: session.session.user.id,
         })
         .select()

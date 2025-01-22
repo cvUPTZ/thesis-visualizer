@@ -85,7 +85,21 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
               tables: section.tables || [],
               citations: section.citations || [],
               references: section.references || []
-            }))
+            })),
+            description: thesis.description || '',
+            metadata: thesis.metadata || {},
+            generalIntroduction: thesis.generalIntroduction || {
+              id: 'general-introduction',
+              title: 'General Introduction',
+              type: 'general-introduction',
+              content: ''
+            },
+            generalConclusion: thesis.generalConclusion || {
+              id: 'general-conclusion',
+              title: 'General Conclusion',
+              type: 'general-conclusion',
+              content: ''
+            }
           } as unknown as Json;
 
           // Insert thesis
