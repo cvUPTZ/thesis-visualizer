@@ -1,12 +1,12 @@
-import { Section, Thesis } from '@/types/thesis';
+import { Section, Thesis, SectionType } from '@/types/thesis';
 
-export type SectionType = 'general-introduction' | 'general-conclusion';
+export type GeneralSectionType = 'general-introduction' | 'general-conclusion';
 
-export const createEmptySection = (type: SectionType): Section => ({
+export const createEmptySection = (type: GeneralSectionType): Section => ({
   id: type,
   title: type === 'general-introduction' ? 'General Introduction' : 'General Conclusion',
   content: '',
-  type: type === 'general-introduction' ? 'general-introduction' : 'general-conclusion',
+  type: type === 'general-introduction' ? SectionType.GENERAL_INTRODUCTION : SectionType.GENERAL_CONCLUSION,
   required: true,
   order: 1,
   created_at: new Date().toISOString(),

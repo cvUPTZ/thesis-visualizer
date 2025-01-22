@@ -3,7 +3,6 @@ export enum CitationType {
   BOOK = 'book',
   ARTICLE = 'article',
   CONFERENCE = 'conference',
-  THESIS = 'thesis',
   WEBSITE = 'website',
   OTHER = 'other'
 }
@@ -19,7 +18,8 @@ export enum SectionType {
   APPENDIX = 'appendix',
   TABLE_OF_CONTENTS = 'table-of-contents',
   ACKNOWLEDGMENTS = 'acknowledgments',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
+  TITLE = 'title'
 }
 
 export enum ElementPosition {
