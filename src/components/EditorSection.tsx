@@ -27,8 +27,6 @@ export const EditorSection: React.FC<SectionProps> = ({
 }) => {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [customTitle, setCustomTitle] = useState('');
-  const [showCustomInput, setShowCustomInput] = useState(false);
   const navigate = useNavigate();
   
   console.log('EditorSection rendering with section:', { 
@@ -41,12 +39,19 @@ export const EditorSection: React.FC<SectionProps> = ({
 
   const handleSectionUpdate = (updatedSection: Section) => {
     console.log('Updating section:', updatedSection);
-    onContentChange(updatedSection.id, updatedSection.content);
-    
-    toast({
-      title: "Success",
-      description: "Section updated successfully",
-    });
+    try {
+      onContentChange(updatedSection.id, updatedSection.content);
+      toast({
+        title: "Success",
+        description: "Section updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating section:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update section",
+      });
+    }
   };
 
   const handleAddSection = (sectionType: string) => {
@@ -71,18 +76,9 @@ export const EditorSection: React.FC<SectionProps> = ({
   };
 
   const handleAddCustomSection = () => {
-    if (!customTitle.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a title for the custom section",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const newSection: Section = {
       id: crypto.randomUUID(),
-      title: customTitle,
+      title: 'Custom Section',
       content: '',
       type: 'custom',
       order: 0,
@@ -94,11 +90,9 @@ export const EditorSection: React.FC<SectionProps> = ({
     };
 
     handleSectionUpdate(newSection);
-    setCustomTitle('');
-    setShowCustomInput(false);
     toast({
       title: "Success",
-      description: `Added new custom section: ${customTitle}`,
+      description: `Added new custom section`,
     });
   };
 
@@ -146,40 +140,13 @@ export const EditorSection: React.FC<SectionProps> = ({
               New Chapter
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setShowCustomInput(true)}>
+            <DropdownMenuItem onClick={handleAddCustomSection}>
               <Settings className="h-4 w-4 mr-2" />
               Custom Section
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
-      {showCustomInput && (
-        <Card className="p-4 mb-4">
-          <div className="space-y-4">
-            <Input
-              placeholder="Enter section title..."
-              value={customTitle}
-              onChange={(e) => setCustomTitle(e.target.value)}
-              className="mb-2"
-            />
-            <div className="flex gap-2">
-              <Button onClick={handleAddCustomSection}>
-                Create Section
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setShowCustomInput(false);
-                  setCustomTitle('');
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </Card>
-      )}
 
       <Card 
         className={cn(
