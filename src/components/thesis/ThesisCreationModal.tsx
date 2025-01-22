@@ -85,6 +85,9 @@ export const ThesisCreationModal: React.FC<ThesisCreationModalProps> = ({ onThes
       if (collabError) throw collabError;
 
       console.log('Thesis created successfully:', thesis);
+      console.log('Thesis created with ID:', thesis.id);
+      console.log('Navigating to thesis with ID:', thesis.id);
+      console.log('Redirecting to thesis route:', `/thesis/${thesis.id}`);
       
       toast({
         title: "Success",
