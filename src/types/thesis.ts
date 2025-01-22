@@ -18,7 +18,8 @@ export enum SectionType {
   REFERENCES = 'references',
   APPENDIX = 'appendix',
   TABLE_OF_CONTENTS = 'table-of-contents',
-  ACKNOWLEDGMENTS = 'acknowledgments'
+  ACKNOWLEDGMENTS = 'acknowledgments',
+  CUSTOM = 'custom'
 }
 
 export enum ElementPosition {
@@ -38,11 +39,10 @@ interface BaseEntity {
 // Author information
 export interface Author {
   firstName: string;
-  middleName?: string;
   lastName: string;
   email?: string;
   affiliation?: string;
-  orcid?: string;
+  toString(): string;
 }
 
 // Structured content type
@@ -55,7 +55,7 @@ export interface StructuredContent {
 export interface Citation extends BaseEntity {
   text: string;
   source: string;
-  authors: Author[];
+  authors: string[];
   year: string;
   type: CitationType;
   doi?: string;
@@ -77,7 +77,7 @@ export interface Reference extends BaseEntity {
   text: string;
   title: string;
   source: string;
-  authors: Author[];
+  authors: string[];
   year: string;
   type: CitationType;
   doi?: string;
@@ -136,7 +136,7 @@ export interface Footnote extends BaseEntity {
 
 export interface Section extends BaseEntity {
   title: string;
-  content: StructuredContent[];
+  content: string;
   type: SectionType;
   order: number;
   required: boolean;
@@ -154,7 +154,7 @@ export interface Section extends BaseEntity {
 
 export interface Chapter extends BaseEntity {
   title: string;
-  content: StructuredContent[];
+  content: string;
   sections: Section[];
   order: number;
   metadata?: {
