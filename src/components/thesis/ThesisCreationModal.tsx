@@ -91,11 +91,8 @@ export const ThesisCreationModal: React.FC<ThesisCreationModalProps> = ({ onThes
         description: "New thesis created from template",
       });
 
-      setOpen(false);
-      if (onThesisCreated) {
-        onThesisCreated();
-      }
-      navigate(`/thesis/${thesis.id}`);
+      navigate(`/thesis/${thesis.id}`); // Redirect to the new thesis route
+      setOpen(false); // Close the modal
     } catch (error: any) {
       console.error('Error creating thesis:', error);
       toast({
