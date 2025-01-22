@@ -67,10 +67,12 @@ export interface Citation extends BaseEntity {
   publisher?: string;
   thesis_id: string;
   title: string;
+  author_last_names?: string[];
+  author_first_initials?: string[];
+  author_middle_initials?: string[];
+  specific_date?: string;
   container_title?: string;
   edition?: string;
-  database?: string;
-  specific_date?: string;
 }
 
 export interface Reference extends BaseEntity {
@@ -120,6 +122,7 @@ export interface TableCell {
 export interface Table extends BaseEntity {
   title: string;
   caption: string;
+  content: string;
   data: TableCell[][];
   metadata?: {
     source?: string;
@@ -144,7 +147,7 @@ export interface Section extends BaseEntity {
   tables: Table[];
   citations: Citation[];
   references: Reference[];
-  footnotes: Footnote[];
+  footnotes?: Footnote[];
   metadata?: {
     keywords?: string[];
     abstract?: string;
@@ -157,6 +160,10 @@ export interface Chapter extends BaseEntity {
   content: string;
   sections: Section[];
   order: number;
+  figures: Figure[];
+  tables: Table[];
+  citations: Citation[];
+  references: Reference[];
   metadata?: {
     keywords?: string[];
     abstract?: string;
@@ -191,6 +198,12 @@ export interface ThesisContent {
 export interface Thesis extends BaseEntity {
   title: string;
   content: ThesisContent;
+  metadata: ThesisMetadata;
+  frontMatter: Section[];
+  generalIntroduction?: Section;
+  chapters: Chapter[];
+  generalConclusion?: Section;
+  backMatter: Section[];
   user_id: string;
   language: string;
   status: 'draft' | 'in_review' | 'published';
@@ -200,6 +213,7 @@ export interface Thesis extends BaseEntity {
     allowComments: boolean;
     allowSharing: boolean;
   };
+  description?: string;
 }
 
 export interface ThesisVersion extends BaseEntity {
@@ -213,6 +227,7 @@ export interface ThesisVersion extends BaseEntity {
     path: string;
     description: string;
   }[];
+  version?: string;
 }
 
 export interface CommentThread extends BaseEntity {
