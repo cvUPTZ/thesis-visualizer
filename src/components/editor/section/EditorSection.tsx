@@ -22,6 +22,31 @@ export default function SectionEditor() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  // Authentication check
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/login');
+        return;
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
+  // Retry utility function
+  const withRetry = async <T,>(operation: () => Promise<T>, maxRetries = 3): Promise<T> => {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await operation();
+      } catch (err) {
+        if (i === maxRetries - 1) throw err;
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+      }
+    }
+    throw new Error('Max retries exceeded');
+  };
+
   useEffect(() => {
     if (!thesis || !sectionId) return;
     
@@ -29,17 +54,18 @@ export default function SectionEditor() {
       try {
         setIsLoading(true);
         console.log('Loading section:', { sectionId, thesis });
-        const section = await findSection();
+        const section = await withRetry(() => findSection());
         if (section) {
           console.log('Section found:', section);
           setSection(section);
         }
       } catch (err) {
         console.error('Error loading section:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load section');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load section';
+        setError(errorMessage);
         toast({
-          title: "Error",
-          description: "Failed to load section. Please try again.",
+          title: "Error Loading Section",
+          description: errorMessage,
           variant: "destructive",
         });
       } finally {
@@ -51,10 +77,7 @@ export default function SectionEditor() {
   }, [thesis, sectionId]);
 
   const findSection = async (): Promise<Section | null> => {
-    console.log('findSection called with thesisId:', thesisId);
-    if (!thesis || !sectionId) return null;
-
-    console.log('Finding section:', { sectionId, thesisContent: thesis.content });
+    if (!thesis || !sectionId || !thesisId) return null;
 
     const sectionType = sectionId === 'general-introduction' || thesis.generalIntroduction?.id === sectionId
       ? 'general-introduction'
@@ -67,17 +90,31 @@ export default function SectionEditor() {
         ? thesis.generalIntroduction 
         : thesis.generalConclusion;
 
-      if (existingSection) {
-        return existingSection;
-      }
+      if (existingSection) return existingSection;
 
       try {
-        console.log(`Creating ${sectionType} section`);
-        
-        // Update thesis with complete structure including the new section
-        const updatedContent = ensureThesisStructure(thesis);
+        const updatedContent = ensureThesisStructure({
+          ...thesis,
+          metadata: thesis.metadata || {},
+          frontMatter: thesis.frontMatter || [],
+          generalIntroduction: thesis.generalIntroduction || { 
+            id: 'general-introduction', 
+            title: 'General Introduction', 
+            content: '',
+            type: 'general_introduction',
+            required: true 
+          },
+          chapters: thesis.chapters || [],
+          generalConclusion: thesis.generalConclusion || { 
+            id: 'general-conclusion', 
+            title: 'General Conclusion', 
+            content: '',
+            type: 'general_conclusion',
+            required: true 
+          },
+          backMatter: thesis.backMatter || []
+        });
 
-        // Update the thesis with the new content
         const { error: updateError } = await supabase
           .from('theses')
           .update({ 
@@ -88,7 +125,6 @@ export default function SectionEditor() {
 
         if (updateError) throw updateError;
 
-        // Return the newly created section
         return sectionType === 'general-introduction' 
           ? updatedContent.generalIntroduction 
           : updatedContent.generalConclusion;
@@ -98,45 +134,31 @@ export default function SectionEditor() {
       }
     }
 
-    // Check front matter
-    const frontMatterSection = thesis.frontMatter?.find(s => s.id === sectionId);
-    if (frontMatterSection) return frontMatterSection;
+    // Check existing sections
+    const existingSection = thesis.frontMatter?.find(s => s.id === sectionId) ||
+      thesis.backMatter?.find(s => s.id === sectionId) ||
+      thesis.chapters?.flatMap(c => c.sections).find(s => s.id === sectionId);
 
-    // Check back matter
-    const backMatterSection = thesis.backMatter?.find(s => s.id === sectionId);
-    if (backMatterSection) return backMatterSection;
+    if (existingSection) return existingSection;
 
-    // Check chapters
-    for (const chapter of thesis.chapters || []) {
-      const section = chapter.sections.find(s => s.id === sectionId);
-      if (section) return section;
-    }
-
-    // If section not found, try to create it
+    // Create new section if not found
     try {
-      console.log('findSection called with thesisId:', thesisId);
-      console.log('Thesis object being sent to create_section_if_not_exists:', thesis);
-      console.log('Creating new regular section');
-      const params = { 
-        p_thesis_id: thesisId,
-        p_section_title: 'New Section',
-        p_section_type: 'custom'
-      };
-      console.log('Data being sent to create_section_if_not_exists:', params);
-      console.log('Entire thesis object:', thesis);
       const { data: newSectionId, error } = await supabase.rpc(
         'create_section_if_not_exists',
-        params
+        { 
+          p_thesis_id: thesisId,
+          p_section_title: 'New Section',
+          p_section_type: 'custom'
+        }
       );
 
       if (error) throw error;
 
-      // Refresh thesis data to get the new section
       const { data: refreshedThesis, error: refreshError } = await supabase
         .from('theses')
         .select('*')
         .eq('id', thesisId)
-        .maybeSingle();
+        .single();
 
       if (refreshError) throw refreshError;
 
@@ -174,7 +196,6 @@ export default function SectionEditor() {
           content: newContent
         };
       } else {
-        // Update in front matter or chapters
         const frontMatterIndex = thesis.frontMatter?.findIndex(s => s.id === section.id) ?? -1;
         if (frontMatterIndex !== -1) {
           updatedThesis.frontMatter[frontMatterIndex] = {
@@ -191,18 +212,30 @@ export default function SectionEditor() {
         }
       }
 
+      await withRetry(async () => {
+        const { error } = await supabase
+          .from('theses')
+          .update({ 
+            content: updatedThesis,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', thesisId);
+
+        if (error) throw error;
+      });
+
       setThesis(updatedThesis);
       setSection({ ...section, content: newContent });
 
       toast({
         title: "Success",
-        description: "Section content updated",
+        description: "Section content updated successfully",
       });
     } catch (err) {
       console.error('Error updating section:', err);
       toast({
         title: "Error",
-        description: "Failed to update section content",
+        description: "Failed to update section content. Please try again.",
         variant: "destructive",
       });
     }
