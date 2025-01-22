@@ -5,13 +5,13 @@ import { Card } from '@/components/ui/card';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { useThesisData } from '@/hooks/useThesisData';
 import { supabase } from '@/integrations/supabase/client';
-import { Section } from '@/types/thesis';
+import { Section, Thesis } from '@/types/thesis';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { EditorLayout } from '@/components/editor/layout/EditorLayout';
 import { SectionHeader } from '@/components/editor/SectionHeader';
-import { ensureThesisStructure, SectionType } from '@/utils/thesisUtils';
+import { ensureThesisStructure } from '@/utils/thesisUtils';
 
 export default function SectionEditor() {
   const { thesisId, sectionId } = useParams();
@@ -22,7 +22,6 @@ export default function SectionEditor() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // Authentication check
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -34,19 +33,6 @@ export default function SectionEditor() {
     checkAuth();
   }, [navigate]);
 
-  // Retry utility function
-  const withRetry = async <T,>(operation: () => Promise<T>, maxRetries = 3): Promise<T> => {
-    for (let i = 0; i < maxRetries; i++) {
-      try {
-        return await operation();
-      } catch (err) {
-        if (i === maxRetries - 1) throw err;
-        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-      }
-    }
-    throw new Error('Max retries exceeded');
-  };
-
   useEffect(() => {
     if (!thesis || !sectionId) return;
     
@@ -54,18 +40,17 @@ export default function SectionEditor() {
       try {
         setIsLoading(true);
         console.log('Loading section:', { sectionId, thesis });
-        const section = await withRetry(() => findSection());
+        const section = await findSection();
         if (section) {
           console.log('Section found:', section);
           setSection(section);
         }
       } catch (err) {
         console.error('Error loading section:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load section';
-        setError(errorMessage);
+        setError(err instanceof Error ? err.message : 'Failed to load section');
         toast({
-          title: "Error Loading Section",
-          description: errorMessage,
+          title: "Error",
+          description: `Failed to load section: ${err instanceof Error ? err.message : 'Unknown error'}`,
           variant: "destructive",
         });
       } finally {
@@ -76,9 +61,34 @@ export default function SectionEditor() {
     loadSection();
   }, [thesis, sectionId]);
 
+  const ensureCompleteThesisStructure = (thesis: Thesis): Thesis => {
+    return {
+      ...thesis,
+      metadata: thesis.metadata || {},
+      frontMatter: thesis.frontMatter || [],
+      generalIntroduction: thesis.generalIntroduction || {
+        id: 'general-introduction',
+        title: 'General Introduction',
+        content: '',
+        type: 'general_introduction',
+        required: true
+      },
+      chapters: thesis.chapters || [],
+      generalConclusion: thesis.generalConclusion || {
+        id: 'general-conclusion',
+        title: 'General Conclusion',
+        content: '',
+        type: 'general_conclusion',
+        required: true
+      },
+      backMatter: thesis.backMatter || []
+    };
+  };
+
   const findSection = async (): Promise<Section | null> => {
     if (!thesis || !sectionId || !thesisId) return null;
 
+    // Check if it's a special section type
     const sectionType = sectionId === 'general-introduction' || thesis.generalIntroduction?.id === sectionId
       ? 'general-introduction'
       : sectionId === 'general-conclusion' || thesis.generalConclusion?.id === sectionId
@@ -92,33 +102,14 @@ export default function SectionEditor() {
 
       if (existingSection) return existingSection;
 
+      // Create special section if it doesn't exist
       try {
-        const updatedContent = ensureThesisStructure({
-          ...thesis,
-          metadata: thesis.metadata || {},
-          frontMatter: thesis.frontMatter || [],
-          generalIntroduction: thesis.generalIntroduction || { 
-            id: 'general-introduction', 
-            title: 'General Introduction', 
-            content: '',
-            type: 'general_introduction',
-            required: true 
-          },
-          chapters: thesis.chapters || [],
-          generalConclusion: thesis.generalConclusion || { 
-            id: 'general-conclusion', 
-            title: 'General Conclusion', 
-            content: '',
-            type: 'general_conclusion',
-            required: true 
-          },
-          backMatter: thesis.backMatter || []
-        });
-
+        const completeThesis = ensureCompleteThesisStructure(thesis);
+        
         const { error: updateError } = await supabase
           .from('theses')
           .update({ 
-            content: updatedContent,
+            content: completeThesis,
             updated_at: new Date().toISOString()
           })
           .eq('id', thesisId);
@@ -126,8 +117,8 @@ export default function SectionEditor() {
         if (updateError) throw updateError;
 
         return sectionType === 'general-introduction' 
-          ? updatedContent.generalIntroduction 
-          : updatedContent.generalConclusion;
+          ? completeThesis.generalIntroduction 
+          : completeThesis.generalConclusion;
       } catch (err) {
         console.error(`Error creating ${sectionType}:`, err);
         throw new Error(`Failed to create ${sectionType}`);
@@ -143,7 +134,21 @@ export default function SectionEditor() {
 
     // Create new section if not found
     try {
-      const { data: newSectionId, error } = await supabase.rpc(
+      // First ensure thesis has complete structure
+      const completeThesis = ensureCompleteThesisStructure(thesis);
+      
+      const { error: updateError } = await supabase
+        .from('theses')
+        .update({ 
+          content: completeThesis,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', thesisId);
+
+      if (updateError) throw updateError;
+
+      // Then create the new section
+      const { data: newSectionId, error: createError } = await supabase.rpc(
         'create_section_if_not_exists',
         { 
           p_thesis_id: thesisId,
@@ -152,8 +157,12 @@ export default function SectionEditor() {
         }
       );
 
-      if (error) throw error;
+      if (createError) {
+        console.error('Error creating section:', createError);
+        throw createError;
+      }
 
+      // Fetch updated thesis
       const { data: refreshedThesis, error: refreshError } = await supabase
         .from('theses')
         .select('*')
@@ -171,7 +180,7 @@ export default function SectionEditor() {
       }
     } catch (err) {
       console.error('Error creating new section:', err);
-      throw new Error('Failed to create new section');
+      throw new Error(`Failed to create new section: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
 
     return null;
@@ -212,30 +221,31 @@ export default function SectionEditor() {
         }
       }
 
-      await withRetry(async () => {
-        const { error } = await supabase
-          .from('theses')
-          .update({ 
-            content: updatedThesis,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', thesisId);
+      // Ensure complete structure before saving
+      const completeThesis = ensureCompleteThesisStructure(updatedThesis);
 
-        if (error) throw error;
-      });
+      const { error } = await supabase
+        .from('theses')
+        .update({ 
+          content: completeThesis,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', thesisId);
 
-      setThesis(updatedThesis);
+      if (error) throw error;
+
+      setThesis(completeThesis);
       setSection({ ...section, content: newContent });
 
       toast({
         title: "Success",
-        description: "Section content updated successfully",
+        description: "Content updated successfully",
       });
     } catch (err) {
       console.error('Error updating section:', err);
       toast({
         title: "Error",
-        description: "Failed to update section content. Please try again.",
+        description: "Failed to update content. Please try again.",
         variant: "destructive",
       });
     }
