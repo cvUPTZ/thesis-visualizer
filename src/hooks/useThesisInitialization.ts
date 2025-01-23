@@ -9,7 +9,6 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
 
   useEffect(() => {
     const initializeThesis = async () => {
-      // Only proceed if thesis is not null
       if (!thesis) {
         return;
       }
@@ -17,7 +16,6 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
       try {
         console.log('Initializing thesis in database:', thesis.id);
         
-        // Get current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
         if (userError) {
@@ -31,7 +29,6 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
 
         console.log('Current user:', user.id);
 
-        // First get user profile to ensure it exists
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -45,7 +42,6 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
 
         console.log('User profile:', profile);
 
-        // Check if thesis already exists
         const { data: existingThesis, error: checkError } = await supabase
           .from('theses')
           .select('*')
@@ -60,56 +56,72 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
         if (!existingThesis) {
           console.log('Creating new thesis with user_id:', user.id);
           
-          // Create the thesis with the content
+          // Create complete thesis content structure
           const thesisContent = {
-            frontMatter: thesis.frontMatter.map(section => ({
-              ...section,
-              figures: section.figures || [],
-              tables: section.tables || [],
-              citations: section.citations || [],
-              references: section.references || []
-            })),
-            chapters: thesis.chapters.map(chapter => ({
-              ...chapter,
-              sections: chapter.sections.map(section => ({
-                ...section,
-                figures: section.figures || [],
-                tables: section.tables || [],
-                citations: section.citations || [],
-                references: section.references || []
-              }))
-            })),
-            backMatter: thesis.backMatter.map(section => ({
-              ...section,
-              figures: section.figures || [],
-              tables: section.tables || [],
-              citations: section.citations || [],
-              references: section.references || []
-            })),
-            description: thesis.description || '',
-            metadata: thesis.metadata || {},
+            metadata: {
+              description: '',
+              keywords: [],
+              createdAt: new Date().toISOString(),
+              universityName: '',
+              departmentName: '',
+              authors: [],
+              supervisors: [],
+              committeeMembers: [],
+              thesisDate: '',
+              language: 'en',
+              version: '1.0'
+            },
+            frontMatter: thesis.frontMatter || [],
             generalIntroduction: thesis.generalIntroduction || {
               id: 'general-introduction',
               title: 'General Introduction',
-              type: 'general-introduction',
-              content: ''
+              content: '',
+              type: 'general_introduction',
+              required: true,
+              order: 1,
+              figures: [],
+              tables: [],
+              citations: [],
+              references: [],
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             },
+            chapters: thesis.chapters || [],
             generalConclusion: thesis.generalConclusion || {
               id: 'general-conclusion',
               title: 'General Conclusion',
-              type: 'general-conclusion',
-              content: ''
-            }
+              content: '',
+              type: 'general_conclusion',
+              required: true,
+              order: 1,
+              figures: [],
+              tables: [],
+              citations: [],
+              references: [],
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            },
+            backMatter: thesis.backMatter || []
           } as unknown as Json;
 
-          // Insert thesis
+          // Insert thesis with complete content structure
           const { error: thesisError } = await supabase
             .from('theses')
             .insert({
               id: thesis.id,
-              title: 'Untitled Thesis',
+              title: thesis.title || 'Untitled Thesis',
               content: thesisContent,
-              user_id: user.id
+              user_id: user.id,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              language: 'en',
+              status: 'draft',
+              version: '1.0',
+              permissions: {
+                isPublic: false,
+                allowComments: true,
+                allowSharing: false
+              }
             });
 
           if (thesisError) {
