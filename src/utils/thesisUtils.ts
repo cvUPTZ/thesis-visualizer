@@ -16,55 +16,58 @@ export const createEmptySection = (type: SectionType, order: number = 1): Sectio
   updated_at: new Date().toISOString()
 });
 
-export const ensureThesisStructure = (thesis: Partial<Thesis>): Thesis => ({
-  ...thesis,
-  id: thesis.id || crypto.randomUUID(),
-  title: thesis.title || 'Untitled Thesis',
-  content: {
-    metadata: thesis.content?.metadata || {
-      description: '',
-      keywords: [],
-      createdAt: new Date().toISOString(),
-      universityName: '',
-      departmentName: '',
-      authors: [],
-      supervisors: [],
-      committeeMembers: [],
-      thesisDate: '',
-      language: 'en',
-      version: '1.0'
+export const ensureThesisStructure = (thesis: Partial<Thesis>): Thesis => {
+  const now = new Date().toISOString();
+  
+  // Create base structure
+  const baseStructure = {
+    id: thesis.id || crypto.randomUUID(),
+    title: thesis.title || 'Untitled Thesis',
+    content: {
+      metadata: {
+        description: '',
+        keywords: [],
+        createdAt: now,
+        universityName: '',
+        departmentName: '',
+        authors: [],
+        supervisors: [],
+        committeeMembers: [],
+        thesisDate: '',
+        language: 'en',
+        version: '1.0'
+      },
+      frontMatter: [],
+      generalIntroduction: createEmptySection(SectionType.GENERAL_INTRODUCTION),
+      chapters: [],
+      generalConclusion: createEmptySection(SectionType.GENERAL_CONCLUSION),
+      backMatter: []
     },
-    frontMatter: thesis.content?.frontMatter || [],
-    generalIntroduction: thesis.content?.generalIntroduction || createEmptySection(SectionType.GENERAL_INTRODUCTION),
-    chapters: thesis.content?.chapters || [],
-    generalConclusion: thesis.content?.generalConclusion || createEmptySection(SectionType.GENERAL_CONCLUSION),
-    backMatter: thesis.content?.backMatter || []
-  },
-  metadata: thesis.metadata || {
-    description: '',
-    keywords: [],
-    createdAt: new Date().toISOString(),
-    universityName: '',
-    departmentName: '',
-    authors: [],
-    supervisors: [],
-    committeeMembers: [],
-    thesisDate: '',
-    language: 'en',
-    version: '1.0'
-  },
-  frontMatter: thesis.frontMatter || [],
-  chapters: thesis.chapters || [],
-  backMatter: thesis.backMatter || [],
-  user_id: thesis.user_id || '',
-  language: thesis.language || 'en',
-  status: thesis.status || 'draft',
-  version: thesis.version || '1.0',
-  permissions: thesis.permissions || {
-    isPublic: false,
-    allowComments: true,
-    allowSharing: false
-  },
-  created_at: thesis.created_at || new Date().toISOString(),
-  updated_at: thesis.updated_at || new Date().toISOString()
-});
+    user_id: thesis.user_id || '',
+    language: thesis.language || 'en',
+    status: thesis.status || 'draft',
+    version: thesis.version || '1.0',
+    permissions: thesis.permissions || {
+      isPublic: false,
+      allowComments: true,
+      allowSharing: false
+    },
+    created_at: thesis.created_at || now,
+    updated_at: thesis.updated_at || now
+  };
+
+  // Merge with existing content if available
+  if (thesis.content) {
+    baseStructure.content = {
+      ...baseStructure.content,
+      metadata: { ...baseStructure.content.metadata, ...thesis.content.metadata },
+      frontMatter: Array.isArray(thesis.content.frontMatter) ? thesis.content.frontMatter : [],
+      generalIntroduction: thesis.content.generalIntroduction || baseStructure.content.generalIntroduction,
+      chapters: Array.isArray(thesis.content.chapters) ? thesis.content.chapters : [],
+      generalConclusion: thesis.content.generalConclusion || baseStructure.content.generalConclusion,
+      backMatter: Array.isArray(thesis.content.backMatter) ? thesis.content.backMatter : []
+    };
+  }
+
+  return baseStructure as Thesis;
+};
