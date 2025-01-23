@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Thesis, ThesisContent, SectionType } from '@/types/thesis';
+import { Thesis, ThesisContent } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
 import { validate as validateUUID } from 'uuid';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
