@@ -79,12 +79,15 @@ export const useThesisData = (thesisId: string | undefined) => {
           return null;
         }
 
+        // Parse content if it's a string
+        const parsedContent = typeof fetchedThesis.content === 'string' 
+          ? JSON.parse(fetchedThesis.content) 
+          : fetchedThesis.content;
+
         // Ensure thesis has complete structure before returning
         const completeThesis = ensureThesisStructure({
           ...fetchedThesis,
-          content: typeof fetchedThesis.content === 'string' 
-            ? JSON.parse(fetchedThesis.content) 
-            : fetchedThesis.content
+          content: parsedContent
         });
 
         console.log('Fetched and structured thesis:', completeThesis);
@@ -107,7 +110,17 @@ export const useThesisData = (thesisId: string | undefined) => {
   });
 
   const setThesis = (newThesis: Thesis | ((prev: Thesis | null) => Thesis | null)) => {
-    queryClient.setQueryData(['thesis', thesisId], newThesis);
+    const updatedThesis = typeof newThesis === 'function' 
+      ? newThesis(thesis)
+      : newThesis;
+
+    if (updatedThesis) {
+      // Ensure the thesis structure is complete before updating
+      const completeThesis = ensureThesisStructure(updatedThesis);
+      queryClient.setQueryData(['thesis', thesisId], completeThesis);
+    } else {
+      queryClient.setQueryData(['thesis', thesisId], null);
+    }
   };
 
   return { thesis, setThesis, isLoading, error };
