@@ -3,7 +3,7 @@ import { Section, Thesis } from '@/types/thesis';
 export type SectionType = 'general-introduction' | 'general-conclusion' | 'abstract' | 'acknowledgments' | 'chapter' | 'references' | 'appendix';
 
 export const createEmptySection = (type: SectionType, order: number = 1): Section => ({
-  id: type === 'general-introduction' || type === 'general-conclusion' ? type : crypto.randomUUID(),
+  id: crypto.randomUUID(),
   title: type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
   content: '',
   type,
