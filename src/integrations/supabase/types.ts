@@ -963,14 +963,23 @@ export type Database = {
       }
     }
     Functions: {
-      create_section_if_not_exists: {
-        Args: {
-          p_thesis_id: string
-          p_section_title: string
-          p_section_type?: string
-        }
-        Returns: string
-      }
+      create_section_if_not_exists:
+        | {
+            Args: {
+              p_thesis_id: string
+              p_section_title: string
+              p_section_type?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              section_title: string
+              section_content: string
+              section_type: string
+            }
+            Returns: undefined
+          }
       get_latest_thesis_version: {
         Args: {
           p_thesis_id: string

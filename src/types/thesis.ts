@@ -1,4 +1,3 @@
-// Enums for type safety
 export enum CitationType {
   BOOK = 'book',
   ARTICLE = 'article',
@@ -9,14 +8,14 @@ export enum CitationType {
 
 export enum SectionType {
   ABSTRACT = 'abstract',
-  GENERAL_INTRODUCTION = 'general-introduction',
+  GENERAL_INTRODUCTION = 'general_introduction',
   INTRODUCTION = 'introduction',
   CHAPTER = 'chapter',
   CONCLUSION = 'conclusion',
-  GENERAL_CONCLUSION = 'general-conclusion',
+  GENERAL_CONCLUSION = 'general_conclusion',
   REFERENCES = 'references',
   APPENDIX = 'appendix',
-  TABLE_OF_CONTENTS = 'table-of-contents',
+  TABLE_OF_CONTENTS = 'table_of_contents',
   ACKNOWLEDGMENTS = 'acknowledgments',
   CUSTOM = 'custom',
   TITLE = 'title'
@@ -24,8 +23,8 @@ export enum SectionType {
 
 export enum ElementPosition {
   INLINE = 'inline',
-  FLOAT_LEFT = 'float-left',
-  FLOAT_RIGHT = 'float-right',
+  FLOAT_LEFT = 'float_left',
+  FLOAT_RIGHT = 'float_right',
   CENTER = 'center'
 }
 
