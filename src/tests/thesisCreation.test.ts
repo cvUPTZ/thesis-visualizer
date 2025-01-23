@@ -25,10 +25,47 @@ describe('ThesisCreationModal', () => {
     // Simulate selecting a template
     const template = { 
       structure: { 
-        frontMatter: [], 
-        chapters: [], 
-        backMatter: [] 
-      } 
+        metadata: {
+          description: '',
+          keywords: [],
+          createdAt: new Date().toISOString(),
+          universityName: '',
+          departmentName: '',
+          authors: [],
+          supervisors: [],
+          committeeMembers: [],
+          thesisDate: '',
+          language: 'en',
+          version: '1.0'
+        },
+        frontMatter: [],
+        generalIntroduction: {
+          id: 'general-introduction',
+          title: 'General Introduction',
+          content: '',
+          type: 'general_introduction',
+          required: true,
+          order: 1,
+          figures: [],
+          tables: [],
+          citations: [],
+          references: []
+        },
+        chapters: [],
+        generalConclusion: {
+          id: 'general-conclusion',
+          title: 'General Conclusion',
+          content: '',
+          type: 'general_conclusion',
+          required: true,
+          order: 1,
+          figures: [],
+          tables: [],
+          citations: [],
+          references: []
+        },
+        backMatter: []
+      }
     };
     
     fireEvent.click(screen.getByText('New Thesis'));

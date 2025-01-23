@@ -56,7 +56,7 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
         if (!existingThesis) {
           console.log('Creating new thesis with user_id:', user.id);
           
-          // Create complete thesis content structure
+          // Create complete thesis content structure with all required fields
           const thesisContent = {
             metadata: {
               description: '',
@@ -71,8 +71,8 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
               language: 'en',
               version: '1.0'
             },
-            frontMatter: thesis.frontMatter || [],
-            generalIntroduction: thesis.generalIntroduction || {
+            frontMatter: [],
+            generalIntroduction: {
               id: 'general-introduction',
               title: 'General Introduction',
               content: '',
@@ -86,8 +86,8 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             },
-            chapters: thesis.chapters || [],
-            generalConclusion: thesis.generalConclusion || {
+            chapters: [],
+            generalConclusion: {
               id: 'general-conclusion',
               title: 'General Conclusion',
               content: '',
@@ -101,7 +101,7 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             },
-            backMatter: thesis.backMatter || []
+            backMatter: []
           } as unknown as Json;
 
           // Insert thesis with complete content structure
