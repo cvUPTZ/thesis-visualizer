@@ -1,14 +1,25 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { useThesisData } from '@/hooks/useThesisData';
+import { ArrowLeft, Home } from 'lucide-react';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider,
+} from '@/components/ui/sidebar';
 
 export default function SectionEditor() {
   const { thesisId, sectionId } = useParams();
   const { thesis, setThesis } = useThesisData(thesisId);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   console.log('SectionEditor rendering:', { thesisId, sectionId });
 
@@ -106,15 +117,41 @@ export default function SectionEditor() {
   };
 
   return (
-    <div className="container mx-auto p-8">
-      <Card className="p-6">
-        <h1 className="text-2xl font-bold mb-6">{section.title}</h1>
-        <MarkdownEditor
-          value={section.content}
-          onChange={handleContentChange}
-          placeholder="Start writing your section content..."
-        />
-      </Card>
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <Sidebar>
+          <SidebarHeader className="border-b border-border p-4">
+            <h2 className="text-lg font-semibold">Navigation</h2>
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => navigate('/')} tooltip="Back to Home">
+                  <Home className="w-4 h-4" />
+                  <span>Home</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => navigate(`/thesis/${thesisId}`)} tooltip="Back to Thesis">
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back to Thesis</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarContent>
+        </Sidebar>
+        
+        <div className="flex-1 p-8">
+          <Card className="p-6">
+            <h1 className="text-2xl font-bold mb-6">{section.title}</h1>
+            <MarkdownEditor
+              value={section.content}
+              onChange={handleContentChange}
+              placeholder="Start writing your section content..."
+            />
+          </Card>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 }
