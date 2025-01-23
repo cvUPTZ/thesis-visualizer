@@ -56,9 +56,19 @@ export const ThesisCreationForm = () => {
         ...values,
         keywords: values.keywords
       };
-      const result = await createThesis(metadata, session.user.id);
-      if (result?.thesisId) {
-        navigate(`/thesis/${result.thesisId}`);
+      
+      try {
+        const result = await createThesis(metadata, session.user.id);
+        if (result?.thesisId) {
+          console.log('Thesis created successfully with ID:', result.thesisId);
+          console.log('Navigating to:', `/thesis/${result.thesisId}`);
+          navigate(`/thesis/${result.thesisId}`);
+        } else {
+          throw new Error('Failed to create thesis - no thesis ID returned');
+        }
+      } catch (error) {
+        console.error('Error in thesis creation:', error);
+        setError(error instanceof Error ? error.message : 'Failed to create thesis');
       }
     },
   });
