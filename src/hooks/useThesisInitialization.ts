@@ -98,35 +98,32 @@ const parseThesisContent = (rawContent: any): ThesisContent => {
 
 export const useThesisData = (thesisId: string | undefined) => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  const {
-    data: thesis,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['thesis', thesisId],
-    queryFn: async () => {
-      if (!thesisId) {
-        return null;
-      }
-
-      if (!validateUUID(thesisId)) {
-        throw new Error('Invalid thesis ID format');
+  useEffect(() => {
+    const initializeThesis = async () => {
+      if (!thesis) {
+        console.log('No thesis provided for initialization');
+        return;
       }
 
       try {
-        const { data: session } = await supabase.auth.getSession();
-        if (!session?.session?.user) {
-          throw new Error('Authentication required');
+        console.log('Starting thesis initialization:', thesis.id);
+        
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+          console.error('Error getting current user:', userError);
+          throw userError;
         }
 
-        // First check if user has permission to access this thesis
-        const { data: permission, error: permissionError } = await supabase
-          .from('thesis_collaborators')
-          .select('role')
-          .eq('thesis_id', thesisId)
-          .eq('user_id', session.session.user.id)
+        if (!user) {
+          throw new Error('No authenticated user found');
+        }
+
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
           .maybeSingle();
 
         if (permissionError) {
@@ -137,7 +134,7 @@ export const useThesisData = (thesisId: string | undefined) => {
           throw new Error('Access denied');
         }
 
-        const { data: fetchedThesis, error: fetchError } = await supabase
+        const { data: existingThesis, error: checkError } = await supabase
           .from('theses')
           .select(`
             *,
@@ -152,135 +149,104 @@ export const useThesisData = (thesisId: string | undefined) => {
           .eq('id', thesisId)
           .maybeSingle();
 
-        if (fetchError) {
-          throw new Error('Error fetching thesis data');
+        if (checkError) {
+          console.error('Error checking thesis:', checkError);
+          throw checkError;
         }
 
-        if (!fetchedThesis) {
-          return null;
-        }
+        if (!existingThesis) {
+          console.log('Creating new thesis with user_id:', user.id);
+          
+          const now = new Date().toISOString();
+          
+          // Create complete thesis content structure with all required fields
+          const thesisContent = {
+            metadata: {
+              description: '',
+              keywords: [],
+              createdAt: now,
+              universityName: '',
+              departmentName: '',
+              authors: [],
+              supervisors: [],
+              committeeMembers: [],
+              thesisDate: '',
+              language: 'en',
+              version: '1.0'
+            },
+            frontMatter: [],
+            generalIntroduction: {
+              id: crypto.randomUUID(),
+              title: 'General Introduction',
+              content: '',
+              type: 'general_introduction',
+              required: true,
+              order: 1,
+              figures: [],
+              tables: [],
+              citations: [],
+              references: [],
+              created_at: now,
+              updated_at: now
+            },
+            chapters: [],
+            generalConclusion: {
+              id: crypto.randomUUID(),
+              title: 'General Conclusion',
+              content: '',
+              type: 'general_conclusion',
+              required: true,
+              order: 1,
+              figures: [],
+              tables: [],
+              citations: [],
+              references: [],
+              created_at: now,
+              updated_at: now
+            },
+            backMatter: []
+          } as unknown as Json;
 
-        // Validate thesis content
-        const validationErrors = validateThesisContent(fetchedThesis.content);
-        if (validationErrors.length > 0) {
-          toast({
-            title: 'Warning',
-            description: 'Some thesis data is invalid or missing. Default values will be used.',
-            variant: 'warning',
-          });
-        }
+          // Insert thesis with complete content structure
+          const { error: thesisError } = await supabase
+            .from('theses')
+            .insert({
+              id: thesis.id,
+              title: thesis.title || 'Untitled Thesis',
+              content: thesisContent,
+              user_id: user.id,
+              created_at: now,
+              updated_at: now,
+              language: 'en',
+              status: 'draft',
+              version: '1.0',
+              permissions: {
+                isPublic: false,
+                allowComments: true,
+                allowSharing: false
+              }
+            });
 
-        // Parse and structure the thesis content
-        const parsedContent = parseThesisContent(fetchedThesis.content);
-
-        const formattedThesis: Thesis = {
-          id: fetchedThesis.id,
-          title: fetchedThesis.title,
-          content: parsedContent,
-          user_id: fetchedThesis.user_id,
-          created_at: fetchedThesis.created_at,
-          updated_at: fetchedThesis.updated_at,
-          language: fetchedThesis.language || 'en',
-          status: fetchedThesis.status || 'draft',
-          version: fetchedThesis.version || '1.0.0',
-          permissions: {
-            isPublic: fetchedThesis.is_public || false,
-            allowComments: fetchedThesis.allow_comments || true,
-            allowSharing: fetchedThesis.allow_sharing || false,
-          },
-        };
-
-        return formattedThesis;
-      } catch (err: any) {
-        toast({
-          title: 'Error',
-          description: err.message || 'Failed to load thesis',
-          variant: 'destructive',
-        });
-        throw err;
-      }
-    },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
-    retry: 3, // Increase retries to 3
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
-  });
-
-  const setThesis = (newThesis: Thesis | ((prev: Thesis | null) => Thesis | null)) => {
-    queryClient.setQueryData(['thesis', thesisId], newThesis);
-  };
-
-
-   const findExistingSection = (thesis: Thesis, targetId: string): Section | null => {
-      // Check special sections
-      if (thesis.generalIntroduction?.id === targetId) return thesis.generalIntroduction;
-      if (thesis.generalConclusion?.id === targetId) return thesis.generalConclusion;
-
-      // Check front matter
-      const frontMatterSection = thesis.frontMatter?.find(s => s.id === targetId);
-      if (frontMatterSection) return frontMatterSection;
-
-      // Check back matter
-      const backMatterSection = thesis.backMatter?.find(s => s.id === targetId);
-      if (backMatterSection) return backMatterSection;
-
-      // Check chapters
-      for (const chapter of thesis.chapters || []) {
-        const chapterSection = chapter.sections.find(s => s.id === targetId);
-        if (chapterSection) return chapterSection;
-      }
-
-      return null;
-    };
-
-    const handleContentChange = async (newContent: string) => {
-      if (!thesis || !section || !thesisId) return;
-
-      try {
-          console.log('Handling content change...');
-          const updatedThesis = { ...thesis };
-      
-            // Update the appropriate section
-          if (section.type === 'general_introduction') {
-            updatedThesis.generalIntroduction = {
-                ...updatedThesis.generalIntroduction,
-                content: newContent
-              };
-            } else if (section.type === 'general_conclusion') {
-              updatedThesis.generalConclusion = {
-                ...updatedThesis.generalConclusion,
-                content: newContent
-              };
-          } else {
-            // Update in front/back matter or chapters
-            const frontMatterIndex = thesis.frontMatter?.findIndex(s => s.id === section.id) ?? -1;
-            if (frontMatterIndex !== -1) {
-            updatedThesis.frontMatter[frontMatterIndex] = {
-                ...thesis.frontMatter[frontMatterIndex],
-                content: newContent
-            };
-            } else {
-            const backMatterIndex = thesis.backMatter?.findIndex(s => s.id === section.id) ?? -1;
-             if (backMatterIndex !== -1) {
-                updatedThesis.backMatter[backMatterIndex] = {
-                ...thesis.backMatter[backMatterIndex],
-                  content: newContent
-              };
-            }else {
-              updatedThesis.chapters = (thesis.chapters || []).map(chapter => ({
-                  ...chapter,
-                  sections: chapter.sections.map(s => 
-                    s.id === section.id ? { ...s, content: newContent } : s
-                ),
-              }));
-            }
+          if (thesisError) {
+            console.error('Error creating thesis:', thesisError);
+            throw thesisError;
           }
-    
-          // Ensure complete structure before saving
-          const completeThesis = ensureThesisStructure(updatedThesis);
 
-          console.log('Saving updated thesis...');
-          const { error } = await supabase
+          console.log('Created new thesis with content:', thesisContent);
+
+          // Add current user as owner
+          const { error: collaboratorError } = await supabase
+            .from('thesis_collaborators')
+            .insert({
+              thesis_id: thesis.id,
+              user_id: user.id,
+              role: 'owner'
+            });
+
+          if (collaboratorError) {
+            console.error('Error adding thesis owner:', collaboratorError);
+            // If we fail to add collaborator, delete the thesis
+            await supabase
               .from('theses')
             .update({ 
                 content: completeThesis,

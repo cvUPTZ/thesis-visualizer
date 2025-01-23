@@ -17,7 +17,6 @@ import {
 } from './ui/dropdown-menu';
 import { Card } from './ui/card';
 import { cn } from '@/lib/utils';
-import { Input } from './ui/input';
 
 export const EditorSection: React.FC<SectionProps> = ({
   section,
@@ -50,6 +49,7 @@ export const EditorSection: React.FC<SectionProps> = ({
       toast({
         title: "Error",
         description: "Failed to update section",
+        variant: "destructive"
       });
     }
   };
@@ -65,7 +65,9 @@ export const EditorSection: React.FC<SectionProps> = ({
       tables: [],
       citations: [],
       required: sectionType === 'General Introduction' || sectionType === 'General Conclusion',
-      references: []
+      references: [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     handleSectionUpdate(newSection);
@@ -86,7 +88,9 @@ export const EditorSection: React.FC<SectionProps> = ({
       tables: [],
       citations: [],
       required: false,
-      references: []
+      references: [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     handleSectionUpdate(newSection);
@@ -107,7 +111,9 @@ export const EditorSection: React.FC<SectionProps> = ({
     tables: section.tables || [],
     citations: section.citations || [],
     required: section.required || false,
-    references: section.references || []
+    references: section.references || [],
+    created_at: section.created_at || new Date().toISOString(),
+    updated_at: section.updated_at || new Date().toISOString()
   };
 
   const navigateToEditor = () => {

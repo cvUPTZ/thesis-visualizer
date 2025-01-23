@@ -1,4 +1,3 @@
-// Enums for type safety
 export enum CitationType {
   BOOK = 'book',
   ARTICLE = 'article',
@@ -9,14 +8,14 @@ export enum CitationType {
 
 export enum SectionType {
   ABSTRACT = 'abstract',
-  GENERAL_INTRODUCTION = 'general-introduction',
+  GENERAL_INTRODUCTION = 'general_introduction',
   INTRODUCTION = 'introduction',
   CHAPTER = 'chapter',
   CONCLUSION = 'conclusion',
-  GENERAL_CONCLUSION = 'general-conclusion',
+  GENERAL_CONCLUSION = 'general_conclusion',
   REFERENCES = 'references',
   APPENDIX = 'appendix',
-  TABLE_OF_CONTENTS = 'table-of-contents',
+  TABLE_OF_CONTENTS = 'table_of_contents',
   ACKNOWLEDGMENTS = 'acknowledgments',
   CUSTOM = 'custom',
   TITLE = 'title'
@@ -24,19 +23,17 @@ export enum SectionType {
 
 export enum ElementPosition {
   INLINE = 'inline',
-  FLOAT_LEFT = 'float-left',
-  FLOAT_RIGHT = 'float-right',
+  FLOAT_LEFT = 'float_left',
+  FLOAT_RIGHT = 'float_right',
   CENTER = 'center'
 }
 
-// Base interface for common fields
 interface BaseEntity {
   id: string;
   created_at: string;
   updated_at: string;
 }
 
-// Author information
 export interface Author {
   firstName: string;
   lastName: string;
@@ -45,7 +42,6 @@ export interface Author {
   toString(): string;
 }
 
-// Structured content type
 export interface StructuredContent {
   type: 'paragraph' | 'heading' | 'list' | 'quote' | 'code';
   content: string;
@@ -67,12 +63,6 @@ export interface Citation extends BaseEntity {
   publisher?: string;
   thesis_id: string;
   title: string;
-  author_last_names?: string[];
-  author_first_initials?: string[];
-  author_middle_initials?: string[];
-  specific_date?: string;
-  container_title?: string;
-  edition?: string;
 }
 
 export interface Reference extends BaseEntity {
@@ -89,9 +79,6 @@ export interface Reference extends BaseEntity {
   issue?: string;
   pages?: string;
   publisher?: string;
-  specific_date?: string;
-  container_title?: string;
-  edition?: string;
 }
 
 export interface Figure extends BaseEntity {
@@ -227,7 +214,6 @@ export interface ThesisVersion extends BaseEntity {
     path: string;
     description: string;
   }[];
-  version?: string;
 }
 
 export interface CommentThread extends BaseEntity {

@@ -37,25 +37,15 @@ class ErrorBoundary extends React.Component<Props, State> {
     
     try {
       // Check if it's an auth error
-      const isAuthError = error.message.includes('auth/v1/user') || 
-                         error.message.includes('auth/v1/token');
+      const isAuthError = error.message.includes('auth/v1') || 
+                         error.message.includes('refresh_token_not_found') ||
+                         error.message.includes('Invalid Refresh Token');
 
       if (isAuthError) {
-        console.log('Auth error detected, attempting to refresh session...');
-        const { data: { session }, error: refreshError } = await supabase.auth.getSession();
-        
-        if (refreshError) {
-          console.error('Session refresh failed:', refreshError);
-          // Redirect to auth page if session refresh fails
-          window.location.href = '/auth';
-          return;
-        }
-
-        if (!session) {
-          console.log('No valid session found, redirecting to auth...');
-          window.location.href = '/auth';
-          return;
-        }
+        console.log('Auth error detected, attempting to sign out and redirect...');
+        await supabase.auth.signOut();
+        window.location.href = '/auth';
+        return;
       }
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -97,23 +87,13 @@ class ErrorBoundary extends React.Component<Props, State> {
     this.setState(prev => ({ retryCount: prev.retryCount + 1 }));
     
     try {
-      // Check session and refresh if needed
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) {
+        console.error('Error signing out:', signOutError);
+      }
       
-      if (sessionError) {
-        console.error('Session check failed:', sessionError);
-        window.location.href = '/auth';
-        return;
-      }
-
-      if (!session) {
-        console.log('No valid session, redirecting to auth...');
-        window.location.href = '/auth';
-        return;
-      }
-
-      // If we have a valid session, reload the page
-      window.location.reload();
+      // Always redirect to auth page on retry for auth errors
+      window.location.href = '/auth';
     } catch (error) {
       console.error('Retry failed:', error);
       window.location.href = '/auth';
@@ -129,8 +109,9 @@ class ErrorBoundary extends React.Component<Props, State> {
       const isNetworkError = this.state.error instanceof TypeError && 
                             this.state.error.message === 'Failed to fetch';
       
-      const isAuthError = this.state.error?.message.includes('auth/v1/user') ||
-                         this.state.error?.message.includes('auth/v1/token');
+      const isAuthError = this.state.error?.message.includes('auth/v1') ||
+                         this.state.error?.message.includes('refresh_token_not_found') ||
+                         this.state.error?.message.includes('Invalid Refresh Token');
 
       return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -138,33 +119,35 @@ class ErrorBoundary extends React.Component<Props, State> {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>
-                {isAuthError ? 'Authentication Error' : 
+                {isAuthError ? 'Session Expired' : 
                  isNetworkError ? 'Connection Error' : 
                  'Something went wrong'}
               </AlertTitle>
               <AlertDescription className="mt-2">
-                {isAuthError ? 'Please sign in again to continue.' :
+                {isAuthError ? 'Your session has expired. Please sign in again to continue.' :
                  isNetworkError ? 'Unable to connect to the server. Please check your internet connection and try again.' :
                  "We've encountered an unexpected error and our team has been notified."}
               </AlertDescription>
             </Alert>
             
             <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={this.handleGoBack}
-                className="gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Go Back
-              </Button>
+              {!isAuthError && (
+                <Button
+                  variant="outline"
+                  onClick={this.handleGoBack}
+                  className="gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Go Back
+                </Button>
+              )}
               <Button
                 variant="default"
                 onClick={this.handleRetry}
                 className="gap-2"
               >
                 <RefreshCw className="h-4 w-4" />
-                {isAuthError ? 'Sign In' : 'Try Again'}
+                {isAuthError ? 'Sign In Again' : 'Try Again'}
               </Button>
             </div>
           </div>
