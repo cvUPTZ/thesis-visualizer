@@ -28,14 +28,12 @@ export enum ElementPosition {
   CENTER = 'center'
 }
 
-// Base interface for common fields
 interface BaseEntity {
   id: string;
   created_at: string;
   updated_at: string;
 }
 
-// Author information
 export interface Author {
   firstName: string;
   lastName: string;
@@ -44,7 +42,6 @@ export interface Author {
   toString(): string;
 }
 
-// Structured content type
 export interface StructuredContent {
   type: 'paragraph' | 'heading' | 'list' | 'quote' | 'code';
   content: string;
@@ -66,12 +63,6 @@ export interface Citation extends BaseEntity {
   publisher?: string;
   thesis_id: string;
   title: string;
-  author_last_names?: string[];
-  author_first_initials?: string[];
-  author_middle_initials?: string[];
-  specific_date?: string;
-  container_title?: string;
-  edition?: string;
 }
 
 export interface Reference extends BaseEntity {
@@ -88,9 +79,6 @@ export interface Reference extends BaseEntity {
   issue?: string;
   pages?: string;
   publisher?: string;
-  specific_date?: string;
-  container_title?: string;
-  edition?: string;
 }
 
 export interface Figure extends BaseEntity {
@@ -226,7 +214,6 @@ export interface ThesisVersion extends BaseEntity {
     path: string;
     description: string;
   }[];
-  version?: string;
 }
 
 export interface CommentThread extends BaseEntity {
