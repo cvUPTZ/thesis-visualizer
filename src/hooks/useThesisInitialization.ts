@@ -10,11 +10,12 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
   useEffect(() => {
     const initializeThesis = async () => {
       if (!thesis) {
+        console.log('No thesis provided for initialization');
         return;
       }
 
       try {
-        console.log('Initializing thesis in database:', thesis.id);
+        console.log('Starting thesis initialization:', thesis.id);
         
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
@@ -56,12 +57,14 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
         if (!existingThesis) {
           console.log('Creating new thesis with user_id:', user.id);
           
+          const now = new Date().toISOString();
+          
           // Create complete thesis content structure with all required fields
           const thesisContent = {
             metadata: {
               description: '',
               keywords: [],
-              createdAt: new Date().toISOString(),
+              createdAt: now,
               universityName: '',
               departmentName: '',
               authors: [],
@@ -73,7 +76,7 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
             },
             frontMatter: [],
             generalIntroduction: {
-              id: 'general-introduction',
+              id: crypto.randomUUID(),
               title: 'General Introduction',
               content: '',
               type: 'general_introduction',
@@ -83,12 +86,12 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
               tables: [],
               citations: [],
               references: [],
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
+              created_at: now,
+              updated_at: now
             },
             chapters: [],
             generalConclusion: {
-              id: 'general-conclusion',
+              id: crypto.randomUUID(),
               title: 'General Conclusion',
               content: '',
               type: 'general_conclusion',
@@ -98,8 +101,8 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
               tables: [],
               citations: [],
               references: [],
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
+              created_at: now,
+              updated_at: now
             },
             backMatter: []
           } as unknown as Json;
@@ -112,8 +115,8 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
               title: thesis.title || 'Untitled Thesis',
               content: thesisContent,
               user_id: user.id,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
+              created_at: now,
+              updated_at: now,
               language: 'en',
               status: 'draft',
               version: '1.0',
@@ -128,6 +131,8 @@ export const useThesisInitialization = (thesis: Thesis | null) => {
             console.error('Error creating thesis:', thesisError);
             throw thesisError;
           }
+
+          console.log('Created new thesis with content:', thesisContent);
 
           // Add current user as owner
           const { error: collaboratorError } = await supabase
