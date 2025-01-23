@@ -87,7 +87,49 @@ export const useThesisData = (thesisId: string | undefined) => {
         // Ensure thesis has complete structure before returning
         const completeThesis = ensureThesisStructure({
           ...fetchedThesis,
-          content: parsedContent
+          content: {
+            ...parsedContent,
+            metadata: parsedContent.metadata || {
+              description: '',
+              keywords: [],
+              createdAt: new Date().toISOString(),
+              universityName: '',
+              departmentName: '',
+              authors: [],
+              supervisors: [],
+              committeeMembers: [],
+              thesisDate: '',
+              language: 'en',
+              version: '1.0'
+            },
+            frontMatter: parsedContent.frontMatter || [],
+            generalIntroduction: parsedContent.generalIntroduction || {
+              id: crypto.randomUUID(),
+              title: 'General Introduction',
+              content: '',
+              type: 'general_introduction',
+              required: true,
+              order: 1,
+              figures: [],
+              tables: [],
+              citations: [],
+              references: []
+            },
+            chapters: parsedContent.chapters || [],
+            generalConclusion: parsedContent.generalConclusion || {
+              id: crypto.randomUUID(),
+              title: 'General Conclusion',
+              content: '',
+              type: 'general_conclusion',
+              required: true,
+              order: 1,
+              figures: [],
+              tables: [],
+              citations: [],
+              references: []
+            },
+            backMatter: parsedContent.backMatter || []
+          }
         });
 
         console.log('Fetched and structured thesis:', completeThesis);
