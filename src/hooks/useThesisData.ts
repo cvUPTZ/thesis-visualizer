@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Thesis } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
@@ -13,15 +12,8 @@ export const useThesisData = (thesisId: string | undefined) => {
   const { data: thesis, isLoading, error } = useQuery({
     queryKey: ['thesis', thesisId],
     queryFn: async () => {
-      if (!thesisId) {
-        console.log('No thesis ID provided');
-        return null;
-      }
-
-      if (!validateUUID(thesisId)) {
-        console.error('Invalid thesis ID format:', thesisId);
-        throw new Error('Invalid thesis ID format');
-      }
+      if (!thesisId) return null;
+      if (!validateUUID(thesisId)) throw new Error('Invalid thesis ID format');
 
       try {
         console.log('Fetching thesis data for ID:', thesisId);
@@ -59,6 +51,30 @@ export const useThesisData = (thesisId: string | undefined) => {
             console.error('User does not have access to this thesis');
             throw new Error('Access denied');
           }
+        }
+
+        // Get the section ID from the URL
+        const sectionId = window.location.pathname.split('/').pop();
+        const sectionType = sectionId === 'general-introduction' ? 'general_introduction' 
+                        : sectionId === 'general-conclusion' ? 'general_conclusion'
+                        : 'custom';
+
+        // If we're on a section route and the section doesn't exist, create it
+        if (sectionId && sectionId !== thesisId) {
+          console.log('Checking if section exists:', sectionId);
+          const { data: newSectionId, error: sectionError } = await supabase
+            .rpc('create_section_if_not_exists', {
+              p_thesis_id: thesisId,
+              p_section_title: sectionType === 'custom' ? 'New Section' : sectionType.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+              p_section_type: sectionType
+            });
+
+          if (sectionError) {
+            console.error('Error creating section:', sectionError);
+            throw sectionError;
+          }
+
+          console.log('Created new section with ID:', newSectionId);
         }
 
         // Fetch thesis data
