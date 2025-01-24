@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { ThesisEditorContent } from './ThesisEditorContent';
-import { Chapter, Thesis } from '@/types/thesis';
+import { Chapter, Section, Thesis } from '@/types/thesis';
 import { GeneralSectionEditor } from '@/components/editor/sections/GeneralSectionEditor';
 import { Card } from '@/components/ui/card';
 
@@ -35,16 +35,10 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
     activeSection
   });
 
-  const handleGeneralIntroUpdate = useCallback((updatedSection: any) => {
+  const handleSectionUpdate = useCallback((section: Section) => {
     if (!thesis) return;
-    onContentChange(updatedSection.id, updatedSection.content as string);
-    onTitleChange(updatedSection.id, updatedSection.title);
-  }, [thesis, onContentChange, onTitleChange]);
-
-  const handleGeneralConclusionUpdate = useCallback((updatedSection: any) => {
-    if (!thesis) return;
-    onContentChange(updatedSection.id, updatedSection.content as string);
-    onTitleChange(updatedSection.id, updatedSection.title);
+    onContentChange(section.id, section.content as string);
+    onTitleChange(section.id, section.title);
   }, [thesis, onContentChange, onTitleChange]);
 
   return (
@@ -56,7 +50,7 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
             <GeneralSectionEditor
               section={generalIntroduction}
               title="General Introduction"
-              onUpdate={handleGeneralIntroUpdate}
+              onUpdate={handleSectionUpdate}
             />
           </Card>
 
@@ -83,7 +77,7 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
             <GeneralSectionEditor
               section={generalConclusion}
               title="General Conclusion"
-              onUpdate={handleGeneralConclusionUpdate}
+              onUpdate={handleSectionUpdate}
             />
           </Card>
         </div>
