@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ThesisEditorContent } from './ThesisEditorContent';
 import { Chapter, Thesis } from '@/types/thesis';
 import { GeneralSectionEditor } from '@/components/editor/sections/GeneralSectionEditor';
@@ -23,7 +23,7 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
   onContentChange,
   onTitleChange,
   onUpdateChapter,
-  onAddChapter
+  onAddChapter,
 }) => {
   if (!thesis?.content) return null;
 
@@ -35,6 +35,18 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
     activeSection
   });
 
+  const handleGeneralIntroUpdate = useCallback((updatedSection: any) => {
+    if (!thesis) return;
+    onContentChange(updatedSection.id, updatedSection.content as string);
+    onTitleChange(updatedSection.id, updatedSection.title);
+  }, [thesis, onContentChange, onTitleChange]);
+
+  const handleGeneralConclusionUpdate = useCallback((updatedSection: any) => {
+    if (!thesis) return;
+    onContentChange(updatedSection.id, updatedSection.content as string);
+    onTitleChange(updatedSection.id, updatedSection.title);
+  }, [thesis, onContentChange, onTitleChange]);
+
   return (
     <main className="flex-1 p-8 flex">
       <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
@@ -44,11 +56,7 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
             <GeneralSectionEditor
               section={generalIntroduction}
               title="General Introduction"
-              onUpdate={(updatedSection) => {
-                if (!thesis) return;
-                onContentChange(updatedSection.id, updatedSection.content as string);
-                onTitleChange(updatedSection.id, updatedSection.title);
-              }}
+              onUpdate={handleGeneralIntroUpdate}
             />
           </Card>
 
@@ -75,11 +83,7 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
             <GeneralSectionEditor
               section={generalConclusion}
               title="General Conclusion"
-              onUpdate={(updatedSection) => {
-                if (!thesis) return;
-                onContentChange(updatedSection.id, updatedSection.content as string);
-                onTitleChange(updatedSection.id, updatedSection.title);
-              }}
+              onUpdate={handleGeneralConclusionUpdate}
             />
           </Card>
         </div>
