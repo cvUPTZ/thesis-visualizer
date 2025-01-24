@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
 import { Chapter, Section, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
@@ -38,22 +38,19 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   useThesisInitialization(thesis);
   useThesisRealtime(currentThesisId, thesis, setThesis);
 
-  const getAllSections = () => {
+  const getAllSections = useCallback(() => {
     if (!thesis?.content) return [];
     
     const sections: Section[] = [];
     
-    // Add front matter
     if (Array.isArray(thesis.content.frontMatter)) {
       sections.push(...thesis.content.frontMatter);
     }
     
-    // Add general introduction if it exists
     if (thesis.content.generalIntroduction) {
       sections.push(thesis.content.generalIntroduction);
     }
     
-    // Add chapter sections
     if (Array.isArray(thesis.content.chapters)) {
       thesis.content.chapters.forEach(chapter => {
         if (Array.isArray(chapter.sections)) {
@@ -62,20 +59,18 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
       });
     }
     
-    // Add general conclusion if it exists
     if (thesis.content.generalConclusion) {
       sections.push(thesis.content.generalConclusion);
     }
     
-    // Add back matter
     if (Array.isArray(thesis.content.backMatter)) {
       sections.push(...thesis.content.backMatter);
     }
     
     return sections;
-  };
+  }, [thesis?.content]);
 
-  const calculateProgress = () => {
+  const calculateProgress = useCallback(() => {
     const sections = getAllSections();
     if (sections.length === 0) return 0;
     
@@ -88,17 +83,15 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     }).length;
     
     return Math.round((completedSections / sections.length) * 100);
-  };
+  }, [getAllSections]);
 
-  const progress = calculateProgress();
-
-  const handleContentChange = (id: string, content: string) => {
+  const handleContentChange = useCallback((id: string, content: string) => {
     if (!thesis) return;
     
     setThesis(prevThesis => {
-      const updatedThesis = { ...prevThesis! };
+      if (!prevThesis) return prevThesis;
+      const updatedThesis = { ...prevThesis };
 
-      // Check general introduction
       if (updatedThesis.content?.generalIntroduction?.id === id) {
         updatedThesis.content.generalIntroduction = {
           ...updatedThesis.content.generalIntroduction,
@@ -107,7 +100,6 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
         return updatedThesis;
       }
 
-      // Check general conclusion
       if (updatedThesis.content?.generalConclusion?.id === id) {
         updatedThesis.content.generalConclusion = {
           ...updatedThesis.content.generalConclusion,
@@ -116,7 +108,6 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
         return updatedThesis;
       }
 
-      // Check other sections
       if (Array.isArray(updatedThesis.content?.frontMatter)) {
         updatedThesis.content.frontMatter = updatedThesis.content.frontMatter.map(section =>
           section.id === id ? { ...section, content } : section
@@ -140,30 +131,35 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
 
       return updatedThesis;
     });
-  };
+  }, [thesis, setThesis]);
 
-  const handleTitleChange = (id: string, title: string) => {
+  const handleTitleChange = useCallback((id: string, title: string) => {
     if (!thesis) return;
 
-    setThesis(prevThesis => ({
-      ...prevThesis!,
-      content: {
-        ...prevThesis!.content,
-        frontMatter: prevThesis!.content.frontMatter.map(section =>
-          section.id === id ? { ...section, title } : section
-        ),
-        chapters: prevThesis!.content.chapters.map(chapter => ({
-          ...chapter,
-          sections: chapter.sections.map(section =>
+    setThesis(prevThesis => {
+      if (!prevThesis) return prevThesis;
+      return {
+        ...prevThesis,
+        content: {
+          ...prevThesis.content,
+          frontMatter: prevThesis.content.frontMatter.map(section =>
+            section.id === id ? { ...section, title } : section
+          ),
+          chapters: prevThesis.content.chapters.map(chapter => ({
+            ...chapter,
+            sections: chapter.sections.map(section =>
+              section.id === id ? { ...section, title } : section
+            )
+          })),
+          backMatter: prevThesis.content.backMatter.map(section =>
             section.id === id ? { ...section, title } : section
           )
-        })),
-        backMatter: prevThesis!.content.backMatter.map(section =>
-          section.id === id ? { ...section, title } : section
-        )
-      }
-    }));
-  };
+        }
+      };
+    });
+  }, [thesis, setThesis]);
+
+  const progress = calculateProgress();
 
   if (isLoading) {
     return (
@@ -211,11 +207,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   return (
     <div className="min-h-screen bg-background flex">
       <ThesisSidebar
-        sections={[
-          ...(thesis?.content?.frontMatter || []),
-          ...(thesis?.content?.chapters || []).flatMap(chapter => chapter.sections),
-          ...(thesis?.content?.backMatter || [])
-        ]}
+        sections={getAllSections()}
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
       />
