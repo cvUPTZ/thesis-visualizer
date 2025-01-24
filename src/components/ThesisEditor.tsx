@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
 import { Chapter, Section, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
@@ -36,9 +36,9 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
 
   useThesisAutosave(thesis);
   useThesisInitialization(thesis);
-  useThesisRealtime(currentThesisId, thesis, setThesis);
+  const { updateRef } = useThesisRealtime(currentThesisId, setThesis);
 
-  const getAllSections = useCallback(() => {
+  const getAllSections = useMemo(() => {
     if (!thesis?.content) return [];
     
     const sections: Section[] = [];
@@ -70,8 +70,8 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     return sections;
   }, [thesis?.content]);
 
-  const calculateProgress = useCallback(() => {
-    const sections = getAllSections();
+  const calculateProgress = useMemo(() => {
+    const sections = getAllSections;
     if (sections.length === 0) return 0;
     
     const completedSections = sections.filter(section => {
@@ -91,30 +91,31 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     setThesis(prevThesis => {
       if (!prevThesis) return prevThesis;
       const updatedThesis = { ...prevThesis };
+      let contentUpdated = false;
 
       if (updatedThesis.content?.generalIntroduction?.id === id) {
         updatedThesis.content.generalIntroduction = {
           ...updatedThesis.content.generalIntroduction,
           content
         };
-        return updatedThesis;
+        contentUpdated = true;
       }
 
-      if (updatedThesis.content?.generalConclusion?.id === id) {
+      if (!contentUpdated && updatedThesis.content?.generalConclusion?.id === id) {
         updatedThesis.content.generalConclusion = {
           ...updatedThesis.content.generalConclusion,
           content
         };
-        return updatedThesis;
+        contentUpdated = true;
       }
 
-      if (Array.isArray(updatedThesis.content?.frontMatter)) {
+      if (!contentUpdated && Array.isArray(updatedThesis.content?.frontMatter)) {
         updatedThesis.content.frontMatter = updatedThesis.content.frontMatter.map(section =>
           section.id === id ? { ...section, content } : section
         );
       }
 
-      if (Array.isArray(updatedThesis.content?.chapters)) {
+      if (!contentUpdated && Array.isArray(updatedThesis.content?.chapters)) {
         updatedThesis.content.chapters = updatedThesis.content.chapters.map(chapter => ({
           ...chapter,
           sections: chapter.sections.map(section =>
@@ -123,7 +124,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
         }));
       }
 
-      if (Array.isArray(updatedThesis.content?.backMatter)) {
+      if (!contentUpdated && Array.isArray(updatedThesis.content?.backMatter)) {
         updatedThesis.content.backMatter = updatedThesis.content.backMatter.map(section =>
           section.id === id ? { ...section, content } : section
         );
@@ -137,29 +138,37 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     if (!thesis) return;
 
     setThesis(prevThesis => {
-      if (!prevThesis) return prevThesis;
-      return {
-        ...prevThesis,
-        content: {
-          ...prevThesis.content,
-          frontMatter: prevThesis.content.frontMatter.map(section =>
-            section.id === id ? { ...section, title } : section
-          ),
-          chapters: prevThesis.content.chapters.map(chapter => ({
-            ...chapter,
-            sections: chapter.sections.map(section =>
-              section.id === id ? { ...section, title } : section
-            )
-          })),
-          backMatter: prevThesis.content.backMatter.map(section =>
+      if (!prevThesis?.content) return prevThesis;
+      const updatedThesis = { ...prevThesis };
+      let titleUpdated = false;
+
+      if (Array.isArray(updatedThesis.content.frontMatter)) {
+        updatedThesis.content.frontMatter = updatedThesis.content.frontMatter.map(section =>
+          section.id === id ? { ...section, title } : section
+        );
+        if (updatedThesis.content.frontMatter.some(s => s.id === id)) {
+          titleUpdated = true;
+        }
+      }
+
+      if (!titleUpdated && Array.isArray(updatedThesis.content.chapters)) {
+        updatedThesis.content.chapters = updatedThesis.content.chapters.map(chapter => ({
+          ...chapter,
+          sections: chapter.sections.map(section =>
             section.id === id ? { ...section, title } : section
           )
-        }
-      };
-    });
-  }, [thesis, setThesis]);
+        }));
+      }
 
-  const progress = calculateProgress();
+      if (!titleUpdated && Array.isArray(updatedThesis.content.backMatter)) {
+        updatedThesis.content.backMatter = updatedThesis.content.backMatter.map(section =>
+          section.id === id ? { ...section, title } : section
+        );
+      }
+
+      return updatedThesis;
+    });
+  }, [thesis]);
 
   if (isLoading) {
     return (
@@ -177,7 +186,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     console.error('Error loading thesis:', error);
     toast({
       title: "Error Loading Thesis",
-      description: error?.message || "Could not load thesis. Please try again.",
+      description: error?.message || "Could not load thesis",
       variant: "destructive",
     });
     return (
@@ -207,7 +216,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   return (
     <div className="min-h-screen bg-background flex">
       <ThesisSidebar
-        sections={getAllSections()}
+        sections={getAllSections}
         activeSection={activeSection}
         onSectionSelect={setActiveSection}
       />
@@ -223,7 +232,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
           <ThesisEditorStatus
             thesis={thesis}
             thesisId={currentThesisId!}
-            progress={progress}
+            progress={calculateProgress}
             showTracker={showTracker}
             setShowTracker={setShowTracker}
           />
@@ -237,6 +246,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
           onContentChange={handleContentChange}
           onTitleChange={handleTitleChange}
           onUpdateChapter={(chapter: Chapter) => {
+            if (!thesis) return;
             setThesis(prev => ({
               ...prev!,
               content: {
@@ -248,6 +258,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
             }));
           }}
           onAddChapter={(chapter) => {
+            if (!thesis) return;
             setThesis(prev => ({
               ...prev!,
               content: {
