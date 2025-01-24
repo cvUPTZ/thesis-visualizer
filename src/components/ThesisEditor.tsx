@@ -170,6 +170,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     });
   }, [thesis]);
 
+  // Show loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background p-8">
@@ -182,6 +183,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     );
   }
 
+  // Show error state
   if (error || (!thesis && currentThesisId)) {
     console.error('Error loading thesis:', error);
     toast({
@@ -199,6 +201,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     );
   }
 
+  // Show empty state
   if (!thesis && !currentThesisId) {
     return (
       <div className="flex flex-col h-full">
