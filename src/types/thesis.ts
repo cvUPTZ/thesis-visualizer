@@ -8,27 +8,20 @@ export enum CitationType {
 
 export enum SectionType {
   ABSTRACT = 'abstract',
-  GENERAL_INTRODUCTION = 'general_introduction',
+  GENERAL_INTRODUCTION = 'general-introduction',
   INTRODUCTION = 'introduction',
   CHAPTER = 'chapter',
   CONCLUSION = 'conclusion',
-  GENERAL_CONCLUSION = 'general_conclusion',
+  GENERAL_CONCLUSION = 'general-conclusion',
   REFERENCES = 'references',
   APPENDIX = 'appendix',
-  TABLE_OF_CONTENTS = 'table_of_contents',
+  TABLE_OF_CONTENTS = 'table-of-contents',
   ACKNOWLEDGMENTS = 'acknowledgments',
   CUSTOM = 'custom',
   TITLE = 'title'
 }
 
-export enum ElementPosition {
-  INLINE = 'inline',
-  FLOAT_LEFT = 'float_left',
-  FLOAT_RIGHT = 'float_right',
-  CENTER = 'center'
-}
-
-interface BaseEntity {
+export interface BaseEntity {
   id: string;
   created_at: string;
   updated_at: string;
@@ -62,7 +55,6 @@ export interface Citation extends BaseEntity {
   pages?: string;
   publisher?: string;
   thesis_id: string;
-  title: string;
 }
 
 export interface Reference extends BaseEntity {
@@ -79,15 +71,16 @@ export interface Reference extends BaseEntity {
   issue?: string;
   pages?: string;
   publisher?: string;
+  thesis_id: string;
 }
 
-export interface Figure extends BaseEntity {
+export interface Figure {
   url: string;
   caption: string;
   alt_text: string;
   title: string;
   label: string;
-  position: ElementPosition;
+  position: string;
   dimensions: {
     width: number;
     height: number;
@@ -126,7 +119,7 @@ export interface Footnote extends BaseEntity {
 
 export interface Section extends BaseEntity {
   title: string;
-  content: string;
+  content: string | StructuredContent[];
   type: SectionType;
   order: number;
   required: boolean;
@@ -185,12 +178,6 @@ export interface ThesisContent {
 export interface Thesis extends BaseEntity {
   title: string;
   content: ThesisContent;
-  metadata: ThesisMetadata;
-  frontMatter: Section[];
-  generalIntroduction?: Section;
-  chapters: Chapter[];
-  generalConclusion?: Section;
-  backMatter: Section[];
   user_id: string;
   language: string;
   status: 'draft' | 'in_review' | 'published';
@@ -201,6 +188,8 @@ export interface Thesis extends BaseEntity {
     allowSharing: boolean;
   };
   description?: string;
+  supervisor_email?: string;
+  supervisor_id?: string;
 }
 
 export interface ThesisVersion extends BaseEntity {
@@ -209,11 +198,7 @@ export interface ThesisVersion extends BaseEntity {
   version_number: number;
   description?: string;
   created_by: string;
-  changes: {
-    type: 'addition' | 'deletion' | 'modification';
-    path: string;
-    description: string;
-  }[];
+  language: string;
 }
 
 export interface CommentThread extends BaseEntity {

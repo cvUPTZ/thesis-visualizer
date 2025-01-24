@@ -1,11 +1,21 @@
 export interface Thesis {
   id: string;
   title: string;
-  generalIntroduction?: Section;
-  generalConclusion?: Section;
-  frontMatter: Section[];
-  chapters: Chapter[];
-  backMatter: Section[];
+  content: ThesisContent;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  language: string;
+  supervisor_email?: string;
+  supervisor_id?: string;
+  version?: string;
+  status?: 'draft' | 'in_review' | 'published';
+  permissions?: {
+    isPublic: boolean;
+    allowComments: boolean;
+    allowSharing: boolean;
+  };
+  description?: string;
 }
 
 export interface Chapter {
@@ -13,12 +23,16 @@ export interface Chapter {
   title: string;
   sections: Section[];
   thesis_id: string;
+  order: number;
+  content: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Section {
   id: string;
   title: string;
-  content: string;
+  content: string | StructuredContent[];
   type: string;
   required?: boolean;
   order?: number;
