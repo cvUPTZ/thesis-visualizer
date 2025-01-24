@@ -14,6 +14,12 @@ import {
   SidebarMenuButton,
   SidebarProvider,
 } from '@/components/ui/sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export default function SectionEditor() {
   const { thesisId, sectionId } = useParams();
@@ -126,16 +132,34 @@ export default function SectionEditor() {
           <SidebarContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => navigate('/')} tooltip="Back to Home">
-                  <Home className="w-4 h-4" />
-                  <span>Home</span>
-                </SidebarMenuButton>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton onClick={() => navigate('/')}>
+                        <Home className="w-4 h-4" />
+                        <span>Home</span>
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Back to Home</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => navigate(`/thesis/${thesisId}`)} tooltip="Back to Thesis">
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>Back to Thesis</span>
-                </SidebarMenuButton>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton onClick={() => navigate(`/thesis/${thesisId}`)}>
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Back to Thesis</span>
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Back to Thesis</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarContent>

@@ -968,6 +968,15 @@ export type Database = {
             Args: {
               p_thesis_id: string
               p_section_title: string
+              p_section_type: string
+              p_section_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_thesis_id: string
+              p_section_title: string
               p_section_type?: string
             }
             Returns: string
