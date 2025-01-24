@@ -27,10 +27,13 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
 }) => {
   console.log('ThesisEditorMain rendering:', { activeSection });
 
-  const { generalIntroduction, generalConclusion } = useMemo(() => ({
-    generalIntroduction: thesis?.content?.generalIntroduction,
-    generalConclusion: thesis?.content?.generalConclusion
-  }), [thesis?.content]);
+  const sections = useMemo(() => {
+    if (!thesis?.content) return { generalIntroduction: null, generalConclusion: null };
+    return {
+      generalIntroduction: thesis.content.generalIntroduction,
+      generalConclusion: thesis.content.generalConclusion
+    };
+  }, [thesis?.content]);
 
   const handleSectionUpdate = useCallback((section: Section) => {
     if (!thesis) return;
@@ -43,14 +46,16 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
     onTitleChange(section.id, section.title);
   }, [thesis, onContentChange, onTitleChange]);
 
+  if (!thesis?.content) return null;
+
   return (
     <main className="flex-1 p-8 flex">
       <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
         <div className="max-w-4xl mx-auto space-y-8">
-          {generalIntroduction && (
+          {sections.generalIntroduction && (
             <Card className="p-6">
               <GeneralSectionEditor
-                section={generalIntroduction}
+                section={sections.generalIntroduction}
                 title="General Introduction"
                 onUpdate={handleSectionUpdate}
               />
@@ -58,25 +63,25 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
           )}
 
           <ThesisEditorContent
-            frontMatter={thesis?.content?.frontMatter || []}
-            chapters={thesis?.content?.chapters || []}
-            backMatter={thesis?.content?.backMatter || []}
-            generalIntroduction={generalIntroduction}
-            generalConclusion={generalConclusion}
+            frontMatter={thesis.content.frontMatter || []}
+            chapters={thesis.content.chapters || []}
+            backMatter={thesis.content.backMatter || []}
+            generalIntroduction={sections.generalIntroduction}
+            generalConclusion={sections.generalConclusion}
             activeSection={activeSection}
             onContentChange={onContentChange}
             onTitleChange={onTitleChange}
             onUpdateChapter={onUpdateChapter}
             onAddChapter={onAddChapter}
             thesis={thesis}
-            thesisId={thesis?.id || ''}
+            thesisId={thesis.id}
             onUpdateThesis={() => {}}
           />
 
-          {generalConclusion && (
+          {sections.generalConclusion && (
             <Card className="p-6">
               <GeneralSectionEditor
-                section={generalConclusion}
+                section={sections.generalConclusion}
                 title="General Conclusion"
                 onUpdate={handleSectionUpdate}
               />
