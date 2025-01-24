@@ -13,30 +13,21 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
   const TOAST_COOLDOWN = 5000; // 5 seconds between toasts
 
   const saveThesis = useCallback(async (thesisData: Thesis | null) => {
-    if (!thesisData || !thesisData.id) {
+    if (!thesisData?.id) {
       console.log('No thesis data to save');
       return;
     }
-    
-    console.log('Thesis object before saving:', thesisData);
-    console.log('Thesis object structure:', {
-      hasId: !!thesisData.id,
-      hasTitle: !!thesisData.title,
-      hasDescription: !!thesisData.description,
-      hasMetadata: !!thesisData.metadata,
-      hasFrontMatter: Array.isArray(thesisData.frontMatter),
-      hasGeneralIntroduction: !!thesisData.generalIntroduction,
-      hasChapters: Array.isArray(thesisData.chapters),
-      hasGeneralConclusion: !!thesisData.generalConclusion,
-      hasBackMatter: Array.isArray(thesisData.backMatter)
-    });
+
+    const currentContent = JSON.stringify(thesisData);
+    if (currentContent === lastSavedContent.current) {
+      console.log('No changes to save');
+      return;
+    }
     
     try {
       console.log('Auto-saving thesis:', thesisData.id);
       
-      // Use the utility function to ensure all required fields are present
       const safeThesisData = ensureThesisStructure(thesisData);
-
       const serializedContent = JSON.stringify(safeThesisData) as unknown as Json;
 
       const { error } = await supabase
@@ -47,15 +38,11 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
         })
         .eq('id', thesisData.id);
 
-      if (error) {
-        console.error('Supabase error while saving:', error);
-        throw new Error(error.message);
-      }
+      if (error) throw error;
       
-      lastSavedContent.current = JSON.stringify(thesisData);
+      lastSavedContent.current = currentContent;
       console.log('Auto-save successful');
       
-      // Only show toast if enough time has passed since the last one
       const now = Date.now();
       if (now - lastToastTime.current >= TOAST_COOLDOWN) {
         lastToastTime.current = now;
@@ -75,7 +62,6 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
     }
   }, [toast]);
 
-  // Debounced version of saveThesis
   const debouncedSave = useCallback(
     debounce((thesis: Thesis) => {
       saveThesis(thesis);
@@ -85,12 +71,7 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
 
   useEffect(() => {
     if (!thesis) return;
-
-    const currentContent = JSON.stringify(thesis);
-    if (currentContent !== lastSavedContent.current) {
-      debouncedSave(thesis);
-    }
-
+    debouncedSave(thesis);
     return () => {
       debouncedSave.cancel();
     };

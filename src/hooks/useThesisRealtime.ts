@@ -10,26 +10,17 @@ export const useThesisRealtime = (
 ) => {
   const { toast } = useToast();
   const thesisRef = useRef<Thesis | null>(null);
+  const lastUpdateTime = useRef<string>('');
 
-  const deepMergeUpdates = (existing: Thesis, update: Thesis): Thesis => ({
-    ...existing,
-    ...update,
-    content: {
-      ...existing.content,
-      ...update.content,
-      metadata: update.content.metadata || existing.content.metadata,
-      frontMatter: update.content.frontMatter || existing.content.frontMatter,
-      chapters: update.content.chapters || existing.content.chapters,
-      backMatter: update.content.backMatter || existing.content.backMatter,
-    }
-  });
+  const showUpdateNotification = debounce(() => {
+    toast({ 
+      title: "Changes Detected", 
+      description: "New updates from collaborators" 
+    });
+  }, 3000);
 
   useEffect(() => {
     if (!thesisId) return;
-
-    const showUpdateNotification = debounce(() => {
-      toast({ title: "Changes Detected", description: "New updates from collaborators" });
-    }, 3000);
 
     const channel = supabase
       .channel('thesis-updates')
@@ -46,11 +37,23 @@ export const useThesisRealtime = (
             const newThesis = payload.new as Thesis;
             const currentThesis = thesisRef.current;
 
+            // Skip if this is our own update or an older update
             if (!currentThesis || 
-                newThesis.updated_at <= currentThesis.updated_at ||
-                newThesis.user_id === currentThesis.user_id) return;
+                newThesis.updated_at <= lastUpdateTime.current ||
+                newThesis.user_id === currentThesis.user_id) {
+              return;
+            }
 
-            setThesis(prev => prev ? deepMergeUpdates(prev, newThesis) : prev);
+            lastUpdateTime.current = newThesis.updated_at;
+            setThesis(prev => prev ? {
+              ...prev,
+              ...newThesis,
+              content: {
+                ...prev.content,
+                ...newThesis.content
+              }
+            } : prev);
+            
             showUpdateNotification();
           } catch (error) {
             console.error('Realtime update error:', error);
@@ -63,11 +66,12 @@ export const useThesisRealtime = (
       supabase.removeChannel(channel);
       showUpdateNotification.cancel();
     };
-  }, [thesisId, toast]);
+  }, [thesisId, toast, setThesis]);
 
   // Sync ref with latest thesis value
   const updateRef = (thesis: Thesis | null) => {
     thesisRef.current = thesis;
+    lastUpdateTime.current = thesis?.updated_at || '';
     return thesis;
   };
 
