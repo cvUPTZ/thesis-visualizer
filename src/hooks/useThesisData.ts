@@ -55,17 +55,33 @@ export const useThesisData = (thesisId: string | undefined) => {
 
         // Get the section ID from the URL
         const sectionId = window.location.pathname.split('/').pop();
-        const sectionType = sectionId === 'general-introduction' ? 'general_introduction' 
-                        : sectionId === 'general-conclusion' ? 'general_conclusion'
-                        : 'custom';
+        
+        // Map URL section types to database section types
+        const getSectionType = (urlSection: string | undefined) => {
+          switch (urlSection) {
+            case 'general-introduction':
+              return 'general-introduction';
+            case 'general-conclusion':
+              return 'general-conclusion';
+            default:
+              return 'custom';
+          }
+        };
 
         // If we're on a section route and the section doesn't exist, create it
         if (sectionId && sectionId !== thesisId) {
           console.log('Checking if section exists:', sectionId);
+          const sectionType = getSectionType(sectionId);
+          
+          console.log('Creating section with type:', sectionType);
           const { data: newSectionId, error: sectionError } = await supabase
             .rpc('create_section_if_not_exists', {
               p_thesis_id: thesisId,
-              p_section_title: sectionType === 'custom' ? 'New Section' : sectionType.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+              p_section_title: sectionType === 'custom' 
+                ? 'New Section' 
+                : sectionType.split('-').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                  ).join(' '),
               p_section_type: sectionType
             });
 
