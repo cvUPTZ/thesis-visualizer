@@ -1,4 +1,3 @@
-import React from 'react';
 import { Input } from "@/components/ui/input";
 
 interface InstitutionFieldsProps {
@@ -6,24 +5,28 @@ interface InstitutionFieldsProps {
     universityName: string;
     departmentName: string;
   };
-  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  errors: Record<string, string>;
+  onChange: (field: string, value: string) => void;
 }
 
-export const InstitutionFields = ({ values, handleChange }: InstitutionFieldsProps) => {
+export const InstitutionFields = ({ 
+  values,
+  errors,
+  onChange
+}: InstitutionFieldsProps) => {
   return (
-    <>
+    <div className="space-y-4">
       <div>
         <label htmlFor="universityName" className="block text-sm font-medium mb-1">
           University Name
         </label>
         <Input
           id="universityName"
-          name="universityName"
           value={values.universityName}
-          onChange={handleChange}
+          onChange={(e) => onChange('universityName', e.target.value)}
           placeholder="Enter university name"
-          required
         />
+        {errors.universityName && <p className="text-red-500 text-sm mt-1">{errors.universityName}</p>}
       </div>
 
       <div>
@@ -32,13 +35,12 @@ export const InstitutionFields = ({ values, handleChange }: InstitutionFieldsPro
         </label>
         <Input
           id="departmentName"
-          name="departmentName"
           value={values.departmentName}
-          onChange={handleChange}
+          onChange={(e) => onChange('departmentName', e.target.value)}
           placeholder="Enter department name"
-          required
         />
+        {errors.departmentName && <p className="text-red-500 text-sm mt-1">{errors.departmentName}</p>}
       </div>
-    </>
+    </div>
   );
 };

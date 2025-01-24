@@ -1,4 +1,3 @@
-import React from 'react';
 import { Input } from "@/components/ui/input";
 
 interface CommitteeFieldsProps {
@@ -6,16 +5,19 @@ interface CommitteeFieldsProps {
   handleCommitteeMemberChange: (index: number, value: string) => void;
 }
 
-export const CommitteeFields = ({ committeeMembers, handleCommitteeMemberChange }: CommitteeFieldsProps) => {
+export const CommitteeFields = ({ 
+  committeeMembers = [],
+  handleCommitteeMemberChange
+}: CommitteeFieldsProps) => {
   return (
-    <div>
+    <div className="space-y-2">
       <label className="block text-sm font-medium mb-1">
         Committee Members
       </label>
+      
       {committeeMembers.map((member, index) => (
         <Input
           key={index}
-          name={`committeeMembers[${index}]`}
           value={member}
           onChange={(e) => handleCommitteeMemberChange(index, e.target.value)}
           placeholder={`Committee Member ${index + 1}`}

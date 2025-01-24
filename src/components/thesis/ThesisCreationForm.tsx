@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from 'react-router-dom';
 import { useForm } from '@/hooks/useForm';
-import { useThesisCreation } from '@/components/thesis/form/useThesisCreation';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BasicThesisFields } from './form/BasicThesisFields';
@@ -13,15 +12,30 @@ import { AuthorFields } from './form/AuthorFields';
 import { CommitteeFields } from './form/CommitteeFields';
 import { ArrowLeft } from 'lucide-react';
 
+interface ThesisFormValues {
+  title: string;
+  description: string;
+  keywords: string;
+  universityName: string;
+  departmentName: string;
+  authorName: string;
+  thesisDate: string;
+  committeeMembers: string[];
+}
+
 export const ThesisCreationForm = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
+
   const {
     values,
     errors,
     isSubmitting,
     handleChange,
-    handleSubmit,
-    handleArrayChange
-  } = useForm({
+    handleArrayChange,
+    handleSubmit
+  } = useForm<ThesisFormValues>({
     initialValues: {
       title: '',
       description: '',
@@ -30,94 +44,91 @@ export const ThesisCreationForm = () => {
       departmentName: '',
       authorName: '',
       thesisDate: '',
-      committeeMembers: ['', '', ''],
+      committeeMembers: ['', '', '']
     },
     validate: (values) => {
-      const err: any = {};
-      if (!values.title) {
-        err.title = "Title is required";
+      const errors: Partial<Record<keyof ThesisFormValues, string>> = {};
+      if (!values.title.trim()) errors.title = "Title is required";
+      if (!values.description.trim()) errors.description = "Description is required";
+      if (!values.keywords.trim()) errors.keywords = "Keywords are required";
+      if (values.committeeMembers.filter(m => m.trim()).length < 1) {
+        errors.committeeMembers = "At least one committee member is required";
       }
-      if (!values.description) {
-        err.description = "Description is required";
-      }
-      if (!values.keywords) {
-        err.keywords = "Keywords are required";
-      }
-      return err;
+      return errors;
     },
     onSubmit: async (values) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user?.id) {
-        setError('You must be logged in to create a thesis');
-        return;
-      }
-
-      const metadata = {
-        ...values,
-        keywords: values.keywords
-      };
-      
       try {
-        const result = await createThesis(metadata, session.user.id);
-        if (result?.thesisId) {
-          console.log('Thesis created successfully with ID:', result.thesisId);
-          console.log('Navigating to:', `/thesis/${result.thesisId}`);
-          navigate(`/thesis/${result.thesisId}`);
-        } else {
-          throw new Error('Failed to create thesis - no thesis ID returned');
-        }
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user?.id) throw new Error("Authentication required");
+
+        const committeeMembers = values.committeeMembers
+          .filter(m => m.trim())
+          .map(name => ({ name: name.trim() }));
+
+        const { data, error } = await supabase
+          .from('theses')
+          .insert({
+            title: values.title,
+            user_id: session.user.id,
+            content: {
+              metadata: {
+                description: values.description,
+                keywords: values.keywords.split(',').map(k => k.trim()),
+                universityName: values.universityName.trim(),
+                departmentName: values.departmentName.trim(),
+                authors: [{ name: values.authorName.trim() }],
+                supervisors: [],
+                committeeMembers: committeeMembers,
+                thesisDate: values.thesisDate || new Date().toISOString(),
+              },
+              frontMatter: [],
+              chapters: [],
+              backMatter: []
+            },
+            status: 'draft'
+          })
+          .select('id')
+          .single();
+
+        if (error) throw error;
+        if (!data?.id) throw new Error("Failed to create thesis");
+
+        navigate(`/thesis/${data.id}`);
       } catch (error) {
-        console.error('Error in thesis creation:', error);
-        setError(error instanceof Error ? error.message : 'Failed to create thesis');
+        setError(error instanceof Error ? error.message : 'Unknown error');
+        toast({
+          title: "Creation Failed",
+          variant: "destructive",
+          description: error instanceof Error ? error.message : 'Please try again',
+        });
       }
     },
   });
 
-  const [error, setError] = useState<string | null>(null);
-  const { createThesis } = useThesisCreation();
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session }, error: authError } = await supabase.auth.getSession();
-      if (authError || !session) {
-        console.error('Authentication error:', authError);
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to create a thesis.",
-          variant: "destructive",
-        });
-        navigate('/auth');
-      }
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error || !session) navigate('/login');
     };
-
     checkAuth();
-  }, [navigate, toast]);
+  }, [navigate]);
 
-  const handleCommitteeMemberChange = (index: number, value: string) => {
-    handleArrayChange('committeeMembers', index, value)
-  }
-
-  const handleCancel = () => {
-    navigate(-1);
+  const handleCommitteeChange = (index: number, value: string) => {
+    handleArrayChange('committeeMembers', index, value);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto p-6 relative">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute -top-2 -left-2"
-        onClick={() => navigate(-1)}
-      >
-        <ArrowLeft className="h-6 w-6" />
-      </Button>
-
+    <div className="max-w-3xl mx-auto p-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Create New Thesis</CardTitle>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <CardTitle>Create New Thesis</CardTitle>
+          </div>
         </CardHeader>
+        
         <CardContent>
           {error && (
             <Alert variant="destructive" className="mb-4">
@@ -125,35 +136,54 @@ export const ThesisCreationForm = () => {
             </Alert>
           )}
 
-          <div className="space-y-6">
-            <BasicThesisFields values={values} handleChange={handleChange} />
-            <InstitutionFields values={values} handleChange={handleChange} />
-            <AuthorFields values={values} handleChange={handleChange} />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <BasicThesisFields
+              values={values}
+              errors={errors}
+              onChange={handleChange}
+            />
+
+            <InstitutionFields
+              values={values}
+              errors={errors}
+              onChange={handleChange}
+            />
+
+            <AuthorFields
+              values={values}
+              errors={errors}
+              onChange={handleChange}
+            />
+
             <CommitteeFields
               committeeMembers={values.committeeMembers}
-              handleCommitteeMemberChange={handleCommitteeMemberChange}
+              handleCommitteeMemberChange={handleCommitteeChange}
             />
-            
-            <div className="flex gap-4">
-              <Button 
-                type="submit" 
-                disabled={isSubmitting} 
-                className="flex-1"
-              >
-                {isSubmitting ? 'Creating...' : 'Create Thesis'}
-              </Button>
-              <Button 
-                type="button" 
-                variant="destructive" 
-                onClick={handleCancel}
-                className="flex-1"
+
+            {errors.committeeMembers && (
+              <Alert variant="destructive">
+                <AlertDescription>{errors.committeeMembers}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="flex gap-4 justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate(-1)}
               >
                 Cancel
               </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Creating...' : 'Create Thesis'}
+              </Button>
             </div>
-          </div>
+          </form>
         </CardContent>
       </Card>
-    </form>
+    </div>
   );
 };

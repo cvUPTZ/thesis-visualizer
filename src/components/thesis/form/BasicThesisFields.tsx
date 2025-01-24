@@ -1,64 +1,60 @@
-import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
-export interface BasicThesisFieldsProps {
+interface BasicThesisFieldsProps {
   values: {
     title: string;
     description: string;
     keywords: string;
   };
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setFieldValue?: (field: string, value: any) => void;
+  errors: Record<string, string>;
+  onChange: (field: string, value: string) => void;
 }
 
-export const BasicThesisFields: React.FC<BasicThesisFieldsProps> = ({
+export const BasicThesisFields = ({
   values,
-  handleChange,
-  setFieldValue
-}) => {
+  errors,
+  onChange
+}: BasicThesisFieldsProps) => {
   return (
     <div className="space-y-4">
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="title" className="block text-sm font-medium mb-1">
           Title
         </label>
         <Input
           id="title"
-          name="title"
           value={values.title}
-          onChange={handleChange}
+          onChange={(e) => onChange('title', e.target.value)}
           placeholder="Enter thesis title"
-          className="mt-1"
         />
+        {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="description" className="block text-sm font-medium mb-1">
           Description
         </label>
         <Textarea
           id="description"
-          name="description"
           value={values.description}
-          onChange={handleChange}
+          onChange={(e) => onChange('description', e.target.value)}
           placeholder="Enter thesis description"
-          className="mt-1"
         />
+        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
       </div>
 
       <div>
-        <label htmlFor="keywords" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="keywords" className="block text-sm font-medium mb-1">
           Keywords
         </label>
         <Input
           id="keywords"
-          name="keywords"
           value={values.keywords}
-          onChange={handleChange}
-          placeholder="Enter keywords (comma separated)"
-          className="mt-1"
+          onChange={(e) => onChange('keywords', e.target.value)}
+          placeholder="Comma-separated keywords"
         />
+        {errors.keywords && <p className="text-red-500 text-sm mt-1">{errors.keywords}</p>}
       </div>
     </div>
   );

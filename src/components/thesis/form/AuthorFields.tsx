@@ -1,4 +1,3 @@
-import React from 'react';
 import { Input } from "@/components/ui/input";
 
 interface AuthorFieldsProps {
@@ -6,24 +5,28 @@ interface AuthorFieldsProps {
     authorName: string;
     thesisDate: string;
   };
-  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  errors: Record<string, string>;
+  onChange: (field: string, value: string) => void;
 }
 
-export const AuthorFields = ({ values, handleChange }: AuthorFieldsProps) => {
+export const AuthorFields = ({ 
+  values,
+  errors,
+  onChange
+}: AuthorFieldsProps) => {
   return (
-    <>
+    <div className="space-y-4">
       <div>
         <label htmlFor="authorName" className="block text-sm font-medium mb-1">
           Author Name
         </label>
         <Input
           id="authorName"
-          name="authorName"
           value={values.authorName}
-          onChange={handleChange}
+          onChange={(e) => onChange('authorName', e.target.value)}
           placeholder="Enter author name"
-          required
         />
+        {errors.authorName && <p className="text-red-500 text-sm mt-1">{errors.authorName}</p>}
       </div>
 
       <div>
@@ -32,13 +35,12 @@ export const AuthorFields = ({ values, handleChange }: AuthorFieldsProps) => {
         </label>
         <Input
           id="thesisDate"
-          name="thesisDate"
+          type="date"
           value={values.thesisDate}
-          onChange={handleChange}
-          placeholder="Enter date of thesis submission"
-          required
+          onChange={(e) => onChange('thesisDate', e.target.value)}
         />
+        {errors.thesisDate && <p className="text-red-500 text-sm mt-1">{errors.thesisDate}</p>}
       </div>
-    </>
+    </div>
   );
 };

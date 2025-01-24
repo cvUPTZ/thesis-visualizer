@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Thesis } from '@/types/thesis';
 import { useToast } from './use-toast';
@@ -6,29 +6,33 @@ import { debounce } from 'lodash';
 
 export const useThesisRealtime = (
   thesisId: string | undefined,
-  currentThesis: Thesis | null,
-  setThesis: (thesis: Thesis | ((prev: Thesis | null) => Thesis | null)) => void
+  setThesis: React.Dispatch<React.SetStateAction<Thesis | null>>
 ) => {
   const { toast } = useToast();
+  const thesisRef = useRef<Thesis | null>(null);
+
+  const deepMergeUpdates = (existing: Thesis, update: Thesis): Thesis => ({
+    ...existing,
+    ...update,
+    content: {
+      ...existing.content,
+      ...update.content,
+      metadata: update.content.metadata || existing.content.metadata,
+      frontMatter: update.content.frontMatter || existing.content.frontMatter,
+      chapters: update.content.chapters || existing.content.chapters,
+      backMatter: update.content.backMatter || existing.content.backMatter,
+    }
+  });
 
   useEffect(() => {
-    if (!thesisId || !currentThesis) return;
+    if (!thesisId) return;
 
-    console.log('Setting up realtime subscription for thesis:', thesisId);
-
-    // Create a debounced version of the notification toast
     const showUpdateNotification = debounce(() => {
-      toast({
-        title: "Thesis Updated",
-        description: "Changes from another collaborator have been applied",
-      });
-    }, 5000); // Show notification at most once every 5 seconds
-
-    let lastUpdateTime = new Date().toISOString();
-    let lastProcessedContent = JSON.stringify(currentThesis);
+      toast({ title: "Changes Detected", description: "New updates from collaborators" });
+    }, 3000);
 
     const channel = supabase
-      .channel('thesis_changes')
+      .channel('thesis-updates')
       .on(
         'postgres_changes',
         {
@@ -38,56 +42,34 @@ export const useThesisRealtime = (
           filter: `id=eq.${thesisId}`
         },
         (payload) => {
-          console.log('Received thesis update:', payload);
-          
-          // Skip if we're the ones who made the change
-          if (payload.new.updated_at === currentThesis.updated_at) {
-            console.log('Skipping own update');
-            return;
+          try {
+            const newThesis = payload.new as Thesis;
+            const currentThesis = thesisRef.current;
+
+            if (!currentThesis || 
+                newThesis.updated_at <= currentThesis.updated_at ||
+                newThesis.user_id === currentThesis.user_id) return;
+
+            setThesis(prev => prev ? deepMergeUpdates(prev, newThesis) : prev);
+            showUpdateNotification();
+          } catch (error) {
+            console.error('Realtime update error:', error);
           }
-
-          // Skip if this update is too close to the last one we processed
-          if (payload.new.updated_at <= lastUpdateTime) {
-            console.log('Skipping duplicate/old update');
-            return;
-          }
-
-          // Skip if the content hasn't actually changed
-          const newContentStr = JSON.stringify(payload.new.content);
-          if (newContentStr === lastProcessedContent) {
-            console.log('Content unchanged, skipping update');
-            return;
-          }
-
-          lastUpdateTime = payload.new.updated_at;
-          lastProcessedContent = newContentStr;
-          const newContent = payload.new.content;
-          
-          if (!newContent) {
-            console.log('Update contained no content, skipping');
-            return;
-          }
-
-          setThesis({
-            ...currentThesis,
-            ...payload.new,
-            metadata: newContent.metadata || currentThesis.metadata,
-            frontMatter: newContent.frontMatter || currentThesis.frontMatter,
-            chapters: newContent.chapters || currentThesis.chapters,
-            backMatter: newContent.backMatter || currentThesis.backMatter,
-          });
-
-          // Show notification about the update
-          showUpdateNotification();
         }
       )
       .subscribe();
 
-    // Cleanup
     return () => {
-      console.log('Cleaning up realtime subscription');
-      showUpdateNotification.cancel(); // Cancel any pending notifications
       supabase.removeChannel(channel);
+      showUpdateNotification.cancel();
     };
-  }, [thesisId, currentThesis?.id]);
+  }, [thesisId, toast]);
+
+  // Sync ref with latest thesis value
+  const updateRef = (thesis: Thesis | null) => {
+    thesisRef.current = thesis;
+    return thesis;
+  };
+
+  return { updateRef };
 };

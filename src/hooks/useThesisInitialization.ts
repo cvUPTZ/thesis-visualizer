@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Thesis, ThesisContent, Section, SectionType } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
 import { validate as validateUUID } from 'uuid';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { createEmptySection } from '@/utils/thesisUtils';
+import { createEmptySection, ensureThesisStructure } from '@/utils/thesisUtils';
 
 interface ValidationError {
   field: string;
@@ -13,13 +13,10 @@ interface ValidationError {
 
 const validateThesisContent = (content: any): ValidationError[] => {
   const errors: ValidationError[] = [];
-
   if (!content) {
     errors.push({ field: 'content', message: 'Thesis content is required' });
     return errors;
   }
-
-  // Validate metadata
   if (!content.metadata) {
     errors.push({ field: 'metadata', message: 'Thesis metadata is required' });
   } else {
@@ -33,8 +30,6 @@ const validateThesisContent = (content: any): ValidationError[] => {
       errors.push({ field: 'metadata.departmentName', message: 'Department name is required' });
     }
   }
-
-  // Validate structure
   if (!Array.isArray(content.frontMatter)) {
     errors.push({ field: 'frontMatter', message: 'Front matter must be an array' });
   }
@@ -44,13 +39,11 @@ const validateThesisContent = (content: any): ValidationError[] => {
   if (!Array.isArray(content.backMatter)) {
     errors.push({ field: 'backMatter', message: 'Back matter must be an array' });
   }
-
   return errors;
 };
 
 const parseThesisContent = (rawContent: any): ThesisContent => {
   const content = typeof rawContent === 'string' ? JSON.parse(rawContent) : rawContent;
-
   return {
     metadata: {
       description: content?.metadata?.description || '',
@@ -90,329 +83,213 @@ const parseThesisContent = (rawContent: any): ThesisContent => {
       figures: Array.isArray(section.figures) ? section.figures : [],
       tables: Array.isArray(section.tables) ? section.tables : [],
       citations: Array.isArray(section.citations) ? section.citations : [],
-       references: Array.isArray(section.references) ? section.references : [],
-        footnotes: Array.isArray(section.footnotes) ? section.footnotes : [],
+      references: Array.isArray(section.references) ? section.references : [],
+      footnotes: Array.isArray(section.footnotes) ? section.footnotes : [],
     })) : [],
   };
 };
 
-export const useThesisData = (thesisId: string | undefined) => {
+export const useThesisInitialization = (thesisId: string | undefined) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [section, setSection] = useState<Section | null>(null);
 
-  useEffect(() => {
-    const initializeThesis = async () => {
-      if (!thesis) {
-        console.log('No thesis provided for initialization');
-        return;
-      }
+  const { data: thesis, isLoading, error } = useQuery({
+    queryKey: ['thesis', thesisId],
+    queryFn: async () => {
+      if (!thesisId) return null;
+      if (!validateUUID(thesisId)) throw new Error('Invalid thesis ID format');
 
       try {
-        console.log('Starting thesis initialization:', thesis.id);
-        
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError) {
-          console.error('Error getting current user:', userError);
-          throw userError;
-        }
+        const { data: session } = await supabase.auth.getSession();
+        if (!session?.session?.user) throw new Error('Authentication required');
 
-        if (!user) {
-          throw new Error('No authenticated user found');
-        }
-
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
+        // Check permissions
+        const { data: permission, error: permissionError } = await supabase
+          .from('thesis_collaborators')
+          .select('role')
+          .eq('thesis_id', thesisId)
+          .eq('user_id', session.session.user.id)
           .maybeSingle();
 
-        if (permissionError) {
-          throw new Error('Error checking thesis permissions');
-        }
+        if (permissionError) throw permissionError;
+        if (!permission) throw new Error('Access denied');
 
-        if (!permission) {
-          throw new Error('Access denied');
-        }
-
-        const { data: existingThesis, error: checkError } = await supabase
+        // Fetch thesis data
+        const { data: fetchedThesis, error: fetchError } = await supabase
           .from('theses')
-          .select(`
-            *,
-            thesis_collaborators (
-              user_id,
-              role,
-              profiles (
-                email
-              )
-            )
-          `)
+          .select('*')
           .eq('id', thesisId)
-          .maybeSingle();
+          .single();
 
-        if (checkError) {
-          console.error('Error checking thesis:', checkError);
-          throw checkError;
+        if (fetchError) throw fetchError;
+        if (!fetchedThesis) throw new Error('Thesis not found');
+
+        // Parse and validate content
+        const parsedContent = parseThesisContent(fetchedThesis.content);
+        const validationErrors = validateThesisContent(parsedContent);
+        
+        if (validationErrors.length > 0) {
+          throw new Error(validationErrors.map(e => `${e.field}: ${e.message}`).join('\n'));
         }
 
-        if (!existingThesis) {
-          console.log('Creating new thesis with user_id:', user.id);
-          
-          const now = new Date().toISOString();
-          
-          // Create complete thesis content structure with all required fields
-          const thesisContent = {
-            metadata: {
-              description: '',
-              keywords: [],
-              createdAt: now,
-              universityName: '',
-              departmentName: '',
-              authors: [],
-              supervisors: [],
-              committeeMembers: [],
-              thesisDate: '',
-              language: 'en',
-              version: '1.0'
-            },
-            frontMatter: [],
-            generalIntroduction: {
-              id: crypto.randomUUID(),
-              title: 'General Introduction',
-              content: '',
-              type: 'general_introduction',
-              required: true,
-              order: 1,
-              figures: [],
-              tables: [],
-              citations: [],
-              references: [],
-              created_at: now,
-              updated_at: now
-            },
-            chapters: [],
-            generalConclusion: {
-              id: crypto.randomUUID(),
-              title: 'General Conclusion',
-              content: '',
-              type: 'general_conclusion',
-              required: true,
-              order: 1,
-              figures: [],
-              tables: [],
-              citations: [],
-              references: [],
-              created_at: now,
-              updated_at: now
-            },
-            backMatter: []
-          } as unknown as Json;
+        return ensureThesisStructure({
+          ...fetchedThesis,
+          content: parsedContent
+        });
+      } catch (err: any) {
+        toast({
+          title: 'Error',
+          description: err.message || 'Failed to load thesis',
+          variant: 'destructive',
+        });
+        throw err;
+      }
+    },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
+  });
 
-          // Insert thesis with complete content structure
-          const { error: thesisError } = await supabase
-            .from('theses')
-            .insert({
-              id: thesis.id,
-              title: thesis.title || 'Untitled Thesis',
-              content: thesisContent,
-              user_id: user.id,
-              created_at: now,
-              updated_at: now,
-              language: 'en',
-              status: 'draft',
-              version: '1.0',
-              permissions: {
-                isPublic: false,
-                allowComments: true,
-                allowSharing: false
+  const findExistingSection = (targetId: string): Section | null => {
+    if (!thesis) return null;
+    if (thesis.content.generalIntroduction?.id === targetId) return thesis.content.generalIntroduction;
+    if (thesis.content.generalConclusion?.id === targetId) return thesis.content.generalConclusion;
+
+    const frontMatterSection = thesis.content.frontMatter?.find(s => s.id === targetId);
+    if (frontMatterSection) return frontMatterSection;
+
+    const backMatterSection = thesis.content.backMatter?.find(s => s.id === targetId);
+    if (backMatterSection) return backMatterSection;
+
+    for (const chapter of thesis.content.chapters || []) {
+      const chapterSection = chapter.sections.find(s => s.id === targetId);
+      if (chapterSection) return chapterSection;
+    }
+
+    return null;
+  };
+
+  const handleContentChange = async (newContent: string) => {
+    if (!thesis || !section || !thesisId) return;
+
+    try {
+      const updatedThesis = { ...thesis };
+      const contentPath = [];
+
+      if (section.type === SectionType.GENERAL_INTRODUCTION) {
+        updatedThesis.content.generalIntroduction.content = newContent;
+        contentPath.push('generalIntroduction');
+      } else if (section.type === SectionType.GENERAL_CONCLUSION) {
+        updatedThesis.content.generalConclusion.content = newContent;
+        contentPath.push('generalConclusion');
+      } else {
+        // Update specific section content
+        const frontIndex = updatedThesis.content.frontMatter.findIndex(s => s.id === section.id);
+        if (frontIndex !== -1) {
+          updatedThesis.content.frontMatter[frontIndex].content = newContent;
+          contentPath.push('frontMatter', frontIndex.toString());
+        } else {
+          const backIndex = updatedThesis.content.backMatter.findIndex(s => s.id === section.id);
+          if (backIndex !== -1) {
+            updatedThesis.content.backMatter[backIndex].content = newContent;
+            contentPath.push('backMatter', backIndex.toString());
+          } else {
+            updatedThesis.content.chapters.forEach((chapter, chapterIndex) => {
+              const sectionIndex = chapter.sections.findIndex(s => s.id === section.id);
+              if (sectionIndex !== -1) {
+                updatedThesis.content.chapters[chapterIndex].sections[sectionIndex].content = newContent;
+                contentPath.push('chapters', chapterIndex.toString(), 'sections', sectionIndex.toString());
               }
             });
-
-          if (thesisError) {
-            console.error('Error creating thesis:', thesisError);
-            throw thesisError;
           }
-
-          console.log('Created new thesis with content:', thesisContent);
-
-          // Add current user as owner
-          const { error: collaboratorError } = await supabase
-            .from('thesis_collaborators')
-            .insert({
-              thesis_id: thesis.id,
-              user_id: user.id,
-              role: 'owner'
-            });
-
-          if (collaboratorError) {
-            console.error('Error adding thesis owner:', collaboratorError);
-            // If we fail to add collaborator, delete the thesis
-            await supabase
-              .from('theses')
-            .update({ 
-                content: completeThesis,
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', thesisId);
-  
-        if (error) throw error;
-    
-          setThesis(completeThesis);
-          setSection({ ...section, content: newContent });
-    
-          toast({
-            title: "Success",
-            description: "Content updated successfully",
-          });
-        } catch (err) {
-          console.error('Error updating content:', err);
-          toast({
-            title: "Error",
-            description: "Failed to update content. Please try again.",
-            variant: "destructive",
-          });
         }
-  };
+      }
 
+      const { error } = await supabase
+        .from('theses')
+        .update({
+          content: updatedThesis.content,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', thesisId);
 
-  const handleAddSection = async (chapterId: string, sectionType: string) => {
-    if (!thesis || !thesisId) return;
-    try {
-      const chapter = thesis.chapters.find((c) => c.id === chapterId);
-      if (!chapter) return;
+      if (error) throw error;
 
-      console.log('Creating new section:', { chapterId, sectionType });
-          const newSection: Section = createEmptySection(sectionType as SectionType);
-          
-          const updatedChapter = {
-            ...chapter,
-            sections: [...chapter.sections, newSection]
-        }
-        
-        setThesis((prevThesis) => {
-            return {
-              ...prevThesis!,
-              chapters: prevThesis!.chapters.map(c =>
-               c.id === chapterId ? updatedChapter : c
-             )
-            }
-          });
+      queryClient.setQueryData(['thesis', thesisId], updatedThesis);
+      setSection(prev => prev ? { ...prev, content: newContent } : null);
+
       toast({
-        title: "Success",
-        description: `Added new section`,
+        title: "Content Updated",
+        description: "Changes saved successfully",
+      });
+    } catch (err: any) {
+      console.error('Update error:', err);
+      toast({
+        title: "Update Failed",
+        description: err.message || "Failed to save changes",
+        variant: "destructive",
       });
     }
-    catch (error: any) {
-        console.error('Error adding section:', error);
-        toast({
-        title: "Error",
-        description: "Failed to add new section. Please try again.",
-        variant: "destructive",
-    });
-    }
-}
-  
-   const findSection = async (): Promise<Section | null> => {
-    if (!thesis || !sectionId || !thesisId) {
-      console.log('Missing required parameters:', { hasThesis: !!thesis, sectionId, thesisId });
-      return null;
-    }
+  };
 
-    // Look for existing section first by id
-    const existingSection = findExistingSection(thesis, sectionId);
-    if (existingSection) {
-      console.log('Found existing section by ID:', existingSection);
-      return existingSection;
-    }
-    
-    // Check for general sections by their type if no ID match
-    if (sectionId === 'general-introduction' && thesis.generalIntroduction) {
-      console.log('Found existing general introduction by type:', thesis.generalIntroduction);
-        return thesis.generalIntroduction
-    }
-    if (sectionId === 'general-conclusion' && thesis.generalConclusion) {
-      console.log('Found existing general conclusion by type:', thesis.generalConclusion);
-        return thesis.generalConclusion
-    }
+  const handleAddSection = async (parentId: string, sectionType: SectionType) => {
+    if (!thesis || !thesisId) return;
 
-    // If not found, ensure thesis structure and create new section
     try {
-        const completeThesis = ensureThesisStructure(thesis);
-        
-        // Update thesis with complete structure
-        console.log('Updating thesis with complete structure...');
-        const { error: updateError } = await supabase
-          .from('theses')
-          .update({ 
-            content: completeThesis,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', thesisId);
-  
-        if (updateError) {
-          console.error('Error updating thesis structure:', updateError);
-          throw updateError;
+      const newSection = createEmptySection(sectionType);
+      const updatedThesis = { ...thesis };
+
+      if (sectionType === SectionType.CHAPTER) {
+        updatedThesis.content.chapters.push({
+          ...newSection,
+          sections: []
+        });
+      } else {
+        const parentChapter = updatedThesis.content.chapters.find(c => c.id === parentId);
+        if (parentChapter) {
+          parentChapter.sections.push(newSection);
+        } else if (sectionType === SectionType.ABSTRACT) {
+          updatedThesis.content.frontMatter.push(newSection);
+        } else {
+          updatedThesis.content.backMatter.push(newSection);
         }
-        
-       // Create new section based on its route id
-       let newSectionType: string;
-
-       if(sectionId === 'general-introduction') newSectionType = 'general_introduction'
-       else if (sectionId === 'general-conclusion') newSectionType = 'general_conclusion'
-       else newSectionType = 'custom';
-
-       console.log('Creating new section type:', newSectionType);
-
-       const { data: newSectionId, error: createError } = await supabase.rpc(
-         'create_section_if_not_exists',
-         { 
-           p_thesis_id: thesisId,
-           p_section_title: 'New Section',
-           p_section_type: newSectionType
-         }
-       );
-
-       if (createError) {
-         console.error('Error creating new section:', createError);
-         throw createError;
-       }
-     
-      // Fetch updated thesis
-      console.log('Fetching updated thesis...');
-      const { data: refreshedThesis, error: refreshError } = await supabase
-        .from('theses')
-        .select('*')
-        .eq('id', thesisId)
-        .single();
-  
-      if (refreshError) throw refreshError;
-  
-      if (!refreshedThesis) {
-          throw new Error('Failed to fetch updated thesis');
-        }
-        
-      const content = typeof refreshedThesis.content === 'string' 
-          ? JSON.parse(refreshedThesis.content) 
-          : refreshedThesis.content;
-
-        let newSection;
-        if(sectionId === 'general-introduction' || sectionId === 'general-conclusion'){
-          newSection = content[sectionId]
-        }
-        else{
-          newSection = findExistingSection(content, newSectionId);
-        }
-
-      if (!newSection) {
-          throw new Error('New section not found in updated thesis');
       }
-    
-      return newSection;
 
-    } catch (err) {
-      console.error('Error in section creation process:', err);
-      throw new Error(`Failed to create new section: ${err.message}`);
+      const { error } = await supabase
+        .from('theses')
+        .update({
+          content: updatedThesis.content,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', thesisId);
+
+      if (error) throw error;
+
+      queryClient.setQueryData(['thesis', thesisId], updatedThesis);
+      toast({
+        title: "Section Added",
+        description: `New ${sectionType.toLowerCase()} section created`,
+      });
+    } catch (err: any) {
+      console.error('Add section error:', err);
+      toast({
+        title: "Add Failed",
+        description: err.message || "Failed to create new section",
+        variant: "destructive",
+      });
     }
   };
-  
-  return { thesis, setThesis, isLoading, error, handleContentChange, handleAddSection };
+
+  return {
+    thesis,
+    isLoading,
+    error,
+    section,
+    setSection,
+    findExistingSection,
+    handleContentChange,
+    handleAddSection
+  };
 };
