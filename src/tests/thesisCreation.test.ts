@@ -23,7 +23,7 @@ describe('ThesisCreationModal', () => {
   test('creates a thesis and redirects', async () => {
     render(
       <BrowserRouter>
-        <ThesisCreationModal />
+        <ThesisCreationModal onThesisCreated={() => {}} />
       </BrowserRouter>
     );
 

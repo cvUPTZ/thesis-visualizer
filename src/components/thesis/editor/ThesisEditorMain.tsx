@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ThesisEditorContent } from './ThesisEditorContent';
 import { Chapter, Section, Thesis } from '@/types/thesis';
 import { GeneralSectionEditor } from '@/components/editor/sections/GeneralSectionEditor';
@@ -25,19 +25,21 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
   onUpdateChapter,
   onAddChapter,
 }) => {
-  if (!thesis?.content) return null;
+  console.log('ThesisEditorMain rendering:', { activeSection });
 
-  const { generalIntroduction, generalConclusion } = thesis.content;
-
-  console.log('ThesisEditorMain rendering with sections:', {
-    generalIntroduction,
-    generalConclusion,
-    activeSection
-  });
+  const { generalIntroduction, generalConclusion } = useMemo(() => ({
+    generalIntroduction: thesis?.content?.generalIntroduction,
+    generalConclusion: thesis?.content?.generalConclusion
+  }), [thesis?.content]);
 
   const handleSectionUpdate = useCallback((section: Section) => {
     if (!thesis) return;
-    onContentChange(section.id, section.content as string);
+    
+    const content = Array.isArray(section.content) 
+      ? section.content.map(item => item.content).join('\n\n')
+      : section.content;
+      
+    onContentChange(section.id, content);
     onTitleChange(section.id, section.title);
   }, [thesis, onContentChange, onTitleChange]);
 
@@ -45,41 +47,41 @@ export const ThesisEditorMain: React.FC<ThesisEditorMainProps> = ({
     <main className="flex-1 p-8 flex">
       <div className={`transition-all duration-300 ${showPreview ? 'w-1/2' : 'w-full'}`}>
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* General Introduction Section */}
-          <Card className="p-6">
-            <GeneralSectionEditor
-              section={generalIntroduction}
-              title="General Introduction"
-              onUpdate={handleSectionUpdate}
-            />
-          </Card>
+          {generalIntroduction && (
+            <Card className="p-6">
+              <GeneralSectionEditor
+                section={generalIntroduction}
+                title="General Introduction"
+                onUpdate={handleSectionUpdate}
+              />
+            </Card>
+          )}
 
-          {/* Regular Sections */}
           <ThesisEditorContent
-            frontMatter={thesis.content.frontMatter}
-            chapters={thesis.content.chapters}
-            backMatter={thesis.content.backMatter}
-            generalIntroduction={thesis.content.generalIntroduction}
-            generalConclusion={thesis.content.generalConclusion}
+            frontMatter={thesis?.content?.frontMatter || []}
+            chapters={thesis?.content?.chapters || []}
+            backMatter={thesis?.content?.backMatter || []}
+            generalIntroduction={generalIntroduction}
+            generalConclusion={generalConclusion}
             activeSection={activeSection}
             onContentChange={onContentChange}
             onTitleChange={onTitleChange}
             onUpdateChapter={onUpdateChapter}
             onAddChapter={onAddChapter}
             thesis={thesis}
-            onUpdateThesis={(updatedThesis) => {
-              console.log('Updating thesis:', updatedThesis);
-            }}
+            thesisId={thesis?.id || ''}
+            onUpdateThesis={() => {}}
           />
 
-          {/* General Conclusion Section */}
-          <Card className="p-6">
-            <GeneralSectionEditor
-              section={generalConclusion}
-              title="General Conclusion"
-              onUpdate={handleSectionUpdate}
-            />
-          </Card>
+          {generalConclusion && (
+            <Card className="p-6">
+              <GeneralSectionEditor
+                section={generalConclusion}
+                title="General Conclusion"
+                onUpdate={handleSectionUpdate}
+              />
+            </Card>
+          )}
         </div>
       </div>
       {showPreview && thesis && (
