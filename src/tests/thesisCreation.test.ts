@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ThesisCreationModal } from '../components/thesis/ThesisCreationModal';
 import { supabase } from '../integrations/supabase/client';
+import { BrowserRouter } from 'react-router-dom';
 
 jest.mock('../integrations/supabase/client');
 
@@ -20,7 +21,11 @@ describe('ThesisCreationModal', () => {
   });
 
   test('creates a thesis and redirects', async () => {
-    render(<ThesisCreationModal />);
+    render(
+      <BrowserRouter>
+        <ThesisCreationModal />
+      </BrowserRouter>
+    );
 
     // Simulate selecting a template
     const template = { 
