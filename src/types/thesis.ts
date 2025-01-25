@@ -15,7 +15,7 @@ export enum SectionType {
   GENERAL_CONCLUSION = 'general_conclusion',
   REFERENCES = 'references',
   APPENDIX = 'appendix',
-  TABLE_OF_CONTENTS = 'table_of_contents',
+  TABLE_OF_CONTENTS = 'table-of-contents',
   ACKNOWLEDGMENTS = 'acknowledgments',
   CUSTOM = 'custom',
   TITLE = 'title'
@@ -51,8 +51,8 @@ export interface StructuredContent {
 
 export interface Figure {
   id: string;
-  caption: string;
   url: string;
+  caption: string;
   alt_text?: string;
   title?: string;
   label?: string;
@@ -60,6 +60,7 @@ export interface Figure {
     width: number;
     height: number;
   };
+  position?: 'inline' | 'float-left' | 'float-right';
   created_at: string;
   updated_at: string;
 }
