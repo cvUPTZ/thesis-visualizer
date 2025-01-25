@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Section } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
@@ -34,9 +34,7 @@ export const EditorSection: React.FC<SectionProps> = ({
     isActive 
   });
 
-  if (!isActive) return null;
-
-  const handleSectionUpdate = (updatedSection: Section) => {
+  const handleSectionUpdate = useCallback((updatedSection: Section) => {
     console.log('Updating section:', updatedSection);
     try {
       onContentChange(updatedSection.id, updatedSection.content);
@@ -52,14 +50,16 @@ export const EditorSection: React.FC<SectionProps> = ({
         variant: "destructive"
       });
     }
-  };
+  }, [onContentChange, toast]);
 
-  const handleAddSection = (sectionType: string) => {
+  const handleAddSection = useCallback((sectionType: string) => {
     const newSection: Section = {
       id: crypto.randomUUID(),
       title: sectionType,
       content: '',
-      type: sectionType.toLowerCase().replace(/ /g, '_'),
+      type: sectionType === 'General Introduction' ? SectionType.GENERAL_INTRODUCTION : 
+            sectionType === 'General Conclusion' ? SectionType.GENERAL_CONCLUSION :
+            SectionType.CUSTOM,
       order: 0,
       figures: [],
       tables: [],
@@ -75,14 +75,14 @@ export const EditorSection: React.FC<SectionProps> = ({
       title: "Section Added",
       description: `Added new ${sectionType} section`,
     });
-  };
+  }, [handleSectionUpdate, toast]);
 
-  const handleAddCustomSection = () => {
+  const handleAddCustomSection = useCallback(() => {
     const newSection: Section = {
       id: crypto.randomUUID(),
       title: 'Custom Section',
       content: '',
-      type: 'custom',
+      type: SectionType.CUSTOM,
       order: 0,
       figures: [],
       tables: [],
@@ -98,14 +98,12 @@ export const EditorSection: React.FC<SectionProps> = ({
       title: "Success",
       description: `Added new custom section`,
     });
-  };
+  }, [handleSectionUpdate, toast]);
 
   // Create a complete Section object from the minimal section data
-  const fullSection: Section = {
-    id: section.id,
-    title: section.title,
-    content: section.content,
-    type: section.type || 'custom',
+  const fullSection = useMemo(() => ({
+    ...section,
+    type: section.type || SectionType.CUSTOM,
     order: section.order || 0,
     figures: section.figures || [],
     tables: section.tables || [],
@@ -114,12 +112,14 @@ export const EditorSection: React.FC<SectionProps> = ({
     references: section.references || [],
     created_at: section.created_at || new Date().toISOString(),
     updated_at: section.updated_at || new Date().toISOString()
-  };
+  }), [section]);
 
-  const navigateToEditor = () => {
+  const navigateToEditor = useCallback(() => {
     const thesisId = window.location.pathname.split('/')[2];
     navigate(`/thesis/${thesisId}/sections/${section.id}`);
-  };
+  }, [navigate, section.id]);
+
+  if (!isActive) return null;
 
   return (
     <div className="editor-section space-y-4">
