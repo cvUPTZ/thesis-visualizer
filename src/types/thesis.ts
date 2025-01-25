@@ -21,6 +21,105 @@ export enum SectionType {
   TITLE = 'title'
 }
 
+export interface Figure {
+  id: string;
+  url: string;
+  caption: string;
+  alt_text: string;
+  title: string;
+  label: string;
+  position: string;
+  dimensions: {
+    width: number;
+    height: number;
+  };
+  metadata?: {
+    source?: string;
+    copyright?: string;
+    notes?: string;
+  };
+}
+
+export interface ThesisMetadata {
+  description: string;
+  keywords: string[];
+  createdAt: string;
+  universityName: string;
+  departmentName: string;
+  authors: Author[];
+  supervisors: Author[];
+  committeeMembers: Author[];
+  thesisDate: string;
+  language: string;
+  version: string;
+}
+
+export interface ThesisContent {
+  metadata: ThesisMetadata;
+  frontMatter: Section[];
+  generalIntroduction?: Section;
+  chapters: Chapter[];
+  generalConclusion?: Section;
+  backMatter: Section[];
+}
+
+export interface Thesis extends BaseEntity {
+  title: string;
+  content: ThesisContent;
+  user_id: string;
+  language: string;
+  status: 'draft' | 'in_review' | 'published';
+  version: string;
+  permissions: {
+    isPublic: boolean;
+    allowComments: boolean;
+    allowSharing: boolean;
+  };
+  description?: string;
+  supervisor_email?: string;
+  supervisor_id?: string;
+}
+
+export interface ThesisVersion extends BaseEntity {
+  thesis_id: string;
+  content: ThesisContent;
+  version_number: number;
+  description?: string;
+  created_by: string;
+  language: string;
+  changes?: {
+    path: string;
+    type: 'addition' | 'deletion' | 'modification';
+    oldValue?: any;
+    newValue?: any;
+  }[];
+}
+
+export interface Section extends BaseEntity {
+  title: string;
+  content: string;
+  type: SectionType;
+  order: number;
+  required: boolean;
+  figures: Figure[];
+  tables: Table[];
+  citations: Citation[];
+  references: Reference[];
+  footnotes?: Footnote[];
+  sections?: Section[];
+}
+
+export interface Chapter extends BaseEntity {
+  title: string;
+  content: string;
+  sections: Section[];
+  order: number;
+  figures: Figure[];
+  tables: Table[];
+  citations: Citation[];
+  references: Reference[];
+}
+
 export interface BaseEntity {
   id: string;
   created_at: string;
@@ -74,133 +173,6 @@ export interface Reference extends BaseEntity {
   thesis_id: string;
 }
 
-export interface Figure {
-  url: string;
-  caption: string;
-  alt_text: string;
-  title: string;
-  label: string;
-  position: string;
-  dimensions: {
-    width: number;
-    height: number;
-  };
-  metadata?: {
-    source?: string;
-    copyright?: string;
-    notes?: string;
-  };
-}
-
-export interface TableCell {
-  content: string;
-  rowSpan?: number;
-  colSpan?: number;
-  header?: boolean;
-}
-
-export interface Table extends BaseEntity {
-  title: string;
-  caption: string;
-  content: string;
-  data: TableCell[][];
-  metadata?: {
-    source?: string;
-    notes?: string;
-  };
-}
-
-export interface Footnote extends BaseEntity {
-  content: string;
-  number: number;
-  thesis_id: string;
-  section_id: string;
-}
-
-export interface Section extends BaseEntity {
-  title: string;
-  content: string | StructuredContent[];
-  type: SectionType;
-  order: number;
-  required: boolean;
-  figures: Figure[];
-  tables: Table[];
-  citations: Citation[];
-  references: Reference[];
-  footnotes?: Footnote[];
-  metadata?: {
-    keywords?: string[];
-    abstract?: string;
-    language?: string;
-  };
-}
-
-export interface Chapter extends BaseEntity {
-  title: string;
-  content: string;
-  sections: Section[];
-  order: number;
-  figures: Figure[];
-  tables: Table[];
-  citations: Citation[];
-  references: Reference[];
-  metadata?: {
-    keywords?: string[];
-    abstract?: string;
-  };
-}
-
-export interface ThesisMetadata {
-  description: string;
-  keywords: string[];
-  createdAt: string;
-  universityName: string;
-  departmentName: string;
-  authors: Author[];
-  supervisors: Author[];
-  committeeMembers: Author[];
-  thesisDate: string;
-  language: string;
-  version: string;
-  license?: string;
-  fundingInformation?: string[];
-}
-
-export interface ThesisContent {
-  metadata: ThesisMetadata;
-  frontMatter: Section[];
-  generalIntroduction?: Section;
-  chapters: Chapter[];
-  generalConclusion?: Section;
-  backMatter: Section[];
-}
-
-export interface Thesis extends BaseEntity {
-  title: string;
-  content: ThesisContent;
-  user_id: string;
-  language: string;
-  status: 'draft' | 'in_review' | 'published';
-  version: string;
-  permissions: {
-    isPublic: boolean;
-    allowComments: boolean;
-    allowSharing: boolean;
-  };
-  description?: string;
-  supervisor_email?: string;
-  supervisor_id?: string;
-}
-
-export interface ThesisVersion extends BaseEntity {
-  thesis_id: string;
-  content: ThesisContent;
-  version_number: number;
-  description?: string;
-  created_by: string;
-  language: string;
-}
-
 export interface CommentThread extends BaseEntity {
   comments: Comment[];
   section_id: string;
@@ -218,4 +190,29 @@ export interface Comment extends BaseEntity {
   parent_id?: string;
   edited?: boolean;
   reactions?: Record<string, string[]>;
+}
+
+export interface Table extends BaseEntity {
+  title: string;
+  caption: string;
+  content: string;
+  data: TableCell[][];
+  metadata?: {
+    source?: string;
+    notes?: string;
+  };
+}
+
+export interface TableCell {
+  content: string;
+  rowSpan?: number;
+  colSpan?: number;
+  header?: boolean;
+}
+
+export interface Footnote extends BaseEntity {
+  content: string;
+  number: number;
+  thesis_id: string;
+  section_id: string;
 }
