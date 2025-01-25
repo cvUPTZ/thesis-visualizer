@@ -40,6 +40,81 @@ export interface Figure {
   };
 }
 
+export interface Table {
+  id: string;
+  caption: string;
+  data: any;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Citation {
+  id: string;
+  reference_id: string;
+  text: string;
+  source: string;
+  authors: string[];
+  year: string;
+  type: CitationType;
+  doi?: string;
+  url?: string;
+  journal?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  publisher?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Reference {
+  id: string;
+  title: string;
+  authors: string[];
+  year: string;
+  type: string;
+  url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Footnote {
+  id: string;
+  text: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Comment {
+  id: string;
+  thread_id: string;
+  content: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CommentThread {
+  id: string;
+  comments: Comment[];
+  section_id: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ThesisVersion {
+  id: string;
+  thesis_id: string;
+  content: ThesisContent;
+  version_number: number;
+  description: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  language: string;
+}
+
 export interface Author {
   firstName: string;
   lastName: string;

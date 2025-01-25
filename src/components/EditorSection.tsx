@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Section } from '@/types/thesis';
+import { Section, SectionType } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
 import { SectionHeader } from './editor/SectionHeader';
 import { SectionContent } from './editor/SectionContent';
@@ -28,16 +28,13 @@ export const EditorSection: React.FC<SectionProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
   
-  console.log('EditorSection rendering with section:', { 
-    id: section.id, 
-    title: section.title,
-    isActive 
-  });
-
   const handleSectionUpdate = useCallback((updatedSection: Section) => {
-    console.log('Updating section:', updatedSection);
     try {
-      onContentChange(updatedSection.id, updatedSection.content);
+      if (typeof updatedSection.content === 'string') {
+        onContentChange(updatedSection.id, updatedSection.content);
+      } else {
+        onContentChange(updatedSection.id, updatedSection.content.map(item => item.content).join('\n\n'));
+      }
       toast({
         title: "Success",
         description: "Section updated successfully",
@@ -100,7 +97,6 @@ export const EditorSection: React.FC<SectionProps> = ({
     });
   }, [handleSectionUpdate, toast]);
 
-  // Create a complete Section object from the minimal section data
   const fullSection = useMemo(() => ({
     ...section,
     type: section.type || SectionType.CUSTOM,
