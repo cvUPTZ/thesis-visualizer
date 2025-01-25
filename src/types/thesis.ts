@@ -53,6 +53,9 @@ export interface Figure {
   id: string;
   caption: string;
   url: string;
+  alt_text?: string;
+  title?: string;
+  label?: string;
   created_at: string;
   updated_at: string;
 }
@@ -61,7 +64,8 @@ export interface Table {
   id: string;
   caption: string;
   data: any;
-  content: string;
+  content?: string;
+  title?: string;
   created_at: string;
   updated_at: string;
 }
@@ -99,6 +103,7 @@ export interface Reference {
   issue?: string;
   pages?: string;
   publisher?: string;
+  text?: string;
   created_at: string;
   updated_at: string;
 }
@@ -106,7 +111,7 @@ export interface Reference {
 export interface Footnote {
   id: string;
   text: string;
-  content: string;
+  content?: string;
   thesis_id: string;
   section_id: string;
   number: number;

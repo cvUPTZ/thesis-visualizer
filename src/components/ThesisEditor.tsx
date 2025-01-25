@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
 import { Chapter, Section, Thesis } from '@/types/thesis';
 import { useThesisAutosave } from '@/hooks/useThesisAutosave';
@@ -32,7 +32,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   const [showPreview, setShowPreview] = useState(false);
   const [showChat, setShowChat] = useState(true);
   const [showTracker, setShowTracker] = useState(true);
-  const previewRef = useRef<HTMLDivElement>(null);
+  const previewRef = React.useRef<HTMLDivElement>(null);
 
   useThesisAutosave(thesis);
   useThesisInitialization(thesis);
