@@ -17,11 +17,15 @@ export const GeneralSectionEditor: React.FC<GeneralSectionEditorProps> = ({
 }) => {
   console.log('GeneralSectionEditor rendering:', { title, section });
 
-  const handleContentChange = (value: string) => {
+  const handleContentChange = (value: string | undefined) => {
+    console.log('Content changed:', value);
+    
     const updatedSection = {
       ...section,
-      content: value
+      content: value || ''
     };
+    
+    console.log('Updating section with:', updatedSection);
     onUpdate(updatedSection);
   };
 
