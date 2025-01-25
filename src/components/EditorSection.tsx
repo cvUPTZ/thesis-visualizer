@@ -28,12 +28,15 @@ export const EditorSection: React.FC<EditorSectionProps> = ({
   const navigate = useNavigate();
   
   const handleSectionUpdate = useCallback((updatedSection: Section) => {
+    if (!updatedSection) return;
+    
     try {
-      if (typeof updatedSection.content === 'string') {
-        onContentChange(updatedSection.id, updatedSection.content);
-      } else {
-        onContentChange(updatedSection.id, updatedSection.content.map(item => item.content).join('\n\n'));
-      }
+      const content = typeof updatedSection.content === 'string' 
+        ? updatedSection.content 
+        : '';
+      
+      onContentChange(updatedSection.id, content);
+      
       toast({
         title: "Success",
         description: "Section updated successfully",
@@ -52,6 +55,11 @@ export const EditorSection: React.FC<EditorSectionProps> = ({
     const thesisId = window.location.pathname.split('/')[2];
     navigate(`/thesis/${thesisId}/sections/${section.id}`);
   }, [navigate, section.id]);
+
+  const toggleEditing = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(prev => !prev);
+  }, []);
 
   if (!isActive) return null;
 
@@ -74,10 +82,7 @@ export const EditorSection: React.FC<EditorSectionProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsEditing(!isEditing);
-              }}
+              onClick={toggleEditing}
             >
               {isEditing ? (
                 <ChevronDown className="h-4 w-4" />
