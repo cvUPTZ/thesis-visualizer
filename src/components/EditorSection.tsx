@@ -5,20 +5,19 @@ import { useToast } from '@/hooks/use-toast';
 import { SectionHeader } from './editor/SectionHeader';
 import { SectionContent } from './editor/SectionContent';
 import { SectionManagers } from './editor/SectionManagers';
-import { SectionProps } from '@/types/components';
 import { Button } from './ui/button';
-import { Plus, ChevronDown, ChevronRight, Edit, Settings } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from './ui/dropdown-menu';
+import { Plus, ChevronDown, ChevronRight, Edit } from 'lucide-react';
 import { Card } from './ui/card';
 import { cn } from '@/lib/utils';
 
-export const EditorSection: React.FC<SectionProps> = ({
+interface EditorSectionProps {
+  section: Section;
+  isActive: boolean;
+  onContentChange: (id: string, content: string) => void;
+  onTitleChange: (id: string, title: string) => void;
+}
+
+export const EditorSection: React.FC<EditorSectionProps> = ({
   section,
   isActive,
   onContentChange,
@@ -49,67 +48,6 @@ export const EditorSection: React.FC<SectionProps> = ({
     }
   }, [onContentChange, toast]);
 
-  const handleAddSection = useCallback((sectionType: string) => {
-    const newSection: Section = {
-      id: crypto.randomUUID(),
-      title: sectionType,
-      content: '',
-      type: sectionType === 'General Introduction' ? SectionType.GENERAL_INTRODUCTION : 
-            sectionType === 'General Conclusion' ? SectionType.GENERAL_CONCLUSION :
-            SectionType.CUSTOM,
-      order: 0,
-      figures: [],
-      tables: [],
-      citations: [],
-      required: sectionType === 'General Introduction' || sectionType === 'General Conclusion',
-      references: [],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-
-    handleSectionUpdate(newSection);
-    toast({
-      title: "Section Added",
-      description: `Added new ${sectionType} section`,
-    });
-  }, [handleSectionUpdate, toast]);
-
-  const handleAddCustomSection = useCallback(() => {
-    const newSection: Section = {
-      id: crypto.randomUUID(),
-      title: 'Custom Section',
-      content: '',
-      type: SectionType.CUSTOM,
-      order: 0,
-      figures: [],
-      tables: [],
-      citations: [],
-      required: false,
-      references: [],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-
-    handleSectionUpdate(newSection);
-    toast({
-      title: "Success",
-      description: `Added new custom section`,
-    });
-  }, [handleSectionUpdate, toast]);
-
-  const fullSection = useMemo(() => ({
-    ...section,
-    type: section.type || SectionType.CUSTOM,
-    order: section.order || 0,
-    figures: section.figures || [],
-    tables: section.tables || [],
-    citations: section.citations || [],
-    required: section.required || false,
-    references: section.references || [],
-    created_at: section.created_at || new Date().toISOString(),
-    updated_at: section.updated_at || new Date().toISOString()
-  }), [section]);
-
   const navigateToEditor = useCallback(() => {
     const thesisId = window.location.pathname.split('/')[2];
     navigate(`/thesis/${thesisId}/sections/${section.id}`);
@@ -119,37 +57,6 @@ export const EditorSection: React.FC<SectionProps> = ({
 
   return (
     <div className="editor-section space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-2">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Section
-              <ChevronDown className="h-4 w-4 ml-2" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem onClick={() => handleAddSection('Thesis Structure Overview')}>
-              Thesis Structure Overview
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAddSection('Abstract')}>
-              Abstract
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAddSection('Acknowledgements')}>
-              Acknowledgements
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAddSection('Chapter')}>
-              New Chapter
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleAddCustomSection}>
-              <Settings className="h-4 w-4 mr-2" />
-              Custom Section
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
       <Card 
         className={cn(
           "p-6 cursor-pointer transition-all duration-200",
@@ -159,9 +66,9 @@ export const EditorSection: React.FC<SectionProps> = ({
       >
         <div className="flex items-center justify-between">
           <SectionHeader
-            title={fullSection.title}
-            required={fullSection.required}
-            onTitleChange={(title) => onTitleChange(fullSection.id, title)}
+            title={section.title}
+            required={section.required}
+            onTitleChange={(title) => onTitleChange(section.id, title)}
           />
           <div className="flex items-center gap-2">
             <Button
@@ -193,11 +100,11 @@ export const EditorSection: React.FC<SectionProps> = ({
         {isEditing && (
           <div className="mt-4 space-y-6">
             <SectionContent
-              content={fullSection.content}
-              onContentChange={(content) => onContentChange(fullSection.id, content)}
+              content={section.content}
+              onContentChange={(content) => onContentChange(section.id, content)}
             />
             <SectionManagers
-              section={fullSection}
+              section={section}
               onSectionUpdate={handleSectionUpdate}
             />
           </div>

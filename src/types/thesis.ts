@@ -21,28 +21,10 @@ export enum SectionType {
   TITLE = 'title'
 }
 
-export interface Figure {
-  id: string;
-  url: string;
-  caption: string;
-  alt_text: string;
-  title: string;
-  label: string;
-  position: string;
-  dimensions: {
-    width: number;
-    height: number;
-  };
-  metadata?: {
-    source?: string;
-    copyright?: string;
-    notes?: string;
-  };
-}
-
 export interface Table {
   id: string;
   caption: string;
+  content: string;
   data: any;
   created_at: string;
   updated_at: string;
@@ -74,13 +56,23 @@ export interface Reference {
   year: string;
   type: string;
   url?: string;
+  doi?: string;
+  journal?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  publisher?: string;
   created_at: string;
   updated_at: string;
 }
 
 export interface Footnote {
   id: string;
+  thesis_id: string;
+  section_id: string;
   text: string;
+  content: string;
+  number: number;
   created_at: string;
   updated_at: string;
 }
@@ -113,6 +105,8 @@ export interface ThesisVersion {
   created_at: string;
   updated_at: string;
   language: string;
+  version?: string;
+  changes?: any[];
 }
 
 export interface Author {
