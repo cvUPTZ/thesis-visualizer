@@ -94,7 +94,7 @@ export default function SectionEditor() {
         content: '',
         type: sectionType,
         required: sectionType === SectionType.GENERAL_INTRODUCTION || sectionType === SectionType.GENERAL_CONCLUSION,
-        order: Date.now(), // Temporary ordering
+        order: Date.now(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         figures: [],
@@ -112,7 +112,6 @@ export default function SectionEditor() {
 
       if (error) throw error;
 
-      // Update local state optimistically
       const newThesis = updateThesisStructure(thesis, baseSection, sectionType);
       setThesis(newThesis);
       
@@ -168,22 +167,27 @@ export default function SectionEditor() {
     if (!thesis || !section || !thesisId) return;
 
     try {
-      const updatedThesis = { ...thesis };
+      // Create deep clone for immutable updates
+      const updatedThesis = JSON.parse(JSON.stringify(thesis));
       const sectionPath = getSectionPath(section.id);
 
       if (sectionPath) {
-        // Update content using JSON path
+        // Update content with immutable pattern
         let current: any = updatedThesis;
-        sectionPath.forEach(key => {
-          if (!current[key]) current[key] = {};
-          current = current[key];
+        sectionPath.forEach((key, index) => {
+          if (index === sectionPath.length - 1) {
+            current[key] = { ...current[key], content: newContent };
+          } else {
+            current[key] = { ...current[key] };
+            current = current[key];
+          }
         });
-        current.content = newContent;
 
+        // Save entire thesis structure
         const { error } = await supabase
           .from('theses')
           .update({ 
-            content: updatedThesis.content,
+            content: updatedThesis,
             updated_at: new Date().toISOString()
           })
           .eq('id', thesisId);
