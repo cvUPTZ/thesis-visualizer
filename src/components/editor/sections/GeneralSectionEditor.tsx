@@ -20,6 +20,7 @@ export const GeneralSectionEditor: React.FC<GeneralSectionEditorProps> = ({
   const handleContentChange = (value: string | undefined) => {
     console.log('Content changed:', value);
     
+    // Ensure we always store content as a string
     const updatedSection = {
       ...section,
       content: value || ''
@@ -29,11 +30,13 @@ export const GeneralSectionEditor: React.FC<GeneralSectionEditorProps> = ({
     onUpdate(updatedSection);
   };
 
-  const getContentValue = () => {
+  const getContentValue = (): string => {
     if (!section.content) return '';
+    
     if (Array.isArray(section.content)) {
       return section.content.map(item => item.content).join('\n\n');
     }
+    
     return section.content;
   };
   
