@@ -45,7 +45,7 @@ describe('ThesisCreationModal', () => {
         },
         frontMatter: [],
         generalIntroduction: {
-          id: crypto.randomUUID(),
+          id: 'test-id-1',
           title: 'General Introduction',
           content: '',
           type: 'general-introduction',
@@ -58,7 +58,7 @@ describe('ThesisCreationModal', () => {
         },
         chapters: [],
         generalConclusion: {
-          id: crypto.randomUUID(),
+          id: 'test-id-2',
           title: 'General Conclusion',
           content: '',
           type: 'general-conclusion',

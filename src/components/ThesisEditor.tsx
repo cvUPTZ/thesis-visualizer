@@ -93,6 +93,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
       const updatedThesis = { ...prevThesis };
       let contentUpdated = false;
 
+      // Update general introduction
       if (updatedThesis.content?.generalIntroduction?.id === id) {
         updatedThesis.content.generalIntroduction = {
           ...updatedThesis.content.generalIntroduction,
@@ -101,6 +102,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
         contentUpdated = true;
       }
 
+      // Update general conclusion
       if (!contentUpdated && updatedThesis.content?.generalConclusion?.id === id) {
         updatedThesis.content.generalConclusion = {
           ...updatedThesis.content.generalConclusion,
@@ -109,12 +111,14 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
         contentUpdated = true;
       }
 
+      // Update front matter
       if (!contentUpdated && Array.isArray(updatedThesis.content?.frontMatter)) {
         updatedThesis.content.frontMatter = updatedThesis.content.frontMatter.map(section =>
           section.id === id ? { ...section, content } : section
         );
       }
 
+      // Update chapters
       if (!contentUpdated && Array.isArray(updatedThesis.content?.chapters)) {
         updatedThesis.content.chapters = updatedThesis.content.chapters.map(chapter => ({
           ...chapter,
@@ -124,6 +128,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
         }));
       }
 
+      // Update back matter
       if (!contentUpdated && Array.isArray(updatedThesis.content?.backMatter)) {
         updatedThesis.content.backMatter = updatedThesis.content.backMatter.map(section =>
           section.id === id ? { ...section, content } : section
