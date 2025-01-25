@@ -53,14 +53,14 @@ export interface Figure {
   id: string;
   url: string;
   caption: string;
-  alt_text?: string;
-  title?: string;
-  label?: string;
-  dimensions?: {
+  alt_text: string;
+  title: string;
+  label: string;
+  dimensions: {
     width: number;
     height: number;
   };
-  position?: 'inline' | 'float-left' | 'float-right';
+  position: 'inline' | 'float-left' | 'float-right';
   created_at: string;
   updated_at: string;
 }
@@ -70,7 +70,7 @@ export interface Table {
   caption: string;
   data: any;
   content?: string;
-  title?: string;
+  title: string;
   created_at: string;
   updated_at: string;
 }
@@ -108,8 +108,8 @@ export interface Reference {
   issue?: string;
   pages?: string;
   publisher?: string;
-  text?: string;
-  source?: string;
+  text: string;
+  source: string;
   created_at: string;
   updated_at: string;
 }
@@ -117,7 +117,7 @@ export interface Reference {
 export interface Footnote {
   id: string;
   text: string;
-  content?: string;
+  content: string;
   thesis_id: string;
   section_id: string;
   number: number;
@@ -128,7 +128,7 @@ export interface Footnote {
 export interface Section {
   id: string;
   title: string;
-  content: string | StructuredContent[];
+  content: string;
   type: SectionType;
   order: number;
   required: boolean;
