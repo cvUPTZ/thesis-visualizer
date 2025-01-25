@@ -56,6 +56,10 @@ export interface Figure {
   alt_text?: string;
   title?: string;
   label?: string;
+  dimensions?: {
+    width: number;
+    height: number;
+  };
   created_at: string;
   updated_at: string;
 }
@@ -104,6 +108,7 @@ export interface Reference {
   pages?: string;
   publisher?: string;
   text?: string;
+  source?: string;
   created_at: string;
   updated_at: string;
 }
@@ -209,3 +214,5 @@ export interface CommentThread {
   created_at: string;
   updated_at: string;
 }
+
+export type ThesisSectionType = SectionType;
