@@ -18,16 +18,11 @@ export const GeneralSectionEditor: React.FC<GeneralSectionEditorProps> = ({
   console.log('GeneralSectionEditor rendering:', { title, section });
 
   const handleContentChange = (value: string) => {
-    const newContent: StructuredContent[] = [{
-      type: 'paragraph',
-      content: value || '',
-      metadata: {}
-    }];
-
-    onUpdate({
+    const updatedSection = {
       ...section,
-      content: newContent
-    });
+      content: value
+    };
+    onUpdate(updatedSection);
   };
 
   const getContentValue = () => {
