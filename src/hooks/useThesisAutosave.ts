@@ -5,6 +5,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Thesis } from '@/types/thesis';
 import { Json } from '@/integrations/supabase/types';
 import { ensureThesisStructure } from '@/utils/thesisUtils';
+import { Mutex } from 'async-mutex';
+
+const saveMutex = new Mutex();
 
 export const useThesisAutosave = (thesis: Thesis | null) => {
   const { toast } = useToast();
@@ -23,6 +26,9 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
       console.log('No changes to save');
       return;
     }
+    
+    // Use mutex to prevent concurrent saves
+    await saveMutex.acquire();
     
     try {
       console.log('Auto-saving thesis:', thesisData.id);
@@ -49,7 +55,7 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
         toast({
           title: "Auto-saved",
           description: "Your thesis has been automatically saved.",
-          variant: "success"
+          variant: "default"
         });
       }
     } catch (error) {
@@ -59,6 +65,8 @@ export const useThesisAutosave = (thesis: Thesis | null) => {
         description: error instanceof Error ? error.message : "Failed to save your thesis. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      saveMutex.release();
     }
   }, [toast]);
 

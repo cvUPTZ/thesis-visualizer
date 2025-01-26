@@ -406,6 +406,51 @@ export type Database = {
         }
         Relationships: []
       }
+      sections: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string
+          section_type: string
+          thesis_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          section_type: string
+          thesis_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          section_type?: string
+          thesis_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sections_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "supervisor_theses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sections_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "theses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       theses: {
         Row: {
           content: Json
@@ -969,17 +1014,25 @@ export type Database = {
               p_thesis_id: string
               p_section_title: string
               p_section_type: string
-              p_section_id: string
             }
-            Returns: undefined
+            Returns: {
+              content: string | null
+              created_at: string | null
+              id: string
+              section_type: string
+              thesis_id: string | null
+              title: string
+              updated_at: string | null
+            }[]
           }
         | {
             Args: {
               p_thesis_id: string
               p_section_title: string
-              p_section_type?: string
+              p_section_type: string
+              p_section_id: string
             }
-            Returns: string
+            Returns: undefined
           }
         | {
             Args: {
