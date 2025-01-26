@@ -409,30 +409,30 @@ export type Database = {
       sections: {
         Row: {
           content: string | null
-          created_at: string | null
+          created_at: string
           id: string
-          section_type: string
           thesis_id: string | null
           title: string
-          updated_at: string | null
+          type: string
+          updated_at: string
         }
         Insert: {
           content?: string | null
-          created_at?: string | null
+          created_at?: string
           id?: string
-          section_type: string
           thesis_id?: string | null
           title: string
-          updated_at?: string | null
+          type: string
+          updated_at?: string
         }
         Update: {
           content?: string | null
-          created_at?: string | null
+          created_at?: string
           id?: string
-          section_type?: string
           thesis_id?: string | null
           title?: string
-          updated_at?: string | null
+          type?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -1008,40 +1008,22 @@ export type Database = {
       }
     }
     Functions: {
-      create_section_if_not_exists:
-        | {
-            Args: {
-              p_thesis_id: string
-              p_section_title: string
-              p_section_type: string
-            }
-            Returns: {
-              content: string | null
-              created_at: string | null
-              id: string
-              section_type: string
-              thesis_id: string | null
-              title: string
-              updated_at: string | null
-            }[]
-          }
-        | {
-            Args: {
-              p_thesis_id: string
-              p_section_title: string
-              p_section_type: string
-              p_section_id: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              section_title: string
-              section_content: string
-              section_type: string
-            }
-            Returns: undefined
-          }
+      create_section_if_not_exists: {
+        Args: {
+          p_thesis_id: string
+          p_title: string
+          p_section_type: string
+        }
+        Returns: {
+          content: string | null
+          created_at: string
+          id: string
+          thesis_id: string | null
+          title: string
+          type: string
+          updated_at: string
+        }[]
+      }
       get_latest_thesis_version: {
         Args: {
           p_thesis_id: string
