@@ -1,14 +1,12 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Section, SectionType } from '@/types/thesis';
+import { Section } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
-import { SectionHeader } from './editor/SectionHeader';
-import { SectionContent } from './editor/SectionContent';
-import { SectionManagers } from './editor/SectionManagers';
 import { Button } from './ui/button';
-import { Plus, ChevronDown, ChevronRight, Edit } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit } from 'lucide-react';
 import { Card } from './ui/card';
 import { cn } from '@/lib/utils';
+import { SectionManagerFactory } from './editor/sections/SectionManagerFactory';
 
 interface EditorSectionProps {
   section: Section;
@@ -36,6 +34,7 @@ export const EditorSection: React.FC<EditorSectionProps> = ({
         : '';
       
       onContentChange(updatedSection.id, content);
+      onTitleChange(updatedSection.id, updatedSection.title);
       
       toast({
         title: "Success",
@@ -49,7 +48,7 @@ export const EditorSection: React.FC<EditorSectionProps> = ({
         variant: "destructive"
       });
     }
-  }, [onContentChange, toast]);
+  }, [onContentChange, onTitleChange, toast]);
 
   const navigateToEditor = useCallback(() => {
     const thesisId = window.location.pathname.split('/')[2];
@@ -72,12 +71,7 @@ export const EditorSection: React.FC<EditorSectionProps> = ({
           isEditing && "ring-2 ring-primary"
         )}
       >
-        <div className="flex items-center justify-between">
-          <SectionHeader
-            title={section.title}
-            required={section.required}
-            onTitleChange={(title) => onTitleChange(section.id, title)}
-          />
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -90,27 +84,24 @@ export const EditorSection: React.FC<EditorSectionProps> = ({
                 <ChevronRight className="h-4 w-4" />
               )}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={navigateToEditor}
-              className="flex items-center gap-2"
-            >
-              <Edit className="h-4 w-4" />
-              Edit in Full Page
-            </Button>
+            <h3 className="text-lg font-medium">{section.title}</h3>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={navigateToEditor}
+            className="flex items-center gap-2"
+          >
+            <Edit className="h-4 w-4" />
+            Edit in Full Page
+          </Button>
         </div>
 
         {isEditing && (
-          <div className="mt-4 space-y-6">
-            <SectionContent
-              content={section.content}
-              onContentChange={(content) => onContentChange(section.id, content)}
-            />
-            <SectionManagers
+          <div className="mt-4">
+            <SectionManagerFactory
               section={section}
-              onSectionUpdate={handleSectionUpdate}
+              onUpdate={handleSectionUpdate}
             />
           </div>
         )}

@@ -109,3 +109,13 @@ export interface ThesisEditorMainProps {
   onUpdateChapter: (chapter: any) => void;
   onAddChapter: (chapter: any) => void;
 }
+
+export interface SectionManagerProps {
+  section: Section;
+  onUpdate: (section: Section) => void;
+}
+
+export interface AbstractSectionManagerProps extends SectionManagerProps {}
+export interface IntroductionSectionManagerProps extends SectionManagerProps {}
+export interface ConclusionSectionManagerProps extends SectionManagerProps {}
+export interface ReferenceSectionManagerProps extends SectionManagerProps {}
