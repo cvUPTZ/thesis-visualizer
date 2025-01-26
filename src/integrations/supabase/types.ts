@@ -406,6 +406,58 @@ export type Database = {
         }
         Relationships: []
       }
+      section_managers: {
+        Row: {
+          created_at: string
+          id: string
+          section_id: string
+          settings: Json | null
+          thesis_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          section_id: string
+          settings?: Json | null
+          thesis_id: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          section_id?: string
+          settings?: Json | null
+          thesis_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "section_managers_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "section_managers_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "supervisor_theses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "section_managers_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "theses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sections: {
         Row: {
           content: string | null
@@ -1008,10 +1060,27 @@ export type Database = {
       }
     }
     Functions: {
+      create_section: {
+        Args: {
+          p_thesis_id: string
+          p_section_id: string
+          p_section_title: string
+          p_section_type: Database["public"]["Enums"]["sectiontype"]
+        }
+        Returns: {
+          content: string | null
+          created_at: string
+          id: string
+          thesis_id: string | null
+          title: string
+          type: string
+          updated_at: string
+        }[]
+      }
       create_section_if_not_exists: {
         Args: {
           p_thesis_id: string
-          p_title: string
+          p_section_title: string
           p_section_type: string
         }
         Returns: {
@@ -1052,6 +1121,20 @@ export type Database = {
         | "appendix"
         | "table-of-contents"
         | "acknowledgments"
+      sectiontype:
+        | "abstract"
+        | "general_introduction"
+        | "introduction"
+        | "chapter"
+        | "conclusion"
+        | "general_conclusion"
+        | "references"
+        | "appendix"
+        | "table-of-contents"
+        | "acknowledgments"
+        | "structure-overview"
+        | "custom"
+        | "title"
     }
     CompositeTypes: {
       [_ in never]: never
