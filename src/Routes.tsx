@@ -29,7 +29,6 @@ const Routes = () => {
           <Route path="/create-thesis" element={<CreateThesis />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/thesis/:thesisId" element={<ThesisEditor />} />
-          <Route path="/thesis/:thesisId/sections/:sectionId" element={<SectionEditor />} />
           <Route path="/thesis/:thesisId/section/:sectionId" element={<SectionEditor />} />
           <Route path="*" element={<Index />} />
         </>
