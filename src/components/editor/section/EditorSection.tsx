@@ -5,15 +5,12 @@ import { Card } from '@/components/ui/card';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { useThesisData } from '@/hooks/useThesisData';
 import { supabase } from '@/integrations/supabase/client';
-import { Section, Thesis, SectionType, Chapter, Citation, Figure, Table, Reference } from '@/types/thesis';
+import { Section } from '@/types/thesis';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { EditorLayout } from '@/components/editor/layout/EditorLayout';
-import { SectionHeader } from '@/components/editor/SectionHeader';
+import { validate as validateUUID } from 'uuid';
 
 export default function SectionEditor() {
-  const { thesisId, sectionId } = useParams<{ thesisId: string; sectionId: string }>();
+  const { thesisId, sectionId } = useParams();
   const { thesis, setThesis } = useThesisData(thesisId);
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -21,36 +18,28 @@ export default function SectionEditor() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // Authentication check
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) navigate('/login');
-    };
-    checkAuth();
-  }, [navigate]);
-
-  // Section loading and creation logic
-  useEffect(() => {
-    if (!thesis || !sectionId || !thesisId) return;
-
+    if (!thesis || !sectionId) return;
+    
     const loadSection = async () => {
       try {
         setIsLoading(true);
-        let currentSection = findExistingSection(thesis, sectionId);
-
-        if (!currentSection) {
-          currentSection = await handleSectionCreation();
-          if (!currentSection) throw new Error('Section creation failed');
+        
+        // Validate UUID format
+        if (!validateUUID(sectionId)) {
+          throw new Error('Invalid section ID format');
         }
 
-        setSection(currentSection);
+        const section = await findSection();
+        if (section) {
+          setSection(section);
+        }
       } catch (err) {
-        console.error('Section load error:', err);
+        console.error('Error loading section:', err);
         setError(err instanceof Error ? err.message : 'Failed to load section');
         toast({
-          title: "Error Loading Section",
-          description: "The section could not be found or created",
+          title: "Error",
+          description: "Failed to load section. Please try again.",
           variant: "destructive",
         });
       } finally {
@@ -59,240 +48,158 @@ export default function SectionEditor() {
     };
 
     loadSection();
-  }, [thesis, sectionId, thesisId]);
+  }, [thesis, sectionId]);
 
-  // Recursive section search with type safety
-  const findExistingSection = (thesis: Thesis, targetId: string): Section | null => {
-    const deepSearch = (sections: Section[]): Section | null => {
-      return sections.reduce<Section | null>((acc, section) => {
-        if (acc) return acc;
-        if (section.id === targetId) return section;
-        if (section.sections) return deepSearch(section.sections);
-        return null;
-      }, null);
-    };
+  const findSection = async (): Promise<Section | null> => {
+    if (!thesis || !sectionId || !validateUUID(sectionId)) return null;
 
-    return (
-      thesis.generalIntroduction?.id === targetId ? thesis.generalIntroduction :
-      thesis.generalConclusion?.id === targetId ? thesis.generalConclusion :
-      deepSearch(thesis.frontMatter) ||
-      deepSearch(thesis.backMatter) ||
-      thesis.chapters?.reduce<Section | null>((acc, chapter) => {
-        return acc || deepSearch(chapter.sections);
-      }, null) ||
-      null
-    );
-  };
+    // Check if it's the general introduction
+    if (thesis.generalIntroduction?.id === sectionId) {
+      return thesis.generalIntroduction;
+    }
 
-  // Section creation handler with proper type enforcement
-  const handleSectionCreation = async (): Promise<Section | null> => {
+    // Check if it's the general conclusion
+    if (thesis.generalConclusion?.id === sectionId) {
+      return thesis.generalConclusion;
+    }
+
+    // Check front matter
+    const frontMatterSection = thesis.frontMatter?.find(s => s.id === sectionId);
+    if (frontMatterSection) return frontMatterSection;
+
+    // Check back matter
+    const backMatterSection = thesis.backMatter?.find(s => s.id === sectionId);
+    if (backMatterSection) return backMatterSection;
+
+    // Check chapters
+    if (thesis.chapters) {
+      for (const chapter of thesis.chapters) {
+        if (chapter.sections) {
+          const section = chapter.sections.find(s => s.id === sectionId);
+          if (section) return section;
+        }
+      }
+    }
+
+    // If section not found, try to create it
     try {
-      const sectionType = getSectionTypeFromId(sectionId);
-      const baseSection: Section = {
-        id: sectionId,
-        title: 'New Section',
-        content: '',
-        type: sectionType,
-        required: sectionType === SectionType.GENERAL_INTRODUCTION || sectionType === SectionType.GENERAL_CONCLUSION,
-        order: Date.now(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        figures: [],
-        tables: [],
-        citations: [],
-        references: [],
-      };
+      console.log('Creating new section for:', { thesisId, sectionId });
+      const { data: newSection, error } = await supabase.rpc(
+        'create_section_if_not_exists',
+        { 
+          p_thesis_id: thesisId,
+          p_section_title: 'New Section',
+          p_section_type: 'custom'
+        }
+      );
 
-      const { error } = await supabase.rpc('create_section_if_not_exists', {
-        p_thesis_id: thesisId,
-        p_section_title: baseSection.title,
-        p_section_type: sectionType,
-        p_section_id: sectionId
-      });
+      if (error) {
+        console.error('Error creating section:', error);
+        throw error;
+      }
 
-      if (error) throw error;
-
-      const newThesis = updateThesisStructure(thesis, baseSection, sectionType);
-      setThesis(newThesis);
-      
-      return baseSection;
-
+      return newSection;
     } catch (err) {
-      console.error('Section creation failed:', err);
-      toast({
-        title: "Creation Failed",
-        description: "Could not create new section",
-        variant: "destructive",
-      });
-      return null;
+      console.error('Error creating section:', err);
+      throw new Error('Failed to create new section');
     }
   };
 
-  // Update thesis structure with new section
-  const updateThesisStructure = (currentThesis: Thesis, newSection: Section, sectionType: SectionType): Thesis => {
-    const updatedThesis = { ...currentThesis };
-    
-    switch(sectionType) {
-      case SectionType.GENERAL_INTRODUCTION:
-        updatedThesis.generalIntroduction = newSection;
-        break;
-      case SectionType.GENERAL_CONCLUSION:
-        updatedThesis.generalConclusion = newSection;
-        break;
-      case SectionType.CHAPTER:
-        updatedThesis.chapters = [...(updatedThesis.chapters || []), {
-          ...newSection,
-          sections: [],
-          id: sectionId!,
-          thesis_id: thesisId!
-        }];
-        break;
-      default:
-        updatedThesis.frontMatter = [...(updatedThesis.frontMatter || []), newSection];
-    }
-
-    return updatedThesis;
-  };
-
-  // Determine section type from URL parameters
-  const getSectionTypeFromId = (id: string): SectionType => {
-    if (id.includes('general-introduction')) return SectionType.GENERAL_INTRODUCTION;
-    if (id.includes('general-conclusion')) return SectionType.GENERAL_CONCLUSION;
-    if (id.includes('chapter')) return SectionType.CHAPTER;
-    return SectionType.CUSTOM;
-  };
-
-  // Content update handler with proper type safety
   const handleContentChange = async (newContent: string) => {
-    if (!thesis || !section || !thesisId) return;
+    if (!thesis || !section) return;
 
     try {
-      // Create deep clone for immutable updates
-      const updatedThesis = JSON.parse(JSON.stringify(thesis));
-      const sectionPath = getSectionPath(section.id);
-
-      if (sectionPath) {
-        // Update content with immutable pattern
-        let current: any = updatedThesis;
-        sectionPath.forEach((key, index) => {
-          if (index === sectionPath.length - 1) {
-            current[key] = { ...current[key], content: newContent };
-          } else {
-            current[key] = { ...current[key] };
-            current = current[key];
-          }
-        });
-
-        // Save entire thesis structure
-        const { error } = await supabase
-          .from('theses')
-          .update({ 
-            content: updatedThesis,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', thesisId);
-
-        if (error) throw error;
-
-        setThesis(updatedThesis);
-        setSection(prev => prev ? { ...prev, content: newContent } : null);
-        
-        toast({
-          title: "Content Updated",
-          description: "Changes saved successfully",
-        });
+      const updatedThesis = { ...thesis };
+      
+      // Update the appropriate section based on its location
+      if (section.id === thesis.generalIntroduction?.id) {
+        updatedThesis.generalIntroduction = {
+          ...thesis.generalIntroduction,
+          content: newContent
+        };
+      } else if (section.id === thesis.generalConclusion?.id) {
+        updatedThesis.generalConclusion = {
+          ...thesis.generalConclusion,
+          content: newContent
+        };
+      } else {
+        // Update in front matter or chapters
+        const frontMatterIndex = thesis.frontMatter?.findIndex(s => s.id === section.id);
+        if (frontMatterIndex !== -1) {
+          updatedThesis.frontMatter[frontMatterIndex] = {
+            ...thesis.frontMatter[frontMatterIndex],
+            content: newContent
+          };
+        } else {
+          updatedThesis.chapters = thesis.chapters.map(chapter => ({
+            ...chapter,
+            sections: chapter.sections.map(s => 
+              s.id === section.id ? { ...s, content: newContent } : s
+            )
+          }));
+        }
       }
-    } catch (err) {
-      console.error('Update error:', err);
+
+      setThesis(updatedThesis);
+      setSection({ ...section, content: newContent });
+
       toast({
-        title: "Update Failed",
-        description: "Failed to save changes",
+        title: "Success",
+        description: "Section content updated",
+      });
+    } catch (err) {
+      console.error('Error updating section:', err);
+      toast({
+        title: "Error",
+        description: "Failed to update section content",
         variant: "destructive",
       });
     }
   };
 
-  // Get JSON path for section updates
-  const getSectionPath = (targetId: string): string[] | null => {
-    const findPath = (sections: Section[], path: string[]): string[] | null => {
-      for (const [index, section] of sections.entries()) {
-        if (section.id === targetId) return [...path, index.toString()];
-        if (section.sections) {
-          const nestedPath = findPath(section.sections, [...path, index.toString(), 'sections']);
-          if (nestedPath) return nestedPath;
-        }
-      }
-      return null;
-    };
-
+  if (isLoading) {
     return (
-      thesis?.generalIntroduction?.id === targetId ? ['generalIntroduction'] :
-      thesis?.generalConclusion?.id === targetId ? ['generalConclusion'] :
-      findPath(thesis?.frontMatter || [], ['frontMatter']) ||
-      findPath(thesis?.backMatter || [], ['backMatter']) ||
-      (() => {
-        for (const [chapIdx, chapter] of (thesis?.chapters || []).entries()) {
-          const path = findPath(chapter.sections, ['chapters', chapIdx.toString(), 'sections']);
-          if (path) return path;
-        }
-        return null;
-      })()
+      <div className="container mx-auto p-8">
+        <Skeleton className="h-8 w-64 mb-6" />
+        <Skeleton className="h-[500px] w-full" />
+      </div>
     );
-  };
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-8">
+        <Card className="p-6">
+          <h1 className="text-2xl font-bold text-destructive">Error</h1>
+          <p className="mt-4 text-muted-foreground">{error}</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!section) {
+    return (
+      <div className="container mx-auto p-8">
+        <Card className="p-6">
+          <h1 className="text-2xl font-bold text-destructive">Section not found</h1>
+          <p className="mt-4 text-muted-foreground">
+            The requested section could not be found. Please check the URL and try again.
+          </p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <EditorLayout
-      sidebar={
-        <div className="p-4 space-y-4">
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => navigate(`/thesis/${thesisId}`)}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Thesis
-          </Button>
-        </div>
-      }
-      content={
-        <div className="container mx-auto p-8">
-          {isLoading ? (
-            <>
-              <Skeleton className="h-8 w-64 mb-6" />
-              <Skeleton className="h-[500px] w-full" />
-            </>
-          ) : error ? (
-            <Card className="p-6">
-              <h1 className="text-2xl font-bold text-destructive">Error</h1>
-              <p className="mt-4 text-muted-foreground">{error}</p>
-            </Card>
-          ) : !section ? (
-            <Card className="p-6">
-              <h1 className="text-2xl font-bold text-destructive">Section not found</h1>
-              <p className="mt-4 text-muted-foreground">
-                The requested section could not be found. Please check the URL and try again.
-              </p>
-            </Card>
-          ) : (
-            <Card className="p-6">
-              <SectionHeader 
-                title={section.title} 
-                onTitleChange={(newTitle) => {
-                  setSection({ ...section, title: newTitle });
-                }}
-                required={section.required ?? false}
-              />
-              <div className="mt-6">
-                <MarkdownEditor
-                  value={section.content}
-                  onChange={handleContentChange}
-                  placeholder="Start writing your section content..."
-                />
-              </div>
-            </Card>
-          )}
-        </div>
-      }
-    />
+    <div className="container mx-auto p-8">
+      <Card className="p-6">
+        <h1 className="text-2xl font-bold mb-6">{section.title}</h1>
+        <MarkdownEditor
+          value={section.content as string}
+          onChange={handleContentChange}
+          placeholder="Start writing your section content..."
+        />
+      </Card>
+    </div>
   );
 }
