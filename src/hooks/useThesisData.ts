@@ -57,8 +57,8 @@ export const useThesisData = (thesisId: string | undefined) => {
         const sectionId = window.location.pathname.split('/').pop();
         
         // Only proceed with section creation if it's a valid UUID
-        if (sectionId && validateUUID(sectionId)) {
-          console.log('Creating section with ID:', sectionId);
+        if (sectionId && !validateUUID(sectionId)) {
+          console.log('Creating new section with UUID');
           const { data: newSection, error: sectionError } = await supabase
             .rpc('create_section_if_not_exists', {
               p_thesis_id: thesisId,
@@ -69,6 +69,15 @@ export const useThesisData = (thesisId: string | undefined) => {
           if (sectionError) {
             console.error('Error creating section:', sectionError);
             throw sectionError;
+          }
+
+          // Redirect to the new section URL
+          if (newSection?.id) {
+            window.history.replaceState(
+              {}, 
+              '', 
+              `/thesis/${thesisId}/section/${newSection.id}`
+            );
           }
 
           console.log('Created new section:', newSection);
