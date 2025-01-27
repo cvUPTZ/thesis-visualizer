@@ -56,33 +56,14 @@ export const useThesisData = (thesisId: string | undefined) => {
         // Get the section ID from the URL
         const sectionId = window.location.pathname.split('/').pop();
         
-        // Map URL section types to database section types
-        const getSectionType = (urlSection: string | undefined) => {
-          switch (urlSection) {
-            case 'general-introduction':
-              return 'general-introduction';
-            case 'general-conclusion':
-              return 'general-conclusion';
-            default:
-              return 'custom';
-          }
-        };
-
-        // If we're on a section route and the section doesn't exist, create it
-        if (sectionId && sectionId !== thesisId) {
-          console.log('Checking if section exists:', sectionId);
-          const sectionType = getSectionType(sectionId);
-          
-          console.log('Creating section with type:', sectionType);
-          const { data: newSectionId, error: sectionError } = await supabase
+        // Only proceed with section creation if it's a valid UUID
+        if (sectionId && validateUUID(sectionId)) {
+          console.log('Creating section with ID:', sectionId);
+          const { data: newSection, error: sectionError } = await supabase
             .rpc('create_section_if_not_exists', {
               p_thesis_id: thesisId,
-              p_section_title: sectionType === 'custom' 
-                ? 'New Section' 
-                : sectionType.split('-').map(word => 
-                    word.charAt(0).toUpperCase() + word.slice(1)
-                  ).join(' '),
-              p_section_type: sectionType
+              p_section_title: 'New Section',
+              p_section_type: 'custom'
             });
 
           if (sectionError) {
@@ -90,7 +71,7 @@ export const useThesisData = (thesisId: string | undefined) => {
             throw sectionError;
           }
 
-          console.log('Created new section with ID:', newSectionId);
+          console.log('Created new section:', newSection);
         }
 
         // Fetch thesis data
@@ -118,7 +99,6 @@ export const useThesisData = (thesisId: string | undefined) => {
       }
     },
     retry: (failureCount, error: any) => {
-      // Don't retry on access denied errors
       if (error?.message === 'Access denied' || error?.message === 'Authentication required') {
         return false;
       }
