@@ -174,7 +174,7 @@ export interface Thesis {
   language: string;
   status: 'draft' | 'in_review' | 'published';
   version: string;
-  permissions: {
+  permissions?: {
     isPublic: boolean;
     allowComments: boolean;
     allowSharing: boolean;
