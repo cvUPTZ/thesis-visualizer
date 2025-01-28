@@ -26,7 +26,6 @@ export interface Author {
   lastName: string;
   email?: string;
   affiliation?: string;
-  toString(): string;
 }
 
 export interface ThesisMetadata {
@@ -179,6 +178,22 @@ export interface Thesis {
   supervisor_id?: string;
 }
 
+export interface Comment {
+  id: string;
+  text: string;
+  content: string;
+  author: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface CommentThread {
+  id: string;
+  comments: Comment[];
+  section_id: string;
+  created_at: string;
+}
+
 export interface ThesisVersion {
   id: string;
   thesis_id: string;
@@ -188,18 +203,6 @@ export interface ThesisVersion {
   created_by: string;
   description?: string;
   language: string;
-}
-
-export interface Comment {
-  id: string;
-  text: string;
-  author: string;
-  created_at: string;
-}
-
-export interface CommentThread {
-  id: string;
-  comments: Comment[];
-  section_id: string;
-  created_at: string;
+  version?: string;
+  changes?: any[];
 }
