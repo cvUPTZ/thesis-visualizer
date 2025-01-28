@@ -21,23 +21,6 @@ export enum SectionType {
   TITLE = 'title'
 }
 
-export interface Section {
-  id: string;
-  thesis_id: string;
-  title: string;
-  content: string;
-  type: SectionType;
-  order: number;
-  required: boolean;
-  figures: Figure[];
-  tables: Table[];
-  citations: Citation[];
-  references: Reference[];
-  footnotes: Footnote[];
-  created_at: string;
-  updated_at: string;
-}
-
 export interface Author {
   firstName: string;
   lastName: string;
@@ -58,12 +41,6 @@ export interface ThesisMetadata {
   thesisDate: string;
   language: string;
   version: string;
-}
-
-export interface StructuredContent {
-  type: 'paragraph' | 'heading' | 'list' | 'quote' | 'code';
-  content: string;
-  metadata?: Record<string, unknown>;
 }
 
 export interface Figure {
@@ -142,6 +119,23 @@ export interface Footnote {
   updated_at: string;
 }
 
+export interface Section {
+  id: string;
+  thesis_id: string;
+  title: string;
+  content: string;
+  type: SectionType;
+  order: number;
+  required: boolean;
+  figures: Figure[];
+  tables: Table[];
+  citations: Citation[];
+  references: Reference[];
+  footnotes: Footnote[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Chapter {
   id: string;
   title: string;
@@ -159,9 +153,9 @@ export interface Chapter {
 export interface ThesisContent {
   metadata: ThesisMetadata;
   frontMatter: Section[];
-  generalIntroduction?: Section;
+  generalIntroduction: Section;
   chapters: Chapter[];
-  generalConclusion?: Section;
+  generalConclusion: Section;
   backMatter: Section[];
 }
 
@@ -174,7 +168,7 @@ export interface Thesis {
   updated_at: string;
   language: string;
   status: 'draft' | 'in_review' | 'published';
-  version: string;
+  version?: string;
   permissions?: {
     isPublic: boolean;
     allowComments: boolean;
@@ -183,4 +177,29 @@ export interface Thesis {
   description?: string;
   supervisor_email?: string;
   supervisor_id?: string;
+}
+
+export interface ThesisVersion {
+  id: string;
+  thesis_id: string;
+  content: ThesisContent;
+  version_number: number;
+  created_at: string;
+  created_by: string;
+  description?: string;
+  language: string;
+}
+
+export interface Comment {
+  id: string;
+  text: string;
+  author: string;
+  created_at: string;
+}
+
+export interface CommentThread {
+  id: string;
+  comments: Comment[];
+  section_id: string;
+  created_at: string;
 }

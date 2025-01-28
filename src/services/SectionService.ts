@@ -36,16 +36,11 @@ export class SectionService {
         .from('sections')
         .insert(newSection)
         .select()
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error('Error creating section:', error);
         throw error;
-      }
-
-      if (!data) {
-        console.error('No section created');
-        return null;
       }
 
       console.log('Successfully created section:', data);
@@ -106,15 +101,11 @@ export class SectionService {
         })
         .eq('id', sectionId)
         .select()
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error('Error updating section:', error);
         throw error;
-      }
-
-      if (!data) {
-        return null;
       }
 
       console.log('Successfully updated section:', data);
