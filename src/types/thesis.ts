@@ -21,6 +21,23 @@ export enum SectionType {
   TITLE = 'title'
 }
 
+export interface Section {
+  id: string;
+  thesis_id: string;
+  title: string;
+  content: string;
+  type: SectionType;
+  order: number;
+  required: boolean;
+  figures: Figure[];
+  tables: Table[];
+  citations: Citation[];
+  references: Reference[];
+  footnotes: Footnote[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Author {
   firstName: string;
   lastName: string;
@@ -125,22 +142,6 @@ export interface Footnote {
   updated_at: string;
 }
 
-export interface Section {
-  id: string;
-  title: string;
-  content: string;
-  type: SectionType;
-  order: number;
-  required: boolean;
-  figures: Figure[];
-  tables: Table[];
-  citations: Citation[];
-  references: Reference[];
-  footnotes?: Footnote[];
-  created_at: string;
-  updated_at: string;
-}
-
 export interface Chapter {
   id: string;
   title: string;
@@ -183,37 +184,3 @@ export interface Thesis {
   supervisor_email?: string;
   supervisor_id?: string;
 }
-
-export interface ThesisVersion {
-  id: string;
-  thesis_id: string;
-  content: ThesisContent;
-  version_number: number;
-  description: string;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  language: string;
-  version?: string;
-  changes?: any[];
-}
-
-export interface Comment {
-  id: string;
-  thread_id: string;
-  content: string;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CommentThread {
-  id: string;
-  comments: Comment[];
-  section_id: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export type ThesisSectionType = SectionType;

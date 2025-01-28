@@ -15,27 +15,41 @@ export class SectionService {
         throw new Error('Invalid thesis ID format');
       }
 
-      const { data: newSection, error } = await supabase.rpc(
-        'create_section_if_not_exists',
-        {
-          p_thesis_id: thesisId,
-          p_section_title: title,
-          p_section_type: type
-        }
-      );
+      const newSection: Section = {
+        id: crypto.randomUUID(),
+        thesis_id: thesisId,
+        title,
+        type,
+        content: '',
+        order: 1,
+        required: false,
+        figures: [],
+        tables: [],
+        citations: [],
+        references: [],
+        footnotes: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('sections')
+        .insert(newSection)
+        .select()
+        .maybeSingle();
 
       if (error) {
         console.error('Error creating section:', error);
         throw error;
       }
 
-      if (!newSection) {
+      if (!data) {
         console.error('No section created');
         return null;
       }
 
-      console.log('Successfully created section:', newSection);
-      return newSection as Section;
+      console.log('Successfully created section:', data);
+      return this.mapDatabaseToSection(data);
     } catch (err) {
       console.error('Error in section creation:', err);
       throw err;
@@ -50,7 +64,7 @@ export class SectionService {
         throw new Error('Invalid section ID format');
       }
 
-      const { data: section, error } = await supabase
+      const { data, error } = await supabase
         .from('sections')
         .select('*')
         .eq('id', sectionId)
@@ -61,8 +75,12 @@ export class SectionService {
         throw error;
       }
 
-      console.log('Successfully fetched section:', section);
-      return section as Section;
+      if (!data) {
+        return null;
+      }
+
+      console.log('Successfully fetched section:', data);
+      return this.mapDatabaseToSection(data);
     } catch (err) {
       console.error('Error in section fetch:', err);
       throw err;
@@ -80,9 +98,12 @@ export class SectionService {
         throw new Error('Invalid section ID format');
       }
 
-      const { data: updatedSection, error } = await supabase
+      const { data, error } = await supabase
         .from('sections')
-        .update(updates)
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', sectionId)
         .select()
         .maybeSingle();
@@ -92,8 +113,12 @@ export class SectionService {
         throw error;
       }
 
-      console.log('Successfully updated section:', updatedSection);
-      return updatedSection as Section;
+      if (!data) {
+        return null;
+      }
+
+      console.log('Successfully updated section:', data);
+      return this.mapDatabaseToSection(data);
     } catch (err) {
       console.error('Error in section update:', err);
       throw err;
@@ -123,5 +148,24 @@ export class SectionService {
       console.error('Error in section deletion:', err);
       throw err;
     }
+  }
+
+  private static mapDatabaseToSection(data: any): Section {
+    return {
+      id: data.id,
+      thesis_id: data.thesis_id,
+      title: data.title,
+      content: data.content || '',
+      type: data.type as SectionType,
+      order: data.order || 1,
+      required: data.required || false,
+      figures: data.figures || [],
+      tables: data.tables || [],
+      citations: data.citations || [],
+      references: data.references || [],
+      footnotes: data.footnotes || [],
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
   }
 }
