@@ -41,7 +41,6 @@ export interface ThesisMetadata {
   thesisDate: string;
   language: string;
   version: string;
-  authorName?: string;
 }
 
 export interface StructuredContent {
@@ -129,7 +128,7 @@ export interface Footnote {
 export interface Section {
   id: string;
   title: string;
-  content: string | StructuredContent[];
+  content: string;
   type: SectionType;
   order: number;
   required: boolean;
@@ -140,7 +139,6 @@ export interface Section {
   footnotes?: Footnote[];
   created_at: string;
   updated_at: string;
-  sections?: Section[];
 }
 
 export interface Chapter {
@@ -184,12 +182,6 @@ export interface Thesis {
   description?: string;
   supervisor_email?: string;
   supervisor_id?: string;
-  metadata?: ThesisMetadata;
-  frontMatter?: Section[];
-  chapters?: Chapter[];
-  backMatter?: Section[];
-  generalIntroduction?: Section;
-  generalConclusion?: Section;
 }
 
 export interface ThesisVersion {
