@@ -53,34 +53,31 @@ export const useThesisData = (thesisId: string | undefined) => {
           }
         }
 
-        // Get the section ID from the URL
-        const sectionId = window.location.pathname.split('/').pop();
+        // Generate a new UUID for the section
+        const newSectionId = crypto.randomUUID();
+        console.log('Generated new section UUID:', newSectionId);
         
-        // Only proceed with section creation if it's a valid UUID
-        if (sectionId && !validateUUID(sectionId)) {
-          console.log('Creating new section with UUID');
-          const { data: newSection, error: sectionError } = await supabase
-            .rpc('create_section_if_not_exists', {
-              p_thesis_id: thesisId,
-              p_section_title: 'New Section',
-              p_section_type: 'custom'
-            });
+        // Create new section with UUID
+        const { data: newSection, error: sectionError } = await supabase
+          .rpc('create_section_if_not_exists', {
+            p_thesis_id: thesisId,
+            p_section_title: 'New Section',
+            p_section_type: 'custom'
+          });
 
-          if (sectionError) {
-            console.error('Error creating section:', sectionError);
-            throw sectionError;
-          }
+        if (sectionError) {
+          console.error('Error creating section:', sectionError);
+          throw sectionError;
+        }
 
-          // Redirect to the new section URL
-          if (newSection?.id) {
-            window.history.replaceState(
-              {}, 
-              '', 
-              `/thesis/${thesisId}/section/${newSection.id}`
-            );
-          }
-
-          console.log('Created new section:', newSection);
+        // Update URL with new section UUID
+        if (newSection) {
+          window.history.replaceState(
+            {}, 
+            '', 
+            `/thesis/${thesisId}/section/${newSectionId}`
+          );
+          console.log('Updated URL with new section UUID:', newSectionId);
         }
 
         // Fetch thesis data
