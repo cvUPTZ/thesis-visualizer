@@ -206,3 +206,10 @@ export interface ThesisVersion {
   version?: string;
   changes?: any[];
 }
+
+export type StructuredContent = {
+  type: string;
+  content: string;
+}[];
+
+export type ThesisSectionType = SectionType;
