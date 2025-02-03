@@ -1,11 +1,28 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { Thesis } from '@/types/thesis';
+import { Thesis, Section, ThesisContent } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
 import { validate as validateUUID } from 'uuid';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ensureThesisStructure } from '@/utils/thesisUtils';
 import { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+const validateThesisContent = (content: any): content is ThesisContent => {
+  if (!content || typeof content !== 'object') return false;
+  
+  return (
+    'metadata' in content &&
+    'frontMatter' in content &&
+    'generalIntroduction' in content &&
+    'chapters' in content &&
+    'generalConclusion' in content &&
+    'backMatter' in content &&
+    Array.isArray(content.frontMatter) &&
+    Array.isArray(content.chapters) &&
+    Array.isArray(content.backMatter)
+  );
+};
 
 export const useThesisData = (thesisId: string | undefined) => {
   const { toast } = useToast();
@@ -66,7 +83,7 @@ export const useThesisData = (thesisId: string | undefined) => {
           .from('theses')
           .select('*')
           .eq('id', thesisId)
-          .single();
+          .maybeSingle();
 
         if (fetchError) {
           console.error('Error fetching thesis:', fetchError);
@@ -78,10 +95,21 @@ export const useThesisData = (thesisId: string | undefined) => {
           throw new Error('Thesis not found');
         }
 
+        // Ensure content structure is valid
+        if (!validateThesisContent(fetchedThesis.content)) {
+          console.error('Invalid thesis content structure:', fetchedThesis.content);
+          throw new Error('Invalid thesis content structure');
+        }
+
         console.log('Successfully fetched thesis data');
         return ensureThesisStructure(fetchedThesis);
       } catch (err: any) {
         console.error('Error in thesis data fetch:', err);
+        toast({
+          title: "Error",
+          description: err.message || "Failed to load thesis",
+          variant: "destructive"
+        });
         throw err;
       }
     },
