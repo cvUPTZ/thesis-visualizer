@@ -13,6 +13,8 @@ import { QuickTips } from '@/components/dashboard/QuickTips';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { motion } from 'framer-motion';
+import { UniversalSectionEditor } from '@/components/editor/UniversalSectionEditor';
+import { SectionType } from '@/types/thesis';
 
 const Index = () => {
   console.log('📊 Dashboard page rendering');
@@ -21,11 +23,29 @@ const Index = () => {
   const { handleLogout, userId } = useAuth();
   const { userProfile, thesesStats, isLoading, error } = useDashboardData(userId);
 
-  const handleCreateThesis = () => {
-    navigate('/create-thesis');
+  // Sample section for demonstration
+  const sampleSection = {
+    id: 'demo-section',
+    thesis_id: 'demo-thesis',
+    title: 'Sample Section',
+    content: 'Start editing this section...',
+    type: SectionType.CUSTOM,
+    order: 1,
+    required: false,
+    figures: [],
+    tables: [],
+    citations: [],
+    references: [],
+    footnotes: [],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  const handleSectionUpdate = (updatedSection) => {
+    console.log('Section updated:', updatedSection);
     toast({
-      title: "Starting New Thesis",
-      description: "You're being redirected to create a new thesis.",
+      title: "Section Updated",
+      description: "Your changes have been saved successfully.",
     });
   };
 
@@ -109,11 +129,27 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Universal Section Editor Demo */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="w-full max-w-4xl mx-auto mt-8"
+        >
+          <h2 className="text-2xl font-serif font-bold mb-4 text-[#D6BCFA]">
+            Universal Section Editor
+          </h2>
+          <UniversalSectionEditor
+            section={sampleSection}
+            onUpdate={handleSectionUpdate}
+          />
+        </motion.div>
+
         {/* User Profile Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
           className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6 transition-all duration-200 hover:bg-white/10"
         >
           <UserProfile 
@@ -126,7 +162,7 @@ const Index = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
         >
           <StatsGrid stats={thesesStats || { total: 0, inProgress: 0, completed: 0 }} />
         </motion.div>
@@ -135,7 +171,7 @@ const Index = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
         >
           <ThesisProgressMap stats={thesesStats || { total: 0, inProgress: 0, completed: 0 }} />
         </motion.div>
@@ -146,7 +182,7 @@ const Index = () => {
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
+            transition={{ duration: 0.5, delay: 1 }}
             className="space-y-6"
           >
             <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6">
@@ -155,7 +191,7 @@ const Index = () => {
                   Thesis Management
                 </h2>
                 <Button
-                  onClick={handleCreateThesis}
+                  onClick={() => navigate('/create-thesis')}
                   className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white font-sans"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -172,7 +208,7 @@ const Index = () => {
           <motion.div 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.8 }}
+            transition={{ duration: 0.5, delay: 1.2 }}
             className="space-y-6"
           >
             <div className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6">
