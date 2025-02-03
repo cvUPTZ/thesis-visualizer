@@ -124,7 +124,7 @@ export interface Section {
   id: string;
   thesis_id: string;
   title: string;
-  content: string;
+  content: string | StructuredContent[];
   type: SectionType;
   order: number;
   required: boolean;
