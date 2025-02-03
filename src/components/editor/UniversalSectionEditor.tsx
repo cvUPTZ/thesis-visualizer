@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Section, SectionType } from '@/types/thesis';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -66,9 +66,9 @@ export const UniversalSectionEditor: React.FC<UniversalSectionEditorProps> = ({
   }, [localSection, onUpdate, toast]);
 
   return (
-    <Card className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-2 flex-1">
+    <Card className="w-full shadow-lg hover:shadow-xl transition-shadow duration-300">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <div className="space-y-1 flex-1">
           {isEditing ? (
             <div className="space-y-4">
               <Input
@@ -95,7 +95,7 @@ export const UniversalSectionEditor: React.FC<UniversalSectionEditorProps> = ({
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-serif">{localSection.title}</h2>
+              <CardTitle className="text-2xl font-serif">{localSection.title}</CardTitle>
               <Badge variant="secondary" className="capitalize">
                 {localSection.type.replace(/_/g, ' ').toLowerCase()}
               </Badge>
@@ -128,23 +128,28 @@ export const UniversalSectionEditor: React.FC<UniversalSectionEditorProps> = ({
             )}
           </Button>
         )}
-      </div>
+      </CardHeader>
 
-      <div className="prose prose-slate dark:prose-invert max-w-none">
-        <MarkdownEditor
-          value={typeof localSection.content === 'string' ? localSection.content : ''}
-          onChange={handleContentChange}
-          readOnly={!isEditing || readOnly}
-          placeholder="Start writing your section content..."
-        />
-      </div>
+      <CardContent>
+        <div className="prose prose-slate dark:prose-invert max-w-none">
+          <MarkdownEditor
+            value={typeof localSection.content === 'string' ? localSection.content : ''}
+            onChange={handleContentChange}
+            readOnly={!isEditing || readOnly}
+            placeholder="Start writing your section content..."
+          />
+        </div>
 
-      {isEditing && (
-        <SectionManagers
-          section={localSection}
-          onSectionUpdate={setLocalSection}
-        />
-      )}
+        {isEditing && (
+          <div className="mt-6">
+            <SectionManagers
+              section={localSection}
+              onSectionUpdate={setLocalSection}
+            />
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 };
+

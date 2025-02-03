@@ -31,19 +31,19 @@ export interface Chapter {
 
 export interface Section {
   id: string;
+  thesis_id: string;
   title: string;
   content: string | StructuredContent[];
-  type: string;
-  required?: boolean;
-  order?: number;
-  status?: 'draft' | 'in_review' | 'published';
-  created_at?: string;
-  updated_at?: string;
-  figures?: Figure[];
-  tables?: Table[];
-  citations?: Citation[];
-  references?: Reference[];
-  footnotes?: Footnote[];
+  type: SectionType;
+  required: boolean;
+  order: number;
+  created_at: string;
+  updated_at: string;
+  figures: Figure[];
+  tables: Table[];
+  citations: Citation[];
+  references: Reference[];
+  footnotes: Footnote[];
 }
 
 export interface Footnote {
