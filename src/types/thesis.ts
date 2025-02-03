@@ -26,6 +26,7 @@ export interface Author {
   lastName: string;
   email?: string;
   affiliation?: string;
+  toString?: () => string;
 }
 
 export interface ThesisMetadata {
@@ -40,6 +41,7 @@ export interface ThesisMetadata {
   thesisDate: string;
   language: string;
   version: string;
+  authorName?: string;
 }
 
 export interface Figure {
@@ -181,8 +183,8 @@ export interface Thesis {
 export interface Comment {
   id: string;
   text: string;
-  content: string;
   author: string;
+  content: string;
   user_id: string;
   created_at: string;
 }
