@@ -1,3 +1,4 @@
+
 export enum CitationType {
   BOOK = 'book',
   ARTICLE = 'article',
@@ -41,7 +42,6 @@ export interface ThesisMetadata {
   thesisDate: string;
   language: string;
   version: string;
-  authorName?: string;
 }
 
 export interface Figure {
