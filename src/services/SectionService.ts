@@ -34,7 +34,7 @@ export class SectionService {
 
       const { data, error } = await supabase
         .from('sections')
-        .insert(newSection)
+        .insert([newSection])
         .select()
         .single();
 
