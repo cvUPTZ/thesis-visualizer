@@ -21,4 +21,3 @@ export enum SectionType {
   CUSTOM = 'custom',
   TITLE = 'title'
 }
-
