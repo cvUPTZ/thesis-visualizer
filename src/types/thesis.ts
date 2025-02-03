@@ -1,3 +1,4 @@
+
 import { CitationType, SectionType } from './enums';
 
 export interface Author {
@@ -193,3 +194,6 @@ export type StructuredContent = {
 }[];
 
 export type ThesisSectionType = SectionType;
+
+// Re-export the enums
+export { CitationType, SectionType };
