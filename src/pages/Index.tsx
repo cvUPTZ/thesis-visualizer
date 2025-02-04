@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ThesisCreationModal } from '@/components/thesis/ThesisCreationModal';
 import { ThesisList } from '@/components/thesis/ThesisList';
@@ -19,6 +20,24 @@ const Index = () => {
   const { toast } = useToast();
   const { handleLogout, userId } = useAuth();
   const { userProfile, thesesStats, isLoading, error } = useDashboardData(userId);
+
+  const onLogout = async () => {
+    try {
+      await handleLogout();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account",
+      });
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      toast({
+        title: "Error signing out",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -49,6 +68,15 @@ const Index = () => {
               Welcome back, {userProfile?.full_name || 'Scholar'}
             </p>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onLogout}
+            className="flex items-center gap-2 hover:bg-red-500/10 hover:text-red-400"
+          >
+            <LogOut className="w-4 h-4" />
+            Sign Out
+          </Button>
         </div>
 
         {/* User Profile Section */}
@@ -60,7 +88,7 @@ const Index = () => {
         >
           <UserProfile 
             profile={userProfile}
-            onLogout={handleLogout}
+            onLogout={onLogout}
           />
         </motion.div>
 
