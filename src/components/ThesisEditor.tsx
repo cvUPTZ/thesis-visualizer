@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo } from 'react';
 import { ThesisSidebar } from './ThesisSidebar';
 import { Chapter, Section, Thesis } from '@/types/thesis';
@@ -32,6 +33,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   const [activeSection, setActiveSection] = useState<string>('');
   const [showPreview, setShowPreview] = useState(false);
   const [showChat, setShowChat] = useState(true);
+  const [showTracker, setShowTracker] = useState(true);
   const previewRef = React.useRef<HTMLDivElement>(null);
 
   useThesisAutosave(thesis);
@@ -227,15 +229,30 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     
     setThesis(prevThesis => {
       if (!prevThesis) return prevThesis;
-      return {
-        ...prevThesis,
-        content: {
-          ...prevThesis.content,
-          sections: prevThesis.content.sections?.map(section =>
-            section.id === updatedSection.id ? updatedSection : section
-          ) || []
+      const newThesis = { ...prevThesis };
+      
+      // Find and update the section in the appropriate location
+      if (newThesis.content.generalIntroduction?.id === updatedSection.id) {
+        newThesis.content.generalIntroduction = updatedSection;
+      } else if (newThesis.content.generalConclusion?.id === updatedSection.id) {
+        newThesis.content.generalConclusion = updatedSection;
+      } else {
+        // Check frontMatter
+        const frontMatterIndex = newThesis.content.frontMatter?.findIndex(s => s.id === updatedSection.id);
+        if (frontMatterIndex !== -1) {
+          newThesis.content.frontMatter[frontMatterIndex] = updatedSection;
+        } else {
+          // Check chapters
+          newThesis.content.chapters = newThesis.content.chapters.map(chapter => ({
+            ...chapter,
+            sections: chapter.sections.map(s => 
+              s.id === updatedSection.id ? updatedSection : s
+            )
+          }));
         }
-      };
+      }
+      
+      return newThesis;
     });
 
     toast({
@@ -337,3 +354,4 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
 };
 
 export default ThesisEditor;
+
