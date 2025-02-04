@@ -70,28 +70,30 @@ export const UniversalSectionEditor: React.FC<UniversalSectionEditorProps> = ({
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div className="space-y-1 flex-1">
           {isEditing ? (
-            <div className="space-y-4">
+            <div className="space-y-4 relative">
               <Input
                 value={localSection.title}
                 onChange={handleTitleChange}
                 className="text-2xl font-serif"
                 placeholder="Section Title"
               />
-              <Select
-                value={localSection.type}
-                onValueChange={(value: SectionType) => handleTypeChange(value)}
-              >
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select section type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(SectionType).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type.replace(/_/g, ' ').toLowerCase()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="relative">
+                <Select
+                  value={localSection.type}
+                  onValueChange={(value: SectionType) => handleTypeChange(value)}
+                >
+                  <SelectTrigger className="w-[200px] bg-background">
+                    <SelectValue placeholder="Select section type" />
+                  </SelectTrigger>
+                  <SelectContent className="z-50 bg-background border shadow-lg">
+                    {Object.values(SectionType).map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type.replace(/_/g, ' ').toLowerCase()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           ) : (
             <div className="flex items-center gap-3">
