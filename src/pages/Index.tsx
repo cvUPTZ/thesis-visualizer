@@ -65,7 +65,7 @@ const Index = () => {
               Thesis Dashboard
             </h1>
             <p className="text-gray-400 mt-2">
-              Welcome back, {userProfile?.full_name || 'Scholar'}
+              Welcome back, {userProfile?.email || 'Scholar'}
             </p>
           </div>
           <Button
