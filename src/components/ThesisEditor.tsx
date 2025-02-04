@@ -17,21 +17,21 @@ import { ChatMessages } from './collaboration/ChatMessages';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { UniversalSectionEditor } from './editor/UniversalSectionEditor';
 
 interface ThesisEditorProps {
   thesisId?: string;
 }
 
 export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesisId }) => {
-  const { thesisId: routeThesisId } = useParams();
-  const currentThesisId = propsThesisId || routeThesisId;
+  const { thesisId } = useParams<{ thesisId: string }>();
+  const currentThesisId = propsThesisId || thesisId;
+  const { thesis, setThesis, isLoading, error } = useThesisData(currentThesisId);
   const { toast } = useToast();
   
-  const { thesis, setThesis, isLoading, error } = useThesisData(currentThesisId);
   const [activeSection, setActiveSection] = useState<string>('');
   const [showPreview, setShowPreview] = useState(false);
   const [showChat, setShowChat] = useState(true);
-  const [showTracker, setShowTracker] = useState(true);
   const previewRef = React.useRef<HTMLDivElement>(null);
 
   useThesisAutosave(thesis);
@@ -221,6 +221,29 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     );
   }
 
+  const handleSectionUpdate = (updatedSection: Section) => {
+    console.log('Section updated:', updatedSection);
+    if (!thesis) return;
+    
+    setThesis(prevThesis => {
+      if (!prevThesis) return prevThesis;
+      return {
+        ...prevThesis,
+        content: {
+          ...prevThesis.content,
+          sections: prevThesis.content.sections?.map(section =>
+            section.id === updatedSection.id ? updatedSection : section
+          ) || []
+        }
+      };
+    });
+
+    toast({
+      title: "Section Updated",
+      description: "Your changes have been saved successfully.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background flex">
       <ThesisSidebar
@@ -245,6 +268,15 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
             setShowTracker={setShowTracker}
           />
         </div>
+
+        {activeSection && (
+          <div className="px-8 py-4">
+            <UniversalSectionEditor
+              section={getAllSections.find(s => s.id === activeSection)!}
+              onUpdate={handleSectionUpdate}
+            />
+          </div>
+        )}
 
         <ThesisEditorMain
           thesis={thesis}
@@ -303,3 +335,5 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     </div>
   );
 };
+
+export default ThesisEditor;
