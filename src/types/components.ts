@@ -65,7 +65,7 @@ export interface ThesisSidebarProps {
   sections: Array<{
     id: string;
     title: string;
-    content: string;
+    content?: any;
   }>;
   activeSection: string;
   onSectionSelect: (id: string) => void;

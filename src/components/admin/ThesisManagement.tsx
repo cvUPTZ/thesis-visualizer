@@ -25,18 +25,8 @@ export const ThesisManagement = () => {
 
   const fetchTheses = async () => {
     try {
-      const { data, error } = await supabase
-        .from('theses')
-        .select(`
-          *,
-          thesis_collaborators (
-            user_id,
-            role,
-            profiles (
-              email
-            )
-          )
-        `);
+      const { data, error } = await (supabase.from('theses' as any) as any)
+        .select('*');
 
       if (error) throw error;
       setTheses(data || []);
@@ -54,8 +44,7 @@ export const ThesisManagement = () => {
 
   const handleDelete = async (thesisId: string) => {
     try {
-      const { error } = await supabase
-        .from('theses')
+      const { error } = await (supabase.from('theses' as any) as any)
         .delete()
         .eq('id', thesisId);
 
@@ -76,10 +65,6 @@ export const ThesisManagement = () => {
     }
   };
 
-  const viewThesis = (thesisId: string) => {
-    navigate(`/thesis/${thesisId}`);
-  };
-
   if (loading) {
     return <div>Loading theses...</div>;
   }
@@ -90,18 +75,16 @@ export const ThesisManagement = () => {
         <TableHeader>
           <TableRow>
             <TableHead>Title</TableHead>
-            <TableHead>Owner</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead>Created At</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {theses.map((thesis) => (
+          {theses.map((thesis: any) => (
             <TableRow key={thesis.id}>
               <TableCell>{thesis.title}</TableCell>
-              <TableCell>
-                {thesis.thesis_collaborators?.find((tc: any) => tc.role === 'owner')?.profiles?.email || 'No owner'}
-              </TableCell>
+              <TableCell>{thesis.status}</TableCell>
               <TableCell>
                 {new Date(thesis.created_at).toLocaleDateString()}
               </TableCell>
@@ -109,7 +92,7 @@ export const ThesisManagement = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => viewThesis(thesis.id)}
+                  onClick={() => navigate(`/thesis/${thesis.id}`)}
                 >
                   <Eye className="w-4 h-4" />
                 </Button>

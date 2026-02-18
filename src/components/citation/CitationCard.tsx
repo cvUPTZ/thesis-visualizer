@@ -29,8 +29,7 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
 
   const handleRemove = async () => {
     try {
-      const { error } = await supabase
-        .from('citations')
+      const { error } = await (supabase.from('citations' as any) as any)
         .delete()
         .eq('id', citation.id);
 
@@ -55,8 +54,7 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
     try {
       const updatedCitation = { ...citation, ...updatedFields };
       
-      const { error } = await supabase
-        .from('citations')
+      const { error } = await (supabase.from('citations' as any) as any)
         .update(updatedCitation)
         .eq('id', citation.id);
 
@@ -121,8 +119,8 @@ export const CitationCard = ({ citation, onRemove, onUpdate, onPreview }: Citati
       <CardContent className="space-y-3">
         <Select
           value={citation.type}
-          onValueChange={(value: 'book' | 'article' | 'conference' | 'website' | 'other') =>
-            handleUpdate({ type: value })
+          onValueChange={(value: any) =>
+            handleUpdate({ type: value as any })
           }
         >
           <SelectTrigger className="w-full">

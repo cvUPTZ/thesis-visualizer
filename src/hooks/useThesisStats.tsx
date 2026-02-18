@@ -14,13 +14,12 @@ export const useThesisStats = (userId: string | null) => {
       console.log('📊 Fetching thesis stats for user:', userId);
       
       if (!userId) {
-        console.log('❌ No user ID available for fetching thesis stats');
         throw new Error('User ID is required');
       }
 
       const { data: theses, error } = await supabase
-        .from('thesis_collaborators')
-        .select('role')
+        .from('theses' as any)
+        .select('id, status')
         .eq('user_id', userId);
 
       if (error) {
@@ -28,12 +27,12 @@ export const useThesisStats = (userId: string | null) => {
         throw error;
       }
 
-      console.log('✅ Thesis stats fetched:', theses);
+      const thesesArr = (theses || []) as any[];
 
       return {
-        total: theses?.length || 0,
-        inProgress: theses?.filter(t => t.role === 'editor').length || 0,
-        completed: theses?.filter(t => t.role === 'owner').length || 0,
+        total: thesesArr.length,
+        inProgress: thesesArr.filter((t: any) => t.status === 'draft' || t.status === 'in_review').length,
+        completed: thesesArr.filter((t: any) => t.status === 'published').length,
       };
     },
     retry: 1,

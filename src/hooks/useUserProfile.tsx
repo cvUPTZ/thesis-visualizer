@@ -1,26 +1,27 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Profile } from '@/types/profile';
+
+interface UserProfile {
+  id: string;
+  email: string | null;
+  role: string | null;
+  full_name: string | null;
+  created_at: string;
+}
 
 export const useUserProfile = (userId: string | null) => {
   return useQuery({
     queryKey: ['user-profile', userId],
-    queryFn: async (): Promise<Profile | null> => {
+    queryFn: async (): Promise<UserProfile | null> => {
       console.log('👤 Fetching user profile for:', userId);
       
       if (!userId) {
-        console.log('❌ No user ID available for fetching profile');
         throw new Error('User ID is required');
       }
 
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          roles (
-            name
-          )
-        `)
+        .select('*')
         .eq('id', userId)
         .maybeSingle();
 

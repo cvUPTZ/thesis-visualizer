@@ -40,7 +40,7 @@ export const SectionItem: React.FC<SectionItemProps> = ({
       </div>
 
       <Textarea
-        value={section.content}
+        value={typeof section.content === 'string' ? section.content : ''}
         onChange={(e) => onUpdateSection({ ...section, content: e.target.value })}
         className="min-h-[100px] bg-white border focus-visible:ring-1 focus-visible:ring-primary/20"
         placeholder="Start writing your section content..."
@@ -48,7 +48,7 @@ export const SectionItem: React.FC<SectionItemProps> = ({
 
       <div className="flex items-center gap-2 text-sm text-gray-500">
         <FileText className="w-4 h-4" />
-        <span>{section.content.length} characters</span>
+        <span>{(typeof section.content === 'string' ? section.content : '').length} characters</span>
       </div>
     </div>
   );

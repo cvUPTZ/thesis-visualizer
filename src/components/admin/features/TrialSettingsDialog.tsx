@@ -30,8 +30,7 @@ export const TrialSettingsDialog: React.FC<TrialSettingsDialogProps> = ({
 
   const handleSave = async () => {
     try {
-      const { error } = await supabase
-        .from('trial_settings')
+      const { error } = await (supabase.from('trial_settings' as any) as any)
         .update({ trial_days: trialDays })
         .eq('id', settings?.id);
 

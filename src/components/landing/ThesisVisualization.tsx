@@ -20,26 +20,26 @@ export default function ThesisVisualization() {
 
   // Calculate overall progress
   const allSections = [
-    ...thesis.frontMatter,
-    ...thesis.chapters.flatMap(chapter => chapter.sections),
-    ...thesis.backMatter
+    ...(thesis.content?.frontMatter || []),
+    ...(thesis.content?.chapters || []).flatMap((chapter: any) => chapter.sections || []),
+    ...(thesis.content?.backMatter || [])
   ];
   
-  const completedSections = allSections.filter(section => 
-    section.content && section.content.trim().length > 100
+  const completedSections = allSections.filter((section: any) => 
+    section.content && typeof section.content === 'string' && section.content.trim().length > 100
   ).length;
   
-  const totalProgress = Math.round((completedSections / allSections.length) * 100);
+  const totalProgress = allSections.length > 0 ? Math.round((completedSections / allSections.length) * 100) : 0;
 
-  // Calculate chapter completion status
-  const chapterStatus = thesis.chapters.map(chapter => {
-    const completedChapterSections = chapter.sections.filter(
-      section => section.content && section.content.trim().length > 100
+  const chapterStatus = (thesis.content?.chapters || []).map((chapter: any) => {
+    const secs = chapter.sections || [];
+    const completedChapterSections = secs.filter(
+      (section: any) => section.content && typeof section.content === 'string' && section.content.trim().length > 100
     ).length;
     return {
       title: chapter.title,
-      progress: Math.round((completedChapterSections / chapter.sections.length) * 100),
-      complete: completedChapterSections === chapter.sections.length
+      progress: secs.length > 0 ? Math.round((completedChapterSections / secs.length) * 100) : 0,
+      complete: secs.length > 0 && completedChapterSections === secs.length
     };
   });
 

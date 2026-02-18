@@ -118,7 +118,7 @@ export const CollaboratorInviteForm = ({
           .from('notifications')
           .insert({
             user_id: existingUser.id,
-            thesis_id: thesisId,
+            title: 'Collaboration Invitation',
             type: 'invitation',
             message: `You have been invited to collaborate on "${thesisTitle}" as a ${role}`
           });

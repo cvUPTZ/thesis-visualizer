@@ -27,8 +27,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ thesisId }) => {
       }
 
       console.log('Sending message:', newMessage);
-      const { error } = await supabase
-        .from('chat_messages')
+      const { error } = await (supabase.from('chat_messages' as any) as any)
         .insert({
           thesis_id: thesisId,
           content: newMessage.trim(),

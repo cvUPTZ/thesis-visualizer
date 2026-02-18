@@ -4,7 +4,7 @@ import { TableOfContents } from './thesis/sidebar/TableOfContents';
 import { cn } from '@/lib/utils';
 
 interface ThesisSidebarProps {
-  sections: Section[];
+  sections: Array<{ id: string; title: string; content?: any }>;
   activeSection: string;
   onSectionSelect: (id: string) => void;
 }

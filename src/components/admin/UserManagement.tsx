@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import {
   Table,
@@ -23,47 +22,20 @@ import { Shield, ShieldCheck, User, Settings, UserPlus } from 'lucide-react';
 
 export const UserManagement = () => {
   const [users, setUsers] = useState<any[]>([]);
-  const [roles, setRoles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchUsers();
-    fetchRoles();
   }, []);
-
-  const fetchRoles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('roles')
-        .select('*');
-
-      if (error) throw error;
-      setRoles(data || []);
-    } catch (error: any) {
-      console.error('Error fetching roles:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch roles',
-        variant: 'destructive',
-      });
-    }
-  };
 
   const fetchUsers = async () => {
     try {
-      console.log('Fetching users...');
       const { data, error } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          roles (
-            name
-          )
-        `);
+        .select('*');
 
       if (error) throw error;
-      console.log('Users fetched:', data);
       setUsers(data || []);
     } catch (error: any) {
       console.error('Error fetching users:', error);
@@ -77,12 +49,11 @@ export const UserManagement = () => {
     }
   };
 
-  const updateUserRole = async (userId: string, roleId: string) => {
+  const updateUserRole = async (userId: string, role: string) => {
     try {
-      console.log('Updating user role...', { userId, roleId });
       const { error } = await supabase
         .from('profiles')
-        .update({ role_id: roleId })
+        .update({ role })
         .eq('id', userId);
 
       if (error) throw error;
@@ -102,8 +73,8 @@ export const UserManagement = () => {
     }
   };
 
-  const getRoleBadgeColor = (roleName: string) => {
-    switch (roleName) {
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
       case 'admin':
         return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
       case 'user':
@@ -120,70 +91,53 @@ export const UserManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-admin-accent-tertiary">User Management</h2>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            className="gap-2 text-admin-accent-primary hover:text-admin-accent-secondary border-admin-accent-primary/20 hover:border-admin-accent-secondary/40"
-          >
-            <UserPlus className="w-4 h-4" />
-            Add User
-          </Button>
-          <Button 
-            variant="outline" 
-            className="gap-2 text-admin-accent-primary hover:text-admin-accent-secondary border-admin-accent-primary/20 hover:border-admin-accent-secondary/40"
-          >
-            <Settings className="w-4 h-4" />
-            Settings
-          </Button>
-        </div>
+        <h2 className="text-2xl font-bold">User Management</h2>
       </div>
       
-      <div className="rounded-md border border-admin-accent-secondary/30">
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-admin-accent-tertiary">User</TableHead>
-              <TableHead className="text-admin-accent-tertiary">Current Role</TableHead>
-              <TableHead className="text-admin-accent-tertiary">Actions</TableHead>
+              <TableHead>User</TableHead>
+              <TableHead>Current Role</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.map((user) => (
-              <TableRow key={user.id} className="hover:bg-muted/50">
+              <TableRow key={user.id}>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-admin-accent-primary" />
+                    <User className="h-4 w-4 text-muted-foreground" />
                     {user.email}
                   </div>
                 </TableCell>
                 <TableCell>
                   <Badge 
                     variant="secondary"
-                    className={`${getRoleBadgeColor(user.roles?.name)} flex w-fit items-center gap-1`}
+                    className={`${getRoleBadgeColor(user.role)} flex w-fit items-center gap-1`}
                   >
-                    {user.roles?.name === 'admin' ? (
+                    {user.role === 'admin' ? (
                       <ShieldCheck className="h-3 w-3" />
                     ) : (
                       <Shield className="h-3 w-3" />
                     )}
-                    {user.roles?.name || 'No role'}
+                    {user.role || 'No role'}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   <Select
                     onValueChange={(value) => updateUserRole(user.id, value)}
-                    defaultValue={user.role_id || ''}
+                    defaultValue={user.role || ''}
                   >
-                    <SelectTrigger className="w-[180px] border-admin-accent-primary/20 text-admin-accent-primary">
+                    <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
                     <SelectContent>
-                      {roles.map((role) => (
-                        <SelectItem key={role.id} value={role.id}>
-                          {role.name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="tracker">Tracker</SelectItem>
+                      <SelectItem value="manager">Manager</SelectItem>
                     </SelectContent>
                   </Select>
                 </TableCell>

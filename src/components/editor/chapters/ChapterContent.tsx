@@ -1,5 +1,5 @@
 import React from 'react';
-import { Chapter, Section } from '@/types/thesis';
+import { Chapter, Section, SectionType } from '@/types/thesis';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
@@ -20,14 +20,19 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
   const handleAddSection = () => {
     const newSection: Section = {
       id: Date.now().toString(),
+      thesis_id: '',
       title: 'New Section',
       content: '',
-      type: 'custom',
+      type: SectionType.CUSTOM,
       order: chapter.sections.length + 1,
+      required: false,
       figures: [],
       tables: [],
       citations: [],
-      references: []
+      references: [],
+      footnotes: [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     onUpdateChapter({
