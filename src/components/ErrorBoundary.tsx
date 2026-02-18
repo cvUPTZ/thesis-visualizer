@@ -37,12 +37,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
       const { data: session } = await supabase.auth.getSession();
       const userId = session?.session?.user?.id;
 
-      await supabase.from('app_issues').insert({
+      await (supabase.from('app_issues' as any) as any).insert({
         user_id: userId,
         error_message: error.message,
-        error_stack: error.stack,
-        component_name: errorInfo.componentStack,
-        route_path: window.location.pathname,
+        component_name: errorInfo.componentStack?.slice(0, 500),
         browser_info: navigator.userAgent
       });
     } catch (err) {

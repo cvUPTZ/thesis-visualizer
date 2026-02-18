@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_issues: {
+        Row: {
+          browser_info: string | null
+          component_name: string | null
+          created_at: string
+          error_message: string
+          id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          browser_info?: string | null
+          component_name?: string | null
+          created_at?: string
+          error_message: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          browser_info?: string | null
+          component_name?: string | null
+          created_at?: string
+          error_message?: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       assignment_logs: {
         Row: {
           assigned_event_types: string[] | null
@@ -1527,6 +1557,86 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      theses: {
+        Row: {
+          content: Json
+          created_at: string
+          description: string | null
+          id: string
+          language: string | null
+          status: string
+          supervisor_email: string | null
+          supervisor_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          version: string | null
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          language?: string | null
+          status?: string
+          supervisor_email?: string | null
+          supervisor_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id: string
+          version?: string | null
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          language?: string | null
+          status?: string
+          supervisor_email?: string | null
+          supervisor_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          version?: string | null
+        }
+        Relationships: []
+      }
+      thesis_collaborators: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          thesis_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: string
+          thesis_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          thesis_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thesis_collaborators_thesis_id_fkey"
+            columns: ["thesis_id"]
+            isOneToOne: false
+            referencedRelation: "theses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       timeline_events: {
         Row: {

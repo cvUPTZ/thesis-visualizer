@@ -21,31 +21,16 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        console.log('Fetching comments for thesis:', thesisId, 'section:', sectionId);
-        const { data: commentsData, error: commentsError } = await supabase
-          .from('thesis_reviews')
-          .select(`
-            *,
-            profiles (
-              email,
-              roles (
-                name
-              )
-            )
-          `)
+        const { data: commentsData, error: commentsError } = await (supabase
+          .from('thesis_reviews' as any) as any)
+          .select('*')
           .eq('thesis_id', thesisId)
           .eq('section_id', sectionId)
           .order('created_at', { ascending: true });
 
-        if (commentsError) {
-          console.error('Error fetching comments:', commentsError);
-          throw commentsError;
-        }
+        if (commentsError) throw commentsError;
 
-        console.log('Fetched comments:', commentsData);
-        
-        // Transform the flat comments into threads
-        const threads: CommentThread[] = commentsData.map((comment: any) => ({
+        const threads: CommentThread[] = (commentsData || []).map((comment: any) => ({
           id: comment.id,
           comments: [transformComment(comment)],
           section_id: comment.section_id,
@@ -56,24 +41,15 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
 
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select(`
-            *,
-            roles (
-              name
-            )
-          `)
+          .select('*')
           .eq('id', (await supabase.auth.getUser()).data.user?.id)
           .single();
 
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-          throw profileError;
-        }
+        if (profileError) throw profileError;
 
-        console.log('Fetched profile:', profileData);
-        setProfile(profileData);
+        setProfile(profileData as any as Profile);
       } catch (error) {
-        console.error('Error in fetchComments:', error);
+        console.error('Error fetching comments:', error);
         toast({
           title: "Error",
           description: "Failed to load comments",
@@ -89,34 +65,19 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
 
   const handleSubmitComment = async (content: string) => {
     try {
-      console.log('Submitting new comment');
-      const { data, error } = await supabase
-        .from('thesis_reviews')
-        .insert([
-          {
-            thesis_id: thesisId,
-            section_id: sectionId,
-            reviewer_id: profile?.id,
-            content: { text: content },
-            status: 'pending'
-          }
-        ])
-        .select(`
-          *,
-          profiles (
-            email,
-            roles (
-              name
-            )
-          )
-        `)
+      const { data, error } = await (supabase.from('thesis_reviews' as any) as any)
+        .insert([{
+          thesis_id: thesisId,
+          section_id: sectionId,
+          reviewer_id: profile?.id,
+          content: { text: content },
+          status: 'pending'
+        }])
+        .select('*')
         .single();
 
       if (error) throw error;
 
-      console.log('New comment submitted:', data);
-      
-      // Add the new comment as a thread
       const newThread: CommentThread = {
         id: data.id,
         comments: [transformComment(data)],
@@ -140,9 +101,7 @@ export const ReviewerInterface = ({ thesisId, sectionId }: ReviewerInterfaceProp
     }
   };
 
-  if (loading) {
-    return <div>Loading comments...</div>;
-  }
+  if (loading) return <div>Loading comments...</div>;
 
   return (
     <div className="space-y-4">

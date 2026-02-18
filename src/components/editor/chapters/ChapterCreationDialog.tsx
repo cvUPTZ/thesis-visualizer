@@ -36,7 +36,9 @@ export const ChapterCreationDialog: React.FC<ChapterCreationDialogProps> = ({
         width: 0,
         height: 0
       },
-      position: 'inline'
+      position: 'inline',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
     
     setFigures(prevFigures => [...prevFigures, newFigure]);

@@ -21,8 +21,7 @@ export const FeedbackForm = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('user_feedback')
+      const { error } = await (supabase.from('user_feedback' as any) as any)
         .insert([{ email, message: feedback }]);
 
       if (error) throw error;

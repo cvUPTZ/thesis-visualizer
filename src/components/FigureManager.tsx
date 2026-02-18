@@ -51,7 +51,9 @@ export const FigureManager = ({
               width: img.width,
               height: img.height
             },
-            position: 'inline'
+            position: 'inline',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           };
           
           onAddFigure(newFigure);

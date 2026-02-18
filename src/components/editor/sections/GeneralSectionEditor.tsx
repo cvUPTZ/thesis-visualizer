@@ -34,7 +34,7 @@ export const GeneralSectionEditor: React.FC<GeneralSectionEditorProps> = ({
     if (!section.content) return '';
     
     if (Array.isArray(section.content)) {
-      return section.content.map(item => item.content).join('\n\n');
+      return section.content.map((item: any) => item.content).join('\n\n');
     }
     
     return section.content;

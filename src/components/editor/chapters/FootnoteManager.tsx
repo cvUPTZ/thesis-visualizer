@@ -23,6 +23,7 @@ export const FootnoteManager: React.FC<FootnoteManagerProps> = ({
   const handleAddFootnote = () => {
     const newFootnote: Footnote = {
       id: Date.now().toString(),
+      text: '',
       thesis_id: thesisId,
       section_id: sectionId,
       content: '',

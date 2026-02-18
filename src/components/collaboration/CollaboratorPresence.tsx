@@ -83,7 +83,7 @@ export const CollaboratorPresence: React.FC<CollaboratorPresenceProps> = ({ thes
           });
 
         // Initialize with collaborators from database
-        const initialCollaborators = collaborators?.map(collab => ({
+        const initialCollaborators = (collaborators as any[])?.map((collab: any) => ({
           id: collab.id,
           user_id: collab.user_id,
           email: collab.profiles?.email,

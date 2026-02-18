@@ -37,7 +37,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
   const previewRef = React.useRef<HTMLDivElement>(null);
 
   useThesisAutosave(thesis);
-  useThesisInitialization(thesis);
+  useThesisInitialization(currentThesisId);
   const { updateRef } = useThesisRealtime(currentThesisId, setThesis);
 
   const getAllSections = useMemo(() => {
@@ -79,7 +79,7 @@ export const ThesisEditor: React.FC<ThesisEditorProps> = ({ thesisId: propsThesi
     const completedSections = sections.filter(section => {
       if (!section?.content) return false;
       if (Array.isArray(section.content)) {
-        return section.content.some(item => item.content && item.content.trim().length > 0);
+        return section.content.some((item: any) => item.content && item.content.trim().length > 0);
       }
       return typeof section.content === 'string' && section.content.trim().length > 0;
     }).length;

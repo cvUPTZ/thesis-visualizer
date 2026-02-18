@@ -29,8 +29,7 @@ export const CommentThread = ({
     if (!currentUser || !replyContent.trim()) return;
 
     try {
-      const { data, error } = await supabase
-        .from('thesis_reviews')
+      const { data, error } = await (supabase.from('thesis_reviews' as any) as any)
         .insert({
           thesis_id: thesisId,
           section_id: sectionId,

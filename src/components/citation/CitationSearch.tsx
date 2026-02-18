@@ -1,5 +1,5 @@
 import React from 'react';
-import { Citation } from '@/types/thesis';
+import { Citation, CitationType } from '@/types/thesis';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -45,11 +45,12 @@ export const CitationSearch: React.FC<CitationSearchProps> = ({ onCitationSelect
     const now = new Date().toISOString();
     return {
       id: crypto.randomUUID(),
+      reference_id: '',
       text: result.title?.[0] || '',
       source: result.publisher || '',
       authors: result.author?.map((a: any) => `${a.given} ${a.family}`) || [],
       year: result.published?.['date-parts']?.[0]?.[0]?.toString() || '',
-      type: 'article',
+      type: CitationType.ARTICLE,
       doi: result.DOI,
       url: result.URL,
       journal: result['container-title']?.[0],
@@ -57,16 +58,6 @@ export const CitationSearch: React.FC<CitationSearchProps> = ({ onCitationSelect
       issue: result.issue,
       pages: result.page,
       publisher: result.publisher,
-      title: result.title?.[0] || '',
-      author_last_names: result.author?.map((a: any) => a.family) || [],
-      author_first_initials: result.author?.map((a: any) => a.given?.[0] || '') || [],
-      author_middle_initials: result.author?.map((a: any) => {
-        const names = a.given?.split(' ') || [];
-        return names.length > 1 ? names[1][0] : '';
-      }) || [],
-      specific_date: result.published?.['date-parts']?.[0]?.join('-'),
-      container_title: result['container-title']?.[0],
-      edition: result.edition,
       created_at: now,
       updated_at: now
     };

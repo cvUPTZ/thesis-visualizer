@@ -8,48 +8,29 @@ export const ThesisVisualization = () => {
 
   useEffect(() => {
     const fetchThesis = async () => {
-      const { data, error } = await supabase
-        .from('theses')
+      const { data, error } = await (supabase.from('theses' as any) as any)
         .select('*')
         .limit(1)
         .single();
 
-      if (error) {
-        console.error('Error fetching thesis:', error);
-        return;
-      }
+      if (error || !data) return;
 
-      if (data) {
-        const content = typeof data.content === 'string' 
-          ? JSON.parse(data.content)
-          : data.content;
+      const content = typeof data.content === 'string' 
+        ? JSON.parse(data.content)
+        : data.content;
 
-        setThesis({
-          ...data,
-          content,
-          metadata: {
-            description: '',
-            keywords: [],
-            createdAt: data.created_at,
-            universityName: '',
-            departmentName: '',
-            authorName: '',
-            thesisDate: '',
-            committeeMembers: [],
-          },
-          frontMatter: content.frontMatter || [],
-          chapters: content.chapters || [],
-          backMatter: content.backMatter || [],
-        });
-      }
+      setThesis({
+        ...data,
+        content,
+      } as Thesis);
     };
 
     fetchThesis();
   }, []);
 
-  if (!thesis) {
-    return null;
-  }
+  if (!thesis) return null;
+
+  const chapters = thesis.content?.chapters || [];
 
   return (
     <div className="relative w-full h-full">
@@ -59,32 +40,23 @@ export const ThesisVisualization = () => {
         transition={{ duration: 0.5 }}
         className="absolute inset-0"
       >
-        {/* Visualization content */}
         <div className="grid grid-cols-3 gap-4 p-4">
-          {thesis.chapters.map((chapter, index) => (
+          {chapters.map((chapter: any, index: number) => (
             <motion.div
               key={chapter.id}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: index * 0.1 }}
-              className="p-4 bg-white rounded-lg shadow"
+              className="p-4 bg-card rounded-lg shadow"
             >
               <h3 className="font-bold">{chapter.title}</h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {chapter.sections?.length || 0} sections
               </p>
             </motion.div>
           ))}
         </div>
       </motion.div>
-      <style>{`
-        .visualization-container {
-          position: relative;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-        }
-      `}</style>
     </div>
   );
 };

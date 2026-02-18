@@ -18,19 +18,13 @@ export const IssueManagement = () => {
   const { data: issues, isLoading, error, refetch } = useQuery({
     queryKey: ['app-issues'],
     queryFn: async () => {
-      console.log('Fetching app issues...');
       const { data, error } = await supabase
-        .from('app_issues')
-        .select(`
-          *,
-          profiles (
-            email
-          )
-        `)
+        .from('app_issues' as any)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as any[];
     }
   });
 
@@ -55,11 +49,7 @@ export const IssueManagement = () => {
           <p className="text-muted-foreground">
             {error instanceof Error ? error.message : 'Failed to load issues'}
           </p>
-          <Button 
-            onClick={() => refetch()} 
-            variant="outline" 
-            className="mt-4"
-          >
+          <Button onClick={() => refetch()} variant="outline" className="mt-4">
             Retry
           </Button>
         </CardContent>
@@ -71,11 +61,7 @@ export const IssueManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Application Issues</h2>
-        <Button 
-          onClick={() => refetch()} 
-          variant="outline" 
-          className="gap-2"
-        >
+        <Button onClick={() => refetch()} variant="outline" className="gap-2">
           <RefreshCw className="w-4 h-4" />
           Refresh
         </Button>
@@ -87,13 +73,11 @@ export const IssueManagement = () => {
             <TableRow>
               <TableHead>Component</TableHead>
               <TableHead>Error Message</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead>Browser</TableHead>
               <TableHead>Created At</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {issues?.map((issue) => (
+            {issues?.map((issue: any) => (
               <TableRow key={issue.id}>
                 <TableCell>
                   <Badge variant="outline">
@@ -103,10 +87,6 @@ export const IssueManagement = () => {
                 <TableCell className="max-w-md truncate">
                   {issue.error_message}
                 </TableCell>
-                <TableCell>{issue.profiles?.email || 'Anonymous'}</TableCell>
-                <TableCell className="max-w-xs truncate">
-                  {issue.browser_info}
-                </TableCell>
                 <TableCell>
                   {new Date(issue.created_at).toLocaleString()}
                 </TableCell>
@@ -114,7 +94,7 @@ export const IssueManagement = () => {
             ))}
             {!issues?.length && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
+                <TableCell colSpan={3} className="text-center py-8">
                   No issues found
                 </TableCell>
               </TableRow>
